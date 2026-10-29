@@ -83,6 +83,7 @@ interface NavbarProps {
   superStarRemainingLabel?: string | null;
   shortcutMapActive?: boolean;
   onOpenLegalCitationsModal?: () => void;
+  onOpenQuickGlossary?: () => void;
   zenReadingMode?: boolean;
   onToggleZenReadingMode?: () => void;
 }
@@ -123,6 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   superStarRemainingLabel = null,
   shortcutMapActive = false,
   onOpenLegalCitationsModal,
+  onOpenQuickGlossary,
   zenReadingMode = false,
   onToggleZenReadingMode,
 }) => {
@@ -207,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     {
       label: 'Games & Tools',
       items: [
-        { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '17' },
+        { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '18' },
         { id: 'calculator', label: 'Calculator', icon: <Calculator className="w-4 h-4 text-cyan-300 shrink-0" /> },
         { id: 'shop', label: "Toad's Shop", icon: <ShoppingBag className="w-4 h-4 text-pink-300 shrink-0" /> },
       ],
@@ -743,6 +745,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                         >
                           <Scale className="w-3.5 h-3.5 shrink-0" />
                           <span>Citations</span>
+                        </button>
+                      )}
+
+                      {onOpenQuickGlossary && (
+                        <button
+                          type="button"
+                          data-testid="navbar-glossary-btn"
+                          onClick={() => {
+                            setShowMoreToolsMenu(false);
+                            onOpenQuickGlossary();
+                            marioAudio.playPowerUp();
+                          }}
+                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                          <span>Glossary</span>
                         </button>
                       )}
 
@@ -1363,6 +1381,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <Scale className="w-3.5 h-3.5 shrink-0" />
                       <span>Citations</span>
+                    </button>
+                  )}
+                  {onOpenQuickGlossary && (
+                    <button
+                      type="button"
+                      data-testid="mobile-glossary-btn"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenQuickGlossary();
+                        marioAudio.playPowerUp();
+                      }}
+                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-rose-500 text-white font-black text-xs rounded-xl border border-black cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                      <span>Glossary</span>
                     </button>
                   )}
                   <button

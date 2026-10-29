@@ -198,4 +198,128 @@ test('buildNeedsImprovementFlashcards and buildRapidFireReviewQuiz filter strict
   });
 });
 
+test('shuffleFlashcardDeck randomizes card order, guarantees a fresh leading card, and preserveOrder keeps mixed difficulty tiers', async () => {
+  const { shuffleFlashcardDeck } = await import('./studyModes');
+  const { buildDynamicPrintPageCss } = await import('./printHelper');
+
+  const baseDeck = filterFlashcardsForDifficulty(FLASHCARDS_DATA, 'exam_prep', 1);
+  assert.ok(baseDeck.length >= 6);
+
+  const originalFirstId = baseDeck[0].id;
+  for (let trial = 0; trial < 15; trial++) {
+    const shuffledSource = shuffleFlashcardDeck(FLASHCARDS_DATA, originalFirstId);
+    const preservedFiltered = filterFlashcardsForDifficulty(
+      shuffledSource,
+      'exam_prep',
+      1,
+      true
+    );
+    assert.equal(preservedFiltered.length, baseDeck.length);
+    assert.equal(
+      new Set(preservedFiltered.map((c) => c.id)).size,
+      baseDeck.length,
+      'Shuffled deck retains exact card membership with zero duplicates'
+    );
+
+    const directShuffled = shuffleFlashcardDeck(baseDeck, originalFirstId);
+    assert.notEqual(
+      directShuffled[0].id,
+      originalFirstId,
+      'Shuffling always rotates a fresh card to position 0 when deck has >1 cards'
+    );
+  }
+
+  // Verify dynamic @page CSS forces landscape on certificates and portrait/landscape on guides
+  const certCss = buildDynamicPrintPageCss('landscape', '6mm');
+  assert.ok(certCss.includes('size: A4 landscape;'));
+  assert.ok(certCss.includes('margin: 6mm;'));
+
+  const portraitCss = buildDynamicPrintPageCss('portrait', '10mm 12mm');
+  assert.ok(portraitCss.includes('size: A4 portrait;'));
+});
+
+test('expanded QUICK_GLOSSARY_TERMS covers >=155 unique Philippine Labor Law doctrines across all 6 categories', async () => {
+  const { QUICK_GLOSSARY_TERMS, ALL_GLOSSARY_KEYWORDS, findGlossaryTerm } = await import(
+    '../data/quickGlossaryData'
+  );
+
+  assert.ok(
+    QUICK_GLOSSARY_TERMS.length >= 155,
+    `Expected >= 155 glossary items, got ${QUICK_GLOSSARY_TERMS.length}`
+  );
+
+  const uniqueIds = new Set(QUICK_GLOSSARY_TERMS.map((item) => item.id));
+  assert.equal(uniqueIds.size, QUICK_GLOSSARY_TERMS.length, 'Glossary IDs must be 100% unique');
+
+  const categories = new Set(QUICK_GLOSSARY_TERMS.map((item) => item.category));
+  assert.equal(categories.size, 6, 'All 6 Philippine Labor Law categories must be populated');
+
+  assert.ok(ALL_GLOSSARY_KEYWORDS.length >= 180);
+  const foundControl = findGlossaryTerm('Four-Fold Test');
+  assert.ok(foundControl);
+  assert.ok(foundControl.simplifiedDefinition.length > 40);
+});
+
+test('generateExamSimulationDeck builds a randomized 10-question multi-world quiz and computeExamSimulationBreakdown grades accurately', async () => {
+  const {
+    generateExamSimulationDeck,
+    computeExamSimulationBreakdown,
+    extractClozeSegments,
+  } = await import('./studyModes');
+
+  const deckExam = generateExamSimulationDeck('exam_prep', 10);
+  assert.equal(deckExam.length, 10);
+  assert.equal(new Set(deckExam.map((q) => q.id)).size, 10, '10 unique questions');
+
+  const distinctWorlds = new Set(deckExam.map((q) => q.worldCode));
+  assert.ok(
+    distinctWorlds.size >= 5,
+    `Expected broad multi-world topic coverage across Labor Law, got ${distinctWorlds.size}`
+  );
+  deckExam.forEach((q) => {
+    assert.ok(q.options.length >= 3);
+    assert.ok(q.correctIndex >= 0 && q.correctIndex < q.options.length);
+    assert.ok(q.explanation.length > 15);
+    assert.ok(q.legalBasis.length > 3);
+  });
+
+  // Answer first 8 right, 9th wrong, 10th unanswered (timeout)
+  const answersByIndex: Record<number, number | null> = {};
+  deckExam.forEach((q, idx) => {
+    if (idx < 8) {
+      answersByIndex[idx] = q.correctIndex;
+    } else if (idx === 8) {
+      answersByIndex[idx] = (q.correctIndex + 1) % q.options.length;
+    } else {
+      answersByIndex[idx] = null;
+    }
+  });
+
+  const summary = computeExamSimulationBreakdown({
+    deck: deckExam,
+    answersByIndex,
+    elapsedSeconds: 412,
+    timeLimitSeconds: 600,
+    timedOut: false,
+    difficulty: 'exam_prep',
+  });
+
+  assert.equal(summary.correctCount, 8);
+  assert.equal(summary.totalCount, 10);
+  assert.equal(summary.answeredCount, 9);
+  assert.equal(summary.unansweredCount, 1);
+  assert.equal(summary.accuracyPercent, 80);
+  assert.equal(summary.barVerdict, 'BAR EXAM PASSER (75%+ STANDARD)');
+  assert.equal(summary.coinsEarned, 8 * 7 + 15);
+  assert.ok(summary.worldBreakdown.length >= 5);
+
+  // Cloze extraction turns statutory percentages, days, and Articles into blanks
+  const cloze = extractClozeSegments(
+    'Under Article 87, overtime pay adds at least 25% after 8 hours, with ₱5,000,000 capital under D.O. 174.',
+    'test'
+  );
+  const blanks = cloze.filter((s) => s.type === 'blank');
+  assert.ok(blanks.length >= 4, `Expected >= 4 cloze blanks, got ${blanks.length}`);
+});
+
 

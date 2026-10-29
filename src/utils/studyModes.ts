@@ -545,14 +545,46 @@ export function pickFlashbackQuizQuestions(
 }
 
 /**
+ * Randomizes a flashcard deck using unbiased Fisher-Yates shuffling.
+ * When the deck has 2+ cards and `currentCardId` (or the previous leading card) is present,
+ * ensures the newly shuffled deck starts with a different card so the user immediately sees a fresh prompt.
+ */
+export function shuffleFlashcardDeck<T extends { id?: string }>(
+  cards: readonly T[],
+  currentCardId?: string,
+  rng: () => number = Math.random
+): T[] {
+  const shuffled = [...cards];
+  if (shuffled.length <= 1) return shuffled;
+
+  const avoidLeadId = currentCardId ?? shuffled[0]?.id;
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  // Guarantee the leading card visibly changes when possible
+  if (avoidLeadId && shuffled[0]?.id === avoidLeadId) {
+    const swapIdx = shuffled.findIndex((item, idx) => idx > 0 && item.id !== avoidLeadId);
+    if (swapIdx > 0) {
+      [shuffled[0], shuffled[swapIdx]] = [shuffled[swapIdx], shuffled[0]];
+    }
+  }
+
+  return shuffled;
+}
+
+/**
  * Filters & orders flashcards based on the global Difficulty toggle:
- * - 'casual': Easy & Medium core definition cards (Easy first).
- * - 'exam_prep': Medium & Hard exam-grade cards (Hard first) for multiple-choice testing.
+ * - 'casual': Easy & Medium core definition cards (Easy first unless preserveOrder is true).
+ * - 'exam_prep': Medium & Hard exam-grade cards (Hard first unless preserveOrder is true) for multiple-choice testing.
  */
 export function filterFlashcardsForDifficulty(
   cards: Flashcard[],
   difficulty: StudyDifficulty,
-  selectedWorld: number | 'all' = 'all'
+  selectedWorld: number | 'all' = 'all',
+  preserveOrder: boolean = false
 ): Flashcard[] {
   const worldScoped =
     selectedWorld === 'all' ? cards : cards.filter((c) => c.worldNum === selectedWorld);
@@ -562,6 +594,7 @@ export function filterFlashcardsForDifficulty(
       (c) => c.difficulty === 'Easy' || c.difficulty === 'Medium'
     );
     const list = casualCards.length > 0 ? casualCards : worldScoped;
+    if (preserveOrder) return [...list];
     const rank = { Easy: 0, Medium: 1, Hard: 2 };
     return [...list].sort((a, b) => rank[a.difficulty] - rank[b.difficulty]);
   }
@@ -570,6 +603,7 @@ export function filterFlashcardsForDifficulty(
     (c) => c.difficulty === 'Hard' || c.difficulty === 'Medium'
   );
   const list = examCards.length > 0 ? examCards : worldScoped;
+  if (preserveOrder) return [...list];
   const rank = { Hard: 0, Medium: 1, Easy: 2 };
   return [...list].sort((a, b) => rank[a.difficulty] - rank[b.difficulty]);
 }
@@ -942,6 +976,268 @@ export function buildRapidFireReviewQuiz(params: {
   };
 }
 
+export interface ExamSimulationAnswerRecord {
+  question: AdaptedQuizQuestion;
+  chosenIndex: number | null; // null if unanswered on timeout / early finish
+  isCorrect: boolean;
+}
+
+export interface ExamSimulationWorldBreakdownItem {
+  worldCode: QuizQuestion['worldCode'];
+  worldLabel: string;
+  correctCount: number;
+  totalCount: number;
+  accuracyPercent: number;
+}
+
+export interface ExamSimulationSummary {
+  correctCount: number;
+  totalCount: number;
+  answeredCount: number;
+  unansweredCount: number;
+  accuracyPercent: number;
+  elapsedSeconds: number;
+  timeLimitSeconds: number;
+  timedOut: boolean;
+  barVerdict: string;
+  feedbackMessage: string;
+  coinsEarned: number;
+  worldBreakdown: ExamSimulationWorldBreakdownItem[];
+}
+
+/**
+ * Generates a randomized 10-question multiple-choice Exam Simulation deck
+ * spanning all Labor Law worlds (W1–W6 + Holidays) with shuffled options so every
+ * simulation tests comprehensive statutory breadth without repeating question order.
+ */
+export function generateExamSimulationDeck(
+  difficulty: StudyDifficulty = 'exam_prep',
+  count: number = 10,
+  rng: () => number = Math.random
+): AdaptedQuizQuestion[] {
+  const safeCount = Math.max(1, Math.floor(count));
+  const fullPool = getQuizQuestionsForDifficulty(difficulty, 'all');
+  if (fullPool.length === 0) return [];
+
+  const shuffleArray = <T,>(items: readonly T[]): T[] => {
+    const arr = [...items];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // Group by worldCode so we draw at least 1 question per Labor Law domain first (round-robin),
+  // then fill remaining slots randomly from the remaining questions across all topics.
+  const worldOrder: QuizQuestion['worldCode'][] = shuffleArray([
+    'w1',
+    'w2',
+    'w3',
+    'w4',
+    'w5',
+    'w6',
+    'holidays',
+  ]);
+
+  const buckets = new Map<QuizQuestion['worldCode'], AdaptedQuizQuestion[]>();
+  worldOrder.forEach((wc) => {
+    buckets.set(wc, shuffleArray(fullPool.filter((q) => q.worldCode === wc)));
+  });
+
+  const pickedIds = new Set<number>();
+  const picked: AdaptedQuizQuestion[] = [];
+
+  for (const wc of worldOrder) {
+    if (picked.length >= safeCount) break;
+    const bucket = buckets.get(wc) || [];
+    const candidate = bucket.find((q) => !pickedIds.has(q.id));
+    if (candidate) {
+      pickedIds.add(candidate.id);
+      picked.push(candidate);
+    }
+  }
+
+  if (picked.length < safeCount) {
+    const remaining = shuffleArray(fullPool.filter((q) => !pickedIds.has(q.id)));
+    for (const q of remaining) {
+      if (picked.length >= safeCount) break;
+      pickedIds.add(q.id);
+      picked.push(q);
+    }
+  }
+
+  return shuffleArray(picked).map((item) => {
+    // Re-shuffle choices using rng for deterministic testing or live randomness
+    const indexed = item.options.map((text, idx) => ({
+      text,
+      isCorrect: idx === item.correctIndex,
+    }));
+    const shuffledOpts = shuffleArray(indexed);
+    const newCorrectIdx = Math.max(
+      0,
+      shuffledOpts.findIndex((o) => o.isCorrect)
+    );
+    return {
+      ...item,
+      options: shuffledOpts.map((o) => o.text),
+      correctIndex: newCorrectIdx,
+    };
+  });
+}
+
+/**
+ * Computes the complete post-quiz Exam Simulation score breakdown, Bar Exam rating,
+ * coin reward, and per-world topic accuracy breakdown.
+ */
+export function computeExamSimulationBreakdown(params: {
+  deck: readonly AdaptedQuizQuestion[];
+  answersByIndex: Record<number, number | null | undefined>;
+  elapsedSeconds: number;
+  timeLimitSeconds: number;
+  timedOut?: boolean;
+  difficulty?: StudyDifficulty;
+}): ExamSimulationSummary {
+  const {
+    deck,
+    answersByIndex,
+    elapsedSeconds,
+    timeLimitSeconds,
+    timedOut = false,
+    difficulty = 'exam_prep',
+  } = params;
+
+  const totalCount = Math.max(1, deck.length);
+  let correctCount = 0;
+  let answeredCount = 0;
+
+  const worldMap = new Map<
+    QuizQuestion['worldCode'],
+    { correct: number; total: number }
+  >();
+
+  deck.forEach((q, idx) => {
+    const chosen = answersByIndex[idx];
+    const hasAnswer = typeof chosen === 'number' && chosen >= 0;
+    const isCorrect = hasAnswer && chosen === q.correctIndex;
+    if (hasAnswer) answeredCount += 1;
+    if (isCorrect) correctCount += 1;
+
+    const prev = worldMap.get(q.worldCode) || { correct: 0, total: 0 };
+    worldMap.set(q.worldCode, {
+      correct: prev.correct + (isCorrect ? 1 : 0),
+      total: prev.total + 1,
+    });
+  });
+
+  const unansweredCount = Math.max(0, deck.length - answeredCount);
+  const accuracyPercent = Math.round((correctCount / totalCount) * 100);
+
+  let barVerdict = 'NEEDS STATUTORY REINFORCEMENT';
+  let feedbackMessage =
+    'Review the statutory rationales below for missed items, then launch a fresh 10-Question Simulation!';
+
+  if (accuracyPercent >= 90) {
+    barVerdict = 'BAR TOPNOTCHER DISTINCTION';
+    feedbackMessage =
+      'Outstanding Bar Exam mastery! Near-flawless command of Labor Standards, Wage Orders, Tenure, and Leaves.';
+  } else if (accuracyPercent >= 75) {
+    barVerdict = 'BAR EXAM PASSER (75%+ STANDARD)';
+    feedbackMessage =
+      'Strong passing performance above the 75% Philippine Bar benchmark! Inspect any missed items below to hit 100%.';
+  } else if (accuracyPercent >= 50) {
+    barVerdict = 'CONDITIONAL PASS — CLOSE TO 75%';
+    feedbackMessage =
+      'Solid foundation! Focus on the highlighted legal bases below to push past the 75% Bar passing mark.';
+  }
+
+  let coinsEarned = 0;
+  if (correctCount > 0) {
+    const base = correctCount * (difficulty === 'exam_prep' ? 7 : 5);
+    const passBonus = accuracyPercent === 100 ? 30 : accuracyPercent >= 80 ? 15 : 0;
+    coinsEarned = base + passBonus;
+  }
+
+  const canonicalOrder: QuizQuestion['worldCode'][] = [
+    'w1',
+    'w2',
+    'holidays',
+    'w3',
+    'w4',
+    'w5',
+    'w6',
+  ];
+
+  const worldBreakdown: ExamSimulationWorldBreakdownItem[] = canonicalOrder
+    .filter((wc) => worldMap.has(wc))
+    .map((wc) => {
+      const entry = worldMap.get(wc)!;
+      return {
+        worldCode: wc,
+        worldLabel: getQuizWorldLabel(wc),
+        correctCount: entry.correct,
+        totalCount: entry.total,
+        accuracyPercent: Math.round((entry.correct / Math.max(1, entry.total)) * 100),
+      };
+    });
+
+  return {
+    correctCount,
+    totalCount: deck.length,
+    answeredCount,
+    unansweredCount,
+    accuracyPercent,
+    elapsedSeconds: Math.max(1, Math.min(timeLimitSeconds, Math.round(elapsedSeconds))),
+    timeLimitSeconds,
+    timedOut,
+    barVerdict,
+    feedbackMessage,
+    coinsEarned,
+    worldBreakdown,
+  };
+}
+
+export interface ClozeSegment {
+  type: 'text' | 'blank';
+  value: string;
+  blankKey?: string;
+}
+
+/**
+ * Splits a statutory rule or doctrine sentence into plain text and interactive Cloze recall blanks
+ * targeting high-yield Bar Exam numbers, multipliers, durations, Peso thresholds, and Article/R.A. citations.
+ */
+export function extractClozeSegments(text: string, prefixKey: string = 'c'): ClozeSegment[] {
+  if (!text) return [];
+  const clozeRegex =
+    /(₱[\d,]+(?:\.\d+)?|\b\d+(?:\.\d+)?%|\b\d+(?:\.\d+)?\s*(?:calendar\s+days?|working\s+days?|days?|hours?|minutes?|months?|years?|weeks?)\b|\b(?:Art(?:icle|\.)\s*\d+[A-Za-z0-9()-]*|R\.A\.\s*(?:No\.\s*)?\d+|P\.D\.\s*(?:No\.\s*)?\d+|D\.O\.\s*(?:No\.\s*)?[\d-]+)\b)/gi;
+
+  const parts = text.split(clozeRegex);
+  if (parts.length <= 1) {
+    return [{ type: 'text', value: text }];
+  }
+
+  let blankIdx = 0;
+  return parts
+    .filter((p) => p.length > 0)
+    .map((part) => {
+      clozeRegex.lastIndex = 0;
+      if (clozeRegex.test(part)) {
+        blankIdx += 1;
+        return {
+          type: 'blank' as const,
+          value: part,
+          blankKey: `${prefixKey}-${blankIdx}`,
+        };
+      }
+      return {
+        type: 'text' as const,
+        value: part,
+      };
+    });
+}
+
 export { BOWSER_BOSS_QUESTIONS };
+
 
 

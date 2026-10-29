@@ -20,6 +20,12 @@ import {
   LakituCloudClimberGame,
 } from './ExtraArcadeGames';
 import {
+  KoopaBrickBreakerGame,
+  YoshiEggTossGame,
+  BooBurdenMansionGame,
+  ChronoPrescriptionBlitzGame,
+} from './NewVaultGames';
+import {
   MarioCharacterAvatar,
   MarioMushroomIcon,
   MarioQuestionBlockIcon,
@@ -42,6 +48,10 @@ import {
   Scale,
   Cloud,
   BookOpen,
+  Crosshair,
+  Eye,
+  Timer,
+  Disc,
 } from 'lucide-react';
 import { GameDoctrinesModal } from './GameDoctrinesModal';
 
@@ -71,7 +81,11 @@ export type VaultGameId =
   | 'sorter'
   | 'toad_slots'
   | 'world6_clinic'
-  | 'lakitu_climber';
+  | 'lakitu_climber'
+  | 'koopa_breaker'
+  | 'yoshi_toss'
+  | 'boo_burden'
+  | 'chrono_blitz';
 
 export const GameVault: React.FC<GameVaultProps> = ({
   equippedAvatar,
@@ -224,6 +238,38 @@ export const GameVault: React.FC<GameVaultProps> = ({
       badge: 'HOLIDAY PIPES',
       icon: <Layers className="w-6 h-6 text-cyan-600" />,
     },
+    {
+      id: 'koopa_breaker',
+      title: 'Koopa Shell Statutory Breaker',
+      genre: 'Breakout Physics Arcade',
+      desc: 'Rebound a spinning Koopa Shell off your Mushroom Paddle to smash 24 Labor Code [?] multiplier blocks!',
+      badge: 'NEW BREAKOUT',
+      icon: <Disc className="w-6 h-6 text-emerald-600" />,
+    },
+    {
+      id: 'yoshi_toss',
+      title: "Yoshi's Statutory Egg Toss",
+      genre: 'Trajectory Aim Shooter',
+      desc: 'Aim Yoshi’s dotted arc and launch spotted eggs at floating 100%–390% statutory payroll rate clouds!',
+      badge: 'NEW AIMING',
+      icon: <Crosshair className="w-6 h-6 text-lime-600" />,
+    },
+    {
+      id: 'boo_burden',
+      title: "King Boo's Burden Mansion",
+      genre: 'Evidentiary Spotlight',
+      desc: 'Master Loon v. Power Master! Shine your Poltergust spotlight on Employer vs. Employee Burden of Proof!',
+      badge: 'NEW EVIDENCE',
+      icon: <Eye className="w-6 h-6 text-purple-600" />,
+    },
+    {
+      id: 'chrono_blitz',
+      title: 'Bob-omb Prescription Blitz',
+      genre: 'Statutory Deadlines Defusal',
+      desc: 'Cut the right wire (1 Yr ULP, 3 Yrs Money, 4 Yrs Dismissal, 5d NTE, 10d Appeal, 30d Notice) before boom!',
+      badge: 'NEW DEFUSAL',
+      icon: <Timer className="w-6 h-6 text-amber-600" />,
+    },
   ];
 
   return (
@@ -327,7 +373,11 @@ export const GameVault: React.FC<GameVaultProps> = ({
       </div>
 
       {/* Active Game Surface First on Mobile for Immediate Thumb Reach, Followed by Full Game Shelf */}
-      <div id="active-vault-game-stage">
+      <div
+        id="active-vault-game-stage"
+        className="select-none"
+        onContextMenu={(e) => e.preventDefault()}
+      >
         {activeGame === 'courtroom' && (
           <CourtroomBossBattle
             equippedAvatar={equippedAvatar}
@@ -386,9 +436,24 @@ export const GameVault: React.FC<GameVaultProps> = ({
             onAdjustCoins={handleAdjustCoins}
           />
         )}
+        {activeGame === 'koopa_breaker' && (
+          <KoopaBrickBreakerGame equippedAvatar={equippedAvatar} onEarnCoins={handleEarnCoins} />
+        )}
+        {activeGame === 'yoshi_toss' && (
+          <YoshiEggTossGame equippedAvatar={equippedAvatar} onEarnCoins={handleEarnCoins} />
+        )}
+        {activeGame === 'boo_burden' && (
+          <BooBurdenMansionGame equippedAvatar={equippedAvatar} onEarnCoins={handleEarnCoins} />
+        )}
+        {activeGame === 'chrono_blitz' && (
+          <ChronoPrescriptionBlitzGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+          />
+        )}
       </div>
 
-      {/* 14-Game Selection Shelf */}
+      {/* 18-Game Selection Shelf */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {games.map((g) => {
           const isSelected = activeGame === g.id;

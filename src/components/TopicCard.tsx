@@ -30,6 +30,9 @@ import {
   MapPin,
   Sparkles,
   ArrowRight,
+  Eye,
+  EyeOff,
+  ListChecks,
 } from 'lucide-react';
 import {
   MarioMushroomIcon,
@@ -47,6 +50,7 @@ import {
   findGlossaryTerm,
 } from '../data/quickGlossaryData';
 import { QuickGlossaryModal } from './QuickGlossaryModal';
+import { extractClozeSegments } from '../utils/studyModes';
 
 interface TopicCardProps {
   topic: LawTopic;
@@ -60,6 +64,8 @@ interface TopicCardProps {
   onToggleNeedsImprovement?: () => void;
   shortcutMapActive?: boolean;
   equippedCardFrame?: string;
+  expandCollapseSignal?: { mode: 'expand' | 'collapse'; seq: number } | null;
+  compactView?: boolean;
 }
 
 export const TopicCard: React.FC<TopicCardProps> = ({
@@ -74,9 +80,14 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   onToggleNeedsImprovement,
   shortcutMapActive = false,
   equippedCardFrame = 'frame_default',
+  expandCollapseSignal = null,
+  compactView = false,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [isSummaryMode, setIsSummaryMode] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(() => !compactView);
+  const [studyLens, setStudyLens] = useState<'full' | 'summary' | 'cloze' | 'checklist'>('full');
+  const isSummaryMode = studyLens === 'summary';
+  const [revealedClozeKeys, setRevealedClozeKeys] = useState<Record<string, boolean>>({});
+  const [checkedChecklistKeys, setCheckedChecklistKeys] = useState<Record<string, boolean>>({});
   const [showVerbatim, setShowVerbatim] = useState(false);
   const [verbatimCopied, setVerbatimCopied] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -89,6 +100,16 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   const [selectedGlossaryTermId, setSelectedGlossaryTermId] = useState<string | null>(null);
   const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    setIsExpanded(!compactView);
+  }, [compactView]);
+
+  useEffect(() => {
+    if (expandCollapseSignal && expandCollapseSignal.seq > 0) {
+      setIsExpanded(expandCollapseSignal.mode === 'expand');
+    }
+  }, [expandCollapseSignal]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const activeChunksRef = useRef<string[]>([]);
   const chunkIndexRef = useRef<number>(0);
@@ -383,6 +404,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                 onTouchStart={() => handleTermTouchStart(matchedItem.id)}
                 onTouchEnd={handleTermTouchEnd}
                 onTouchCancel={handleTermTouchEnd}
+                onContextMenu={(e) => e.preventDefault()}
                 onClick={(e) => handleTermClick(e, matchedItem.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -391,7 +413,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                     setIsGlossaryModalOpen(true);
                   }
                 }}
-                className="glossary-term inline-flex items-center gap-0.5 px-1 py-0.5 -my-0.5 rounded-md bg-amber-100/90 dark:bg-amber-950/60 text-slate-950 dark:text-amber-200 border-b-2 border-amber-500 font-bold cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-900 transition-colors select-text group"
+                className="glossary-term inline-flex items-center gap-0.5 px-1 py-0.5 -my-0.5 rounded-md bg-amber-100/90 dark:bg-amber-950/60 text-slate-950 dark:text-amber-200 border-b-2 border-amber-500 font-bold cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-900 transition-colors select-none group"
               >
                 <span>{highlightMatch(part)}</span>
                 <span className="text-[10px] opacity-75 font-mono text-amber-700 dark:text-amber-400 font-black">?</span>
@@ -825,7 +847,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             type="button"
             onClick={() => {
               if (!isExpanded) setIsExpanded(true);
-              setIsSummaryMode(!isSummaryMode);
+              setStudyLens(studyLens === 'summary' ? 'full' : 'summary');
             }}
             className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-black border-2 border-black cursor-pointer whitespace-nowrap leading-none transition-all ${
               isSummaryMode
@@ -856,7 +878,45 @@ export const TopicCard: React.FC<TopicCardProps> = ({
       {/* Card Body */}
       {isExpanded && (
         <div className="p-4 sm:p-6 md:p-8 space-y-6 bg-[#fcfbf7] dark:bg-slate-900/95">
-          {isSummaryMode ? (
+          {/* Interactive Study Lens Switcher (4 Ways to Study Any Module) */}
+          <div
+            data-testid={`topic-study-lens-bar-${topic.id}`}
+            className="flex flex-wrap items-center justify-between gap-2 bg-slate-900 text-white p-2.5 rounded-2xl border-2 border-slate-950"
+          >
+            <span className="text-xs font-bold text-amber-300 px-1.5">
+              Study Lens:
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {(
+                [
+                  { id: 'full' as const, label: 'Full Codal', icon: <BookOpen className="w-3.5 h-3.5 shrink-0" /> },
+                  { id: 'summary' as const, label: 'Exec Summary', icon: <Sparkles className="w-3.5 h-3.5 shrink-0" /> },
+                  { id: 'cloze' as const, label: 'Cloze Recall', icon: <Eye className="w-3.5 h-3.5 shrink-0" /> },
+                  { id: 'checklist' as const, label: 'Bar Checklist', icon: <ListChecks className="w-3.5 h-3.5 shrink-0" /> },
+                ]
+              ).map((lens) => (
+                <button
+                  key={lens.id}
+                  type="button"
+                  data-testid={`study-lens-${lens.id}-${topic.id}`}
+                  onClick={() => {
+                    setStudyLens(lens.id);
+                    marioAudio.playClick();
+                  }}
+                  className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-black inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                    studyLens === lens.id
+                      ? 'bg-amber-400 text-slate-950 border border-black'
+                      : 'bg-slate-800 text-slate-200 hover:text-white border border-slate-700'
+                  }`}
+                >
+                  {lens.icon}
+                  <span>{lens.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {studyLens === 'summary' ? (
             <div className="p-4 sm:p-6 bg-amber-50 dark:bg-slate-800/90 border-2 border-amber-400 rounded-2xl space-y-4">
               <div className="flex items-center justify-between gap-2 border-b border-amber-300 dark:border-slate-700 pb-3">
                 <div className="flex items-center gap-2">
@@ -865,7 +925,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                     MARIO EXECUTIVE SUMMARY · QUICK BAR REVIEW
                   </span>
                 </div>
-                <span className="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 bg-amber-200 dark:bg-slate-700 px-2.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400">
                   {topic.badge}
                 </span>
               </div>
@@ -893,13 +953,209 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                 <span className="text-slate-500 dark:text-slate-400 font-medium">Last-minute flash review</span>
                 <button
                   type="button"
-                  onClick={() => setIsSummaryMode(false)}
+                  onClick={() => setStudyLens('full')}
                   className="inline-flex items-center gap-1 font-bold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
                 >
                   <span>View full codified provisions</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+            </div>
+          ) : studyLens === 'cloze' ? (
+            <div
+              data-testid={`cloze-recall-panel-${topic.id}`}
+              className="p-4 sm:p-6 bg-sky-50/80 dark:bg-slate-800/90 border-2 border-sky-400 dark:border-sky-600 rounded-2xl space-y-4"
+            >
+              {(() => {
+                const clozeLines = [
+                  topic.summary,
+                  ...(topic.keyDoctrines || []).map((d) => cleanRuleText(d)),
+                  ...(topic.rules || [])
+                    .flatMap((r) => (r.items || []).slice(0, 3).map((it) => cleanRuleText(it)))
+                    .slice(0, 6),
+                ].filter(Boolean);
+                const segmentedRows = clozeLines.map((line, rIdx) =>
+                  extractClozeSegments(line, `${topic.id}-r${rIdx}`)
+                );
+                const allBlankKeys = segmentedRows
+                  .flatMap((segs) => segs.filter((s) => s.type === 'blank' && s.blankKey).map((s) => s.blankKey!));
+                const revealedCount = allBlankKeys.filter((k) => revealedClozeKeys[k]).length;
+
+                return (
+                  <>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-200 dark:border-slate-700 pb-3">
+                      <div>
+                        <span className="text-xs font-extrabold text-sky-800 dark:text-sky-300 block">
+                          Active Recall · Fill-in-the-Blank Statutory Drill
+                        </span>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                          Mentally recite each hidden rate, deadline, or Article before tapping to reveal ({revealedCount}/{allBlankKeys.length} revealed).
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next: Record<string, boolean> = {};
+                            allBlankKeys.forEach((k) => {
+                              next[k] = true;
+                            });
+                            setRevealedClozeKeys(next);
+                            marioAudio.playCoin();
+                          }}
+                          className="min-h-[38px] px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <Eye className="w-3.5 h-3.5 shrink-0" />
+                          <span>Reveal All</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRevealedClozeKeys({});
+                            marioAudio.playClick();
+                          }}
+                          className="min-h-[38px] px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs border border-slate-700 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <EyeOff className="w-3.5 h-3.5 shrink-0" />
+                          <span>Hide All</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {segmentedRows.map((segs, rowIdx) => (
+                        <div
+                          key={rowIdx}
+                          className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-slate-100 leading-relaxed"
+                        >
+                          {segs.map((seg, sIdx) => {
+                            if (seg.type === 'blank' && seg.blankKey) {
+                              const isShown = Boolean(revealedClozeKeys[seg.blankKey]);
+                              return (
+                                <button
+                                  key={seg.blankKey}
+                                  type="button"
+                                  onClick={() => {
+                                    setRevealedClozeKeys((prev) => ({
+                                      ...prev,
+                                      [seg.blankKey!]: !prev[seg.blankKey!],
+                                    }));
+                                    marioAudio.playJump();
+                                  }}
+                                  className={`mx-1 px-2.5 py-0.5 rounded-lg font-black text-xs border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                                    isShown
+                                      ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 border-emerald-500'
+                                      : 'bg-amber-300 text-slate-950 border-slate-950 hover:bg-amber-200'
+                                  }`}
+                                >
+                                  {isShown ? seg.value : '[ Tap to Reveal ]'}
+                                </button>
+                              );
+                            }
+                            return <span key={sIdx}>{seg.value}</span>;
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          ) : studyLens === 'checklist' ? (
+            <div
+              data-testid={`bar-checklist-panel-${topic.id}`}
+              className="p-4 sm:p-6 bg-emerald-50/70 dark:bg-slate-800/90 border-2 border-emerald-500 rounded-2xl space-y-4"
+            >
+              {(() => {
+                const checklistRows = [
+                  ...(topic.keyDoctrines || []).map((d, i) => ({
+                    key: `doc-${i}`,
+                    category: 'Core Doctrine',
+                    text: cleanRuleText(d),
+                  })),
+                  ...((topic.barTips || topic.keyTips || []) as string[]).map((t, i) => ({
+                    key: `tip-${i}`,
+                    category: 'Bar Exam Tip',
+                    text: cleanRuleText(t),
+                  })),
+                ];
+                const doneCount = checklistRows.filter((r) => checkedChecklistKeys[r.key]).length;
+                return (
+                  <>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 dark:border-slate-700 pb-3">
+                      <div>
+                        <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 block">
+                          Self-Recitation Bar Exam Checklist
+                        </span>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold tabular-nums">
+                          Recite each doctrine &amp; Bar trap aloud, then check it off: {doneCount} / {checklistRows.length} verified.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allChecked = doneCount === checklistRows.length;
+                          if (allChecked) {
+                            setCheckedChecklistKeys({});
+                          } else {
+                            const next: Record<string, boolean> = {};
+                            checklistRows.forEach((r) => {
+                              next[r.key] = true;
+                            });
+                            setCheckedChecklistKeys(next);
+                          }
+                          marioAudio.playCoin();
+                        }}
+                        className="min-h-[38px] px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs border border-black cursor-pointer whitespace-nowrap"
+                      >
+                        {doneCount === checklistRows.length ? 'Reset Checklist' : 'Check All Recited'}
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {checklistRows.map((row) => {
+                        const checked = Boolean(checkedChecklistKeys[row.key]);
+                        return (
+                          <button
+                            key={row.key}
+                            type="button"
+                            onClick={() => {
+                              setCheckedChecklistKeys((prev) => ({
+                                ...prev,
+                                [row.key]: !prev[row.key],
+                              }));
+                              marioAudio.playJump();
+                            }}
+                            className={`w-full min-h-[48px] text-left p-3.5 rounded-xl border transition-all flex items-start gap-3 cursor-pointer ${
+                              checked
+                                ? 'bg-emerald-100/80 dark:bg-emerald-950/60 border-emerald-500 text-slate-900 dark:text-emerald-100'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100'
+                            }`}
+                          >
+                            <span
+                              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                                checked
+                                  ? 'bg-emerald-600 border-emerald-700 text-white'
+                                  : 'bg-white dark:bg-slate-800 border-slate-400'
+                              }`}
+                            >
+                              {checked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                            </span>
+                            <div className="space-y-0.5">
+                              <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 block">
+                                {row.category}
+                              </span>
+                              <span className={`text-sm font-bold leading-snug block ${checked ? 'line-through opacity-80' : ''}`}>
+                                {row.text}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           ) : (
             <>
@@ -1029,7 +1285,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               </div>
 
               {showVerbatim && (
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 sm:p-4 text-xs sm:text-sm text-slate-100 font-mono leading-relaxed whitespace-pre-wrap select-text animate-in fade-in duration-150 border-l-4 border-l-amber-400">
+                <div className="bg-slate-900 border border-amber-400/50 rounded-xl p-3.5 sm:p-4 text-xs sm:text-sm text-slate-100 font-mono leading-relaxed whitespace-pre-wrap select-text allow-text-select animate-in fade-in duration-150">
                   {topic.verbatimProvision}
                 </div>
               )}

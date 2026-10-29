@@ -1,6 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { QUICK_GLOSSARY_TERMS, QuickGlossaryItem } from '../data/quickGlossaryData';
+import {
+  QUICK_GLOSSARY_TERMS,
+  GLOSSARY_CATEGORIES,
+  GlossaryCategory,
+  QuickGlossaryItem,
+} from '../data/quickGlossaryData';
 import {
   MarioMushroomIcon,
   MarioFireFlowerIcon,
@@ -26,6 +31,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Lightbulb,
+  Shuffle,
 } from 'lucide-react';
 
 interface QuickGlossaryModalProps {
@@ -40,6 +46,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
   initialTermId,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | GlossaryCategory>('all');
   const [selectedTermId, setSelectedTermId] = useState<string>(() => {
     return initialTermId || QUICK_GLOSSARY_TERMS[0].id;
   });
@@ -49,6 +56,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
   useEffect(() => {
     if (initialTermId) {
       setSelectedTermId(initialTermId);
+      setSelectedCategory('all');
       marioAudio.playPowerUp();
     }
   }, [initialTermId]);
@@ -77,22 +85,28 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
 
   const filteredTerms = useMemo(() => {
     const q = searchTerm.toLowerCase().trim();
-    if (!q) return QUICK_GLOSSARY_TERMS;
-    return QUICK_GLOSSARY_TERMS.filter(
-      (item) =>
+    return QUICK_GLOSSARY_TERMS.filter((item) => {
+      if (selectedCategory !== 'all' && item.category !== selectedCategory) {
+        return false;
+      }
+      if (!q) return true;
+      return (
         item.term.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q) ||
         item.marioPowerUp.toLowerCase().includes(q) ||
         item.statutoryBasis.toLowerCase().includes(q) ||
         item.simplifiedDefinition.toLowerCase().includes(q) ||
+        item.barExamTip.toLowerCase().includes(q) ||
         item.aliases.some((alias) => alias.toLowerCase().includes(q))
-    );
-  }, [searchTerm]);
+      );
+    });
+  }, [searchTerm, selectedCategory]);
 
   const activeItem = useMemo(() => {
     return (
       filteredTerms.find((t) => t.id === selectedTermId) ||
-      QUICK_GLOSSARY_TERMS.find((t) => t.id === selectedTermId) ||
       filteredTerms[0] ||
+      QUICK_GLOSSARY_TERMS.find((t) => t.id === selectedTermId) ||
       QUICK_GLOSSARY_TERMS[0]
     );
   }, [selectedTermId, filteredTerms]);
@@ -112,9 +126,19 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
     marioAudio.playCoin();
   };
 
+  const handleRandomTerm = () => {
+    const pool = filteredTerms.length > 1 ? filteredTerms : QUICK_GLOSSARY_TERMS;
+    const candidates = pool.filter((item) => item.id !== activeItem?.id);
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)] || pool[0];
+    if (chosen) {
+      setSelectedTermId(chosen.id);
+      marioAudio.playPowerUp();
+    }
+  };
+
   const handleCopy = async () => {
     if (!activeItem) return;
-    const text = `Super Mario Labor Law Glossary: ${activeItem.term}\n\n[Mario Analogy - ${activeItem.marioPowerUp}]:\n"${activeItem.marioAnalogy}"\n\n[Statutory Definition]:\n${activeItem.simplifiedDefinition}\n\n[Legal Basis]: ${activeItem.statutoryBasis}\n\n[Bar Exam Tip]: ${activeItem.barExamTip}`;
+    const text = `Super Mario Labor Law Glossary: ${activeItem.term} [${activeItem.category}]\n\n[Mario Analogy - ${activeItem.marioPowerUp}]:\n"${activeItem.marioAnalogy}"\n\n[Statutory Definition]:\n${activeItem.simplifiedDefinition}\n\n[Legal Basis]: ${activeItem.statutoryBasis}\n\n[Bar Exam Tip]: ${activeItem.barExamTip}`;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -173,25 +197,28 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[80] flex items-center justify-center p-2.5 sm:p-5 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150 print:hidden"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150 print:hidden"
     >
       <div
         data-testid="quick-glossary-modal-card"
-        className="bg-slate-900 border-4 border-amber-400 rounded-3xl w-[96vw] max-w-6xl h-[90vh] md:h-[85vh] max-h-[860px] flex flex-col shadow-[0_16px_48px_rgba(0,0,0,0.75)] overflow-hidden text-white"
+        className="bg-slate-900 border-4 border-amber-400 rounded-3xl w-[96vw] max-w-6xl h-[92dvh] md:h-[88vh] max-h-[880px] flex flex-col shadow-[0_16px_48px_rgba(0,0,0,0.75)] overflow-hidden text-white"
       >
         {/* Header */}
-        <div className="px-3.5 py-3 sm:px-6 sm:py-3.5 bg-slate-950 border-b-2 border-amber-400 flex items-center justify-between gap-3 shrink-0">
+        <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-slate-950 border-b-2 border-amber-400 flex items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="w-9 h-9 sm:w-11 sm:h-11 bg-amber-400 rounded-2xl border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
               <MarioQuestionBlockIcon className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-slate-300">
-                <span className="font-mario text-[9px] sm:text-[10px] uppercase text-amber-400 whitespace-nowrap">
+                <span className="font-mario text-[8.5px] sm:text-[10px] uppercase text-amber-400 whitespace-nowrap">
                   MARIO JURISPRUDENCE
                 </span>
                 <span aria-hidden="true" className="hidden sm:inline">·</span>
-                <span className="font-mono text-emerald-300 tabular-nums whitespace-nowrap">
+                <span
+                  data-testid="glossary-total-count"
+                  className="font-mono text-emerald-300 tabular-nums whitespace-nowrap text-[11px]"
+                >
                   {QUICK_GLOSSARY_TERMS.length} Codified Doctrines &amp; Terms
                 </span>
               </div>
@@ -201,27 +228,77 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800 hover:bg-red-600 hover:text-white text-slate-300 border-2 border-slate-700 flex items-center justify-center cursor-pointer transition-colors shrink-0"
-            aria-label="Close Quick Glossary"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleRandomTerm}
+              title="Jump to a random legal doctrine"
+              className="min-h-[38px] px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border-2 border-slate-700 text-xs font-black inline-flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
+            >
+              <Shuffle className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Random Term</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-800 hover:bg-red-600 hover:text-white text-slate-300 border-2 border-slate-700 flex items-center justify-center cursor-pointer transition-colors shrink-0"
+              aria-label="Close Quick Glossary"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Content Body: Flex Column on <lg (Compact Single-Row Tab Strip + Full Content) & Side-by-Side Flex Row on lg+ */}
+        {/* Category Filter Bar */}
+        <div className="px-3 py-2 sm:px-5 bg-slate-950/95 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory('all');
+              marioAudio.playClick();
+            }}
+            className={`min-h-[32px] px-2.5 py-1 rounded-lg border text-[11px] font-black whitespace-nowrap cursor-pointer transition-colors shrink-0 tabular-nums ${
+              selectedCategory === 'all'
+                ? 'bg-amber-400 text-slate-950 border-black'
+                : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+            }`}
+          >
+            All ({QUICK_GLOSSARY_TERMS.length})
+          </button>
+          {GLOSSARY_CATEGORIES.map((cat) => {
+            const count = QUICK_GLOSSARY_TERMS.filter((t) => t.category === cat).length;
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  marioAudio.playClick();
+                }}
+                className={`min-h-[32px] px-2.5 py-1 rounded-lg border text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors shrink-0 tabular-nums ${
+                  active
+                    ? 'bg-emerald-400 text-slate-950 border-black font-black'
+                    : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+                }`}
+              >
+                {cat} ({count})
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Content Body */}
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col lg:flex-row">
-          {/* Mobile & Tablet (<lg): Compact Search + Dropdown + Single-Row Horizontal Tab Strip (NEVER covers content) */}
-          <div className="flex lg:hidden flex-col shrink-0 bg-slate-950/90 border-b-2 border-slate-800 px-3 py-2.5 gap-2 max-w-full">
+          {/* Mobile & Tablet (<lg): Compact Search + Dropdown + Single-Row Horizontal Tab Strip */}
+          <div className="flex lg:hidden flex-col shrink-0 bg-slate-950/90 border-b-2 border-slate-800 px-3 py-2 gap-2 max-w-full">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <div className="relative flex-1 min-w-0">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   aria-label="Search glossary terms"
-                  placeholder="Search doctrines, rules, statutes..."
+                  placeholder="Search 70+ doctrines, cases, statutes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full h-9 bg-slate-900 border-2 border-slate-700 rounded-xl pl-9 pr-8 text-xs font-bold text-white placeholder-slate-400 focus:outline-hidden focus:border-amber-400"
@@ -320,10 +397,13 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
               </div>
             ) : (
               <div className="flex items-center justify-between gap-2 text-xs text-slate-300 py-1">
-                <span>No glossary doctrines match &ldquo;{searchTerm}&rdquo;</span>
+                <span className="truncate">No glossary doctrines match &ldquo;{searchTerm}&rdquo;</span>
                 <button
                   type="button"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('all');
+                  }}
                   className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold cursor-pointer shrink-0"
                 >
                   Reset
@@ -339,7 +419,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
               <input
                 type="text"
                 aria-label="Search glossary terms desktop"
-                placeholder="Search doctrines, rules, statutes..."
+                placeholder="Search doctrines, cases, statutes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-900 border-2 border-slate-700 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm font-bold text-white placeholder-slate-400 focus:outline-hidden focus:border-amber-400"
@@ -390,7 +470,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                               isSelected ? 'text-slate-900' : 'text-amber-400'
                             }`}
                           >
-                            {item.marioPowerUp} · {item.statutoryBasis}
+                            {item.category} · {item.statutoryBasis}
                           </span>
                         </div>
                       </div>
@@ -406,10 +486,13 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                 </p>
                 <button
                   type="button"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('all');
+                  }}
                   className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold cursor-pointer"
                 >
-                  Reset Search
+                  Reset Filters
                 </button>
               </div>
             )}
@@ -423,16 +506,15 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
             {activeItem && (
               <>
                 {/* Active Term Title & Action Strip */}
-                <div className="border-b-2 border-slate-800 pb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="border-b-2 border-slate-800 pb-3.5 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap text-xs text-slate-300">
-                      <span className="inline-flex items-center gap-1.5 font-mario text-[10px] text-amber-300 uppercase">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-emerald-300 font-bold text-[11px] whitespace-nowrap">
+                        {activeItem.category}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 font-mario text-[9.5px] text-amber-300 uppercase">
                         <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                         <span>{activeItem.marioPowerUp}</span>
-                      </span>
-                      <span aria-hidden="true">·</span>
-                      <span className="font-mono font-bold text-emerald-300">
-                        {activeItem.statutoryBasis}
                       </span>
                     </div>
                     <h3 className="text-lg sm:text-2xl md:text-3xl font-black text-white font-display leading-tight break-words">
@@ -490,7 +572,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                     <div className="space-y-2.5">
                       <div className="flex items-center gap-2 text-emerald-400">
                         <Scale className="w-4 h-4 shrink-0" />
-                        <span className="font-mario text-xs font-black uppercase tracking-wider">
+                        <span className="font-mario text-[10px] sm:text-xs font-black uppercase tracking-wider">
                           STATUTORY DEFINITION &amp; RULE
                         </span>
                       </div>
@@ -500,9 +582,13 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                     </div>
 
                     <div className="pt-3 border-t border-slate-800/90 space-y-2">
-                      <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-mono">
-                        <span className="text-slate-400 font-bold uppercase">CODIFIED LEGAL BASIS</span>
-                        <span className="font-black text-amber-300">{activeItem.statutoryBasis}</span>
+                      <div className="flex flex-col gap-0.5 text-xs font-mono">
+                        <span className="text-slate-400 font-bold uppercase text-[10px]">
+                          CODIFIED LEGAL BASIS &amp; JURISPRUDENCE
+                        </span>
+                        <span className="font-black text-amber-300 break-words">
+                          {activeItem.statutoryBasis}
+                        </span>
                       </div>
                       {activeItem.aliases && activeItem.aliases.length > 0 && (
                         <div className="text-xs text-slate-400 leading-snug break-words">
@@ -518,7 +604,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                     <div className="bg-amber-400 text-slate-950 p-4 sm:p-5 rounded-2xl border-3 border-black shadow-[4px_4px_0_#000] space-y-2 flex-1">
                       <div className="flex items-center gap-2">
                         <MarioStarIcon className="w-5 h-5 shrink-0" />
-                        <span className="font-mario text-xs font-black uppercase tracking-wider">
+                        <span className="font-mario text-[10px] sm:text-xs font-black uppercase tracking-wider break-words">
                           MARIO ANALOGY · {activeItem.marioPowerUp}
                         </span>
                       </div>
@@ -530,7 +616,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                     <div className="bg-red-950/65 p-4 sm:p-5 rounded-2xl border-2 border-red-700/80 space-y-2 flex-1">
                       <div className="flex items-center gap-2 text-rose-200">
                         <Lightbulb className="w-4 h-4 text-amber-400 shrink-0" />
-                        <span className="font-mario text-xs font-black uppercase tracking-wider">
+                        <span className="font-mario text-[10px] sm:text-xs font-black uppercase tracking-wider">
                           BAR EXAM PRO-TIP &amp; COMMON TRAP
                         </span>
                       </div>
@@ -545,10 +631,12 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
           </div>
         </div>
 
-        {/* Footer with Quick Prev/Next Term Navigation — Responsive & Zero Overflow */}
+        {/* Footer with Quick Prev/Next Term Navigation */}
         <div className="px-3.5 py-2.5 sm:px-6 sm:py-3 bg-slate-950 border-t-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 shrink-0 max-w-full">
-          <span className="hidden xl:inline text-[11px] font-mono">
-            Tip: Click or long-press any highlighted legal term in module cards to open its doctrine directly.
+          <span className="text-[11px] font-mono tabular-nums text-slate-300">
+            {activeIndexInFiltered >= 0
+              ? `Doctrine ${activeIndexInFiltered + 1} of ${filteredTerms.length}`
+              : `${QUICK_GLOSSARY_TERMS.length} Doctrines`}
           </span>
 
           <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 ml-auto max-w-full">

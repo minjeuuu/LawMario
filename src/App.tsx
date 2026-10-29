@@ -72,6 +72,7 @@ import {
   loadPlayerProfileStats,
   savePlayerProfileStats,
   recordStudySeconds,
+  getTodayStudiedSeconds,
   recordPomodoroFocusFinish,
   recordCompletedQuizRun,
   toggleNeedsImprovementTopic,
@@ -113,6 +114,12 @@ import {
   Check,
   Star,
   Sparkles,
+  LayoutGrid,
+  List,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsDown,
+  ChevronsUp,
 } from 'lucide-react';
 
 const TOAD_PRO_TIPS = [
@@ -617,6 +624,15 @@ export default function App() {
   // Modules Side-by-Side Split View (Topic Cards Left + Saved Study Notes Right)
   const [isSplitView, setIsSplitView] = useState<boolean>(false);
 
+  // Additional Module Study & View Options (Stream / 2-Col Grid / Compact Outline / Focus Reader + Status Filter)
+  const [moduleViewMode, setModuleViewMode] = useState<'stream' | 'grid' | 'outline' | 'focus'>('stream');
+  const [moduleStatusFilter, setModuleStatusFilter] = useState<'all' | 'unread' | 'mastered' | 'flagged'>('all');
+  const [expandCollapseSignal, setExpandCollapseSignal] = useState<{
+    mode: 'expand' | 'collapse';
+    seq: number;
+  } | null>(null);
+  const [focusTopicIdx, setFocusTopicIdx] = useState<number>(0);
+
   // Daily Login Streak Counter synced with localStorage
   const [loginStreak, setLoginStreak] = useState<number>(() => {
     if (typeof window !== 'undefined') {
@@ -775,6 +791,19 @@ export default function App() {
         if (topicDiff !== difficultyFilter) return false;
       }
 
+      if (moduleStatusFilter === 'unread' && completedTopicIds.includes(topic.id)) {
+        return false;
+      }
+      if (moduleStatusFilter === 'mastered' && !completedTopicIds.includes(topic.id)) {
+        return false;
+      }
+      if (
+        moduleStatusFilter === 'flagged' &&
+        !profileStats.needsImprovementTopicIds?.includes(topic.id)
+      ) {
+        return false;
+      }
+
       if (!searchQuery.trim()) return true;
 
       const q = searchQuery.toLowerCase();
@@ -792,7 +821,18 @@ export default function App() {
 
       return titleMatch || summaryMatch || badgeMatch || docMatch || rulesMatch || tipsMatch;
     });
-  }, [activeWorld, searchQuery, difficultyFilter]);
+  }, [
+    activeWorld,
+    searchQuery,
+    difficultyFilter,
+    moduleStatusFilter,
+    completedTopicIds,
+    profileStats.needsImprovementTopicIds,
+  ]);
+
+  useEffect(() => {
+    setFocusTopicIdx(0);
+  }, [activeWorld, difficultyFilter, moduleStatusFilter, searchQuery]);
 
   // Quick Jump searchable dropdown items
   const quickJumpFilteredTopics = useMemo(() => {
@@ -1022,6 +1062,14 @@ export default function App() {
     []
   );
 
+  const topicsByWorld = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    WORLDS_METADATA.forEach((w) => {
+      map[w.id] = ALL_LAW_TOPICS.filter((t) => t.worldId === w.id).map((t) => t.id);
+    });
+    return map;
+  }, []);
+
   const achievementSync = useMemo(
     () =>
       evaluateAchievements({
@@ -1029,10 +1077,11 @@ export default function App() {
         completedTopicIds,
         totalTopicsCount: ALL_LAW_TOPICS.length,
         world1TopicIds,
+        topicsByWorld,
         loginStreak,
         notesCount: studyNotes.length,
       }),
-    [profileStats, completedTopicIds, world1TopicIds, loginStreak, studyNotes.length]
+    [profileStats, completedTopicIds, world1TopicIds, topicsByWorld, loginStreak, studyNotes.length]
   );
 
   // Sync newly unlocked achievement dates & reward coins automatically
@@ -1107,6 +1156,7 @@ export default function App() {
           onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
           onOpenPrintGuide={() => setIsPrintGuideOpen(true)}
           onOpenLegalCitationsModal={() => setIsLegalCitationsOpen(true)}
+          onOpenQuickGlossary={() => setIsQuickGlossaryOpen(true)}
           showLegalCitations={showLegalCitations}
           setShowLegalCitations={handleSetShowLegalCitations}
           onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
@@ -1182,7 +1232,7 @@ export default function App() {
 
             {/* Daily Study Goal Progress Ring Widget */}
             <DailyStudyGoalRing
-              studiedSeconds={profileStats.studiedSeconds}
+              studiedSeconds={getTodayStudiedSeconds(profileStats)}
               onEarnCoins={handleEarnCoins}
               superStarActive={superStarStatus.isActive}
             />
@@ -1649,9 +1699,120 @@ export default function App() {
               </div>
             </div>
 
+            {/* Study Layout & Completion Status Toolbar */}
+            <div
+              data-testid="module-view-options-bar"
+              className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 border-3 border-slate-950 shadow-[4px_4px_0_#000] flex flex-col xl:flex-row xl:items-center justify-between gap-3"
+            >
+              {/* Left: View Layout Selector */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-amber-300 mr-1">View Mode:</span>
+                {(
+                  [
+                    { id: 'stream' as const, label: 'Full Stream', icon: <BookOpen className="w-3.5 h-3.5 shrink-0" /> },
+                    { id: 'grid' as const, label: '2-Col Grid', icon: <LayoutGrid className="w-3.5 h-3.5 shrink-0" /> },
+                    { id: 'outline' as const, label: 'Compact Outline', icon: <List className="w-3.5 h-3.5 shrink-0" /> },
+                    { id: 'focus' as const, label: 'Focus Reader', icon: <Compass className="w-3.5 h-3.5 shrink-0" /> },
+                  ]
+                ).map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    data-testid={`module-view-mode-${mode.id}`}
+                    onClick={() => {
+                      setModuleViewMode(mode.id);
+                      if (mode.id === 'outline') {
+                        setExpandCollapseSignal((prev) => ({
+                          mode: 'collapse',
+                          seq: (prev?.seq || 0) + 1,
+                        }));
+                      } else if (mode.id === 'stream' || mode.id === 'focus') {
+                        setExpandCollapseSignal((prev) => ({
+                          mode: 'expand',
+                          seq: (prev?.seq || 0) + 1,
+                        }));
+                      }
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-black inline-flex items-center gap-1.5 border transition-colors cursor-pointer whitespace-nowrap ${
+                      moduleViewMode === mode.id
+                        ? 'bg-amber-400 text-slate-950 border-black'
+                        : 'bg-slate-800 text-slate-200 hover:text-white border-slate-700'
+                    }`}
+                  >
+                    {mode.icon}
+                    <span>{mode.label}</span>
+                  </button>
+                ))}
+
+                <div className="inline-flex items-center gap-1 ml-0 sm:ml-1">
+                  <button
+                    type="button"
+                    data-testid="modules-expand-all-btn"
+                    onClick={() => {
+                      setExpandCollapseSignal((prev) => ({
+                        mode: 'expand',
+                        seq: (prev?.seq || 0) + 1,
+                      }));
+                      marioAudio.playJump();
+                    }}
+                    className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                  >
+                    <ChevronsDown className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Expand All</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="modules-collapse-all-btn"
+                    onClick={() => {
+                      setExpandCollapseSignal((prev) => ({
+                        mode: 'collapse',
+                        seq: (prev?.seq || 0) + 1,
+                      }));
+                      marioAudio.playPipe();
+                    }}
+                    className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                  >
+                    <ChevronsUp className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Collapse All</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Completion Status Filter */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-400 mr-1">Status:</span>
+                {(
+                  [
+                    { id: 'all' as const, label: 'All' },
+                    { id: 'unread' as const, label: 'Unread' },
+                    { id: 'mastered' as const, label: 'Mastered' },
+                    { id: 'flagged' as const, label: 'Flagged Review' },
+                  ]
+                ).map((st) => (
+                  <button
+                    key={st.id}
+                    type="button"
+                    data-testid={`module-status-filter-${st.id}`}
+                    onClick={() => {
+                      setModuleStatusFilter(st.id);
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[38px] px-3 py-1 rounded-xl text-xs font-black border transition-colors cursor-pointer whitespace-nowrap ${
+                      moduleStatusFilter === st.id
+                        ? 'bg-emerald-400 text-slate-950 border-black'
+                        : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Smooth Slide-In Container on World / Topic Filter Switch */}
             <div
-              key={`module-stream-${activeWorld}-${difficultyFilter}-${complexityMode}`}
+              key={`module-stream-${activeWorld}-${difficultyFilter}-${complexityMode}-${moduleViewMode}-${moduleStatusFilter}`}
               data-testid="module-doctrine-transition"
               className="space-y-6 animate-module-slide-in"
             >
@@ -1688,27 +1849,124 @@ export default function App() {
                 <div className={isSplitView ? 'grid grid-cols-1 lg:grid-cols-12 gap-6 items-start' : 'space-y-6'}>
                   <div
                     className={`${
-                      isSplitView ? 'lg:col-span-7 space-y-6' : 'space-y-6'
+                      isSplitView
+                        ? 'lg:col-span-7 space-y-6'
+                        : moduleViewMode === 'grid'
+                        ? 'grid grid-cols-1 xl:grid-cols-2 gap-5 items-start'
+                        : moduleViewMode === 'outline'
+                        ? 'space-y-3.5'
+                        : 'space-y-6'
                     } module-doctrine-stream`}
                   >
-                    {displayedTopics.map((topic) => (
-                      <TopicCard
-                        key={topic.id}
-                        topic={topic}
-                        fontSize={fontSize}
-                        searchQuery={searchQuery}
-                        isCompleted={completedTopicIds.includes(topic.id)}
-                        onToggleComplete={() => handleToggleTopicComplete(topic.id)}
-                        complexityMode={complexityMode}
-                        showLegalCitations={showLegalCitations}
-                        needsImprovement={Boolean(
-                          profileStats.needsImprovementTopicIds?.includes(topic.id)
-                        )}
-                        onToggleNeedsImprovement={() => handleToggleNeedsImprovementTopic(topic.id)}
-                        shortcutMapActive={shortcutMapActive}
-                        equippedCardFrame={equippedCardFrame}
-                      />
-                    ))}
+                    {moduleViewMode === 'focus' ? (
+                      (() => {
+                        const clampedIdx = Math.min(
+                          Math.max(0, focusTopicIdx),
+                          displayedTopics.length - 1
+                        );
+                        const focusedTopic = displayedTopics[clampedIdx];
+                        return (
+                          <div data-testid="module-focus-reader" className="space-y-4">
+                            <div className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 border-2 border-slate-950 flex flex-wrap items-center justify-between gap-3">
+                              <button
+                                type="button"
+                                disabled={clampedIdx === 0}
+                                onClick={() => {
+                                  setFocusTopicIdx((i) => Math.max(0, i - 1));
+                                  marioAudio.playPipe();
+                                }}
+                                className="min-h-[42px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white font-black text-xs border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                              >
+                                <ChevronLeft className="w-4 h-4 shrink-0" />
+                                <span>Previous Module</span>
+                              </button>
+
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs font-black text-amber-300 tabular-nums whitespace-nowrap">
+                                  Module {clampedIdx + 1} of {displayedTopics.length}
+                                </span>
+                                <select
+                                  aria-label="Select focus module"
+                                  value={clampedIdx}
+                                  onChange={(e) => {
+                                    setFocusTopicIdx(Number(e.target.value) || 0);
+                                    marioAudio.playClick();
+                                  }}
+                                  className="min-h-[40px] max-w-[200px] sm:max-w-xs rounded-xl bg-slate-950 border border-slate-700 px-3 text-xs font-bold text-white"
+                                >
+                                  {displayedTopics.map((item, idx) => (
+                                    <option key={item.id} value={idx}>
+                                      {idx + 1}. {item.title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={clampedIdx >= displayedTopics.length - 1}
+                                onClick={() => {
+                                  setFocusTopicIdx((i) =>
+                                    Math.min(displayedTopics.length - 1, i + 1)
+                                  );
+                                  marioAudio.playPipe();
+                                }}
+                                className="min-h-[42px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                              >
+                                <span>Next Module</span>
+                                <ChevronRight className="w-4 h-4 shrink-0" />
+                              </button>
+                            </div>
+
+                            {focusedTopic && (
+                              <TopicCard
+                                key={focusedTopic.id}
+                                topic={focusedTopic}
+                                fontSize={fontSize}
+                                searchQuery={searchQuery}
+                                isCompleted={completedTopicIds.includes(focusedTopic.id)}
+                                onToggleComplete={() => handleToggleTopicComplete(focusedTopic.id)}
+                                complexityMode={complexityMode}
+                                showLegalCitations={showLegalCitations}
+                                needsImprovement={Boolean(
+                                  profileStats.needsImprovementTopicIds?.includes(focusedTopic.id)
+                                )}
+                                onToggleNeedsImprovement={() =>
+                                  handleToggleNeedsImprovementTopic(focusedTopic.id)
+                                }
+                                shortcutMapActive={shortcutMapActive}
+                                equippedCardFrame={equippedCardFrame}
+                                expandCollapseSignal={expandCollapseSignal}
+                                compactView={false}
+                              />
+                            )}
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      displayedTopics.map((topic) => (
+                        <TopicCard
+                          key={topic.id}
+                          topic={topic}
+                          fontSize={fontSize}
+                          searchQuery={searchQuery}
+                          isCompleted={completedTopicIds.includes(topic.id)}
+                          onToggleComplete={() => handleToggleTopicComplete(topic.id)}
+                          complexityMode={complexityMode}
+                          showLegalCitations={showLegalCitations}
+                          needsImprovement={Boolean(
+                            profileStats.needsImprovementTopicIds?.includes(topic.id)
+                          )}
+                          onToggleNeedsImprovement={() =>
+                            handleToggleNeedsImprovementTopic(topic.id)
+                          }
+                          shortcutMapActive={shortcutMapActive}
+                          equippedCardFrame={equippedCardFrame}
+                          expandCollapseSignal={expandCollapseSignal}
+                          compactView={moduleViewMode === 'outline'}
+                        />
+                      ))
+                    )}
                   </div>
 
                   {isSplitView && (
@@ -1909,6 +2167,7 @@ export default function App() {
         coins={coins}
         loginStreak={loginStreak}
         completedTopicsCount={completedTopicIds.length}
+        completedTopicIds={completedTopicIds}
         totalTopicsCount={ALL_LAW_TOPICS.length}
         onNavigateAction={(tab, worldId) => {
           setActiveTab(tab);
@@ -2075,14 +2334,20 @@ export default function App() {
       {/* Floating Auto-Scroll Speed Controller */}
       <AutoScrollController />
 
-      {/* Summoned Study Companion Desk Widget (when equipped in Toad's Shop) */}
+      {/* Summoned Study Companion Desk Widget (coordinated so it never overlaps Toad's Pro Tip on Map) */}
       {equippedCompanion !== 'comp_none' && (
         <button
           type="button"
           onClick={handleStartQuickStudy}
           data-testid="study-companion-widget"
           title="Study Companion Active — Click to launch a 5-Min Quick Study Sprint!"
-          className="hidden sm:flex fixed bottom-20 left-4 lg:bottom-5 z-30 bg-[#0f172a] hover:bg-slate-900 text-white border-2 border-amber-400 rounded-2xl px-3 py-2 shadow-[4px_4px_0_#000] items-center gap-2.5 cursor-pointer transition-transform hover:-translate-y-0.5 print:hidden"
+          className={`${
+            activeTab === 'map'
+              ? showToadTip
+                ? 'hidden xl:flex bottom-6 left-[436px]'
+                : 'hidden sm:flex bottom-40 lg:bottom-20 left-6'
+              : 'hidden sm:flex bottom-20 lg:bottom-5 left-4'
+          } fixed z-30 bg-[#0f172a] hover:bg-slate-900 text-white border-2 border-amber-400 rounded-2xl px-3 py-2 shadow-[4px_4px_0_#000] items-center gap-2.5 cursor-pointer transition-transform hover:-translate-y-0.5 print:hidden`}
         >
           <div className="w-8 h-8 rounded-xl bg-amber-400 border border-black flex items-center justify-center shrink-0">
             <MarioCharacterAvatar

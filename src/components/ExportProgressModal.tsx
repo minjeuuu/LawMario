@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import { MarioAvatar } from '../types/laborLaw';
 import {
@@ -7,6 +7,11 @@ import {
   MarioCharacterAvatar,
 } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
+import {
+  applyPrintPageRule,
+  clearPrintPageRule,
+  triggerCleanPrint,
+} from '../utils/printHelper';
 import confetti from 'canvas-confetti';
 import {
   Download,
@@ -51,6 +56,14 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [downloadedOnce, setDownloadedOnce] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    applyPrintPageRule('landscape', '8mm');
+    return () => {
+      clearPrintPageRule();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -502,11 +515,11 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
       aria-modal="true"
       aria-label="Score Stats Summary Card"
       data-testid="export-progress-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xs select-none overflow-y-auto print:hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xs select-none overflow-y-auto print:static print:bg-white print:p-0 print:overflow-visible"
     >
-      <div className="bg-[#0f172a] text-white w-full max-w-3xl h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-3xl border-0 sm:border-3 border-amber-400/80 shadow-[0_20px_60px_rgba(0,0,0,0.85)] overflow-hidden my-auto flex flex-col safe-top-nav safe-bottom-dock">
+      <div className="bg-[#0f172a] text-white w-full max-w-3xl h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-3xl border-0 sm:border-3 border-amber-400/80 shadow-[0_20px_60px_rgba(0,0,0,0.85)] overflow-hidden my-auto flex flex-col safe-top-nav safe-bottom-dock print:bg-white print:max-w-full print:h-auto print:max-h-none print:border-0 print:shadow-none print:overflow-visible">
         {/* Modal Top Bar */}
-        <div className="bg-[#090d16] px-4 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div className="print:hidden bg-[#090d16] px-4 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
               <Trophy className="w-5 h-5 text-slate-950" />
@@ -531,7 +544,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
         </div>
 
         {/* Modal Body: Redesigned Editorial Championship Score Card Preview */}
-        <div className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto min-h-0 bg-[#0b1120]">
+        <div className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto min-h-0 bg-[#0b1120] print:p-0 print:overflow-visible print:bg-white">
           <div
             id="official-player-scorecard"
             data-testid="score-stats-summary-card"
@@ -699,8 +712,8 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="bg-[#090d16] px-4 sm:px-6 py-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-          <div className="flex items-center gap-2">
+        <div className="print:hidden bg-[#090d16] px-4 sm:px-6 py-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleCopyText}
@@ -716,20 +729,20 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
 
             <button
               type="button"
+              data-testid="print-scorecard-btn"
               onClick={() => {
-                if (typeof document !== 'undefined') {
-                  document.body.classList.add('printing-scorecard-only');
-                  window.print();
-                  setTimeout(() => {
-                    document.body.classList.remove('printing-scorecard-only');
-                  }, 1200);
-                }
+                marioAudio.playClick();
+                triggerCleanPrint({
+                  mode: 'scorecard',
+                  orientation: 'landscape',
+                  marginCss: '8mm',
+                });
               }}
-              className="hidden sm:inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer whitespace-nowrap"
-              title="Print Score Summary"
+              className="inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer whitespace-nowrap"
+              title="Print Score Summary in Landscape"
             >
               <Printer className="w-4 h-4 shrink-0" />
-              <span>Print</span>
+              <span>Print Score Card</span>
             </button>
           </div>
 

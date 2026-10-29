@@ -64,6 +64,8 @@ export function markWalkthroughCompleted(storage?: StorageLike | null): void {
 export interface DailyPomodoroRecord {
   sessions: number;
   minutes: number;
+  activeSeconds?: number;
+  interactionMinutes?: number;
 }
 
 export interface QuizHistoryRecord {
@@ -281,24 +283,80 @@ export function savePlayerProfileStats(
   }
 }
 
-export function recordStudySeconds(
-  stats: PlayerProfileStats,
-  deltaSeconds: number
-): PlayerProfileStats {
-  const safeDelta = Math.max(0, Math.floor(deltaSeconds));
-  if (safeDelta === 0) return stats;
-  return {
-    ...stats,
-    studiedSeconds: stats.studiedSeconds + safeDelta,
-  };
+export function formatDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function getTodayDateKey(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return formatDateKey(new Date());
+}
+
+function computeTotalDayMinutes(record: {
+  sessions: number;
+  activeSeconds?: number;
+  interactionMinutes?: number;
+  fallbackMinutes?: number;
+}): number {
+  const pomodoroFloorMinutes = Math.max(0, record.sessions) * 25;
+  const secs = Math.max(0, record.activeSeconds || 0);
+  const trackedActiveMinutes = secs >= 15 ? Math.max(1, Math.floor(secs / 60)) : 0;
+  const baseMinutes = Math.max(
+    pomodoroFloorMinutes,
+    trackedActiveMinutes,
+    Math.max(0, record.fallbackMinutes || 0)
+  );
+  return baseMinutes + Math.max(0, record.interactionMinutes || 0);
+}
+
+export function recordStudySeconds(
+  stats: PlayerProfileStats,
+  deltaSeconds: number,
+  dateKey: string = getTodayDateKey()
+): PlayerProfileStats {
+  const safeDelta = Math.max(0, Math.floor(deltaSeconds));
+  if (safeDelta === 0) return stats;
+
+  const currentLogs = stats.dailyPomodoroLogs || {};
+  const dayRecord = currentLogs[dateKey] || { sessions: 0, minutes: 0, activeSeconds: 0 };
+  const nextActiveSeconds = (dayRecord.activeSeconds || 0) + safeDelta;
+  const nextMinutes = computeTotalDayMinutes({
+    sessions: dayRecord.sessions,
+    activeSeconds: nextActiveSeconds,
+    interactionMinutes: dayRecord.interactionMinutes,
+    fallbackMinutes: dayRecord.minutes - (dayRecord.interactionMinutes || 0),
+  });
+
+  return {
+    ...stats,
+    studiedSeconds: stats.studiedSeconds + safeDelta,
+    dailyPomodoroLogs: {
+      ...currentLogs,
+      [dateKey]: {
+        ...dayRecord,
+        activeSeconds: nextActiveSeconds,
+        minutes: nextMinutes,
+      },
+    },
+  };
+}
+
+export function getTodayStudiedSeconds(
+  stats: PlayerProfileStats,
+  dateKey: string = getTodayDateKey()
+): number {
+  const logs = stats.dailyPomodoroLogs || {};
+  const dayRecord = logs[dateKey];
+  if (dayRecord) {
+    return Math.max(dayRecord.activeSeconds || 0, (dayRecord.minutes || 0) * 60);
+  }
+  const hasAnyLog = Object.keys(logs).length > 0;
+  if (hasAnyLog) {
+    return 0;
+  }
+  return stats.studiedSeconds;
 }
 
 export function recordPomodoroFocusFinish(
@@ -307,16 +365,28 @@ export function recordPomodoroFocusFinish(
   dateKey: string = getTodayDateKey()
 ): PlayerProfileStats {
   const currentLogs = stats.dailyPomodoroLogs || {};
-  const dayRecord = currentLogs[dateKey] || { sessions: 0, minutes: 0 };
+  const dayRecord = currentLogs[dateKey] || { sessions: 0, minutes: 0, activeSeconds: 0 };
+  const nextSessions = dayRecord.sessions + 1;
+  const safeBonusSecs = Math.max(0, Math.floor(bonusCreditSeconds));
+  const nextActiveSeconds = (dayRecord.activeSeconds || 0) + safeBonusSecs;
   const updatedDayRecord: DailyPomodoroRecord = {
-    sessions: dayRecord.sessions + 1,
-    minutes: dayRecord.minutes + 25,
+    ...dayRecord,
+    sessions: nextSessions,
+    activeSeconds: nextActiveSeconds,
+    minutes: Math.max(
+      dayRecord.minutes + 25,
+      computeTotalDayMinutes({
+        sessions: nextSessions,
+        activeSeconds: nextActiveSeconds,
+        interactionMinutes: dayRecord.interactionMinutes,
+      })
+    ),
   };
 
   return {
     ...stats,
     pomodoroSessionsCompleted: stats.pomodoroSessionsCompleted + 1,
-    studiedSeconds: stats.studiedSeconds + Math.max(0, Math.floor(bonusCreditSeconds)),
+    studiedSeconds: stats.studiedSeconds + safeBonusSecs,
     dailyPomodoroLogs: {
       ...currentLogs,
       [dateKey]: updatedDayRecord,
@@ -364,7 +434,12 @@ export function computeDailyStudyGoalStatus(
 ): DailyStudyGoalStatus {
   const currentLogs = stats.dailyPomodoroLogs || {};
   const dayRecord = currentLogs[dateKey];
-  const minutesToday = dayRecord ? dayRecord.minutes : Math.min(targetMinutes, Math.floor((stats.studiedSeconds % 86400) / 60));
+  const hasAnyDailyLogs = Object.keys(currentLogs).length > 0;
+  const minutesToday = dayRecord
+    ? dayRecord.minutes
+    : hasAnyDailyLogs
+    ? 0
+    : Math.min(targetMinutes, Math.floor((stats.studiedSeconds % 86400) / 60));
   const progressPercent = Math.min(
     100,
     Math.round((minutesToday / Math.max(1, targetMinutes)) * 100)
@@ -384,10 +459,20 @@ export function recordInteractionStudyMinutes(
 ): PlayerProfileStats {
   const safeMinutes = Math.max(1, Math.floor(minutesToAdd));
   const currentLogs = stats.dailyPomodoroLogs || {};
-  const dayRecord = currentLogs[dateKey] || { sessions: 0, minutes: 0 };
+  const dayRecord = currentLogs[dateKey] || { sessions: 0, minutes: 0, activeSeconds: 0 };
+  const nextInteractionMinutes = (dayRecord.interactionMinutes || 0) + safeMinutes;
   const updatedDayRecord: DailyPomodoroRecord = {
+    ...dayRecord,
     sessions: dayRecord.sessions,
-    minutes: dayRecord.minutes + safeMinutes,
+    interactionMinutes: nextInteractionMinutes,
+    minutes: Math.max(
+      dayRecord.minutes + safeMinutes,
+      computeTotalDayMinutes({
+        sessions: dayRecord.sessions,
+        activeSeconds: dayRecord.activeSeconds,
+        interactionMinutes: nextInteractionMinutes,
+      })
+    ),
   };
 
   return {
@@ -403,37 +488,73 @@ export function recordInteractionStudyMinutes(
 export interface WeeklyPomodoroDayData {
   dateKey: string;
   dayLabel: string;
+  shortDate: string;
   dateDisplay: string;
   sessions: number;
   minutes: number;
+  activeSeconds: number;
   isToday: boolean;
 }
 
 export function getWeeklyPomodoroChartData(
   stats: PlayerProfileStats,
-  referenceDate: Date = new Date()
+  referenceDate: Date = new Date(),
+  weekOffset: number = 0
 ): WeeklyPomodoroDayData[] {
   const logs = stats.dailyPomodoroLogs || {};
   const result: WeeklyPomodoroDayData[] = [];
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Past 7 days up to today
+  const safeOffset = Math.min(0, Math.floor(Number.isFinite(weekOffset) ? weekOffset : 0));
+  const trueTodayKey = formatDateKey(referenceDate);
+
+  const windowEnd = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+  if (safeOffset !== 0) {
+    windowEnd.setDate(windowEnd.getDate() + safeOffset * 7);
+  }
+  const windowEndDateKey = formatDateKey(windowEnd);
+
+  // Only synthesize legacy Pomodoro bars when NO real per-day log exists yet on or before windowEndDateKey
+  const hasRealLogInOrBeforeWindow = Object.keys(logs).some((k) => {
+    const entry = logs[k];
+    return (
+      k <= windowEndDateKey &&
+      Boolean(
+        entry &&
+          ((entry.sessions || 0) > 0 ||
+            (entry.minutes || 0) > 0 ||
+            (entry.activeSeconds || 0) > 0)
+      )
+    );
+  });
+
+  // 7-day rolling window ending on windowEnd
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(referenceDate);
+    const d = new Date(windowEnd.getFullYear(), windowEnd.getMonth(), windowEnd.getDate());
     d.setDate(d.getDate() - i);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const dateKey = `${year}-${month}-${day}`;
+    const dateKey = formatDateKey(d);
     const dayLabel = dayNames[d.getDay()];
+    const shortDate = `${d.getMonth() + 1}/${d.getDate()}`;
     const dateDisplay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const isToday = i === 0;
+    const isToday = dateKey === trueTodayKey;
 
-    let sessions = logs[dateKey]?.sessions || 0;
-    let minutes = logs[dateKey]?.minutes || 0;
+    const record = logs[dateKey];
+    let sessions = record?.sessions || 0;
+    let minutes = record?.minutes || 0;
+    const activeSeconds = record?.activeSeconds || 0;
 
-    // If total sessions exist on profile but no per-day log exists yet, attribute past activity nicely
-    if (sessions === 0 && stats.pomodoroSessionsCompleted > 0 && i <= 3) {
+    if (
+      !hasRealLogInOrBeforeWindow &&
+      safeOffset === 0 &&
+      sessions === 0 &&
+      minutes === 0 &&
+      stats.pomodoroSessionsCompleted > 0 &&
+      i <= 3
+    ) {
       if (isToday) {
         sessions = Math.max(1, Math.min(stats.pomodoroSessionsCompleted, 2));
       } else if (i === 1 && stats.pomodoroSessionsCompleted >= 2) {
@@ -447,9 +568,11 @@ export function getWeeklyPomodoroChartData(
     result.push({
       dateKey,
       dayLabel,
+      shortDate,
       dateDisplay,
       sessions,
       minutes,
+      activeSeconds,
       isToday,
     });
   }
@@ -468,6 +591,7 @@ export interface QuizCompletionPayload {
 export function getQuizWorldDisplayName(worldCode: string): string {
   const norm = (worldCode || '').trim().toLowerCase();
   if (norm === 'boss') return 'Courtroom Boss Battle (Bowser)';
+  if (norm === 'exam_sim' || norm === 'examsim') return '10-Question Bar Exam Simulation';
   if (norm === 'flashback') return 'Targeted Flashback Review';
   if (norm === 'holidays') return 'Philippine Holidays & Multipliers';
   if (norm === 'w1' || norm === 'world1') return 'World 1: Hours of Work';
@@ -662,16 +786,81 @@ export const ACHIEVEMENT_DEFINITIONS: readonly AchievementDefinition[] = [
   },
   {
     id: 'world_1_master',
-    title: 'Hours of Work Champion',
+    title: 'Overtime Guru',
     milestoneLabel: 'Master All World 1 Modules',
     description:
-      'Mark every statutory module in World 1 (Articles 82–90 Hours of Work) as completed.',
+      'Complete every statutory module in World 1 (Articles 82–90 Hours of Work, Meal Periods, NSD & Overtime).',
     category: 'mastery',
-    coinReward: 30,
-    iconKey: 'book',
+    coinReward: 35,
+    iconKey: 'clock',
     actionTab: 'modules',
     actionWorld: 'world1',
     actionLabel: 'Open World 1',
+  },
+  {
+    id: 'world_2_master',
+    title: 'Holiday & 13th Month Maven',
+    milestoneLabel: 'Master All World 2 Modules',
+    description:
+      'Complete every statutory module in World 2 (Weekly Rest Days, Holiday Multipliers, Service Charges & P.D. 851 13th Month Pay).',
+    category: 'mastery',
+    coinReward: 35,
+    iconKey: 'flame',
+    actionTab: 'modules',
+    actionWorld: 'world2',
+    actionLabel: 'Open World 2',
+  },
+  {
+    id: 'world_3_master',
+    title: 'Wage Expert',
+    milestoneLabel: 'Master All World 3 Modules',
+    description:
+      'Complete every statutory module in World 3 (Wages, Facilities vs. Supplements, Wage Distortion & DOLE D.O. 174 Subcontracting).',
+    category: 'mastery',
+    coinReward: 40,
+    iconKey: 'wage_crown',
+    actionTab: 'modules',
+    actionWorld: 'world3',
+    actionLabel: 'Open World 3',
+  },
+  {
+    id: 'world_4_master',
+    title: 'Special Groups Protector',
+    milestoneLabel: 'Master All World 4 Modules',
+    description:
+      'Complete every statutory module in World 4 (Women Workers, Minors R.A. 9231, Batas Kasambahay R.A. 10361 & Homeworkers).',
+    category: 'mastery',
+    coinReward: 35,
+    iconKey: 'mushroom',
+    actionTab: 'modules',
+    actionWorld: 'world4',
+    actionLabel: 'Open World 4',
+  },
+  {
+    id: 'world_5_master',
+    title: 'Tenure & Safety Guardian',
+    milestoneLabel: 'Master All World 5 Modules',
+    description:
+      'Complete every statutory module in World 5 (Security of Tenure, Anti-Sexual Harassment, Safe Spaces R.A. 11313 & OSHS R.A. 11058).',
+    category: 'mastery',
+    coinReward: 40,
+    iconKey: 'trophy',
+    actionTab: 'modules',
+    actionWorld: 'world5',
+    actionLabel: 'Open World 5',
+  },
+  {
+    id: 'world_6_master',
+    title: 'Statutory Leave Specialist',
+    milestoneLabel: 'Master All World 6 Modules',
+    description:
+      'Complete every statutory module in World 6 (SIL, 105-Day Maternity, Paternity, Solo Parent R.A. 11861, Gynecological & VAWC Leaves).',
+    category: 'mastery',
+    coinReward: 40,
+    iconKey: 'book',
+    actionTab: 'modules',
+    actionWorld: 'world6',
+    actionLabel: 'Open World 6',
   },
   {
     id: 'all_worlds_master',
@@ -723,11 +912,132 @@ export const ACHIEVEMENT_DEFINITIONS: readonly AchievementDefinition[] = [
   },
 ] as const;
 
+export interface WorldMasteryBadgeStatus {
+  achievementId: string;
+  worldId: string;
+  worldNumber: number;
+  badgeTitle: string;
+  worldLabel: string;
+  description: string;
+  coinReward: number;
+  iconKey: AchievementDefinition['iconKey'];
+  completedCount: number;
+  totalCount: number;
+  progressPercent: number;
+  unlocked: boolean;
+  unlockedAt?: string;
+}
+
+export const WORLD_THEMATIC_BADGE_META: readonly {
+  achievementId: string;
+  worldId: string;
+  worldNumber: number;
+  badgeTitle: string;
+  worldLabel: string;
+  description: string;
+  coinReward: number;
+  iconKey: AchievementDefinition['iconKey'];
+}[] = [
+  {
+    achievementId: 'world_1_master',
+    worldId: 'world1',
+    worldNumber: 1,
+    badgeTitle: 'Overtime Guru',
+    worldLabel: 'World 1 · Hours & Overtime',
+    description: 'Complete all modules in World 1 (Arts. 82–90 Hours of Work, Meals, NSD & Overtime).',
+    coinReward: 35,
+    iconKey: 'clock',
+  },
+  {
+    achievementId: 'world_2_master',
+    worldId: 'world2',
+    worldNumber: 2,
+    badgeTitle: 'Holiday & 13th Month Maven',
+    worldLabel: 'World 2 · Rest & Holidays',
+    description: 'Complete all modules in World 2 (Rest Days, Holiday Pay, Service Charges & 13th Month).',
+    coinReward: 35,
+    iconKey: 'flame',
+  },
+  {
+    achievementId: 'world_3_master',
+    worldId: 'world3',
+    worldNumber: 3,
+    badgeTitle: 'Wage Expert',
+    worldLabel: 'World 3 · Wages & D.O. 174',
+    description: 'Complete all modules in World 3 (Minimum Wage, Deductions, Distortion & Contracting).',
+    coinReward: 40,
+    iconKey: 'wage_crown',
+  },
+  {
+    achievementId: 'world_4_master',
+    worldId: 'world4',
+    worldNumber: 4,
+    badgeTitle: 'Special Groups Protector',
+    worldLabel: 'World 4 · Special Workers',
+    description: 'Complete all modules in World 4 (Women, Working Children, Kasambahay & Homeworkers).',
+    coinReward: 35,
+    iconKey: 'mushroom',
+  },
+  {
+    achievementId: 'world_5_master',
+    worldId: 'world5',
+    worldNumber: 5,
+    badgeTitle: 'Tenure & Safety Guardian',
+    worldLabel: 'World 5 · Protective Laws',
+    description: 'Complete all modules in World 5 (Security of Tenure, Safe Spaces & OSHS R.A. 11058).',
+    coinReward: 40,
+    iconKey: 'trophy',
+  },
+  {
+    achievementId: 'world_6_master',
+    worldId: 'world6',
+    worldNumber: 6,
+    badgeTitle: 'Statutory Leave Specialist',
+    worldLabel: 'World 6 · Statutory Leaves',
+    description: 'Complete all modules in World 6 (SIL, Maternity, Paternity, Solo Parent & Special Leaves).',
+    coinReward: 40,
+    iconKey: 'book',
+  },
+] as const;
+
+export function computeWorldMasteryBadges(
+  completedTopicIds: readonly string[],
+  allTopics: readonly { id: string; worldId: string }[],
+  unlockedAchievementDates: Record<string, string> = {}
+): WorldMasteryBadgeStatus[] {
+  const completedSet = new Set(completedTopicIds);
+  return WORLD_THEMATIC_BADGE_META.map((meta) => {
+    const worldTopicIds = allTopics
+      .filter((t) => t.worldId === meta.worldId)
+      .map((t) => t.id);
+    const totalCount = worldTopicIds.length;
+    const completedCount = worldTopicIds.filter((id) => completedSet.has(id)).length;
+    const previouslyUnlocked = Boolean(unlockedAchievementDates[meta.achievementId]);
+    const meetsAll = totalCount > 0 && completedCount >= totalCount;
+    const unlocked = previouslyUnlocked || meetsAll;
+    const progressPercent = unlocked
+      ? 100
+      : totalCount > 0
+      ? Math.min(99, Math.round((completedCount / totalCount) * 100))
+      : 0;
+
+    return {
+      ...meta,
+      completedCount,
+      totalCount,
+      progressPercent,
+      unlocked,
+      unlockedAt: unlockedAchievementDates[meta.achievementId],
+    };
+  });
+}
+
 export interface AchievementEvaluationContext {
   stats: PlayerProfileStats;
   completedTopicIds: string[];
   totalTopicsCount: number;
   world1TopicIds: string[];
+  topicsByWorld?: Record<string, string[]>;
   loginStreak: number;
   notesCount: number;
 }
@@ -761,15 +1071,30 @@ export function evaluateAchievements(
     completedTopicIds,
     totalTopicsCount,
     world1TopicIds,
+    topicsByWorld,
     loginStreak,
     notesCount,
   } = ctx;
 
   const completedSet = new Set(completedTopicIds);
   const studiedMinutes = Math.floor(stats.studiedSeconds / 60);
-  const world1Completed = world1TopicIds.filter((id) => completedSet.has(id)).length;
-  const world1Target = Math.max(1, world1TopicIds.length);
   const safeTotalTopics = Math.max(1, totalTopicsCount);
+
+  const getWorldProgress = (worldKey: string, fallbackIds?: string[]) => {
+    const ids = topicsByWorld?.[worldKey] ?? fallbackIds ?? [];
+    if (ids.length === 0) {
+      return { completed: 0, target: 1, hasTopics: false };
+    }
+    const completed = ids.filter((id) => completedSet.has(id)).length;
+    return { completed, target: Math.max(1, ids.length), hasTopics: true };
+  };
+
+  const w1Prog = getWorldProgress('world1', world1TopicIds);
+  const w2Prog = getWorldProgress('world2');
+  const w3Prog = getWorldProgress('world3');
+  const w4Prog = getWorldProgress('world4');
+  const w5Prog = getWorldProgress('world5');
+  const w6Prog = getWorldProgress('world6');
 
   const nextUnlockedDates: Record<string, string> = {
     ...stats.unlockedAchievementDates,
@@ -781,6 +1106,7 @@ export function evaluateAchievements(
     let currentValue = 0;
     let targetValue = 1;
     let progressText = '';
+    let canUnlockByProgress = true;
 
     switch (def.id) {
       case 'studied_5_hours':
@@ -822,9 +1148,40 @@ export function evaluateAchievements(
         progressText = `${stats.bossVictories} / 1 Boss Victory`;
         break;
       case 'world_1_master':
-        currentValue = world1Completed;
-        targetValue = world1Target;
-        progressText = `${world1Completed} / ${world1Target} Modules`;
+        currentValue = w1Prog.completed;
+        targetValue = w1Prog.target;
+        canUnlockByProgress = w1Prog.hasTopics;
+        progressText = `${w1Prog.completed} / ${w1Prog.target} Modules`;
+        break;
+      case 'world_2_master':
+        currentValue = w2Prog.completed;
+        targetValue = w2Prog.target;
+        canUnlockByProgress = w2Prog.hasTopics;
+        progressText = w2Prog.hasTopics ? `${w2Prog.completed} / ${w2Prog.target} Modules` : '0 Modules';
+        break;
+      case 'world_3_master':
+        currentValue = w3Prog.completed;
+        targetValue = w3Prog.target;
+        canUnlockByProgress = w3Prog.hasTopics;
+        progressText = w3Prog.hasTopics ? `${w3Prog.completed} / ${w3Prog.target} Modules` : '0 Modules';
+        break;
+      case 'world_4_master':
+        currentValue = w4Prog.completed;
+        targetValue = w4Prog.target;
+        canUnlockByProgress = w4Prog.hasTopics;
+        progressText = w4Prog.hasTopics ? `${w4Prog.completed} / ${w4Prog.target} Modules` : '0 Modules';
+        break;
+      case 'world_5_master':
+        currentValue = w5Prog.completed;
+        targetValue = w5Prog.target;
+        canUnlockByProgress = w5Prog.hasTopics;
+        progressText = w5Prog.hasTopics ? `${w5Prog.completed} / ${w5Prog.target} Modules` : '0 Modules';
+        break;
+      case 'world_6_master':
+        currentValue = w6Prog.completed;
+        targetValue = w6Prog.target;
+        canUnlockByProgress = w6Prog.hasTopics;
+        progressText = w6Prog.hasTopics ? `${w6Prog.completed} / ${w6Prog.target} Modules` : '0 Modules';
         break;
       case 'all_worlds_master':
         currentValue = Math.min(safeTotalTopics, completedSet.size);
@@ -849,7 +1206,7 @@ export function evaluateAchievements(
     }
 
     const previouslyUnlocked = Boolean(nextUnlockedDates[def.id]);
-    const meetsThreshold = currentValue >= targetValue;
+    const meetsThreshold = canUnlockByProgress && currentValue >= targetValue;
     const unlocked = previouslyUnlocked || meetsThreshold;
     const progressPercent = unlocked
       ? 100
@@ -1154,14 +1511,14 @@ export const WALKTHROUGH_CHAPTERS: readonly WalkthroughChapter[] = [
     id: 'vault_and_shop',
     shortTitle: 'Games & Shop',
     kicker: 'Chapter 09 · Play & Customize',
-    headline: '17 Playable Arcade Games, Toad’s Shop & Coin Leaderboard',
+    headline: '18 Playable Arcade Games, Toad’s Shop & Coin Leaderboard',
     summary:
-      'Recharge between study blocks in the expanded 17-Game Vault, climb the Global Coin Leaderboard, and spend your study coins on Super Star 2x buffs, Shortcut Maps, Companions & 34 Mario Heroes.',
+      'Recharge between study blocks in the expanded 18-Game Vault, climb the Global Coin Leaderboard, and spend your study coins on Super Star 2x buffs, Shortcut Maps, Companions & 34 Mario Heroes.',
     highlights: [
       {
-        label: '17-Game Arcade Vault',
+        label: '18-Game Arcade Vault',
         detail:
-          'Play Drift-Tuned Labor Kart GP, Variable-Jump 2D Platformer, 3D Mushroom Island, Yoshi Leave Egg Toss, Koopa Brick Breaker, Boo Burden Spotlight, Toad Payroll Express & more.',
+          'Play Drift-Tuned Labor Kart GP, Variable-Jump 2D Platformer, 3D Mushroom Island, Yoshi Egg Toss, Koopa Brick Breaker, Boo Burden Spotlight, Chrono-Clock Prescription Blitz & more.',
       },
       {
         label: '34 Heroes, Power-Ups & Maps',
@@ -1184,14 +1541,14 @@ export const WALKTHROUGH_CHAPTERS: readonly WalkthroughChapter[] = [
     id: 'profile_print_pwa',
     shortTitle: 'Profile, Print & PWA',
     kicker: 'Chapter 10 · Mastery & Offline Access',
-    headline: 'Unlock Achievements, Print Reviewers & Install Offline',
+    headline: 'Unlock Thematic World Badges, Print Reviewers & Install Offline',
     summary:
       'Everything you accomplish is saved automatically on your device — ready online, offline, or on printed paper.',
     highlights: [
       {
-        label: 'Hero Profile & 12 Badges',
+        label: '6 World Badges & 17 Achievements',
         detail:
-          'Open your Profile in the Navbar to view total study hours, quizzes cleared, and 12 milestone badges ("Studied 5 hours", "Completed 10 Quizzes", "Perfect score on Wage Quiz").',
+          'Complete all modules in any World to unlock thematic badges ("Overtime Guru", "Wage Expert", "Statutory Leave Specialist") plus milestone badges in your Profile.',
       },
       {
         label: 'Ctrl+K Search & Print PDF',

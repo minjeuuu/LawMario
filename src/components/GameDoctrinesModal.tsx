@@ -14,6 +14,12 @@ import {
   PAYROLL_CAPSULE_BANK,
 } from '../utils/gameQuestionDeck';
 import {
+  KOOPA_BREAKER_DOCTRINES,
+  YOSHI_RATE_ROUNDS,
+  BOO_BURDEN_CASES,
+  CHRONO_BLITZ_BANK,
+} from './NewVaultGames';
+import {
   MarioQuestionBlockIcon,
   MarioStarIcon,
   MarioMushroomIcon,
@@ -164,6 +170,54 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
       });
     });
 
+    // 9. Koopa Shell Statutory Breaker
+    KOOPA_BREAKER_DOCTRINES.forEach((kb, idx) => {
+      list.push({
+        id: `koopa-${idx}`,
+        category: 'koopa_breaker',
+        title: `Koopa Breaker • Block [${kb.rateTag}]`,
+        questionOrDoctrine: `Multiplier / Benefit Block: ${kb.rateTag}`,
+        answerOrRule: kb.doctrine,
+        legalBasis: 'Labor Code Book III & Statutory Amendments',
+      });
+    });
+
+    // 10. Yoshi Egg Statutory Toss
+    YOSHI_RATE_ROUNDS.forEach((yr, idx) => {
+      list.push({
+        id: `yoshi-${idx}`,
+        category: 'yoshi_toss',
+        title: `Yoshi Egg Toss • Wave #${idx + 1}`,
+        questionOrDoctrine: yr.prompt,
+        answerOrRule: `Target Statutory Multiplier: ${yr.correctRate}`,
+        legalBasis: yr.statute,
+      });
+    });
+
+    // 11. King Boo's Burden of Proof Mansion
+    BOO_BURDEN_CASES.forEach((bb) => {
+      list.push({
+        id: `boo-${bb.id}`,
+        category: 'boo_burden',
+        title: `King Boo Burden Mansion • ${bb.claimTitle}`,
+        questionOrDoctrine: bb.scenario,
+        answerOrRule: bb.explanation,
+        legalBasis: bb.citation,
+      });
+    });
+
+    // 12. Bob-omb Chrono Prescription Blitz
+    CHRONO_BLITZ_BANK.forEach((cb) => {
+      list.push({
+        id: `chrono-${cb.id}`,
+        category: 'chrono_blitz',
+        title: `Bob-omb Prescription Blitz • ${cb.correctPeriod}`,
+        questionOrDoctrine: cb.claim,
+        answerOrRule: `Statutory Period / Deadline: ${cb.correctPeriod}`,
+        legalBasis: cb.basis,
+      });
+    });
+
     return list;
   }, []);
 
@@ -295,6 +349,10 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
               { id: 'toad_slots', label: 'Toad Slots' },
               { id: 'whack', label: 'Goomba Audit' },
               { id: 'mansion', label: 'Contractor Buster' },
+              { id: 'koopa_breaker', label: 'Koopa Breaker' },
+              { id: 'yoshi_toss', label: 'Yoshi Egg Toss' },
+              { id: 'boo_burden', label: 'Burden Mansion' },
+              { id: 'chrono_blitz', label: 'Prescription Blitz' },
             ].map((tab) => (
               <button
                 key={tab.id}

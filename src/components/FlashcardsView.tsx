@@ -5,6 +5,7 @@ import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import { Flashcard, StudyDifficulty } from '../types/laborLaw';
 import {
   filterFlashcardsForDifficulty,
+  shuffleFlashcardDeck,
   buildFlashcardExamChoices,
   mapActiveWorldToFlashcardWorldNum,
   buildQuickStudyCuratedDeck,
@@ -14,6 +15,7 @@ import {
   buildRapidFireReviewQuiz,
   RapidFireReviewQuestion,
 } from '../utils/studyModes';
+import { triggerCleanPrint } from '../utils/printHelper';
 import { generateNeedsImprovementPdfBytes } from '../utils/weakFlashcardsPdf';
 import { formatPomodoroSeconds } from '../utils/engagementFeatures';
 import { PlayerProfileStats } from '../utils/profileAchievements';
@@ -88,6 +90,8 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
     mapActiveWorldToFlashcardWorldNum(activeWorld)
   );
   const [masteredIds, setMasteredIds] = useState<Set<string>>(new Set());
+  const [isDeckShuffled, setIsDeckShuffled] = useState(false);
+  const [justShuffled, setJustShuffled] = useState(false);
 
   // Exam Prep Multiple-Choice state per card
   const [selectedMcqIdx, setSelectedMcqIdx] = useState<number | null>(null);
@@ -292,16 +296,11 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
   const handlePrintWeakPdf = () => {
     if (needsImprovementData.cards.length === 0) return;
     marioAudio.playClick();
-    document.body.classList.add('printing-weak-flashcards-only');
-    const cleanup = () => {
-      document.body.classList.remove('printing-weak-flashcards-only');
-      window.removeEventListener('afterprint', cleanup);
-    };
-    window.addEventListener('afterprint', cleanup);
-    window.setTimeout(() => {
-      window.print();
-      window.setTimeout(cleanup, 800);
-    }, 80);
+    triggerCleanPrint({
+      mode: 'weak-flashcards',
+      orientation: 'portrait',
+      marginCss: '10mm 12mm',
+    });
   };
 
   useEffect(() => {
@@ -391,8 +390,8 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
   };
 
   const standardFilteredCards = useMemo(
-    () => filterFlashcardsForDifficulty(cards, studyDifficulty, selectedWorld),
-    [cards, studyDifficulty, selectedWorld]
+    () => filterFlashcardsForDifficulty(cards, studyDifficulty, selectedWorld, isDeckShuffled),
+    [cards, studyDifficulty, selectedWorld, isDeckShuffled]
   );
 
   const filteredCards = isQuickStudyMode ? quickStudyDeck : standardFilteredCards;
@@ -470,12 +469,29 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
     setIsFlipped(false);
     setSelectedMcqIdx(null);
     if (isQuickStudyMode) {
-      setQuickStudyDeck((prev) => [...prev].sort(() => Math.random() - 0.5));
+      setQuickStudyDeck((prev) => shuffleFlashcardDeck(prev, activeCard?.id));
     } else {
-      const shuffled = [...cards].sort(() => Math.random() - 0.5);
-      setCards(shuffled);
+      // Find the first card currently visible in the filtered view so the new #1 card visibly changes
+      const currentVisibleFirstId = activeCard?.id;
+      setCards((prev) => {
+        const next = shuffleFlashcardDeck(prev, currentVisibleFirstId);
+        // If world filter is active and the filtered subset has >1 card, ensure its leading card also changes
+        const filteredNext = filterFlashcardsForDifficulty(next, studyDifficulty, selectedWorld, true);
+        if (filteredNext.length > 1 && filteredNext[0].id === currentVisibleFirstId) {
+          const secondVisibleId = filteredNext[1].id;
+          const idxA = next.findIndex((c) => c.id === currentVisibleFirstId);
+          const idxB = next.findIndex((c) => c.id === secondVisibleId);
+          if (idxA !== -1 && idxB !== -1) {
+            [next[idxA], next[idxB]] = [next[idxB], next[idxA]];
+          }
+        }
+        return next;
+      });
+      setIsDeckShuffled(true);
     }
     setCurrentIndex(0);
+    setJustShuffled(true);
+    window.setTimeout(() => setJustShuffled(false), 1600);
     marioAudio.playPowerUp();
   };
 
@@ -607,6 +623,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                   marioAudio.playPipe();
                 }}
                 className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-rose-900/60 border border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer"
+                aria-label="Exit Exam Mode"
                 title="Exit Exam Mode"
               >
                 <XCircle className="w-5 h-5" />
@@ -724,10 +741,21 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                     <span>{isFlipped ? 'Flip Back' : 'Flip to Reveal'}</span>
                   </button>
 
-                  <div className="flex items-center gap-2 ml-auto">
+                  <div className="flex flex-wrap items-center gap-2 ml-auto">
+                    <button
+                      type="button"
+                      data-testid="exam-focus-shuffle-btn"
+                      onClick={handleShuffle}
+                      aria-label="Shuffle current flashcard deck"
+                      className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    >
+                      <Shuffle className="w-4 h-4 text-amber-300 shrink-0" />
+                      <span>{justShuffled ? 'Shuffled!' : 'Shuffle'}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={handlePrev}
+                      aria-label="Previous card"
                       className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs border border-slate-400 cursor-pointer"
                     >
                       <ArrowLeft className="w-4 h-4" />
@@ -735,14 +763,15 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                     <button
                       type="button"
                       onClick={handleMastered}
-                      className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs border-2 border-black flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_#000]"
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs border-2 border-black flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_#000] whitespace-nowrap"
                     >
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Mastered (+1 Coin)</span>
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span>Mastered (+1c)</span>
                     </button>
                     <button
                       type="button"
                       onClick={handleNext}
+                      aria-label="Next card"
                       className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs border border-slate-400 cursor-pointer"
                     >
                       <ArrowRight className="w-4 h-4" />
@@ -757,10 +786,10 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
 
       {/* Header Banner + Quick Study Mode CTA */}
       <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 rounded-3xl p-4 sm:p-7 mario-card border-4 border-slate-950 space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1.5 text-center sm:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-600 text-white font-black rounded-lg border border-black text-[11px] uppercase font-mario">
-              <span>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1.5 text-center lg:text-left min-w-0 flex-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-600 text-white font-black rounded-lg border border-black text-[10px] sm:text-[11px] uppercase font-mario max-w-full">
+              <span className="break-words">
                 {isQuickStudyMode
                   ? '5-MINUTE QUICK STUDY SPRINT'
                   : studyDifficulty === 'exam_prep'
@@ -773,7 +802,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                 ? 'CURATED WEAK-SPOT FLASHCARD DECK'
                 : 'QUESTION MARK FLIP BLOCKS'}
             </h2>
-            <p className="text-amber-100 font-bold text-xs sm:text-sm max-w-xl">
+            <p className="text-amber-100 font-bold text-xs sm:text-sm max-w-xl mx-auto lg:mx-0">
               {isQuickStudyMode
                 ? quickStudySourceLabel
                 : studyDifficulty === 'exam_prep'
@@ -782,13 +811,19 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 shrink-0 w-full lg:w-auto">
+          <div
+            className={
+              isQuickStudyMode
+                ? 'flex items-center justify-center lg:justify-end gap-2 flex-wrap shrink-0 w-full lg:w-auto'
+                : 'grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 shrink-0 w-full lg:w-[410px]'
+            }
+          >
             {/* 3-Minute Rapid-Fire 'Review Session' Button (Needs Improvement Only) */}
             <button
               type="button"
               data-testid="flashcards-review-session-btn"
               onClick={launchReviewSessionQuiz}
-              className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer whitespace-nowrap"
+              className="min-h-[44px] w-full px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-[13px] cursor-pointer whitespace-nowrap"
             >
               <Flame className="w-4 h-4 text-amber-300 shrink-0" />
               <span>Review Session (3m)</span>
@@ -807,7 +842,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                 setIsExportWeakPdfOpen(true);
                 marioAudio.playClick();
               }}
-              className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2 bg-white hover:bg-amber-50 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer whitespace-nowrap"
+              className="min-h-[44px] w-full px-3 py-2 bg-white hover:bg-amber-50 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-[13px] cursor-pointer whitespace-nowrap"
             >
               <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
               <span>Export Weak PDF</span>
@@ -822,7 +857,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                 setIsExamTimerPaused(false);
                 marioAudio.playPowerUp();
               }}
-              className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer whitespace-nowrap"
+              className="min-h-[44px] w-full px-3 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-[13px] cursor-pointer whitespace-nowrap"
             >
               <Clock className="w-4 h-4 text-slate-950 shrink-0" />
               <span>Exam Focus</span>
@@ -836,7 +871,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                   setIsReviewSessionOpen(false);
                   startQuickStudySprint();
                 }}
-                className="min-h-[44px] flex-1 sm:flex-initial px-3.5 py-2 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer whitespace-nowrap"
+                className="min-h-[44px] w-full px-3 py-2 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-[13px] cursor-pointer whitespace-nowrap"
               >
                 <Zap className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>Quick Study (5m)</span>
@@ -904,10 +939,19 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
               </button>
               <button
                 type="button"
+                data-testid="quick-study-shuffle-btn"
+                onClick={handleShuffle}
+                className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-xs border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <Shuffle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span>{justShuffled ? 'Shuffled!' : 'Shuffle'}</span>
+              </button>
+              <button
+                type="button"
                 onClick={startQuickStudySprint}
                 className="min-h-[44px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
-                <RotateCw className="w-3.5 h-3.5" />
+                <RotateCw className="w-3.5 h-3.5 shrink-0" />
                 <span>Refresh 5m Deck</span>
               </button>
               {onOpenProfile && (
@@ -1022,11 +1066,22 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
 
               <button
                 type="button"
+                data-testid="flashcards-shuffle-btn"
                 onClick={handleShuffle}
-                className="min-h-[44px] px-3.5 inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 text-xs cursor-pointer leading-none whitespace-nowrap"
+                aria-label="Shuffle current flashcard deck"
+                title="Randomize the order of the current deck for varied retention"
+                className={`min-h-[44px] px-3.5 inline-flex items-center justify-center gap-1.5 font-black rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 text-xs cursor-pointer leading-none whitespace-nowrap transition-colors ${
+                  justShuffled
+                    ? 'bg-emerald-500 text-slate-950'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                }`}
               >
-                <Shuffle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span>Shuffle</span>
+                <Shuffle
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    justShuffled ? 'text-slate-950' : 'text-amber-300'
+                  }`}
+                />
+                <span>{justShuffled ? 'Shuffled!' : 'Shuffle'}</span>
               </button>
             </div>
           </div>
@@ -1631,12 +1686,12 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             </div>
           </div>
 
-          {/* Navigation Controls - Ergonomic 44px+ Mobile Targets */}
-          <div className="grid grid-cols-3 sm:flex sm:items-center sm:justify-between gap-2.5 pt-1">
+          {/* Navigation Controls - Ergonomic 44px+ Mobile Targets with Always-Accessible Shuffle */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5 pt-1">
             <button
               type="button"
               onClick={handlePrev}
-              className="min-h-[46px] px-3 sm:px-6 inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap"
+              className="min-h-[46px] px-3 sm:px-5 inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap"
             >
               <ArrowLeft className="w-4 h-4 shrink-0" />
               <span>Prev</span>
@@ -1644,8 +1699,28 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
 
             <button
               type="button"
+              data-testid="flashcards-bottom-shuffle-btn"
+              onClick={handleShuffle}
+              aria-label="Shuffle current deck order"
+              title="Randomize the order of the current deck"
+              className={`min-h-[46px] px-3 sm:px-5 inline-flex items-center justify-center gap-1.5 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap transition-colors ${
+                justShuffled
+                  ? 'bg-emerald-500 text-slate-950'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+              }`}
+            >
+              <Shuffle
+                className={`w-4 h-4 shrink-0 ${
+                  justShuffled ? 'text-slate-950' : 'text-amber-300'
+                }`}
+              />
+              <span>{justShuffled ? 'Shuffled!' : 'Shuffle'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleMastered}
-              className="min-h-[46px] px-3 sm:px-7 inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap"
+              className="min-h-[46px] px-3 sm:px-6 inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap"
             >
               <CheckCircle className="w-4 h-4 text-emerald-800 shrink-0" />
               <span className="truncate">Mastered (+1c)</span>
@@ -1654,7 +1729,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             <button
               type="button"
               onClick={handleNext}
-              className="min-h-[46px] px-3 sm:px-6 inline-flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap"
+              className="min-h-[46px] px-3 sm:px-5 inline-flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 text-xs sm:text-sm cursor-pointer leading-none whitespace-nowrap"
             >
               <span>{isQuickStudyMode && currentIndex === filteredCards.length - 1 ? 'Finish' : 'Next'}</span>
               <ArrowRight className="w-4 h-4 shrink-0" />
@@ -1684,7 +1759,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
             {/* Modal Header */}
-            <div className="bg-slate-950 text-white px-5 py-4 flex items-center justify-between gap-3 border-b-2 border-black shrink-0">
+            <div className="weak-pdf-modal-chrome print:hidden bg-slate-950 text-white px-5 py-4 flex items-center justify-between gap-3 border-b-2 border-black shrink-0">
               <div className="min-w-0">
                 <span className="text-[11px] font-bold text-amber-300 block">
                   Offline Study Reviewer · PDF Export
@@ -1704,7 +1779,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             </div>
 
             {/* Action Toolbar */}
-            <div className="bg-slate-100 px-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div className="weak-pdf-modal-chrome print:hidden bg-slate-100 px-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-3 shrink-0">
               <div className="text-xs font-semibold text-slate-700">
                 {needsImprovementData.hasFlaggedItems
                   ? needsImprovementData.sourceSummary
@@ -1744,7 +1819,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
 
             {/* Quick World Filter Toggles */}
             {onToggleNeedsImprovementWorld && (
-              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-1.5 shrink-0">
+              <div className="weak-pdf-modal-chrome print:hidden px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-1.5 shrink-0">
                 <span className="text-xs font-bold text-slate-600 mr-1">
                   Included Weak Worlds:
                 </span>
@@ -1774,7 +1849,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             )}
 
             {/* Printable Study Sheet Preview */}
-            <div className="p-5 overflow-y-auto flex-1 bg-white">
+            <div className="p-5 overflow-y-auto print:overflow-visible print:p-0 flex-1 bg-white">
               {needsImprovementData.cards.length === 0 ? (
                 <div className="text-center py-12 space-y-2 border-2 border-dashed border-slate-300 rounded-2xl p-6">
                   <Flag className="w-8 h-8 text-rose-500 mx-auto" />

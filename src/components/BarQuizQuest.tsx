@@ -13,6 +13,9 @@ import {
   pickQuickTestQuestions,
   pickFlashbackQuizQuestions,
   computeQuickTestSummary,
+  generateExamSimulationDeck,
+  computeExamSimulationBreakdown,
+  ExamSimulationSummary,
   mapActiveWorldToQuizCode,
   getQuizWorldLabel,
 } from '../utils/studyModes';
@@ -93,7 +96,123 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   needsImprovementTopicIds = [],
   needsImprovementWorlds = [],
 }) => {
-  const [activeMode, setActiveMode] = useState<'quick' | 'flashback' | 'practice' | 'boss'>('quick');
+  const [activeMode, setActiveMode] = useState<
+    'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss'
+  >('quick');
+
+  // ==================== MODE 0A: EXAM SIMULATION (10 Randomized All-Topic Qs + Timer + Breakdown) ====================
+  const [simTimePreset, setSimTimePreset] = useState<300 | 600 | 900>(600);
+  const [simDeck, setSimDeck] = useState<AdaptedQuizQuestion[]>(() =>
+    generateExamSimulationDeck(studyDifficulty, 10)
+  );
+  const [simIdx, setSimIdx] = useState<number>(0);
+  const [simAnswers, setSimAnswers] = useState<Record<number, number | null>>({});
+  const [simSecondsLeft, setSimSecondsLeft] = useState<number>(600);
+  const [simPaused, setSimPaused] = useState<boolean>(false);
+  const [simCompleted, setSimCompleted] = useState<boolean>(false);
+  const [simTimedOut, setSimTimedOut] = useState<boolean>(false);
+  const [simFinalSummary, setSimFinalSummary] = useState<ExamSimulationSummary | null>(null);
+
+  const simStateRef = useRef({
+    deck: simDeck,
+    answers: simAnswers,
+    secondsLeft: simSecondsLeft,
+    timePreset: simTimePreset,
+    completed: simCompleted,
+    difficulty: studyDifficulty,
+  });
+  simStateRef.current = {
+    deck: simDeck,
+    answers: simAnswers,
+    secondsLeft: simSecondsLeft,
+    timePreset: simTimePreset,
+    completed: simCompleted,
+    difficulty: studyDifficulty,
+  };
+
+  const startFreshExamSimulation = (
+    nextPreset: 300 | 600 | 900 = simTimePreset,
+    nextDifficulty: StudyDifficulty = studyDifficulty
+  ) => {
+    const freshDeck = generateExamSimulationDeck(nextDifficulty, 10);
+    setSimTimePreset(nextPreset);
+    setSimDeck(freshDeck);
+    setSimIdx(0);
+    setSimAnswers({});
+    setSimSecondsLeft(nextPreset);
+    setSimPaused(false);
+    setSimCompleted(false);
+    setSimTimedOut(false);
+    setSimFinalSummary(null);
+  };
+
+  const finishExamSimulation = (didTimeOut: boolean = false) => {
+    const snap = simStateRef.current;
+    if (snap.completed) return;
+    const elapsed = didTimeOut
+      ? snap.timePreset
+      : Math.max(1, snap.timePreset - snap.secondsLeft);
+    const summary = computeExamSimulationBreakdown({
+      deck: snap.deck,
+      answersByIndex: snap.answers,
+      elapsedSeconds: elapsed,
+      timeLimitSeconds: snap.timePreset,
+      timedOut: didTimeOut,
+      difficulty: snap.difficulty,
+    });
+    setSimTimedOut(didTimeOut);
+    setSimFinalSummary(summary);
+    setSimCompleted(true);
+    setSimPaused(false);
+    onQuizCompleted?.({
+      worldCode: 'exam_sim',
+      correctCount: summary.correctCount,
+      totalCount: summary.totalCount,
+      topicTitle: '10-Question Bar Exam Simulation (All Worlds)',
+    });
+    if (summary.coinsEarned > 0) {
+      onEarnCoins(summary.coinsEarned);
+    }
+    if (didTimeOut) {
+      marioAudio.playQuizTimeout();
+    } else if (summary.accuracyPercent >= 75) {
+      marioAudio.playQuizComplete();
+      try {
+        confetti({ particleCount: 95, spread: 80, origin: { y: 0.6 } });
+      } catch {
+        // ignore
+      }
+    } else {
+      marioAudio.playTryAgain();
+    }
+  };
+
+  useEffect(() => {
+    if (activeMode !== 'exam_sim' || simPaused || simCompleted) return;
+    const timer = window.setInterval(() => {
+      setSimSecondsLeft((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          window.setTimeout(() => finishExamSimulation(true), 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [activeMode, simPaused, simCompleted]);
+
+  useEffect(() => {
+    startFreshExamSimulation(simTimePreset, studyDifficulty);
+  }, [studyDifficulty]);
+
+  const simQ = simDeck[simIdx];
+  const simAnsweredCount = useMemo(
+    () =>
+      Object.values(simAnswers).filter((v): v is number => typeof v === 'number' && v >= 0)
+        .length,
+    [simAnswers]
+  );
 
   // ==================== MODE 0: QUICK TEST (5 Random Active-World Qs) ====================
   const [quickDeck, setQuickDeck] = useState<AdaptedQuizQuestion[]>(() =>
@@ -928,7 +1047,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       )}
       {/* Mode Switcher Tabs + Global Difficulty Indicator */}
       <div className="bg-slate-900 p-2.5 rounded-2xl border-3 border-slate-950 shadow-[4px_4px_0_#000] space-y-2.5">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <button
             type="button"
             onClick={() => {
@@ -936,14 +1055,34 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playPowerUp();
             }}
             data-testid="quiz-mode-quick"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
               activeMode === 'quick'
                 ? 'bg-emerald-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-slate-200 hover:text-white border-2 border-slate-700'
             }`}
           >
             <Zap className="w-4 h-4 shrink-0" />
-            <span>Quick Test (5 Qs)</span>
+            <span>Quick Test (5)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMode('exam_sim');
+              marioAudio.playPowerUp();
+              if (simCompleted) {
+                startFreshExamSimulation(simTimePreset, studyDifficulty);
+              }
+            }}
+            data-testid="quiz-mode-exam-sim"
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+              activeMode === 'exam_sim'
+                ? 'bg-sky-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
+                : 'bg-slate-800 text-sky-300 hover:text-white border-2 border-slate-700'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4 shrink-0" />
+            <span>Exam Simulation</span>
           </button>
 
           <button
@@ -954,7 +1093,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               startFreshFlashback();
             }}
             data-testid="quiz-mode-flashback"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
               activeMode === 'flashback'
                 ? 'bg-rose-500 text-white border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-rose-300 hover:text-white border-2 border-slate-700'
@@ -971,7 +1110,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playJump();
             }}
             data-testid="quiz-mode-practice"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
               activeMode === 'practice'
                 ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-slate-200 hover:text-white border-2 border-slate-700'
@@ -988,7 +1127,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playFireball();
             }}
             data-testid="quiz-mode-boss"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`col-span-2 sm:col-span-1 min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
               activeMode === 'boss'
                 ? 'bg-red-600 text-white border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-slate-200 hover:text-white border-2 border-slate-700'
@@ -1089,6 +1228,474 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ==================== MODE 0A: EXAM SIMULATION (10 RANDOMIZED ALL-TOPIC QUESTIONS + TIMER + BREAKDOWN) ==================== */}
+      {activeMode === 'exam_sim' && (
+        <div data-testid="exam-simulation-view" className="space-y-5">
+          {/* Exam Simulation Header & Live Countdown Timer */}
+          <div className="bg-gradient-to-r from-sky-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-4 sm:p-6 mario-card border-4 border-slate-950 space-y-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-sky-300">
+                  <GraduationCap className="w-4 h-4 text-amber-300 shrink-0" />
+                  <span>All-Topics Mock Bar Exam · 10 Randomized Questions</span>
+                </div>
+                <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white font-display">
+                  LABOR LAW EXAM SIMULATION
+                </h2>
+                <p className="text-xs sm:text-sm text-sky-100 font-semibold max-w-2xl">
+                  Draws 10 randomized multiple-choice questions spanning Hours, Holidays, Wages, Special Workers, Tenure &amp; Leaves under a live Bar timer, followed by a complete score breakdown &amp; statutory explanations.
+                </p>
+              </div>
+
+              {/* Timer & Controls Cluster */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <div
+                  data-testid="exam-sim-timer-display"
+                  className={`min-h-[44px] px-4 py-1.5 rounded-xl border-2 font-mono font-black text-lg sm:text-xl tabular-nums inline-flex items-center gap-2 ${
+                    simSecondsLeft <= 60 && !simCompleted
+                      ? 'bg-rose-950 border-rose-400 text-rose-200 animate-pulse'
+                      : 'bg-slate-950 border-amber-400 text-amber-300'
+                  }`}
+                >
+                  <Clock className="w-4 h-4 shrink-0" />
+                  <span>
+                    {Math.floor(simSecondsLeft / 60)
+                      .toString()
+                      .padStart(2, '0')}
+                    :{(simSecondsLeft % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+
+                {!simCompleted && (
+                  <button
+                    type="button"
+                    data-testid="exam-sim-pause-btn"
+                    onClick={() => {
+                      setSimPaused((p) => !p);
+                      marioAudio.playClick();
+                    }}
+                    className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 text-xs font-black text-white inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    {simPaused ? (
+                      <>
+                        <Play className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Resume</span>
+                      </>
+                    ) : (
+                      <>
+                        <Pause className="w-4 h-4 text-amber-300 shrink-0" />
+                        <span>Pause</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  data-testid="exam-sim-new-deck-btn"
+                  onClick={() => {
+                    startFreshExamSimulation(simTimePreset, studyDifficulty);
+                    marioAudio.playPowerUp();
+                  }}
+                  className="min-h-[44px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <Shuffle className="w-3.5 h-3.5 shrink-0" />
+                  <span>New 10-Q Exam</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Timer Duration Presets + Progress Bar */}
+            <div className="pt-3 border-t border-white/15 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-sky-200 font-bold">Timer Limit:</span>
+                {(
+                  [
+                    { sec: 300 as const, label: '5 Mins (Blitz)' },
+                    { sec: 600 as const, label: '10 Mins (Standard)' },
+                    { sec: 900 as const, label: '15 Mins (Extended)' },
+                  ]
+                ).map((preset) => (
+                  <button
+                    key={preset.sec}
+                    type="button"
+                    onClick={() => {
+                      startFreshExamSimulation(preset.sec, studyDifficulty);
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[36px] px-2.5 rounded-lg font-bold border transition-colors cursor-pointer whitespace-nowrap ${
+                      simTimePreset === preset.sec
+                        ? 'bg-sky-400 text-slate-950 border-black font-black'
+                        : 'bg-slate-900/80 text-slate-200 hover:text-white border-slate-700'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="font-bold text-amber-300 tabular-nums">
+                Answered: {simAnsweredCount} / {simDeck.length} Questions
+              </div>
+            </div>
+          </div>
+
+          {/* Active Timed Simulation Body vs. Post-Quiz Score Breakdown Screen */}
+          {!simCompleted ? (
+            simPaused ? (
+              <div className="bg-white text-slate-900 rounded-3xl p-8 mario-card border-4 border-slate-950 text-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center mx-auto">
+                  <Pause className="w-7 h-7 text-slate-950" />
+                </div>
+                <h3 className="text-2xl font-black font-display">EXAM SIMULATION PAUSED</h3>
+                <p className="text-sm text-slate-600 font-semibold max-w-md mx-auto">
+                  Questions are hidden while the simulation timer is paused. Click Resume when ready to continue.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimPaused(false);
+                    marioAudio.playPowerUp();
+                  }}
+                  className="min-h-[44px] px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black shadow-[0_3px_0_#000] cursor-pointer"
+                >
+                  Resume Exam Simulation
+                </button>
+              </div>
+            ) : simQ ? (
+              <div className="bg-white text-slate-900 rounded-3xl p-4 sm:p-7 mario-card border-4 border-slate-950 space-y-5">
+                {/* 10-Question Navigator Strip */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-slate-200">
+                  <div
+                    role="group"
+                    aria-label="Exam question navigator"
+                    className="flex items-center gap-1.5 flex-wrap"
+                  >
+                    {simDeck.map((item, qNumberIdx) => {
+                      const isCurrent = qNumberIdx === simIdx;
+                      const isAnswered =
+                        typeof simAnswers[qNumberIdx] === 'number' &&
+                        (simAnswers[qNumberIdx] as number) >= 0;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          data-testid={`exam-sim-nav-${qNumberIdx + 1}`}
+                          onClick={() => {
+                            setSimIdx(qNumberIdx);
+                            marioAudio.playClick();
+                          }}
+                          className={`min-h-[40px] min-w-[40px] px-2 rounded-xl font-black text-xs tabular-nums border-2 transition-all cursor-pointer ${
+                            isCurrent
+                              ? 'bg-sky-500 text-white border-slate-950 shadow-[0_2px_0_#000]'
+                              : isAnswered
+                              ? 'bg-emerald-100 text-emerald-950 border-emerald-600'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'
+                          }`}
+                        >
+                          {qNumberIdx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <span className="text-xs font-extrabold text-slate-600">
+                    Topic: {getQuizWorldLabel(simQ.worldCode)}
+                  </span>
+                </div>
+
+                {/* Question Prompt */}
+                <div className="space-y-2">
+                  <div className="text-xs font-extrabold text-sky-700 tabular-nums">
+                    Question {simIdx + 1} of {simDeck.length} · {simQ.world}
+                  </div>
+                  <p className={`font-extrabold text-slate-950 leading-relaxed ${bodyTextClass}`}>
+                    {simQ.scenario}
+                  </p>
+                  {studyDifficulty === 'casual' && simQ.hint && (
+                    <p className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl px-3 py-2">
+                      Memory Cue: {simQ.hint}
+                    </p>
+                  )}
+                </div>
+
+                {/* Multiple-Choice Options */}
+                <div className="space-y-2.5">
+                  {simQ.options.map((opt, optIdx) => {
+                    const chosen = simAnswers[simIdx] === optIdx;
+                    return (
+                      <button
+                        key={optIdx}
+                        type="button"
+                        data-testid={`exam-sim-option-${optIdx}`}
+                        onClick={() => {
+                          setSimAnswers((prev) => ({ ...prev, [simIdx]: optIdx }));
+                          marioAudio.playJump();
+                        }}
+                        className={`w-full min-h-[52px] text-left p-3.5 sm:p-4 rounded-2xl border-2 transition-all flex items-start gap-3 cursor-pointer ${
+                          chosen
+                            ? 'bg-sky-50 border-sky-600 text-slate-950 shadow-[0_3px_0_#0284c7]'
+                            : 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-900'
+                        }`}
+                      >
+                        <span
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs border shrink-0 mt-0.5 ${
+                            chosen
+                              ? 'bg-sky-600 text-white border-black'
+                              : 'bg-white text-slate-800 border-slate-400'
+                          }`}
+                        >
+                          {String.fromCharCode(65 + optIdx)}
+                        </span>
+                        <span className="font-bold text-sm sm:text-base leading-snug">
+                          {opt}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Navigation & Submit Exam Footer */}
+                <div className="pt-4 border-t-2 border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={simIdx === 0}
+                      onClick={() => {
+                        setSimIdx((i) => Math.max(0, i - 1));
+                        marioAudio.playClick();
+                      }}
+                      className="min-h-[44px] px-4 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-900 font-black text-xs border-2 border-slate-400 cursor-pointer whitespace-nowrap"
+                    >
+                      Previous
+                    </button>
+
+                    {simIdx < simDeck.length - 1 && (
+                      <button
+                        type="button"
+                        data-testid="exam-sim-next-btn"
+                        onClick={() => {
+                          setSimIdx((i) => Math.min(simDeck.length - 1, i + 1));
+                          marioAudio.playPipe();
+                        }}
+                        className="min-h-[44px] px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      >
+                        <span>Next Question</span>
+                        <ArrowRight className="w-4 h-4 shrink-0" />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    data-testid="exam-sim-submit-btn"
+                    onClick={() => finishExamSimulation(false)}
+                    className="min-h-[44px] px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    <span>
+                      Finish &amp; Grade Exam ({simAnsweredCount}/{simDeck.length})
+                    </span>
+                  </button>
+                </div>
+              </div>
+            ) : null
+          ) : simFinalSummary ? (
+            <div
+              data-testid="exam-sim-breakdown-screen"
+              className="bg-white text-slate-900 rounded-3xl p-5 sm:p-8 mario-card border-4 border-slate-950 space-y-6"
+            >
+              {/* Overall Score Summary Header */}
+              <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 border-2 border-slate-950 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1.5">
+                  <div className="text-xs font-extrabold text-amber-300">
+                    {simTimedOut
+                      ? 'TIME EXPIRED — AUTO-SUBMITTED OFFICIAL SCORE REPORT'
+                      : 'OFFICIAL EXAM SIMULATION SCORE REPORT'}
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black font-display text-white">
+                    {simFinalSummary.barVerdict}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 font-semibold max-w-xl">
+                    {simFinalSummary.feedbackMessage}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5 shrink-0 text-center">
+                  <div className="bg-slate-950 rounded-xl p-3 border border-slate-700">
+                    <span className="text-[11px] font-bold text-slate-400 block">Score</span>
+                    <span
+                      data-testid="exam-sim-score-value"
+                      className="text-xl sm:text-2xl font-black text-emerald-400 tabular-nums"
+                    >
+                      {simFinalSummary.correctCount}/{simFinalSummary.totalCount}
+                    </span>
+                  </div>
+                  <div className="bg-slate-950 rounded-xl p-3 border border-slate-700">
+                    <span className="text-[11px] font-bold text-slate-400 block">Rating</span>
+                    <span className="text-xl sm:text-2xl font-black text-amber-300 tabular-nums">
+                      {simFinalSummary.accuracyPercent}%
+                    </span>
+                  </div>
+                  <div className="bg-slate-950 rounded-xl p-3 border border-slate-700">
+                    <span className="text-[11px] font-bold text-slate-400 block">Time</span>
+                    <span className="text-lg sm:text-xl font-black text-sky-300 tabular-nums">
+                      {Math.floor(simFinalSummary.elapsedSeconds / 60)}m{' '}
+                      {(simFinalSummary.elapsedSeconds % 60).toString().padStart(2, '0')}s
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Per-World Topic Accuracy Breakdown */}
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-base sm:text-lg font-black text-slate-950 font-display">
+                    TOPIC-BY-TOPIC SCORE BREAKDOWN
+                  </h4>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-amber-700 tabular-nums">
+                    <MarioCoinIcon className="w-4 h-4" />
+                    <span>+{simFinalSummary.coinsEarned} Gold Coins Earned</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {simFinalSummary.worldBreakdown.map((wb) => (
+                    <div
+                      key={wb.worldCode}
+                      className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2 text-xs font-bold">
+                        <span className="text-slate-900 font-extrabold truncate">
+                          {wb.worldLabel}
+                        </span>
+                        <span className="tabular-nums text-slate-700 shrink-0">
+                          {wb.correctCount}/{wb.totalCount} · {wb.accuracyPercent}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            wb.accuracyPercent >= 75
+                              ? 'bg-emerald-500'
+                              : wb.accuracyPercent >= 50
+                              ? 'bg-amber-500'
+                              : 'bg-rose-500'
+                          }`}
+                          style={{ width: `${Math.max(6, wb.accuracyPercent)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Complete 10-Question Explanations & Legal Citations */}
+              <div
+                data-testid="exam-sim-explanations-list"
+                className="space-y-3 pt-2 border-t-2 border-slate-200"
+              >
+                <h4 className="text-base sm:text-lg font-black text-slate-950 font-display">
+                  COMPLETE ANSWER KEY &amp; STATUTORY EXPLANATIONS (10 ITEMS)
+                </h4>
+
+                <div className="space-y-3">
+                  {simDeck.map((item, idx) => {
+                    const userPick = simAnswers[idx];
+                    const hasPick = typeof userPick === 'number' && userPick >= 0;
+                    const isRight = hasPick && userPick === item.correctIndex;
+                    return (
+                      <div
+                        key={item.id}
+                        className={`rounded-2xl p-4 border-2 space-y-2.5 ${
+                          isRight
+                            ? 'bg-emerald-50/60 border-emerald-400'
+                            : 'bg-rose-50/60 border-rose-300'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                          <span className="text-slate-800">
+                            Item #{idx + 1} · {getQuizWorldLabel(item.worldCode)} · {item.legalBasis}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 font-black ${
+                              isRight ? 'text-emerald-700' : 'text-rose-700'
+                            }`}
+                          >
+                            {isRight ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 shrink-0" />
+                                <span>Correct</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-4 h-4 shrink-0" />
+                                <span>{hasPick ? 'Incorrect' : 'Unanswered'}</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+
+                        <p className="font-extrabold text-sm sm:text-base text-slate-950 leading-snug">
+                          {item.scenario}
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                          <div className="p-2.5 rounded-xl bg-white border border-slate-200">
+                            <span className="font-bold text-slate-500 block">Your Answer:</span>
+                            <span
+                              className={`font-extrabold ${
+                                isRight ? 'text-emerald-800' : 'text-rose-800'
+                              }`}
+                            >
+                              {hasPick
+                                ? `${String.fromCharCode(65 + (userPick as number))}. ${
+                                    item.options[userPick as number]
+                                  }`
+                                : 'No answer selected'}
+                            </span>
+                          </div>
+                          <div className="p-2.5 rounded-xl bg-white border border-emerald-300">
+                            <span className="font-bold text-emerald-700 block">
+                              Correct Statutory Answer:
+                            </span>
+                            <span className="font-extrabold text-slate-950">
+                              {String.fromCharCode(65 + item.correctIndex)}.{' '}
+                              {item.options[item.correctIndex]}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-white/90 border border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed">
+                          <strong className="font-black text-slate-950">Legal Explanation: </strong>
+                          {item.explanation}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t-2 border-slate-200">
+                <button
+                  type="button"
+                  data-testid="exam-sim-retake-btn"
+                  onClick={() => {
+                    startFreshExamSimulation(simTimePreset, studyDifficulty);
+                    marioAudio.playPowerUp();
+                  }}
+                  className="min-h-[46px] px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                >
+                  <Shuffle className="w-4 h-4 shrink-0" />
+                  <span>Retake Randomized 10-Q Simulation</span>
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {/* ==================== MODE 0: QUICK TEST (5 RANDOM ACTIVE-WORLD QUESTIONS) ==================== */}
       {activeMode === 'quick' && (

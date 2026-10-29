@@ -268,3 +268,125 @@ test('loadPlayerProfileStats hydrates persisted quizHistory records from storage
   assert.equal(loaded.quizHistory![0].scorePercent, 100);
 });
 
+test('Weekly bar graph advances cleanly across calendar days, logs active study minutes, and supports weekOffset navigation', async () => {
+  const { getTodayStudiedSeconds } = await import('./profileAchievements');
+
+  let stats = { ...DEFAULT_PLAYER_PROFILE_STATS };
+
+  // Day 1 (Oct 26): complete 2 Pomodoros
+  stats = recordPomodoroFocusFinish(stats, 0, '2026-10-26');
+  stats = recordPomodoroFocusFinish(stats, 0, '2026-10-26');
+
+  // Check chart on Oct 28 (2 days later) with NO activity on Oct 27 or Oct 28 yet:
+  // Bars must NOT freeze at synthetic [1, 2, 2] — Oct 26 has 2 sessions (50m), Oct 27 & Oct 28 have 0!
+  const oct28Ref = new Date(2026, 9, 28, 14, 0, 0);
+  const chartOct28Before = getWeeklyPomodoroChartData(stats, oct28Ref, 0);
+  assert.equal(chartOct28Before.length, 7);
+
+  const oct26Bar = chartOct28Before.find((d) => d.dateKey === '2026-10-26')!;
+  const oct27Bar = chartOct28Before.find((d) => d.dateKey === '2026-10-27')!;
+  const oct28Bar = chartOct28Before.find((d) => d.dateKey === '2026-10-28')!;
+
+  assert.equal(oct26Bar.sessions, 2);
+  assert.equal(oct26Bar.minutes, 50);
+  assert.equal(oct26Bar.isToday, false);
+  assert.equal(oct26Bar.shortDate, '10/26');
+
+  assert.equal(oct27Bar.sessions, 0);
+  assert.equal(oct27Bar.minutes, 0);
+
+  assert.equal(oct28Bar.sessions, 0);
+  assert.equal(oct28Bar.minutes, 0);
+  assert.equal(oct28Bar.isToday, true);
+  assert.equal(oct28Bar.shortDate, '10/28');
+  assert.equal(getTodayStudiedSeconds(stats, '2026-10-28'), 0);
+
+  // Now study actively for 180 seconds (3 minutes) on Oct 28 without finishing a 25m Pomodoro
+  stats = recordStudySeconds(stats, 180, '2026-10-28');
+  const chartOct28After = getWeeklyPomodoroChartData(stats, oct28Ref, 0);
+  const oct28Updated = chartOct28After.find((d) => d.dateKey === '2026-10-28')!;
+  assert.equal(oct28Updated.minutes, 3);
+  assert.equal(oct28Updated.activeSeconds, 180);
+  assert.equal(getTodayStudiedSeconds(stats, '2026-10-28'), 180);
+
+  // Step 1 week back (weekOffset = -1): window ends Oct 21, none marked isToday
+  const prevWeekChart = getWeeklyPomodoroChartData(stats, oct28Ref, -1);
+  assert.equal(prevWeekChart.length, 7);
+  assert.equal(prevWeekChart[6].dateKey, '2026-10-21');
+  assert.equal(prevWeekChart.some((d) => d.isToday), false);
+});
+
+test('Thematic World Mastery Badges unlock per world (Overtime Guru, Wage Expert, etc.) and compute accurate per-world progress', async () => {
+  const { computeWorldMasteryBadges, WORLD_THEMATIC_BADGE_META } = await import(
+    './profileAchievements'
+  );
+
+  assert.equal(WORLD_THEMATIC_BADGE_META.length, 6);
+  const titles = WORLD_THEMATIC_BADGE_META.map((b) => b.badgeTitle);
+  assert.ok(titles.includes('Overtime Guru'));
+  assert.ok(titles.includes('Wage Expert'));
+  assert.ok(titles.includes('Holiday & 13th Month Maven'));
+  assert.ok(titles.includes('Special Groups Protector'));
+  assert.ok(titles.includes('Tenure & Safety Guardian'));
+  assert.ok(titles.includes('Statutory Leave Specialist'));
+
+  const mockTopics = [
+    { id: 'w1-a', worldId: 'world1' },
+    { id: 'w1-b', worldId: 'world1' },
+    { id: 'w2-a', worldId: 'world2' },
+    { id: 'w3-a', worldId: 'world3' },
+    { id: 'w3-b', worldId: 'world3' },
+    { id: 'w4-a', worldId: 'world4' },
+    { id: 'w5-a', worldId: 'world5' },
+    { id: 'w6-a', worldId: 'world6' },
+  ];
+
+  const topicsByWorld: Record<string, string[]> = {
+    world1: ['w1-a', 'w1-b'],
+    world2: ['w2-a'],
+    world3: ['w3-a', 'w3-b'],
+    world4: ['w4-a'],
+    world5: ['w5-a'],
+    world6: ['w6-a'],
+  };
+
+  // Complete all of World 1 and World 3, partial nothing else
+  const completedTopicIds = ['w1-a', 'w1-b', 'w3-a', 'w3-b'];
+  const evalRes = evaluateAchievements(
+    {
+      stats: DEFAULT_PLAYER_PROFILE_STATS,
+      completedTopicIds,
+      totalTopicsCount: mockTopics.length,
+      world1TopicIds: topicsByWorld.world1,
+      topicsByWorld,
+      loginStreak: 1,
+      notesCount: 0,
+    },
+    'Oct 28, 2026'
+  );
+
+  const newlyUnlockedIds = evalRes.newlyUnlocked.map((a) => a.id);
+  assert.ok(newlyUnlockedIds.includes('world_1_master'), 'Overtime Guru should unlock');
+  assert.ok(newlyUnlockedIds.includes('world_3_master'), 'Wage Expert should unlock');
+  assert.ok(!newlyUnlockedIds.includes('world_2_master'), 'World 2 should remain locked');
+  assert.equal(evalRes.totalBonusCoinsEarned, 35 + 40);
+
+  const badges = computeWorldMasteryBadges(
+    ['w1-a', 'w1-b', 'w3-a'],
+    mockTopics,
+    evalRes.updatedStats.unlockedAchievementDates
+  );
+  assert.equal(badges.length, 6);
+  const w1Badge = badges.find((b) => b.worldId === 'world1')!;
+  const w2Badge = badges.find((b) => b.worldId === 'world2')!;
+  const w3Badge = badges.find((b) => b.worldId === 'world3')!;
+  assert.equal(w1Badge.badgeTitle, 'Overtime Guru');
+  assert.equal(w1Badge.unlocked, true);
+  assert.equal(w1Badge.progressPercent, 100);
+  assert.equal(w2Badge.unlocked, false);
+  assert.equal(w2Badge.progressPercent, 0);
+  // Persisted unlock date keeps Wage Expert unlocked even if inspected later
+  assert.equal(w3Badge.badgeTitle, 'Wage Expert');
+  assert.equal(w3Badge.unlocked, true);
+});
+

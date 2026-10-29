@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Printer,
   X,
@@ -35,6 +35,11 @@ import {
 } from '../utils/engagementFeatures';
 import { cleanRuleText } from '../utils/moduleFormatter';
 import { marioAudio } from '../utils/audio';
+import {
+  applyPrintPageRule,
+  clearPrintPageRule,
+  triggerCleanPrint,
+} from '../utils/printHelper';
 
 interface PrintStudyGuideModalProps {
   isOpen: boolean;
@@ -105,6 +110,24 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     WORLDS_METADATA.map((w) => w.id)
   );
 
+  useEffect(() => {
+    if (!isOpen) {
+      clearPrintPageRule();
+      return;
+    }
+    if (documentMode === 'certificate') {
+      applyPrintPageRule('landscape', '6mm');
+    } else {
+      applyPrintPageRule(
+        pageOrientation,
+        pageOrientation === 'landscape' ? '8mm 10mm' : '10mm 12mm'
+      );
+    }
+    return () => {
+      clearPrintPageRule();
+    };
+  }, [isOpen, documentMode, pageOrientation]);
+
   if (!isOpen) return null;
 
   const resolvedNotes =
@@ -142,27 +165,28 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
   const handlePrint = () => {
     if (documentMode === 'certificate') {
-      if (typeof document !== 'undefined') {
-        document.body.classList.add('printing-certificate-only');
-      }
       marioAudio.playQuizComplete();
-      window.print();
-      setTimeout(() => {
-        if (typeof document !== 'undefined') {
-          document.body.classList.remove('printing-certificate-only');
-        }
-      }, 1500);
+      triggerCleanPrint({
+        mode: 'certificate',
+        orientation: 'landscape',
+        marginCss: '6mm',
+        restoreOrientationOnFinish: {
+          orientation: 'landscape',
+          marginCss: '6mm',
+        },
+      });
     } else {
-      if (typeof document !== 'undefined') {
-        document.body.setAttribute('data-print-orientation', pageOrientation);
-      }
+      const marginCss = pageOrientation === 'landscape' ? '8mm 10mm' : '10mm 12mm';
       marioAudio.playCoin();
-      window.print();
-      setTimeout(() => {
-        if (typeof document !== 'undefined') {
-          document.body.removeAttribute('data-print-orientation');
-        }
-      }, 1500);
+      triggerCleanPrint({
+        mode: 'study-guide',
+        orientation: pageOrientation,
+        marginCss,
+        restoreOrientationOnFinish: {
+          orientation: pageOrientation,
+          marginCss,
+        },
+      });
     }
   };
 
@@ -1100,44 +1124,45 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
           }`}
         >
           {documentMode === 'certificate' ? (
-            /* ==================== OFFICIAL CERTIFICATE OF STATUTORY MASTERY ==================== */
+            /* ==================== OFFICIAL CERTIFICATE OF STATUTORY MASTERY (A4 LANDSCAPE) ==================== */
             <div
               id="official-labor-certificate"
+              data-testid="official-labor-certificate"
               style={isLivePreviewMode && previewZoom !== 100 ? { zoom: `${previewZoom}%` } : undefined}
-              className="bg-[#fffdfa] text-slate-950 p-6 sm:p-12 border-[8px] sm:border-[12px] border-amber-600 rounded-3xl shadow-2xl max-w-4xl w-full mx-auto relative font-serif select-text flex flex-col justify-between min-h-[580px] sm:min-h-[640px] my-auto outline outline-4 outline-amber-700/60"
+              className="bg-[#fffdfa] text-slate-950 p-5 sm:p-8 lg:px-12 lg:py-8 border-[6px] sm:border-[10px] border-amber-600 rounded-2xl shadow-2xl max-w-5xl w-full lg:aspect-[1.414/1] mx-auto relative font-serif select-text flex flex-col justify-between gap-2 my-auto outline outline-3 outline-amber-700/60"
             >
               {/* Corner Ornaments */}
-              <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-600" />
+              <div className="absolute top-2.5 left-2.5 w-6 h-6 border-t-2 border-l-2 border-amber-600 flex items-center justify-center">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
               </div>
-              <div className="absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-600" />
+              <div className="absolute top-2.5 right-2.5 w-6 h-6 border-t-2 border-r-2 border-amber-600 flex items-center justify-center">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
               </div>
-              <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-600" />
+              <div className="absolute bottom-2.5 left-2.5 w-6 h-6 border-b-2 border-l-2 border-amber-600 flex items-center justify-center">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
               </div>
-              <div className="absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-600" />
+              <div className="absolute bottom-2.5 right-2.5 w-6 h-6 border-b-2 border-r-2 border-amber-600 flex items-center justify-center">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
               </div>
 
               {/* Header Seal & Title */}
-              <div className="text-center space-y-2">
+              <div className="text-center space-y-1.5">
                 <div className="flex items-center justify-center gap-3">
-                  <div className="w-12 h-12 rounded-full border-2 border-amber-600 bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-                    <Scale className="w-6 h-6" />
+                  <div className="w-10 h-10 rounded-full border-2 border-amber-600 bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+                    <Scale className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10.5px] font-sans font-bold uppercase tracking-[0.22em] text-slate-600">
+                    <p className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-600">
                       REPUBLIC OF THE PHILIPPINES · SUPREME COURT BAR EXAMINATIONS
                     </p>
-                    <p className="text-[10px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
+                    <p className="text-[9.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
                       Department of Labor and Employment · Labor Standards Jurisprudence
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black font-serif tracking-wide text-amber-950 uppercase border-y-2 border-amber-600/80 py-1.5 my-2">
+                <div className="pt-1">
+                  <h2 className="text-xl sm:text-3xl lg:text-4xl font-black font-serif tracking-wide text-amber-950 uppercase border-y-2 border-amber-600/80 py-1.5 my-1">
                     Certificate of Statutory Mastery
                   </h2>
                   <p className="text-xs sm:text-sm italic font-serif text-slate-700">
@@ -1147,53 +1172,53 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               </div>
 
               {/* Candidate Recipient */}
-              <div className="text-center py-3">
-                <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-950 font-serif tracking-tight border-b-2 border-slate-900 pb-1 max-w-lg mx-auto">
+              <div className="text-center py-1">
+                <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-950 font-serif tracking-tight border-b-2 border-slate-900 pb-1 max-w-xl mx-auto">
                   {candidateName || 'Bar Examinee / Juris Doctor'}
                 </h3>
-                <p className="text-xs sm:text-sm font-sans font-black text-amber-700 tracking-widest uppercase mt-2">
+                <p className="text-xs sm:text-sm font-sans font-black text-amber-700 tracking-widest uppercase mt-1.5">
                   {certificateHonors}
                 </p>
               </div>
 
               {/* Body Certification text */}
-              <div className="text-center space-y-2.5 max-w-2xl mx-auto font-serif">
+              <div className="text-center space-y-2 max-w-3xl mx-auto font-serif">
                 <p className="text-xs sm:text-sm text-slate-800 leading-relaxed">
                   for demonstrating comprehensive statutory mastery and flawless doctrinal command across all Six Worlds of the <strong className="font-bold">Labor Code of the Philippines (Presidential Decree No. 442, as amended)</strong>, encompassing Hours of Work &amp; Overtime Rules, Wages &amp; D.O. 174 Subcontracting, Kasambahay Rights, Security of Tenure, and all Statutory Leaves.
                 </p>
 
                 {/* 6 World Badges Strip */}
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-2 text-[10px] font-sans font-bold text-slate-800">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1 text-[10px] font-sans font-bold text-slate-800">
                   {WORLDS_METADATA.map((w) => (
-                    <div key={w.id} className="border border-amber-400 bg-amber-50/70 p-1.5 rounded-lg text-center">
+                    <div key={w.id} className="border border-amber-400 bg-amber-50/70 px-1.5 py-1 rounded-lg text-center min-w-0">
                       <span className="block font-black text-amber-900 font-mono">W{w.worldNumber}</span>
-                      <span className="truncate block">{w.shortTitle}</span>
+                      <span className="block leading-tight">{w.shortTitle}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Signatures & Seal Footer */}
-              <div className="pt-6 border-t-2 border-amber-600/60 grid grid-cols-1 sm:grid-cols-3 items-end gap-4 text-center">
+              <div className="pt-3 border-t-2 border-amber-600/60 grid grid-cols-3 items-end gap-3 text-center">
                 {/* Creator Signature */}
-                <div className="space-y-1">
-                  <div className="border-b border-slate-900 mx-auto w-44 pb-1">
-                    <span className="font-serif italic text-sm font-bold text-slate-900">
+                <div className="space-y-0.5 min-w-0 px-1">
+                  <div className="border-b border-slate-900 mx-auto max-w-[240px] pb-0.5">
+                    <span className="font-serif italic text-xs sm:text-sm font-bold text-slate-900 block leading-snug">
                       Matthew Cesar Corpuz
                     </span>
                   </div>
-                  <p className="text-[10px] font-sans font-black text-slate-700 uppercase">
+                  <p className="text-[9.5px] sm:text-[10px] font-sans font-black text-slate-700 uppercase leading-tight">
                     Matthew Cesar Corpuz
                   </p>
-                  <p className="text-[9px] font-sans text-slate-500">
+                  <p className="text-[8.5px] sm:text-[9px] font-sans text-slate-500 leading-tight">
                     Main Creator &amp; Chief Legal Researcher
                   </p>
                 </div>
 
                 {/* Embossed Gold Star Seal */}
                 <div className="flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 rounded-full border-4 border-amber-500 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 flex flex-col items-center justify-center text-slate-950 shadow-md">
-                    <Award className="w-7 h-7 text-amber-950" />
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-amber-500 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 flex flex-col items-center justify-center text-slate-950 shadow-md">
+                    <Award className="w-6 h-6 sm:w-7 sm:h-7 text-amber-950" />
                     <span className="text-[7.5px] font-sans font-black tracking-tighter uppercase leading-none mt-0.5">
                       SEALED
                     </span>
@@ -1207,16 +1232,16 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 </div>
 
                 {/* Bar Review Board */}
-                <div className="space-y-1">
-                  <div className="border-b border-slate-900 mx-auto w-44 pb-1">
-                    <span className="font-serif italic text-sm font-bold text-slate-900">
+                <div className="space-y-0.5 min-w-0 px-1">
+                  <div className="border-b border-slate-900 mx-auto max-w-[260px] pb-0.5">
+                    <span className="font-serif italic text-xs sm:text-sm font-bold text-slate-900 block leading-snug">
                       Labor Law Examination Board
                     </span>
                   </div>
-                  <p className="text-[10px] font-sans font-black text-slate-700 uppercase">
+                  <p className="text-[9.5px] sm:text-[10px] font-sans font-black text-slate-700 uppercase leading-tight">
                     Labor Jurisprudence Directorate
                   </p>
-                  <p className="text-[9px] font-sans text-slate-500">
+                  <p className="text-[8.5px] sm:text-[9px] font-sans text-slate-500 leading-tight">
                     Philippine Bar Review &amp; Statutory Board
                   </p>
                 </div>
@@ -1230,19 +1255,21 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               style={isLivePreviewMode && previewZoom !== 100 ? { zoom: `${previewZoom}%` } : undefined}
               className={`bg-white text-slate-950 ${marginPaddingClass} ${fontScaleClass} ${
                 isCompact ? 'space-y-4' : 'space-y-7'
-              } ${pageOrientation === 'landscape' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto ${bodyFontClass} relative ${
+              } ${pageOrientation === 'landscape' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto ${bodyFontClass} relative overflow-hidden ${
                 isLivePreviewMode
                   ? 'rounded-md border border-neutral-300 shadow-[0_20px_50px_rgba(0,0,0,0.8)] ring-1 ring-neutral-400/30 w-full'
                   : 'rounded-2xl shadow-2xl'
-              } print:p-0 print:shadow-none print:max-w-full print:rounded-none print:border-0 print:ring-0`}
+              } print:p-0 print:shadow-none print:max-w-full print:rounded-none print:border-0 print:ring-0 print:overflow-visible`}
             >
-            {/* Watermark Stamp Overlay */}
+            {/* Watermark Stamp Overlay (Scoped inside document sheet so it never breaks pagination) */}
             {includeWatermark && (
               <div
                 aria-hidden="true"
-                className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-[0.045] rotate-[-30deg] select-none uppercase font-black text-5xl sm:text-7xl tracking-widest text-slate-950 print:opacity-[0.06]"
+                className="pointer-events-none absolute inset-0 z-10 overflow-hidden flex items-center justify-center opacity-[0.045] select-none print:opacity-[0.05]"
               >
-                {formatOptions.watermarkText || 'CONFIDENTIAL BAR REVIEW'}
+                <span className="rotate-[-28deg] uppercase font-black text-4xl sm:text-6xl tracking-widest text-slate-950 text-center px-6">
+                  {formatOptions.watermarkText || 'CONFIDENTIAL BAR REVIEW'}
+                </span>
               </div>
             )}
 

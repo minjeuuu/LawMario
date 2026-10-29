@@ -25,6 +25,11 @@ import {
   getSuperStarBuffStatus,
   MAIN_CREATOR_AUTHOR,
 } from '../utils/engagementFeatures';
+import {
+  applyPrintPageRule,
+  clearPrintPageRule,
+  triggerCleanPrint,
+} from '../utils/printHelper';
 import confetti from 'canvas-confetti';
 import {
   ShoppingBag,
@@ -646,6 +651,16 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     | 'mystery'
     | 'certificate'
   >('powerups');
+
+  useEffect(() => {
+    if (activeCategory === 'certificate') {
+      applyPrintPageRule('landscape', '6mm');
+      return () => {
+        clearPrintPageRule();
+      };
+    }
+    return undefined;
+  }, [activeCategory]);
   const [selectedFaction, setSelectedFaction] = useState<string>('All');
   const [mysteryResult, setMysteryResult] = useState<string | null>(null);
   const [isRollingMystery, setIsRollingMystery] = useState<boolean>(false);
@@ -2252,8 +2267,8 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       {/* Official Master Diploma / Certificate */}
       {activeCategory === 'certificate' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border-4 border-slate-950 p-4 sm:p-6 shadow-[6px_6px_0_#000] text-slate-950 space-y-5">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-slate-200 pb-4">
+          <div className="bg-white rounded-3xl border-4 border-slate-950 p-4 sm:p-6 shadow-[6px_6px_0_#000] text-slate-950 space-y-5 print:border-0 print:shadow-none print:p-0">
+            <div className="print:hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-slate-200 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
                   <FileCheck2 className="w-7 h-7 text-slate-950" />
@@ -2263,49 +2278,53 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                     OFFICIAL CERTIFICATE OF LABOR MASTERY
                   </h2>
                   <p className="text-xs font-bold text-slate-600">
-                    High-Resolution Commemorative Diploma covering Worlds 1–6 · Curated by Matthew (Main Creator)
+                    High-Resolution Landscape Diploma covering Worlds 1–6 · Curated by Matthew (Main Creator)
                   </p>
                 </div>
               </div>
 
               {!isCertUnlocked ? (
                 <button
+                  type="button"
                   onClick={() => handleBuyItem(CERTIFICATE_ITEM)}
                   disabled={coins < CERTIFICATE_ITEM.price}
                   className="min-h-[44px] px-5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
                 >
-                  <MarioCoinIcon className="w-4 h-4" />
+                  <MarioCoinIcon className="w-4 h-4 shrink-0" />
                   <span>Unlock for 50 Coins</span>
                 </button>
               ) : (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-950 border border-emerald-400 font-black text-xs rounded-xl">
-                    <Check className="w-3.5 h-3.5 text-emerald-700" />
+                    <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                     <span>Certificate Unlocked</span>
                   </span>
                   <button
                     type="button"
                     data-testid="print-certificate-btn"
                     onClick={() => {
-                      if (typeof document !== 'undefined') {
-                        document.body.classList.add('printing-certificate-only');
-                        window.print();
-                        setTimeout(() => {
-                          document.body.classList.remove('printing-certificate-only');
-                        }, 1200);
-                      }
+                      marioAudio.playQuizComplete();
+                      triggerCleanPrint({
+                        mode: 'certificate',
+                        orientation: 'landscape',
+                        marginCss: '6mm',
+                        restoreOrientationOnFinish: {
+                          orientation: 'landscape',
+                          marginCss: '6mm',
+                        },
+                      });
                     }}
                     className="min-h-[44px] px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                   >
-                    <Printer className="w-4 h-4" />
-                    <span>Print Certificate</span>
+                    <Printer className="w-4 h-4 shrink-0" />
+                    <span>Print Landscape Certificate</span>
                   </button>
                 </div>
               )}
             </div>
 
             {/* Recipient Customization */}
-            <div className="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-2xl border-2 border-slate-200">
+            <div className="print:hidden flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-2xl border-2 border-slate-200">
               <label htmlFor="cert-name" className="text-xs font-black uppercase text-slate-700">
                 Recipient Name on Diploma:
               </label>
@@ -2320,61 +2339,66 @@ export const ToadShop: React.FC<ToadShopProps> = ({
               />
             </div>
 
-            {/* Live Interactive Diploma Canvas / Card */}
+            {/* Live Interactive Landscape Diploma Canvas / Card */}
             <div
               id="official-labor-certificate"
-              className="p-6 sm:p-10 bg-gradient-to-br from-amber-50 via-white to-amber-50/50 border-8 border-amber-500 rounded-3xl shadow-inner relative overflow-hidden text-center space-y-4"
+              data-testid="toadshop-labor-certificate"
+              className="p-6 sm:p-9 lg:px-12 lg:py-8 bg-gradient-to-br from-amber-50 via-white to-amber-50/50 border-8 border-amber-500 rounded-3xl shadow-inner relative overflow-hidden text-center max-w-5xl mx-auto w-full lg:aspect-[1.414/1] flex flex-col justify-between gap-3"
             >
-              <div className="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-amber-600" />
-              <div className="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-amber-600" />
-              <div className="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-amber-600" />
-              <div className="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-amber-600" />
+              <div className="absolute top-3.5 left-3.5 w-10 h-10 border-t-4 border-l-4 border-amber-600" />
+              <div className="absolute top-3.5 right-3.5 w-10 h-10 border-t-4 border-r-4 border-amber-600" />
+              <div className="absolute bottom-3.5 left-3.5 w-10 h-10 border-b-4 border-l-4 border-amber-600" />
+              <div className="absolute bottom-3.5 right-3.5 w-10 h-10 border-b-4 border-r-4 border-amber-600" />
 
-              <div className="flex items-center justify-center gap-2">
-                <MarioStarIcon className="w-6 h-6" />
-                <span className="text-xs font-black tracking-widest uppercase text-amber-800 font-mario">
-                  MUSHROOM KINGDOM · HIGH ACADEMY OF SOCIAL LEGISLATION
-                </span>
-                <MarioStarIcon className="w-6 h-6" />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-center gap-2">
+                  <MarioStarIcon className="w-5 h-5 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-amber-800 font-mario">
+                    MUSHROOM KINGDOM · HIGH ACADEMY OF SOCIAL LEGISLATION
+                  </span>
+                  <MarioStarIcon className="w-5 h-5 shrink-0" />
+                </div>
+
+                <h1 className="text-2xl sm:text-4xl font-black font-display text-slate-900 tracking-tight">
+                  CERTIFICATE OF LABOR MASTERY
+                </h1>
+                <p className="text-xs sm:text-sm font-semibold text-slate-600 italic">
+                  This certifies that the esteemed Bar Review Candidate
+                </p>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-black font-display text-slate-900 tracking-tight">
-                CERTIFICATE OF LABOR MASTERY
-              </h1>
-              <p className="text-xs sm:text-sm font-semibold text-slate-600 italic">
-                This certifies that the esteemed Bar Review Candidate
-              </p>
-
-              <div className="text-xl sm:text-3xl font-black text-red-600 font-display underline decoration-amber-400 decoration-wavy decoration-2 underline-offset-8 py-2">
-                {certRecipientName || 'Mario Bar Candidate'}
+              <div className="py-1">
+                <div className="text-2xl sm:text-4xl font-black text-red-600 font-display border-b-2 border-amber-500 pb-1 max-w-xl mx-auto">
+                  {certRecipientName || 'Mario Bar Candidate'}
+                </div>
               </div>
 
-              <p className="text-xs sm:text-sm font-medium text-slate-700 max-w-xl mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm font-medium text-slate-700 max-w-3xl mx-auto leading-relaxed">
                 has with distinction completed all 6 Worlds of the Philippine Labor Standards Memory Aid (Articles 82–155, Book III Labor Code, R.A. 11360 Service Charges, D.O. 174 Contracting, R.A. 10361 Batas Kasambahay, Protective Laws, and Statutory Leaves including R.A. 11210, R.A. 8187, R.A. 8972/11861, R.A. 9710 &amp; R.A. 9262).
               </p>
 
-              <div className="pt-6 flex flex-col sm:flex-row items-center justify-around gap-6">
-                <div className="text-center">
-                  <div className="w-36 border-b-2 border-black mx-auto mb-1 font-bold text-xs">
+              <div className="pt-3 border-t border-amber-300/80 grid grid-cols-3 items-center gap-4">
+                <div className="text-center min-w-0 px-1">
+                  <div className="max-w-[240px] border-b-2 border-black mx-auto mb-1 font-bold text-xs leading-snug">
                     {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-500 font-mario">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 font-mario block leading-tight">
                     DATE OF CONFERMENT
                   </span>
                 </div>
 
-                <div className="w-20 h-20 rounded-full bg-amber-400 border-4 border-black flex flex-col items-center justify-center shadow-[0_4px_0_#000] rotate-12">
-                  <MarioStarIcon className="w-8 h-8" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-amber-400 border-4 border-black flex flex-col items-center justify-center shadow-[0_4px_0_#000]">
+                  <MarioStarIcon className="w-7 h-7 sm:w-8 sm:h-8" />
                   <span className="text-[8px] font-black uppercase text-slate-950 font-mario">
                     GOLD SEAL
                   </span>
                 </div>
 
-                <div className="text-center">
-                  <div className="w-48 border-b-2 border-black mx-auto mb-1 font-black text-xs">
+                <div className="text-center min-w-0 px-1">
+                  <div className="max-w-[260px] border-b-2 border-black mx-auto mb-1 font-black text-xs leading-snug">
                     Matthew · Main Creator &amp; Curator
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-500 font-mario">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 font-mario block leading-tight">
                     MAIN CREATOR &amp; CURATOR
                   </span>
                 </div>

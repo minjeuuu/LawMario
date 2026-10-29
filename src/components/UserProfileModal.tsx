@@ -39,11 +39,13 @@ import {
   EvaluatedAchievement,
   PlayerProfileStats,
   formatStudyDuration,
+  formatDateKey,
   getWeeklyPomodoroChartData,
   WeeklyPomodoroDayData,
   readStoredDailyStudyGoal,
   saveStoredDailyStudyGoal,
   computeDailyStudyGoalStatus,
+  computeWorldMasteryBadges,
 } from '../utils/profileAchievements';
 import { marioAudio } from '../utils/audio';
 import {
@@ -68,6 +70,7 @@ interface UserProfileModalProps {
   coins: number;
   loginStreak: number;
   completedTopicsCount: number;
+  completedTopicIds?: string[];
   totalTopicsCount: number;
   onNavigateAction: (tab: string, worldId?: string) => void;
   onOpenWalkthrough: () => void;
@@ -89,6 +92,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   coins,
   loginStreak,
   completedTopicsCount,
+  completedTopicIds = [],
   totalTopicsCount,
   onNavigateAction,
   onOpenWalkthrough,
@@ -104,7 +108,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showAllTopicsChecklist, setShowAllTopicsChecklist] = useState(false);
   const [dailyGoalTarget, setDailyGoalTarget] = useState<number>(() => readStoredDailyStudyGoal());
-  const goalStatus = computeDailyStudyGoalStatus(stats, dailyGoalTarget);
+  const [referenceNow, setReferenceNow] = useState<Date>(() => new Date());
+  const [weekOffset, setWeekOffset] = useState<number>(0);
+  const [chartMetric, setChartMetric] = useState<'minutes' | 'sessions'>('minutes');
+  const todayStr = formatDateKey(referenceNow);
+  const goalStatus = computeDailyStudyGoalStatus(stats, dailyGoalTarget, todayStr);
 
   // Favorite Tips State synced from localStorage
   const [favoriteTips, setFavoriteTips] = useState<{ title: string; tip: string; savedAt?: number }[]>(() => {
@@ -122,12 +130,18 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    setReferenceNow(new Date());
+    setWeekOffset(0);
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('mario_favorite_tips');
         if (saved) setFavoriteTips(JSON.parse(saved));
       } catch {}
     }
+    const timer = window.setInterval(() => {
+      setReferenceNow(new Date());
+    }, 30000);
+    return () => window.clearInterval(timer);
   }, [isOpen]);
 
   const handleRemoveFavoriteTip = (title: string) => {
@@ -157,34 +171,70 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const daysInCurrentMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(calYear, calMonth, 1).getDay(); // 0 is Sunday
 
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const today = referenceNow;
 
   // Calculate streak dates set (spanning loginStreak days back from today)
   const streakDatesSet = React.useMemo(() => {
     const set = new Set<string>();
     const count = Math.max(1, loginStreak);
     for (let i = 0; i < count; i++) {
-      const d = new Date(today);
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       d.setDate(d.getDate() - i);
-      const str = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      set.add(str);
+      set.add(formatDateKey(d));
     }
     return set;
   }, [loginStreak, todayStr]);
 
-  // Compute days studied in this month
+  // Compute days studied in this month (including active study seconds/minutes or Pomodoro sessions)
   const monthlyDaysStudied = React.useMemo(() => {
     let count = 0;
     for (let day = 1; day <= daysInCurrentMonth; day++) {
       const dayStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const sessions = stats.dailyPomodoroLogs?.[dayStr]?.sessions || 0;
-      if (sessions > 0 || (streakDatesSet.has(dayStr) && new Date(calYear, calMonth, day) <= today)) {
+      const log = stats.dailyPomodoroLogs?.[dayStr];
+      const hasStudyOnDay = Boolean(
+        log && ((log.sessions || 0) > 0 || (log.minutes || 0) > 0 || (log.activeSeconds || 0) >= 15)
+      );
+      if (hasStudyOnDay || (streakDatesSet.has(dayStr) && new Date(calYear, calMonth, day) <= today)) {
         count++;
       }
     }
     return count;
-  }, [calYear, calMonth, daysInCurrentMonth, stats.dailyPomodoroLogs, streakDatesSet]);
+  }, [calYear, calMonth, daysInCurrentMonth, stats.dailyPomodoroLogs, streakDatesSet, todayStr]);
+
+  const weeklyChartData = React.useMemo(
+    () => getWeeklyPomodoroChartData(stats, referenceNow, weekOffset),
+    [stats, referenceNow, weekOffset]
+  );
+
+  const weeklyTotalMinutes = React.useMemo(
+    () => weeklyChartData.reduce((acc, item) => acc + item.minutes, 0),
+    [weeklyChartData]
+  );
+
+  const weeklyTotalSessions = React.useMemo(
+    () => weeklyChartData.reduce((acc, item) => acc + item.sessions, 0),
+    [weeklyChartData]
+  );
+
+  const weeklyRangeLabel =
+    weeklyChartData.length > 0
+      ? `${weeklyChartData[0].dateDisplay} – ${weeklyChartData[weeklyChartData.length - 1].dateDisplay}`
+      : '';
+
+  const worldMasteryBadges = React.useMemo(
+    () =>
+      computeWorldMasteryBadges(
+        completedTopicIds,
+        ALL_LAW_TOPICS,
+        stats.unlockedAchievementDates
+      ),
+    [completedTopicIds, stats.unlockedAchievementDates]
+  );
+
+  const unlockedWorldBadgesCount = React.useMemo(
+    () => worldMasteryBadges.filter((b) => b.unlocked).length,
+    [worldMasteryBadges]
+  );
 
   const handleSelectGoalMinutes = (mins: number) => {
     setDailyGoalTarget(mins);
@@ -940,55 +990,178 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             )}
           </div>
 
-          {/* Section 2: Weekly Pomodoro Focus Session History (Recharts Bar Chart) */}
+          {/* Section 2: Weekly Daily Study & Focus Bar Chart (Live Rolling 7-Day Calendar Window) */}
           <div
             data-testid="weekly-pomodoro-history-section"
             className="bg-slate-900 rounded-2xl p-4 sm:p-5 border-2 border-slate-700 space-y-4"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000] shrink-0">
                   <Clock className="w-5 h-5 text-slate-950" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
-                    STUDY CONSISTENCY OVER TIME
+                    LIVE 7-DAY CALENDAR TRACKER
                   </span>
                   <h3 className="text-base sm:text-lg font-black text-white font-display">
-                    WEEKLY POMODORO FOCUS SESSION HISTORY
+                    WEEKLY STUDY &amp; FOCUS ACTIVITY
                   </h3>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-300 tabular-nums">
-                <span>
-                  Total: <strong className="text-white">{getWeeklyPomodoroChartData(stats).reduce((a, b) => a + b.sessions, 0)} Blocks</strong>
-                </span>
-                <span aria-hidden="true">·</span>
-                <span className="text-amber-300">25-Min Intervals</span>
+              {/* Metric Switcher + Week Date Stepper */}
+              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">
+                <div
+                  role="group"
+                  aria-label="Weekly chart metric"
+                  className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700"
+                >
+                  <button
+                    type="button"
+                    data-testid="weekly-chart-metric-minutes"
+                    onClick={() => {
+                      setChartMetric('minutes');
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                      chartMetric === 'minutes'
+                        ? 'bg-amber-400 text-slate-950 font-black'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Study Mins ({weeklyTotalMinutes}m)
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="weekly-chart-metric-sessions"
+                    onClick={() => {
+                      setChartMetric('sessions');
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                      chartMetric === 'sessions'
+                        ? 'bg-amber-400 text-slate-950 font-black'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Focus Blocks ({weeklyTotalSessions})
+                  </button>
+                </div>
+
+                <div className="inline-flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-700">
+                  <button
+                    type="button"
+                    data-testid="weekly-chart-prev-week-btn"
+                    aria-label="Previous 7 days"
+                    onClick={() => {
+                      setWeekOffset((w) => w - 1);
+                      marioAudio.playClick();
+                    }}
+                    className="min-h-[36px] min-w-[36px] px-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 inline-flex items-center justify-center cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span
+                    data-testid="weekly-chart-range-label"
+                    className="px-2 text-[11px] font-bold text-slate-200 tabular-nums whitespace-nowrap"
+                  >
+                    {weeklyRangeLabel}
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="weekly-chart-next-week-btn"
+                    aria-label="Next 7 days"
+                    disabled={weekOffset >= 0}
+                    onClick={() => {
+                      setWeekOffset((w) => Math.min(0, w + 1));
+                      marioAudio.playClick();
+                    }}
+                    className="min-h-[36px] min-w-[36px] px-2 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-35 disabled:cursor-not-allowed text-slate-200 inline-flex items-center justify-center cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  {weekOffset < 0 && (
+                    <button
+                      type="button"
+                      data-testid="weekly-chart-today-btn"
+                      onClick={() => {
+                        setWeekOffset(0);
+                        marioAudio.playCoin();
+                      }}
+                      className="min-h-[36px] px-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] cursor-pointer whitespace-nowrap"
+                    >
+                      Today
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Recharts Responsive Bar Chart */}
-            <div className="w-full h-56 sm:h-64 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300 tabular-nums">
+              <span>
+                {weekOffset === 0
+                  ? 'Rolling 7-day window ending Today — study modules, flashcards, quizzes, or Pomodoro blocks to grow today’s bar.'
+                  : `Viewing historical 7-day window (${Math.abs(weekOffset)} week${Math.abs(weekOffset) === 1 ? '' : 's'} ago).`}
+              </span>
+              <span className="font-semibold text-amber-300">
+                Today ({weeklyChartData.find((d) => d.isToday)?.shortDate ?? formatDateKey(referenceNow).slice(5).replace('-', '/')}):{' '}
+                {goalStatus.minutesToday}m logged
+              </span>
+            </div>
+
+            {/* Recharts Responsive Bar Chart with Explicit Day + Calendar Date (MM/DD) X-Axis */}
+            <div className="w-full h-60 sm:h-68 pt-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={getWeeklyPomodoroChartData(stats)}
-                  margin={{ top: 12, right: 12, left: -18, bottom: 4 }}
+                  data={weeklyChartData}
+                  margin={{ top: 12, right: 12, left: -16, bottom: 18 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                   <XAxis
-                    dataKey="dayLabel"
-                    tick={{ fill: '#cbd5e1', fontSize: 12, fontWeight: 700 }}
+                    dataKey="dateKey"
+                    interval={0}
                     axisLine={{ stroke: '#475569' }}
                     tickLine={false}
+                    height={44}
+                    tick={(props: { x?: string | number; y?: string | number; payload?: { value?: string | number } }) => {
+                      const x = Number(props.x || 0);
+                      const y = Number(props.y || 0);
+                      const key = String(props.payload?.value || '');
+                      const item = weeklyChartData.find((d) => d.dateKey === key);
+                      if (!item) return <g />;
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text
+                            x={0}
+                            y={13}
+                            textAnchor="middle"
+                            fill={item.isToday ? '#fbbf24' : '#e2e8f0'}
+                            fontSize={11}
+                            fontWeight={item.isToday ? 800 : 700}
+                          >
+                            {item.isToday ? `${item.dayLabel}•` : item.dayLabel}
+                          </text>
+                          <text
+                            x={0}
+                            y={28}
+                            textAnchor="middle"
+                            fill={item.isToday ? '#fde68a' : '#94a3b8'}
+                            fontSize={10}
+                            fontWeight={item.isToday ? 700 : 500}
+                          >
+                            {item.shortDate}
+                          </text>
+                        </g>
+                      );
+                    }}
                   />
                   <YAxis
                     allowDecimals={false}
                     tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
                     axisLine={{ stroke: '#475569' }}
                     tickLine={false}
-                    domain={[0, 'dataMax + 1']}
+                    domain={[0, chartMetric === 'minutes' ? 'dataMax + 5' : 'dataMax + 1']}
                   />
                   <Tooltip
                     content={({ active, payload }) => {
@@ -998,12 +1171,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                           <div className="bg-slate-950 border-2 border-amber-400 p-2.5 rounded-xl shadow-xl text-white text-xs font-bold space-y-1">
                             <p className="font-mario text-amber-300 text-[10px]">
                               {data.dateDisplay} · {data.dayLabel}
+                              {data.isToday ? ' (TODAY)' : ''}
                             </p>
-                            <p className="text-white font-extrabold text-sm">
-                              {data.sessions} Focus Block{data.sessions !== 1 ? 's' : ''}
+                            <p className="text-emerald-400 font-extrabold text-sm">
+                              {data.minutes} Minute{data.minutes !== 1 ? 's' : ''} Studied
                             </p>
-                            <p className="text-emerald-400 font-semibold">
-                              {data.minutes} Minutes Studied
+                            <p className="text-slate-200 font-semibold">
+                              {data.sessions} Focus Block{data.sessions !== 1 ? 's' : ''} (25m)
                             </p>
                           </div>
                         );
@@ -1012,25 +1186,29 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     }}
                   />
                   <Bar
-                    dataKey="sessions"
-                    name="Focus Sessions"
+                    dataKey={chartMetric}
+                    name={chartMetric === 'minutes' ? 'Study Minutes' : 'Focus Sessions'}
                     radius={[8, 8, 2, 2]}
                     maxBarSize={48}
+                    minPointSize={4}
                   >
-                    {getWeeklyPomodoroChartData(stats).map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          entry.isToday
-                            ? '#fbbf24'
-                            : entry.sessions > 0
-                            ? '#34d399'
-                            : '#475569'
-                        }
-                        stroke={entry.isToday ? '#000000' : 'none'}
-                        strokeWidth={entry.isToday ? 2 : 0}
-                      />
-                    ))}
+                    {weeklyChartData.map((entry) => {
+                      const val = chartMetric === 'minutes' ? entry.minutes : entry.sessions;
+                      return (
+                        <Cell
+                          key={`cell-${entry.dateKey}`}
+                          fill={
+                            entry.isToday
+                              ? '#fbbf24'
+                              : val > 0
+                              ? '#34d399'
+                              : '#334155'
+                          }
+                          stroke={entry.isToday ? '#000000' : 'none'}
+                          strokeWidth={entry.isToday ? 2 : 0}
+                        />
+                      );
+                    })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -1124,16 +1302,25 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   const isFuture = dayDate > today;
                   const logRecord = stats.dailyPomodoroLogs?.[dayStr];
                   const sessionCount = logRecord?.sessions || 0;
-                  const minutesStudied = logRecord?.minutes || (sessionCount * 25);
+                  const minutesStudied =
+                    logRecord?.minutes ??
+                    Math.max(
+                      sessionCount * 25,
+                      Math.floor((logRecord?.activeSeconds || 0) / 60)
+                    );
+                  const hasLoggedStudy =
+                    sessionCount > 0 ||
+                    minutesStudied > 0 ||
+                    (logRecord?.activeSeconds || 0) >= 15;
                   const isStreakDay = streakDatesSet.has(dayStr) && !isFuture;
-                  const hasActivity = sessionCount > 0 || isStreakDay;
+                  const hasActivity = hasLoggedStudy || isStreakDay;
 
                   // Determine heatmap styling
                   let cellBg = 'bg-slate-950/60 border-slate-800 text-slate-500';
                   if (hasActivity) {
-                    if (sessionCount >= 3) {
+                    if (sessionCount >= 3 || minutesStudied >= 75) {
                       cellBg = 'bg-amber-400 border-amber-300 text-slate-950 font-black shadow-[0_2px_4px_rgba(251,191,36,0.3)]';
-                    } else if (sessionCount >= 2) {
+                    } else if (sessionCount >= 2 || minutesStudied >= 45) {
                       cellBg = 'bg-emerald-500 border-emerald-400 text-slate-950 font-extrabold';
                     } else {
                       cellBg = 'bg-emerald-600/70 border-emerald-500/80 text-emerald-100 font-bold';
@@ -1145,7 +1332,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   return (
                     <div
                       key={`day-${dayNum}`}
-                      title={`${dayStr}: ${hasActivity ? (sessionCount ? `${sessionCount} study blocks (${minutesStudied}m)` : 'Active streak day') : isFuture ? 'Upcoming day' : 'No study logged'}`}
+                      title={`${dayStr}: ${hasActivity ? (sessionCount ? `${sessionCount} study blocks (${minutesStudied}m)` : minutesStudied > 0 ? `${minutesStudied}m active study` : 'Active streak day') : isFuture ? 'Upcoming day' : 'No study logged'}`}
                       className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center p-1 transition-all select-none ${cellBg} ${
                         isDayToday ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900' : ''
                       }`}
@@ -1198,6 +1385,123 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
+
+          {/* Section 2C: Thematic World Mastery Badges (Worlds 1–6) */}
+          <div
+            data-testid="world-mastery-badges-section"
+            className="bg-slate-900 rounded-2xl p-4 sm:p-5 border-2 border-slate-700 space-y-4"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000] shrink-0">
+                  <Crown className="w-5 h-5 text-slate-950" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
+                    WORLD COMPLETION HONORS
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-white font-display">
+                    THEMATIC WORLD MASTERY BADGES ({unlockedWorldBadgesCount} / {worldMasteryBadges.length})
+                  </h3>
+                </div>
+              </div>
+              <p className="text-xs text-slate-300 font-semibold">
+                Complete every module within a World to earn its official Labor Law title &amp; bonus Gold Coins.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {worldMasteryBadges.map((wBadge) => (
+                <div
+                  key={wBadge.worldId}
+                  data-testid={`world-mastery-badge-${wBadge.worldId}`}
+                  className={`rounded-2xl p-3.5 border-2 flex flex-col justify-between gap-3 transition-all ${
+                    wBadge.unlocked
+                      ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/70 border-amber-400 shadow-[0_3px_0_#000]'
+                      : 'bg-slate-950/70 border-slate-700'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center shrink-0 ${
+                            wBadge.unlocked
+                              ? 'bg-slate-900 border-amber-400 shadow-[0_2px_0_#000]'
+                              : 'bg-slate-900/60 border-slate-700 opacity-75'
+                          }`}
+                        >
+                          {renderBadgeIcon(wBadge.iconKey)}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[11px] font-bold text-amber-300 block">
+                            {wBadge.worldLabel}
+                          </span>
+                          <h4 className="font-black text-sm text-white font-display leading-snug">
+                            {wBadge.badgeTitle}
+                          </h4>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs font-black text-amber-300 tabular-nums shrink-0">
+                        <MarioCoinIcon className="w-3.5 h-3.5" />
+                        <span>+{wBadge.coinReward}</span>
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {wBadge.description}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-slate-800">
+                    <div className="flex items-center justify-between text-xs font-bold tabular-nums">
+                      <span className="text-slate-300">
+                        {wBadge.completedCount} / {wBadge.totalCount} Modules
+                      </span>
+                      {wBadge.unlocked ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-400 font-black">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Earned</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">{wBadge.progressPercent}%</span>
+                      )}
+                    </div>
+
+                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          wBadge.unlocked ? 'bg-amber-400' : 'bg-sky-400'
+                        }`}
+                        style={{ width: `${wBadge.progressPercent}%` }}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onNavigateAction('modules', wBadge.worldId);
+                        onClose();
+                        marioAudio.playPipe();
+                      }}
+                      className={`w-full min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-black border-2 inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap ${
+                        wBadge.unlocked
+                          ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/60 text-emerald-200'
+                          : 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-white'
+                      }`}
+                    >
+                      <span>
+                        {wBadge.unlocked
+                          ? `Review World ${wBadge.worldNumber}`
+                          : `Study World ${wBadge.worldNumber}`}
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Section 3: Achievements & Milestone Badges */}
           <div className="space-y-4">
