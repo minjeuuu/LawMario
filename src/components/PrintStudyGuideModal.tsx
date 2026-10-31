@@ -18,6 +18,11 @@ import {
   Columns,
   CheckSquare,
   FileText,
+  FileDown,
+  CheckCircle2,
+  Clock,
+  Palette,
+  Type,
 } from 'lucide-react';
 import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
@@ -38,8 +43,25 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
-  triggerCleanPrint,
 } from '../utils/printHelper';
+import {
+  ONE_PAGE_LEGAL_FORMULAS,
+  ONE_PAGE_LEGAL_DEADLINES,
+  ONE_PAGE_STATUTORY_LEAVE_CAPS,
+} from '../utils/onePageSummaryData';
+import {
+  downloadOnePageSummaryA4Pdf,
+  downloadCertificateLandscapePdf,
+  downloadStudyGuideReviewerPdf,
+} from '../utils/pdfExportService';
+import {
+  PRINT_COLOR_THEMES,
+  PRINT_FONT_STYLES,
+  getPrintThemeCatalogItem,
+  getPrintFontCatalogItem,
+} from '../utils/round8Features';
+
+export type PrintModalDocumentMode = 'summary' | 'guide' | 'certificate';
 
 interface PrintStudyGuideModalProps {
   isOpen: boolean;
@@ -47,6 +69,7 @@ interface PrintStudyGuideModalProps {
   completedTopicIds: string[];
   coins: number;
   studyNotes?: StudyNoteItem[];
+  initialMode?: PrintModalDocumentMode;
 }
 
 function stripInlineLegalCitations(text: string, includeCitations: boolean): string {
@@ -72,6 +95,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   onClose,
   completedTopicIds,
   studyNotes,
+  initialMode,
 }) => {
   const [includeGroupMembers, setIncludeGroupMembers] = useState(true);
   const [includeProgress, setIncludeProgress] = useState(true);
@@ -80,8 +104,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [includeLeavesMatrix, setIncludeLeavesMatrix] = useState(true);
   const [includePersonalNotes, setIncludePersonalNotes] = useState(true);
   const [matricesOnlyMode, setMatricesOnlyMode] = useState(false);
-  const [showControlPanel, setShowControlPanel] = useState(true);
-  const [isLivePreviewMode, setIsLivePreviewMode] = useState(true);
+  const [showControlPanel, setShowControlPanel] = useState(false);
+  const [isLivePreviewMode] = useState(true);
   const [layoutPreset, setLayoutPreset] = useState<
     'custom_builder' | 'compact_cheatsheet' | 'comprehensive_syllabus'
   >('custom_builder');
@@ -100,9 +124,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [includeLatinMaxims, setIncludeLatinMaxims] = useState(true);
   const [includeHonorPledge, setIncludeHonorPledge] = useState(true);
   const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
-  const [documentMode, setDocumentMode] = useState<'guide' | 'certificate'>('guide');
-  const [certificateHonors, setCertificateHonors] = useState<string>('Summa Cum Laude • Super Star Rank');
+  const [documentMode, setDocumentMode] = useState<PrintModalDocumentMode>(
+    initialMode || 'summary'
+  );
+  const [certificateHonors, setCertificateHonors] = useState<string>('Summa Cum Laude · Super Star Rank');
   const [candidateName, setCandidateName] = useState('');
+  const [pdfDownloadedNotice, setPdfDownloadedNotice] = useState(false);
   const [formatOptions, setFormatOptions] = useState<PrintGuideFormatOptions>(
     DEFAULT_PRINT_FORMAT_OPTIONS
   );
@@ -111,12 +138,20 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   );
 
   useEffect(() => {
+    if (isOpen && initialMode) {
+      setDocumentMode(initialMode);
+    }
+  }, [isOpen, initialMode]);
+
+  useEffect(() => {
     if (!isOpen) {
       clearPrintPageRule();
       return;
     }
     if (documentMode === 'certificate') {
       applyPrintPageRule('landscape', '6mm');
+    } else if (documentMode === 'summary') {
+      applyPrintPageRule('portrait', '8mm');
     } else {
       applyPrintPageRule(
         pageOrientation,
@@ -163,101 +198,84 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     setFormatOptions((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handlePrint = () => {
-    if (documentMode === 'certificate') {
-      marioAudio.playQuizComplete();
-      triggerCleanPrint({
-        mode: 'certificate',
-        orientation: 'landscape',
-        marginCss: '6mm',
-        restoreOrientationOnFinish: {
-          orientation: 'landscape',
-          marginCss: '6mm',
-        },
-      });
-    } else {
-      const marginCss = pageOrientation === 'landscape' ? '8mm 10mm' : '10mm 12mm';
-      marioAudio.playCoin();
-      triggerCleanPrint({
-        mode: 'study-guide',
-        orientation: pageOrientation,
-        marginCss,
-        restoreOrientationOnFinish: {
-          orientation: pageOrientation,
-          marginCss,
-        },
-      });
-    }
-  };
-
   const currentDate = new Date().toLocaleDateString('en-PH', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
+  const handleDownloadPdf = () => {
+    if (documentMode === 'summary') {
+      marioAudio.playCoin();
+      downloadOnePageSummaryA4Pdf({
+        candidateName: candidateName.trim() || undefined,
+        dateLabel: currentDate,
+        colorAccent: formatOptions.colorAccent,
+        fontStyle: formatOptions.fontStyle,
+        includeWatermark,
+        watermarkText: formatOptions.watermarkText,
+      });
+    } else if (documentMode === 'certificate') {
+      marioAudio.playQuizComplete();
+      downloadCertificateLandscapePdf({
+        recipientName: candidateName.trim() || 'Distinguished Labor Standards Scholar',
+        honors: certificateHonors,
+        completedCount,
+        totalCount: totalTopics,
+        dateLabel: currentDate,
+        colorAccent: formatOptions.colorAccent,
+        fontStyle: formatOptions.fontStyle,
+      });
+    } else {
+      marioAudio.playCoin();
+      downloadStudyGuideReviewerPdf({
+        orientation: pageOrientation,
+        candidateName: candidateName.trim() || undefined,
+        completedTopicIds,
+        topics: filteredTopics,
+        selectedWorlds,
+        includeGroupMembers,
+        includeProgress,
+        includeMultipliers,
+        includeRegionalWages,
+        includeLeavesMatrix,
+        includePersonalNotes,
+        includeBarTips: formatOptions.includeBarTips,
+        includeLegalCitations: formatOptions.includeLegalCitations,
+        matricesOnlyMode,
+        studyNotes: resolvedNotes,
+        colorAccent: formatOptions.colorAccent,
+        fontStyle: formatOptions.fontStyle,
+        paperMargins,
+        fontSizeScale,
+        includeCheckboxes,
+        includeWatermark,
+        watermarkText: formatOptions.watermarkText,
+        includeFormulasCheatSheet,
+        includeFourFoldControlTest,
+        includeTwoNoticeChecklist,
+        includeRetirementFormulaBox,
+        includeHonorPledge,
+        blankNoteLinesCount: formatOptions.blankNoteLinesCount,
+      });
+    }
+    setPdfDownloadedNotice(true);
+    window.setTimeout(() => setPdfDownloadedNotice(false), 2600);
+  };
+
   const isCompact = formatOptions.compactLayout;
-  const isSerif =
-    formatOptions.fontStyle === 'editorial_serif' ||
-    formatOptions.fontStyle === 'academic_times' ||
-    formatOptions.fontStyle === 'formal_georgia' ||
-    formatOptions.fontStyle === 'warm_charter';
+  const activeThemeCatalog = getPrintThemeCatalogItem(formatOptions.colorAccent);
+  const activeFontCatalog = getPrintFontCatalogItem(formatOptions.fontStyle);
+  const isSerif = activeFontCatalog.category === 'serif';
   const isNavy = formatOptions.colorAccent === 'executive_navy';
 
-  const bodyFontClass =
-    formatOptions.fontStyle === 'editorial_serif'
-      ? 'font-serif'
-      : formatOptions.fontStyle === 'formal_georgia'
-      ? 'font-serif tracking-normal leading-relaxed'
-      : formatOptions.fontStyle === 'warm_charter'
-      ? 'font-serif leading-relaxed'
-      : formatOptions.fontStyle === 'classic_monospace'
-      ? 'font-mono'
-      : formatOptions.fontStyle === 'academic_times'
-      ? 'font-serif tracking-tight'
-      : formatOptions.fontStyle === 'clean_inter'
-      ? 'font-sans tracking-tight'
-      : formatOptions.fontStyle === 'condensed_narrow'
-      ? 'font-sans tracking-tighter leading-snug'
-      : formatOptions.fontStyle === 'retro_mario_mono'
-      ? 'font-mono'
-      : formatOptions.fontStyle === 'dyslexic_sans'
-      ? 'font-sans tracking-wide leading-relaxed'
-      : 'font-sans';
-
-  const headingBorderClass =
-    formatOptions.colorAccent === 'executive_navy'
-      ? 'border-[#0f172a]'
-      : formatOptions.colorAccent === 'supreme_court_crimson'
-      ? 'border-[#991b1b]'
-      : formatOptions.colorAccent === 'forest_dole_emerald'
-      ? 'border-[#065f46]'
-      : formatOptions.colorAccent === 'vintage_parchment'
-      ? 'border-[#78350f]'
-      : 'border-black';
-
-  const subtleBoxClass =
-    formatOptions.colorAccent === 'executive_navy'
-      ? 'bg-slate-50 border-slate-300'
-      : formatOptions.colorAccent === 'supreme_court_crimson'
-      ? 'bg-red-50/50 border-red-300'
-      : formatOptions.colorAccent === 'forest_dole_emerald'
-      ? 'bg-emerald-50/50 border-emerald-300'
-      : formatOptions.colorAccent === 'vintage_parchment'
-      ? 'bg-amber-50/40 border-amber-300'
-      : 'bg-white border-slate-500';
-
-  // High-legibility dark-ink-on-light header so matrices NEVER turn invisible white-on-white when background graphics are disabled in print!
-  const tableHeaderClass =
-    formatOptions.colorAccent === 'executive_navy'
-      ? 'bg-slate-100 text-slate-950 border-b-2 border-[#0f172a]'
-      : formatOptions.colorAccent === 'supreme_court_crimson'
-      ? 'bg-red-50 text-red-950 border-b-2 border-[#991b1b]'
-      : formatOptions.colorAccent === 'forest_dole_emerald'
-      ? 'bg-emerald-50 text-emerald-950 border-b-2 border-[#065f46]'
-      : formatOptions.colorAccent === 'vintage_parchment'
-      ? 'bg-amber-100/70 text-amber-950 border-b-2 border-[#78350f]'
-      : 'bg-white text-black border-b-2 border-black';
+  const bodyFontClass = activeFontCatalog.previewClass;
+  const headingBorderClass = activeThemeCatalog.headingBorderClass;
+  const subtleBoxClass = activeThemeCatalog.subtleBoxClass;
+  const tableHeaderClass = activeThemeCatalog.tableHeaderClass;
+  const summaryBannerHeaderClass = activeThemeCatalog.summaryBannerHeaderClass;
+  const summaryPaperBgClass = activeThemeCatalog.summaryPaperBgClass;
+  const certThemeClasses = activeThemeCatalog.certClasses;
 
   const handleSelectPreset = (
     preset: 'custom_builder' | 'compact_cheatsheet' | 'comprehensive_syllabus'
@@ -366,61 +384,71 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-black/85 select-none overflow-y-auto print:static print:p-0 print:bg-white print:overflow-visible"
     >
       <div className="bg-slate-900 text-white w-full h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[92vh] max-w-6xl sm:rounded-3xl border-0 sm:border-4 border-slate-950 shadow-[0_16px_40px_rgba(0,0,0,0.9)] overflow-hidden my-auto flex flex-col pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pt-0 sm:pb-0 print:max-h-none print:h-auto print:max-w-full print:rounded-none print:border-0 print:shadow-none print:bg-white print:text-black print:overflow-visible">
-        {/* Modal Top Bar (Hidden during window.print) */}
-        <div className="bg-[#0f172a] px-4 py-3 sm:p-5 border-b-2 border-slate-700 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 print:hidden">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000] shrink-0">
-              <Printer className="w-6 h-6" />
+        {/* Modal Top Bar — Direct PDF Export Studio (Zero window.print, Zero Mobile Overflow) */}
+        <div className="bg-[#0f172a] px-3 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-700 flex flex-col lg:flex-row lg:items-center justify-between gap-3 flex-shrink-0 print:hidden">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-10 h-10 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000] shrink-0">
+                <FileDown className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-black uppercase text-amber-400 font-mario block truncate">
+                  DIRECT A4 PDF EXPORT STUDIO
+                </span>
+                <h2 className="text-sm sm:text-lg font-black text-white font-display truncate">
+                  {documentMode === 'summary'
+                    ? 'ONE-PAGE A4 SUMMARY'
+                    : documentMode === 'certificate'
+                    ? 'LANDSCAPE CERTIFICATE'
+                    : 'LABOR LAW REVIEWER'}
+                </h2>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 font-mario block truncate">
-                PUBLICATION-GRADE BAR REVIEWER &amp; PDF EXPORT
-              </span>
-              <h2 className="text-base sm:text-xl font-black text-white font-display truncate">
-                UNABRIDGED LABOR LAW PRINT STUDY GUIDE
-              </h2>
-            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close PDF Export Studio"
+              className="lg:hidden min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-            {isLivePreviewMode && (
-              <div className="hidden sm:inline-flex items-center bg-slate-800 rounded-xl border border-slate-700 p-1 text-xs">
-                <span className="text-[10px] font-bold text-slate-400 px-2 uppercase font-mono">Zoom</span>
-                {[75, 85, 100, 115].map((z) => (
-                  <button
-                    key={z}
-                    type="button"
-                    onClick={() => {
-                      marioAudio.playClick();
-                      setPreviewZoom(z);
-                    }}
-                    className={`min-h-[30px] px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
-                      previewZoom === z
-                        ? 'bg-amber-400 text-slate-950 font-black'
-                        : 'text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    {z}%
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Document Mode Switcher (Study Guide vs Official Certificate of Mastery) */}
-            <div className="inline-flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs shrink-0">
+          <div className="flex items-center justify-between lg:justify-end gap-2 flex-wrap">
+            {/* Document Mode Segmented Switcher */}
+            <div className="inline-flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs shrink-0 max-w-full overflow-x-auto no-scrollbar">
               <button
                 type="button"
+                data-testid="toggle-summary-mode-btn"
+                onClick={() => {
+                  setDocumentMode('summary');
+                  marioAudio.playCoin();
+                }}
+                className={`min-h-[38px] px-2.5 sm:px-3 py-1 rounded-lg font-black cursor-pointer transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
+                  documentMode === 'summary'
+                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 shrink-0" />
+                <span>1-Page A4</span>
+              </button>
+              <button
+                type="button"
+                data-testid="toggle-guide-mode-btn"
                 onClick={() => {
                   setDocumentMode('guide');
                   marioAudio.playClick();
                 }}
-                className={`min-h-[36px] px-3 py-1 rounded-lg font-black cursor-pointer transition-colors ${
+                className={`min-h-[38px] px-2.5 sm:px-3 py-1 rounded-lg font-black cursor-pointer transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
                   documentMode === 'guide'
                     ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
                     : 'text-slate-300 hover:text-white'
                 }`}
               >
-                Study Guide
+                <BookOpenCheck className="w-3.5 h-3.5 shrink-0" />
+                <span>Reviewer</span>
               </button>
               <button
                 type="button"
@@ -429,93 +457,263 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   setDocumentMode('certificate');
                   marioAudio.playQuizComplete();
                 }}
-                className={`min-h-[36px] px-3 py-1 rounded-lg font-black cursor-pointer transition-colors inline-flex items-center gap-1.5 ${
+                className={`min-h-[38px] px-2.5 sm:px-3 py-1 rounded-lg font-black cursor-pointer transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
                   documentMode === 'certificate'
                     ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
                     : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <Award className="w-3.5 h-3.5" />
+                <Award className="w-3.5 h-3.5 shrink-0" />
                 <span>Certificate</span>
               </button>
             </div>
 
-            <button
-              type="button"
-              data-testid="toggle-print-mode-btn"
-              onClick={() => {
-                marioAudio.playClick();
-                setIsLivePreviewMode((prev) => !prev);
-              }}
-              aria-pressed={isLivePreviewMode}
-              className={`min-h-[44px] px-3.5 py-2 rounded-xl border-2 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 text-xs font-bold transition-all ${
-                isLivePreviewMode
-                  ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-              }`}
-              title="Toggle Live Sheet Print Preview"
-            >
-              <Eye className={`w-4 h-4 ${isLivePreviewMode ? 'text-slate-950' : 'text-amber-400'}`} />
-              <span>{isLivePreviewMode ? 'Print Preview: ON' : 'Toggle Print Mode'}</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowControlPanel((prev) => !prev)}
+                aria-expanded={showControlPanel}
+                className="min-h-[44px] px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border-2 border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <SlidersHorizontal className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>{showControlPanel ? 'Hide Options' : 'Options'}</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setShowControlPanel((prev) => !prev)}
-              aria-expanded={showControlPanel}
-              className="min-h-[44px] px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border-2 border-slate-600 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-amber-400" />
-              <span>{showControlPanel ? 'Hide Controls' : 'Format Controls'}</span>
-            </button>
+              <button
+                type="button"
+                data-testid="download-active-pdf-btn"
+                onClick={handleDownloadPdf}
+                className="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <FileDown className="w-4 h-4 shrink-0" />
+                <span>
+                  {pdfDownloadedNotice
+                    ? 'PDF Downloaded (.pdf)'
+                    : documentMode === 'summary'
+                    ? 'Download 1-Page PDF'
+                    : documentMode === 'certificate'
+                    ? 'Download Certificate PDF'
+                    : 'Download Reviewer PDF'}
+                </span>
+              </button>
 
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print / Save PDF</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close Print Study Guide"
-              className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
-            >
-              <X className="w-5 h-5" />
-            </button>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close Print Study Guide"
+                className="hidden lg:flex min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Control Panel for Print Aesthetics & Content Toggles (Hidden during window.print) */}
+        {/* Always-Visible 12 Themes & 12 Fonts Quick Studio Bar (Applies to Preview AND Downloaded .pdf!) */}
+        <div
+          data-testid="print-quick-style-bar"
+          className="bg-slate-950 px-3 sm:px-5 py-2.5 border-b border-slate-800 space-y-2.5 text-xs print:hidden flex-shrink-0"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <label
+                htmlFor="print-quick-theme-select"
+                className="text-[11px] font-black text-amber-300 whitespace-nowrap shrink-0 inline-flex items-center gap-1"
+              >
+                <Palette className="w-3.5 h-3.5 shrink-0" />
+                <span>Themes ({PRINT_COLOR_THEMES.length}):</span>
+              </label>
+              <select
+                id="print-quick-theme-select"
+                data-testid="print-quick-theme-select"
+                value={formatOptions.colorAccent}
+                onChange={(e) =>
+                  updateFormat(
+                    'colorAccent',
+                    e.target.value as PrintGuideFormatOptions['colorAccent']
+                  )
+                }
+                className="min-h-[38px] flex-1 min-w-0 bg-slate-900 border border-slate-700 text-white text-xs font-bold rounded-xl px-2.5 py-1.5 cursor-pointer focus:outline-none focus:border-amber-400 truncate"
+              >
+                {PRINT_COLOR_THEMES.map((themeItem) => (
+                  <option key={themeItem.id} value={themeItem.id}>
+                    {themeItem.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 min-w-0">
+              <label
+                htmlFor="print-quick-font-select"
+                className="text-[11px] font-black text-amber-300 whitespace-nowrap shrink-0 inline-flex items-center gap-1"
+              >
+                <Type className="w-3.5 h-3.5 shrink-0" />
+                <span>Fonts ({PRINT_FONT_STYLES.length}):</span>
+              </label>
+              <select
+                id="print-quick-font-select"
+                data-testid="print-quick-font-select"
+                value={formatOptions.fontStyle}
+                onChange={(e) =>
+                  updateFormat(
+                    'fontStyle',
+                    e.target.value as PrintGuideFormatOptions['fontStyle']
+                  )
+                }
+                className="min-h-[38px] flex-1 min-w-0 bg-slate-900 border border-slate-700 text-white text-xs font-bold rounded-xl px-2.5 py-1.5 cursor-pointer focus:outline-none focus:border-amber-400 truncate"
+              >
+                {PRINT_FONT_STYLES.map((fontItem) => (
+                  <option key={fontItem.id} value={fontItem.id}>
+                    {fontItem.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 min-w-0">
+              <label
+                htmlFor="print-quick-name-input"
+                className="text-[11px] font-black text-emerald-300 whitespace-nowrap shrink-0"
+              >
+                Learner Name:
+              </label>
+              <input
+                id="print-quick-name-input"
+                data-testid="print-quick-name-input"
+                type="text"
+                value={candidateName}
+                onChange={(e) => setCandidateName(e.target.value)}
+                placeholder="Optional name on PDF..."
+                className="min-h-[38px] flex-1 min-w-0 bg-slate-900 border border-slate-700 text-white text-xs font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+          </div>
+
+          {/* Interactive 12 Color Theme Swatches + 12 Font Preview Pills */}
+          <div
+            data-testid="print-visual-themes-fonts-strip"
+            className="pt-2 border-t border-slate-800/90 grid grid-cols-1 lg:grid-cols-2 gap-2"
+          >
+            {/* 12 Color Swatches */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-black uppercase text-slate-400 mr-0.5">
+                Palette:
+              </span>
+              {PRINT_COLOR_THEMES.map((themeItem) => {
+                const isSelected = formatOptions.colorAccent === themeItem.id;
+                return (
+                  <button
+                    key={themeItem.id}
+                    type="button"
+                    data-testid={`print-theme-swatch-${themeItem.id}`}
+                    onClick={() => updateFormat('colorAccent', themeItem.id)}
+                    title={themeItem.label}
+                    className={`min-h-[28px] px-2 py-1 rounded-lg border text-[10px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`w-3 h-3 rounded-full shrink-0 border border-white/40 ${themeItem.swatchSwatchClass}`}
+                    />
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 -ml-1 ${themeItem.accentDotClass}`}
+                    />
+                    <span>{themeItem.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 12 Font Style Pills */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-black uppercase text-slate-400 mr-0.5">
+                Typeface:
+              </span>
+              {PRINT_FONT_STYLES.map((fontItem) => {
+                const isSelected = formatOptions.fontStyle === fontItem.id;
+                return (
+                  <button
+                    key={fontItem.id}
+                    type="button"
+                    data-testid={`print-font-pill-${fontItem.id}`}
+                    onClick={() => updateFormat('fontStyle', fontItem.id)}
+                    title={fontItem.label}
+                    className={`min-h-[28px] px-2 py-1 rounded-lg border text-[10px] inline-flex items-center gap-1 cursor-pointer transition-all ${
+                      fontItem.previewClass
+                    } ${
+                      isSelected
+                        ? 'bg-emerald-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700 font-semibold'
+                    }`}
+                  >
+                    <span>Aa</span>
+                    <span>{fontItem.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Control Panel for PDF Aesthetics & Content Toggles */}
         {showControlPanel && (
           <div
             data-testid="print-guide-control-panel"
-            className="bg-slate-900/95 px-4 py-3.5 border-b border-slate-700 space-y-3 text-xs font-bold print:hidden flex-shrink-0 max-h-[46vh] overflow-y-auto"
+            className="bg-slate-900/95 px-4 py-3.5 border-b border-slate-700 space-y-3 text-xs font-bold print:hidden flex-shrink-0 max-h-[42vh] overflow-y-auto"
           >
-            {documentMode === 'certificate' ? (
+            {documentMode === 'summary' ? (
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                <div className="space-y-1 flex-1 max-w-md">
+                  <label
+                    htmlFor="summary-candidate-name"
+                    className="text-[11px] text-amber-300 font-bold block"
+                  >
+                    Optional Examinee / Header Name on A4 Sheet:
+                  </label>
+                  <input
+                    id="summary-candidate-name"
+                    type="text"
+                    value={candidateName}
+                    onChange={(e) => setCandidateName(e.target.value)}
+                    placeholder="e.g., Juan Dela Cruz · 2026 Bar Candidate"
+                    className="min-h-[42px] w-full bg-slate-950 border border-slate-700 text-white text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-amber-400 font-bold"
+                  />
+                </div>
+                <div className="text-[11px] text-slate-300 space-y-1">
+                  <p className="text-emerald-300 font-bold">
+                    Strictly formatted to fit 1 single A4 Portrait sheet (210mm × 297mm).
+                  </p>
+                  <p className="text-slate-400">
+                    Includes {ONE_PAGE_LEGAL_FORMULAS.length} statutory pay formulas,{' '}
+                    {ONE_PAGE_LEGAL_DEADLINES.length} prescriptive &amp; procedural deadlines, and{' '}
+                    {ONE_PAGE_STATUTORY_LEAVE_CAPS.length} World 6 leave caps.
+                  </p>
+                </div>
+              </div>
+            ) : documentMode === 'certificate' ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-amber-300 text-xs font-black uppercase font-mario">
                     OFFICIAL CERTIFICATE CUSTOMIZER
                   </span>
                   <span className="text-[11px] text-slate-300">
-                    Prints strictly ONLY the certificate in landscape with zero background clutter
+                    Downloads directly as an A4 Landscape Diploma PDF (.pdf)
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className="bg-slate-800/90 p-2.5 rounded-xl border border-slate-600 space-y-1">
                     <label className="text-[11px] text-amber-300 font-bold block">
-                      Candidate Name on Diploma:
+                      Learner Name on Diploma:
                     </label>
                     <input
                       type="text"
                       value={candidateName}
                       onChange={(e) => setCandidateName(e.target.value)}
-                      placeholder="e.g., Atty. Juan Dela Cruz, Juris Doctor"
+                      placeholder="e.g., Juan Dela Cruz · Labor Standards Scholar"
                       className="w-full bg-slate-900 border border-slate-700 text-white text-xs px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-amber-400 font-bold"
                     />
                   </div>
@@ -532,22 +730,22 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       <option value="Summa Cum Laude • Super Star Rank">Summa Cum Laude • Super Star Rank</option>
                       <option value="Magna Cum Laude • Fire Flower Mastery">Magna Cum Laude • Fire Flower Mastery</option>
                       <option value="Cum Laude • Super Mushroom Advocate">Cum Laude • Super Mushroom Advocate</option>
-                      <option value="Philippine Bar Topnotcher in Labor Standards">Philippine Bar Topnotcher in Labor Standards</option>
+                      <option value="Highest Distinction in Philippine Labor Standards">Highest Distinction in Philippine Labor Standards</option>
                     </select>
                   </div>
 
-                  <div className="bg-slate-800/90 p-2.5 rounded-xl border border-slate-600 flex items-center justify-between">
-                    <div>
-                      <span className="text-white text-xs font-bold block">Isolated Print Mode</span>
-                      <span className="text-[10px] text-slate-400">Strictly certificate only</span>
+                  <div className="bg-slate-800/90 p-2.5 rounded-xl border border-slate-600 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-white text-xs font-bold block truncate">Landscape A4 Diploma</span>
+                      <span className="text-[10px] text-slate-400 block truncate">Direct .pdf download</span>
                     </div>
                     <button
                       type="button"
-                      onClick={handlePrint}
-                      className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer inline-flex items-center gap-1.5 shadow-[0_2px_0_#000]"
+                      onClick={handleDownloadPdf}
+                      className="min-h-[40px] px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer inline-flex items-center gap-1.5 shadow-[0_2px_0_#000] whitespace-nowrap shrink-0"
                     >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span>Print Certificate</span>
+                      <FileDown className="w-3.5 h-3.5 shrink-0" />
+                      <span>Download PDF</span>
                     </button>
                   </div>
                 </div>
@@ -1115,83 +1313,203 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
           </div>
         )}
 
-        {/* Printable Document Preview & Print Target */}
+        {/* Printable Document Preview & Direct PDF Sheet Preview */}
         <div
           className={`overflow-y-auto flex-1 select-text print:overflow-visible print:p-0 print:bg-white ${
             isLivePreviewMode
-              ? 'p-4 sm:p-8 bg-neutral-900/95 flex justify-center'
-              : 'p-3 sm:p-8 bg-slate-950/60'
+              ? 'p-3 sm:p-6 bg-neutral-900/95 flex justify-center'
+              : 'p-3 sm:p-6 bg-slate-950/60'
           }`}
         >
-          {documentMode === 'certificate' ? (
+          {documentMode === 'summary' ? (
+            /* ==================== ONE-PAGE A4 LEGAL FORMULAS & STATUTORY DEADLINES SUMMARY ==================== */
+            <div
+              id="one-page-summary-sheet"
+              data-testid="one-page-summary-sheet"
+              data-theme={formatOptions.colorAccent}
+              data-font={formatOptions.fontStyle}
+              className={`${summaryPaperBgClass} ${bodyFontClass} p-4 sm:p-7 rounded-2xl border-2 shadow-2xl max-w-5xl w-full mx-auto space-y-4 select-text my-auto`}
+            >
+              {/* A4 Sheet Header */}
+              <div className={`border-b-2 ${headingBorderClass} pb-3 flex flex-col sm:flex-row sm:items-end justify-between gap-2`}>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 block">
+                    PHILIPPINE LABOR STANDARDS · ONE-PAGE A4 MASTER SUMMARY
+                  </span>
+                  <h2 className="text-lg sm:text-2xl font-black tracking-tight">
+                    KEY LEGAL FORMULAS, MULTIPLIERS &amp; STATUTORY DEADLINES
+                  </h2>
+                  <p className="text-xs text-slate-600 font-medium">
+                    P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 &amp; R.A. 11861
+                  </p>
+                </div>
+                <div className="text-left sm:text-right text-[11px] font-mono text-slate-700 shrink-0">
+                  {candidateName.trim() && (
+                    <div className="font-bold text-slate-950">{candidateName.trim()}</div>
+                  )}
+                  <div>Format: Single-Page A4 (210 × 297 mm)</div>
+                  <div>Updated: {currentDate}</div>
+                </div>
+              </div>
+
+              {/* Two-Column A4 Core Grid: Left = Formulas, Right = Deadlines */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                {/* Column 1: Key Legal Formulas */}
+                <div className={`border ${subtleBoxClass} rounded-xl overflow-hidden bg-white`}>
+                  <div className={`${summaryBannerHeaderClass} px-3 py-2 flex items-center justify-between gap-2`}>
+                    <span className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5">
+                      <Scale className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>I. Key Statutory Pay Formulas ({ONE_PAGE_LEGAL_FORMULAS.length})</span>
+                    </span>
+                    <span className="text-[10px] font-mono opacity-85">Arts. 87–97 · 302</span>
+                  </div>
+                  <div className="divide-y divide-slate-200">
+                    {ONE_PAGE_LEGAL_FORMULAS.map((f) => (
+                      <div key={f.id} className="px-3 py-1.5 text-[11px] leading-snug space-y-0.5">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="font-bold text-slate-900">{f.title}</span>
+                          <span className="font-mono text-[10px] text-slate-500 shrink-0">
+                            {f.citation}
+                          </span>
+                        </div>
+                        <div className="font-mono font-black text-emerald-800 text-[11px]">
+                          {f.formula}
+                        </div>
+                        <p className="text-[10.5px] text-slate-600">{f.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Column 2: Statutory Deadlines & Prescriptive Periods */}
+                <div className={`border ${subtleBoxClass} rounded-xl overflow-hidden bg-white`}>
+                  <div className={`${summaryBannerHeaderClass} px-3 py-2 flex items-center justify-between gap-2`}>
+                    <span className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>II. Prescriptive &amp; Procedural Deadlines ({ONE_PAGE_LEGAL_DEADLINES.length})</span>
+                    </span>
+                    <span className="text-[10px] font-mono opacity-85">Arts. 297–306</span>
+                  </div>
+                  <div className="divide-y divide-slate-200">
+                    {ONE_PAGE_LEGAL_DEADLINES.map((d) => (
+                      <div key={d.id} className="px-3 py-1.5 text-[11px] leading-snug space-y-0.5">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="font-bold text-slate-900">{d.claimOrAction}</span>
+                          <span className="font-mono font-black text-red-700 shrink-0 tabular-nums">
+                            {d.deadline}
+                          </span>
+                        </div>
+                        <p className="text-[10.5px] text-slate-600">
+                          <span className="font-semibold text-slate-700">{d.citation}:</span> {d.reckoningRule}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom A4 Strip: World 6 Statutory Leave Caps & Core Doctrines */}
+              <div className={`border rounded-xl p-3 space-y-2 ${subtleBoxClass}`}>
+                <div className="flex flex-wrap items-center justify-between gap-1 border-b border-slate-200 pb-1.5">
+                  <span className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>III. World 6 Statutory Leave Caps &amp; Core Tests</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    One-Page Printer-Friendly A4 Reference
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-[11px]">
+                  {ONE_PAGE_STATUTORY_LEAVE_CAPS.map((lv) => (
+                    <div
+                      key={lv.leaveName}
+                      className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    >
+                      <div className="flex items-baseline justify-between gap-1">
+                        <span className="font-bold text-slate-900">{lv.leaveName}</span>
+                        <span className="font-mono font-black text-amber-800 tabular-nums shrink-0">
+                          {lv.cap}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-600 block">
+                        {lv.citation} · {lv.rule}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : documentMode === 'certificate' ? (
             /* ==================== OFFICIAL CERTIFICATE OF STATUTORY MASTERY (A4 LANDSCAPE) ==================== */
             <div
               id="official-labor-certificate"
               data-testid="official-labor-certificate"
+              data-theme={formatOptions.colorAccent}
+              data-font={formatOptions.fontStyle}
               style={isLivePreviewMode && previewZoom !== 100 ? { zoom: `${previewZoom}%` } : undefined}
-              className="bg-[#fffdfa] text-slate-950 p-5 sm:p-8 lg:px-12 lg:py-8 border-[6px] sm:border-[10px] border-amber-600 rounded-2xl shadow-2xl max-w-5xl w-full lg:aspect-[1.414/1] mx-auto relative font-serif select-text flex flex-col justify-between gap-2 my-auto outline outline-3 outline-amber-700/60"
+              className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 p-5 sm:p-8 lg:px-12 lg:py-8 border-[6px] sm:border-[10px] rounded-2xl shadow-2xl max-w-5xl w-full lg:aspect-[1.414/1] mx-auto relative select-text flex flex-col justify-between gap-2 my-auto outline outline-3`}
             >
               {/* Corner Ornaments */}
-              <div className="absolute top-2.5 left-2.5 w-6 h-6 border-t-2 border-l-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
+              <div className={`absolute top-2.5 left-2.5 w-6 h-6 border-t-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
+                <Award className="w-3.5 h-3.5" />
               </div>
-              <div className="absolute top-2.5 right-2.5 w-6 h-6 border-t-2 border-r-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
+              <div className={`absolute top-2.5 right-2.5 w-6 h-6 border-t-2 border-r-2 ${certThemeClasses.corner} flex items-center justify-center`}>
+                <Award className="w-3.5 h-3.5" />
               </div>
-              <div className="absolute bottom-2.5 left-2.5 w-6 h-6 border-b-2 border-l-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
+              <div className={`absolute bottom-2.5 left-2.5 w-6 h-6 border-b-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
+                <Award className="w-3.5 h-3.5" />
               </div>
-              <div className="absolute bottom-2.5 right-2.5 w-6 h-6 border-b-2 border-r-2 border-amber-600 flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
+              <div className={`absolute bottom-2.5 right-2.5 w-6 h-6 border-b-2 border-r-2 ${certThemeClasses.corner} flex items-center justify-center`}>
+                <Award className="w-3.5 h-3.5" />
               </div>
 
               {/* Header Seal & Title */}
               <div className="text-center space-y-1.5">
                 <div className="flex items-center justify-center gap-3">
-                  <div className="w-10 h-10 rounded-full border-2 border-amber-600 bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+                  <div className={`w-10 h-10 rounded-full border-2 ${certThemeClasses.sealCircle} flex items-center justify-center shrink-0`}>
                     <Scale className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-600">
-                      REPUBLIC OF THE PHILIPPINES · SUPREME COURT BAR EXAMINATIONS
+                      REPUBLIC OF THE PHILIPPINES · PHILIPPINE LABOR STANDARDS GUIDE
                     </p>
                     <p className="text-[9.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
-                      Department of Labor and Employment · Labor Standards Jurisprudence
+                      Department of Labor and Employment · Statutory &amp; Workplace Rights Mastery
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-1">
-                  <h2 className="text-xl sm:text-3xl lg:text-4xl font-black font-serif tracking-wide text-amber-950 uppercase border-y-2 border-amber-600/80 py-1.5 my-1">
+                  <h2 className={`text-xl sm:text-3xl lg:text-4xl font-black tracking-wide uppercase border-y-2 py-1.5 my-1 ${certThemeClasses.title}`}>
                     Certificate of Statutory Mastery
                   </h2>
-                  <p className="text-xs sm:text-sm italic font-serif text-slate-700">
+                  <p className="text-xs sm:text-sm italic text-slate-700">
                     This is officially conferred upon
                   </p>
                 </div>
               </div>
 
-              {/* Candidate Recipient */}
+              {/* Recipient */}
               <div className="text-center py-1">
-                <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-950 font-serif tracking-tight border-b-2 border-slate-900 pb-1 max-w-xl mx-auto">
-                  {candidateName || 'Bar Examinee / Juris Doctor'}
+                <h3 className="text-2xl sm:text-4xl font-extrabold text-slate-950 tracking-tight border-b-2 border-slate-900 pb-1 max-w-xl mx-auto">
+                  {candidateName || 'Distinguished Labor Standards Scholar'}
                 </h3>
-                <p className="text-xs sm:text-sm font-sans font-black text-amber-700 tracking-widest uppercase mt-1.5">
+                <p className={`text-xs sm:text-sm font-sans font-black tracking-widest uppercase mt-1.5 ${certThemeClasses.honors}`}>
                   {certificateHonors}
                 </p>
               </div>
 
               {/* Body Certification text */}
-              <div className="text-center space-y-2 max-w-3xl mx-auto font-serif">
+              <div className="text-center space-y-2 max-w-3xl mx-auto">
                 <p className="text-xs sm:text-sm text-slate-800 leading-relaxed">
-                  for demonstrating comprehensive statutory mastery and flawless doctrinal command across all Six Worlds of the <strong className="font-bold">Labor Code of the Philippines (Presidential Decree No. 442, as amended)</strong>, encompassing Hours of Work &amp; Overtime Rules, Wages &amp; D.O. 174 Subcontracting, Kasambahay Rights, Security of Tenure, and all Statutory Leaves.
+                  for demonstrating comprehensive statutory mastery and practical command across all Six Worlds of the <strong className="font-bold">Labor Code of the Philippines (Presidential Decree No. 442, as amended)</strong>, encompassing Hours of Work &amp; Overtime Rules, Wages &amp; D.O. 174 Subcontracting, Kasambahay Rights, Security of Tenure, and all Statutory Leaves.
                 </p>
 
                 {/* 6 World Badges Strip */}
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1 text-[10px] font-sans font-bold text-slate-800">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1 text-[10px] font-sans font-bold">
                   {WORLDS_METADATA.map((w) => (
-                    <div key={w.id} className="border border-amber-400 bg-amber-50/70 px-1.5 py-1 rounded-lg text-center min-w-0">
-                      <span className="block font-black text-amber-900 font-mono">W{w.worldNumber}</span>
+                    <div key={w.id} className={`border px-1.5 py-1 rounded-lg text-center min-w-0 ${certThemeClasses.badge}`}>
+                      <span className="block font-black font-mono">W{w.worldNumber}</span>
                       <span className="block leading-tight">{w.shortTitle}</span>
                     </div>
                   ))}

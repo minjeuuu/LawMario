@@ -178,6 +178,11 @@ export const CoinConfetti: React.FC<CoinConfettiProps> = ({
         window.clearTimeout(secondBurst);
         window.cancelAnimationFrame(animId);
         window.clearTimeout(timer);
+        try {
+          confetti.reset();
+        } catch {
+          // ignore
+        }
       };
     } catch {
       const fallbackTimer = window.setTimeout(() => {
@@ -206,7 +211,7 @@ export const CoinConfetti: React.FC<CoinConfettiProps> = ({
       role="status"
       aria-live="polite"
       data-testid="coin-confetti-celebration"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 overflow-hidden bg-black/35 backdrop-blur-[2px] animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 overflow-hidden bg-black/45 animate-in fade-in duration-150"
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 

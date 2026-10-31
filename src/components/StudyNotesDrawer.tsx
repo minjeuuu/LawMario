@@ -66,12 +66,22 @@ const QUICK_MNEMONIC_TEMPLATES: { label: string; worldTag: string; title: string
 
 export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
   activeWorld,
+  activeTab,
   onNotesChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [notes, setNotes] = useState<StudyNoteItem[]>(() =>
     typeof window !== 'undefined' ? loadStudyNotes(window.localStorage) : []
   );
+
+  useEffect(() => {
+    const handleOpenNotes = () => {
+      setIsOpen(true);
+      marioAudio.playPipe();
+    };
+    window.addEventListener('mario-open-study-notes', handleOpenNotes);
+    return () => window.removeEventListener('mario-open-study-notes', handleOpenNotes);
+  }, []);
 
   const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
@@ -264,26 +274,28 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
 
   return (
     <>
-      {/* Persistent Floating Right-Edge Trigger Handle — Zero Horizontal Overflow */}
-      <button
-        type="button"
-        onClick={() => {
-          setIsOpen(true);
-          marioAudio.playPipe();
-        }}
-        data-testid="study-notes-trigger"
-        aria-label={`Open Study Notes Drawer (${notes.length} saved notes)`}
-        title="Open Study Notes Drawer — Jot down labor law mnemonics across tabs"
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-amber-400 hover:bg-amber-300 text-slate-950 border-y-3 border-l-3 border-black rounded-l-2xl px-2 py-3 sm:px-2.5 sm:py-3.5 shadow-[-4px_4px_0_#000] flex flex-col items-center gap-1.5 cursor-pointer transition-colors select-none print:hidden"
-      >
-        <NotebookPen className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 shrink-0" />
-        <span className="text-[9px] font-black font-mario uppercase tracking-tighter leading-none [writing-mode:vertical-rl] rotate-180">
-          NOTES
-        </span>
-        <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-black inline-flex items-center justify-center border border-black leading-none tabular-nums">
-          {notes.length}
-        </span>
-      </button>
+      {/* Persistent Floating Study Notes Trigger — Accessible across mobile, tablet, and desktop */}
+      {activeTab !== 'vault' && activeTab !== 'quiz' && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(true);
+            marioAudio.playPipe();
+          }}
+          data-testid="study-notes-trigger"
+          aria-label={`Open Study Notes Drawer (${notes.length} saved notes)`}
+          title="Open Study Notes Drawer — Jot down labor law notes across tabs"
+          className="flex fixed right-3 bottom-[132px] [@media(max-height:500px)]:bottom-[96px] sm:bottom-auto sm:right-0 sm:top-1/2 sm:-translate-y-1/2 z-30 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 sm:border-r-0 border-black rounded-2xl sm:rounded-r-none sm:rounded-l-2xl px-2.5 py-2 sm:px-2 sm:py-3 shadow-[0_3px_0_#000] sm:shadow-[-3px_3px_0_#000] flex-row sm:flex-col items-center gap-1.5 cursor-pointer transition-colors select-none print:hidden"
+        >
+          <NotebookPen className="w-4 h-4 text-slate-950 shrink-0" />
+          <span className="text-[10px] sm:text-[9px] font-black font-mario uppercase tracking-tighter leading-none sm:[writing-mode:vertical-rl] sm:rotate-180">
+            NOTES
+          </span>
+          <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-black inline-flex items-center justify-center border border-black leading-none tabular-nums">
+            {notes.length}
+          </span>
+        </button>
+      )}
 
       {/* Slide-Over Right Drawer */}
       {isOpen && (
@@ -331,17 +343,17 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                 onSubmit={handleSaveNote}
                 className="bg-slate-900 rounded-2xl p-3.5 border-2 border-slate-700 space-y-2.5"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
-                    {editingId ? 'EDIT MNEMONIC NOTE' : 'NEW DOCTRINE MNEMONIC'}
-                  </span>
-                  <div className="flex items-center gap-2">
+                <div className="space-y-2 min-w-0">
+                  <div className="flex items-center justify-between gap-2 min-w-0">
+                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario truncate">
+                      {editingId ? 'EDIT STUDY NOTE' : 'NEW STUDY NOTE'}
+                    </span>
                     <button
                       type="button"
                       data-testid="voice-memo-btn"
                       onClick={handleToggleVoiceMemo}
                       title={isListening ? 'Stop voice recording' : 'Dictate note using Voice Memo'}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                         isListening
                           ? 'bg-red-500/20 border-red-500 text-red-300 animate-pulse'
                           : 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-slate-300'
@@ -349,21 +361,25 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                     >
                       {isListening ? (
                         <>
-                          <MicOff className="w-3.5 h-3.5 text-red-400 animate-bounce" />
+                          <MicOff className="w-3.5 h-3.5 text-red-400 animate-bounce shrink-0" />
                           <span className="text-[10px] uppercase font-mono font-bold">Stop Voice</span>
                         </>
                       ) : (
                         <>
-                          <Mic className="w-3.5 h-3.5 text-amber-400" />
+                          <Mic className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                           <span className="text-[10px] uppercase font-mono font-bold">Voice Memo</span>
                         </>
                       )}
                     </button>
+                  </div>
+
+                  <div className="w-full min-w-0">
                     <select
                       aria-label="Note World Category"
+                      data-testid="study-notes-world-select"
                       value={draftWorldTag}
                       onChange={(e) => setDraftWorldTag(e.target.value)}
-                      className="bg-slate-800 text-amber-300 text-xs font-bold px-2 py-1 rounded-lg border border-slate-600 focus:outline-none focus:border-amber-400"
+                      className="w-full min-w-0 max-w-full truncate bg-slate-800 text-amber-300 text-xs font-bold px-3 py-2 rounded-xl border border-slate-600 focus:outline-none focus:border-amber-400 cursor-pointer"
                     >
                       {worldTagOptions.map((opt) => (
                         <option key={opt.id} value={opt.id}>
@@ -434,8 +450,8 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
               {/* Quick 1-Tap Mnemonic Starters */}
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-400 font-mario">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>1-TAP BAR MNEMONIC STARTERS</span>
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span>1-TAP STUDY MNEMONIC STARTERS</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {QUICK_MNEMONIC_TEMPLATES.map((tpl) => (
@@ -452,8 +468,8 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
               </div>
 
               {/* Filter & Search Bar */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-700">
-                <div className="relative flex-1">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-700 min-w-0">
+                <div className="relative flex-1 min-w-0">
                   <Search className="w-3.5 h-3.5 text-amber-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
@@ -461,14 +477,14 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Filter saved notes..."
                     aria-label="Search Study Notes"
-                    className="w-full bg-slate-900 text-white placeholder-slate-500 text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400"
+                    className="w-full min-w-0 bg-slate-900 text-white placeholder-slate-500 text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400"
                   />
                 </div>
                 <select
                   aria-label="Filter Notes by World"
                   value={worldFilter}
                   onChange={(e) => setWorldFilter(e.target.value)}
-                  className="bg-slate-900 text-slate-200 text-xs font-bold px-2.5 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400"
+                  className="w-full sm:w-44 min-w-0 max-w-full truncate bg-slate-900 text-slate-200 text-xs font-bold px-2.5 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 cursor-pointer"
                 >
                   <option value="all">All Worlds</option>
                   {worldTagOptions

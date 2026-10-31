@@ -71,8 +71,8 @@ export interface TriggerCleanPrintOptions {
 }
 
 /**
- * Triggers a clean, isolated browser print flow with exact @page orientation,
- * single-target DOM isolation class, and guaranteed afterprint cleanup.
+ * Applies print page orientation rule without invoking window.print(),
+ * ensuring mobile/desktop buttons never redirect to the native phone print dialog.
  */
 export function triggerCleanPrint(options: TriggerCleanPrintOptions): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -84,12 +84,8 @@ export function triggerCleanPrint(options: TriggerCleanPrintOptions): void {
   document.body.classList.add(targetBodyClass);
   applyPrintPageRule(orientation, marginCss);
 
-  let cleanedUp = false;
-  const cleanup = () => {
-    if (cleanedUp) return;
-    cleanedUp = true;
+  window.setTimeout(() => {
     document.body.classList.remove(targetBodyClass);
-    window.removeEventListener('afterprint', cleanup);
     if (restoreOrientationOnFinish) {
       applyPrintPageRule(
         restoreOrientationOnFinish.orientation,
@@ -98,15 +94,6 @@ export function triggerCleanPrint(options: TriggerCleanPrintOptions): void {
     } else {
       clearPrintPageRule();
     }
-  };
-
-  window.addEventListener('afterprint', cleanup);
-
-  // Allow browser layout engine one frame to apply @page + body class before invoking print
-  window.requestAnimationFrame(() => {
-    window.setTimeout(() => {
-      window.print();
-      window.setTimeout(cleanup, 1200);
-    }, 40);
-  });
+  }, 400);
 }
+

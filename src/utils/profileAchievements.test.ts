@@ -46,12 +46,27 @@ test('walkthrough auto-opens on first visit, respects ?autostart=1, and stays cl
   assert.equal(shouldAutoOpenWalkthrough('', storage), false);
 });
 
-test('10-chapter walkthrough guide has complete ordered steps', () => {
-  assert.equal(WALKTHROUGH_CHAPTERS.length, 10);
+test('14-chapter step-by-step walkthrough guide has complete ordered steps and zero bar exam or law student mentions', () => {
+  assert.equal(WALKTHROUGH_CHAPTERS.length, 14);
+  const bannedPattern = /\b(bar exam|bar exams|bar review|bar candidate|bar topnotcher|law student|law students|law school)\b/i;
   WALKTHROUGH_CHAPTERS.forEach((ch, idx) => {
     assert.equal(ch.stepNumber, idx + 1);
     assert.ok(ch.headline.length > 10);
     assert.ok(ch.highlights.length >= 3);
+    const fullText = [
+      ch.shortTitle,
+      ch.kicker,
+      ch.headline,
+      ch.summary,
+      ch.proTip,
+      ch.ctaLabel,
+      ...ch.highlights.map((h) => `${h.label} ${h.detail}`),
+    ].join(' ');
+    assert.equal(
+      bannedPattern.test(fullText),
+      false,
+      `Found prohibited phrase in walkthrough chapter ${ch.id}`
+    );
   });
 });
 

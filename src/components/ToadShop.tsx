@@ -28,8 +28,9 @@ import {
 import {
   applyPrintPageRule,
   clearPrintPageRule,
-  triggerCleanPrint,
 } from '../utils/printHelper';
+import { downloadCertificateLandscapePdf } from '../utils/pdfExportService';
+import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import confetti from 'canvas-confetti';
 import {
   ShoppingBag,
@@ -43,7 +44,7 @@ import {
   FileCheck2,
   Sparkles,
   HelpCircle,
-  Printer,
+  FileDown,
   Check,
   Play,
   Pause,
@@ -676,6 +677,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     }
     return 'Mario Bar Candidate';
   });
+  const [certPdfDownloaded, setCertPdfDownloaded] = useState<boolean>(false);
 
   const [equippedTitle, setEquippedTitle] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -2304,20 +2306,23 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                     data-testid="print-certificate-btn"
                     onClick={() => {
                       marioAudio.playQuizComplete();
-                      triggerCleanPrint({
-                        mode: 'certificate',
-                        orientation: 'landscape',
-                        marginCss: '6mm',
-                        restoreOrientationOnFinish: {
-                          orientation: 'landscape',
-                          marginCss: '6mm',
-                        },
+                      downloadCertificateLandscapePdf({
+                        recipientName: certRecipientName.trim() || 'Mario Bar Candidate',
+                        honors: 'Master of Philippine Labor Standards (Worlds 1-6)',
+                        completedCount: ALL_LAW_TOPICS.length,
+                        totalCount: ALL_LAW_TOPICS.length,
                       });
+                      setCertPdfDownloaded(true);
+                      window.setTimeout(() => setCertPdfDownloaded(false), 2600);
                     }}
-                    className="min-h-[44px] px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                   >
-                    <Printer className="w-4 h-4 shrink-0" />
-                    <span>Print Landscape Certificate</span>
+                    <FileDown className="w-4 h-4 shrink-0" />
+                    <span>
+                      {certPdfDownloaded
+                        ? 'Certificate PDF Downloaded'
+                        : 'Download Landscape Certificate PDF'}
+                    </span>
                   </button>
                 </div>
               )}

@@ -31,6 +31,7 @@ import {
   X,
   Scale,
   MoreHorizontal,
+  FileDown,
 } from 'lucide-react';
 import { MarioCoinIcon, MarioCharacterAvatar, MarioStarIcon } from './MarioIcons';
 import { marioAudio, AudioSettings, SOUND_PACK_DEFINITIONS } from '../utils/audio';
@@ -76,6 +77,7 @@ interface NavbarProps {
   onOpenExportProgress?: () => void;
   onOpenGlobalSearch?: () => void;
   onOpenPrintGuide?: () => void;
+  onOpenOnePageSummary?: () => void;
   showLegalCitations?: boolean;
   setShowLegalCitations?: (show: boolean) => void;
   onOpenLeaderboard?: () => void;
@@ -117,6 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExportProgress,
   onOpenGlobalSearch,
   onOpenPrintGuide,
+  onOpenOnePageSummary,
   showLegalCitations = true,
   setShowLegalCitations,
   onOpenLeaderboard,
@@ -209,7 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     {
       label: 'Games & Tools',
       items: [
-        { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '18' },
+        { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '22' },
         { id: 'calculator', label: 'Calculator', icon: <Calculator className="w-4 h-4 text-cyan-300 shrink-0" /> },
         { id: 'shop', label: "Toad's Shop", icon: <ShoppingBag className="w-4 h-4 text-pink-300 shrink-0" /> },
       ],
@@ -716,6 +719,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                         </button>
                       )}
 
+                      {onOpenOnePageSummary && (
+                        <button
+                          type="button"
+                          data-testid="navbar-one-page-summary-btn"
+                          onClick={() => {
+                            setShowMoreToolsMenu(false);
+                            onOpenOnePageSummary();
+                            marioAudio.playCoin();
+                          }}
+                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <FileDown className="w-3.5 h-3.5 shrink-0" />
+                          <span>1-Page PDF</span>
+                        </button>
+                      )}
+
                       {onOpenPrintGuide && (
                         <button
                           type="button"
@@ -725,10 +744,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                             onOpenPrintGuide();
                             marioAudio.playClick();
                           }}
-                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer"
+                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                         >
-                          <Printer className="w-3.5 h-3.5 shrink-0" />
-                          <span>Print Guide</span>
+                          <FileDown className="w-3.5 h-3.5 shrink-0" />
+                          <span>Reviewer PDF</span>
                         </button>
                       )}
 
@@ -775,6 +794,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                       >
                         <Compass className="w-3.5 h-3.5 shrink-0" />
                         <span>App Guide</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        data-testid="navbar-open-notes-btn"
+                        onClick={() => {
+                          setShowMoreToolsMenu(false);
+                          window.dispatchEvent(new CustomEvent('mario-open-study-notes'));
+                        }}
+                        className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-amber-300 hover:bg-amber-200 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      >
+                        <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                        <span>Study Notes</span>
                       </button>
                     </div>
 
@@ -889,8 +921,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             ))}
           </nav>
 
-          {/* Mobile & Tablet Compact Navigation Bar — With Direct Menu & Search Buttons */}
-          <div className="grid grid-cols-6 sm:flex lg:hidden items-center sm:justify-between w-full gap-1 sm:gap-1.5 min-w-0">
+          {/* Mobile & Tablet Non-Duplicate Utility Row (Bottom Bar already covers Map/Modules/Cards/Quiz/Arcade) */}
+          <div className="flex lg:hidden items-center justify-between w-full gap-1 sm:gap-1.5 min-w-0">
             <button
               type="button"
               aria-expanded={isMobileMenuOpen}
@@ -898,18 +930,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setIsMobileMenuOpen(!isMobileMenuOpen);
                 marioAudio.playClick();
               }}
-              className="min-h-[44px] px-1 sm:px-3 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[10px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
+              className="min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[10.5px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
             >
               <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span>Menu</span>
               <ChevronDown
-                className={`hidden min-[400px]:inline w-3 h-3 text-slate-400 shrink-0 transition-transform ${
+                className={`hidden min-[420px]:inline w-3 h-3 text-slate-400 shrink-0 transition-transform ${
                   isMobileMenuOpen ? 'rotate-180' : ''
                 }`}
               />
             </button>
 
-            {/* Direct Mobile & Tablet Quick Search Button */}
             {onOpenGlobalSearch && (
               <button
                 type="button"
@@ -920,33 +951,63 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 aria-label="Search Philippine Labor Law (Ctrl+K)"
                 title="Search topics, articles, and doctrines (Ctrl+K)"
-                className="min-h-[44px] px-1 sm:px-3 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl border-2 border-amber-400 font-black text-[10px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0 shadow-[0_1px_0_#000]"
+                className="min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl border-2 border-amber-400 font-black text-[10.5px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0 shadow-[0_1px_0_#000]"
               >
                 <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>Search</span>
               </button>
             )}
 
-            {[
-              { id: 'map', mobileLabel: 'Map', tabletLabel: 'Map' },
-              { id: 'modules', mobileLabel: 'Study', tabletLabel: 'Modules' },
-              { id: 'flashcards', mobileLabel: 'Cards', tabletLabel: 'Cards' },
-              { id: 'quiz', mobileLabel: 'Quiz', tabletLabel: 'Quiz' },
-            ].map((quick) => (
+            {onOpenOnePageSummary && (
               <button
-                key={quick.id}
                 type="button"
-                onClick={() => handleTabClick(quick.id)}
-                className={`min-h-[44px] px-1 sm:px-3.5 inline-flex items-center justify-center rounded-xl font-black text-[10px] sm:text-xs border-2 border-black leading-none whitespace-nowrap shrink-0 cursor-pointer ${
-                  activeTab === quick.id
-                    ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
-                    : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                }`}
+                data-testid="navbar-mobile-row-summary-btn"
+                onClick={() => {
+                  onOpenOnePageSummary();
+                  marioAudio.playCoin();
+                }}
+                className="min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3 inline-flex items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl border-2 border-black font-black text-[10.5px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
               >
-                <span className="sm:hidden">{quick.mobileLabel}</span>
-                <span className="hidden sm:inline">{quick.tabletLabel}</span>
+                <FileDown className="w-3.5 h-3.5 shrink-0" />
+                <span>1-Pg PDF</span>
               </button>
-            ))}
+            )}
+
+            <button
+              type="button"
+              data-testid="navbar-mobile-calculator-btn"
+              onClick={() => handleTabClick('calculator')}
+              title="Open Wage, Overtime & 13th Month Pay Calculator"
+              className={`min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2.5 sm:px-3.5 inline-flex items-center justify-center gap-1 rounded-xl font-black text-[10.5px] sm:text-xs border-2 border-black leading-none whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
+                activeTab === 'calculator'
+                  ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
+                  : 'bg-cyan-950/90 text-cyan-100 hover:bg-cyan-900 border-cyan-400/70'
+              }`}
+            >
+              <Calculator
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  activeTab === 'calculator' ? 'text-slate-950' : 'text-cyan-300'
+                }`}
+              />
+              <span>Calculator</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleTabClick('shop')}
+              className={`min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3.5 inline-flex items-center justify-center gap-1 rounded-xl font-black text-[10.5px] sm:text-xs border-2 border-black leading-none whitespace-nowrap shrink-0 cursor-pointer ${
+                activeTab === 'shop'
+                  ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
+                  : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+              }`}
+            >
+              <ShoppingBag
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  activeTab === 'shop' ? 'text-slate-950' : 'text-pink-300'
+                }`}
+              />
+              <span>Shop</span>
+            </button>
           </div>
 
           {/* Quick Search Shortcut Clicker (LG+ Desktop) */}
@@ -1355,6 +1416,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Leaderboard</span>
                     </button>
                   )}
+                  {onOpenOnePageSummary && (
+                    <button
+                      type="button"
+                      data-testid="mobile-one-page-summary-btn"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenOnePageSummary();
+                        marioAudio.playCoin();
+                      }}
+                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer whitespace-nowrap"
+                    >
+                      <FileDown className="w-3.5 h-3.5 shrink-0" />
+                      <span>1-Page PDF</span>
+                    </button>
+                  )}
                   {onOpenPrintGuide && (
                     <button
                       type="button"
@@ -1363,10 +1439,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onOpenPrintGuide();
                         marioAudio.playClick();
                       }}
-                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-emerald-600 text-white font-bold text-xs rounded-xl border border-black cursor-pointer"
+                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-emerald-700 text-white font-bold text-xs rounded-xl border border-black cursor-pointer whitespace-nowrap"
                     >
-                      <Printer className="w-3.5 h-3.5 shrink-0" />
-                      <span>Print Guide</span>
+                      <FileDown className="w-3.5 h-3.5 shrink-0" />
+                      <span>Reviewer PDF</span>
                     </button>
                   )}
                   {onOpenLegalCitationsModal && (

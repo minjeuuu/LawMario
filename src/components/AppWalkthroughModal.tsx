@@ -72,451 +72,330 @@ interface ButtonDirectoryItem {
   whatItDoes: string;
   howToUse: string;
   proTip: string;
-  iconName?: string;
+  targetTab?: string;
 }
 
 const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
-  // 1. Navigation & Header
+  // 1. Header & Global Controls
   {
     id: 'btn-mario-logo',
-    name: 'Mario Title & Logo',
+    name: 'App Title & Home Emblem',
     part: 'Top Navigation Bar (Left)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Instantly resets your active view back to the World Map overland progression hub.',
-    howToUse: 'Click the iconic Mario logo or title at any time to return to the kingdom map.',
-    proTip: 'Safe anchor to return home whenever you get deep into reading codal articles.',
+    whatItDoes: 'Returns you immediately to the Overworld Map dashboard from anywhere in the app.',
+    howToUse: 'Click the Super Mario Labor Adventure logo on the top-left at any time.',
+    proTip: 'Great one-click home anchor whenever you finish studying a deep module or playing an arcade game.',
+    targetTab: 'map',
+  },
+  {
+    id: 'btn-desktop-nav-tabs',
+    name: 'Primary Section Tabs (Map, Modules, Holidays, Regions, Cards, Quiz, Arcade, Shop)',
+    part: 'Top Navigation Bar (Desktop) & Bottom Dock (Mobile)',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Switches cleanly between all major study hubs, reference tables, quizzes, games, and Toad’s Shop.',
+    howToUse: 'Click any section tab on desktop, or use the 5-button bottom dock + Menu button on mobile.',
+    proTip: 'Your progress, active Pomodoro timer, and saved notes stay synced across every single tab.',
+    targetTab: 'modules',
+  },
+  {
+    id: 'btn-global-search',
+    name: 'Global Search Button ("Search" / Ctrl+K)',
+    part: 'Top Navigation Bar & Mobile Utility Row',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Searches across all 19 modules, Labor Code articles, regional wages, holidays, and glossary definitions.',
+    howToUse: 'Click Search (or press Ctrl+K / Cmd+K on keyboard) and type any keyword like "overtime" or "13th month".',
+    proTip: 'Clicking any search result jumps straight to that exact module or reference hub.',
+    targetTab: 'modules',
+  },
+  {
+    id: 'btn-one-page-pdf',
+    name: 'One-Page Summary Button ("1-Pg PDF")',
+    part: 'Top Navigation Bar & Mobile Utility Row',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Opens the Print & PDF Studio directly on the A4 One-Page Formulas & Deadlines Master Sheet.',
+    howToUse: 'Click 1-Pg PDF, pick your favorite Color Theme & Font Family, and click Download A4 PDF.',
+    proTip: 'Downloads a real .pdf file directly to your phone, tablet, or computer without opening a browser print popup.',
+    targetTab: 'map',
+  },
+  {
+    id: 'btn-calculator-shortcut',
+    name: 'Calculator Button ("Calculator")',
+    part: 'Top Navigation Bar & Mobile Utility Row',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Opens the interactive Philippine Wage, Overtime, Holiday, 13th Month & Retirement Pay Calculator.',
+    howToUse: 'Tap Calculator in the header bar to compute exact pay rates and copy step-by-step equations.',
+    proTip: 'Works side-by-side with the 17-Region Wage Directory when checking real-world daily rates.',
+    targetTab: 'calculator',
   },
   {
     id: 'btn-coin-wallet',
-    name: 'Coin Wallet Pill (x00 Coins)',
-    part: 'Top Navigation Bar (Right)',
+    name: 'Gold Coin Wallet Badge & Shop Button',
+    part: 'Top Navigation Bar (Right) & Mobile Utility Row',
     category: 'Header & Global Controls',
-    whatItDoes: 'Displays current study coin earnings; clicking directly opens Toad’s Grand Shop & Bazaar.',
-    howToUse: 'Click the golden coin badge to inspect your wallet and shop for 34 heroes, Super Star 2x power-ups, Shortcut Maps, companions, and card frames.',
-    proTip: 'Earn coins by completing topic readings, running 5-Min Quick Study decks, taking quizzes, or finishing Pomodoro focus sessions.',
+    whatItDoes: 'Displays your live Gold Coin balance and opens Toad’s Shop to unlock characters, power-ups, and perks.',
+    howToUse: 'Click your coin counter or Shop button to browse 34 heroes, 2x Super Star boosts, companions, and card frames.',
+    proTip: 'Earn coins by completing modules (+2), answering Quick Knowledge Checks (+3), flipping flashcards, and playing games!',
+    targetTab: 'shop',
   },
   {
     id: 'btn-pomodoro-pill',
-    name: 'Pomodoro Focus Timer Pill',
-    part: 'Top Navigation Bar (Right)',
+    name: 'Pomodoro Focus Timer (25m / 5m)',
+    part: 'Top Navigation Bar & Mobile Menu',
     category: 'Header & Global Controls',
-    whatItDoes: 'Shows live mm:ss countdown for active focus sessions and opens the full Pomodoro Timer Modal.',
-    howToUse: 'Click the clock pill to open the 25-minute timer, adjust intervals, silence sound alerts, or pin a floating overlay.',
-    proTip: 'Features a 1-click Quick Reset button that returns you to the standard 25m focus state instantly.',
+    whatItDoes: 'Runs structured 25-minute study sessions and 5-minute rest breaks with optional floating screen overlay.',
+    howToUse: 'Click the timer button to start, pause, reset, mute completion chimes, or pin the compact timer on screen.',
+    proTip: 'Every focused minute automatically logs into your Profile’s Daily Study Streak Calendar and 7-day bar graph!',
+    targetTab: 'modules',
   },
   {
     id: 'btn-audio-soundscape',
-    name: 'Ambient Soundscape Player (Music Note)',
+    name: 'Music & Sound Effects Controls',
     part: 'Top Navigation Bar (Right)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Toggles soothing Mario-themed background study music (Lofi beats, NES 8-bit, Underground cave, Peach Castle).',
-    howToUse: 'Click the music icon to play/pause audio or choose between 4 custom study tempos.',
-    proTip: 'Synthesized via Web Audio API, so it works completely offline with zero network bandwidth.',
+    whatItDoes: 'Controls 4 synthesized retro study soundscapes (Overworld, Underground, Castle, Star Road) and UI sound effects.',
+    howToUse: 'Click the Music button to pick a track or toggle SFX mute anytime for quiet library reading.',
+    proTip: 'Generated locally via Web Audio API so it works 100% offline with zero data usage.',
+    targetTab: 'map',
   },
   {
-    id: 'btn-study-notes',
-    name: 'Legal Scratchpad / Study Notes (Sticky Note)',
-    part: 'Top Navigation Bar (Right)',
+    id: 'btn-font-and-theme',
+    name: 'Theme Switch (Light / Dark) & Font Size Scaler (A / A+ / A++)',
+    part: 'Top Navigation Bar & Mobile Menu',
     category: 'Header & Global Controls',
-    whatItDoes: 'Slides open a personal legal note-taking drawer with Markdown support, auto-save, and pin-to-top.',
-    howToUse: 'Click the sticky note button to jot down statutory cross-references or Bar exam mnemonics.',
-    proTip: 'Automatically saves in your browser storage so your personal study annotations are never lost.',
-  },
-  {
-    id: 'btn-color-mode',
-    name: 'Day/Night Color Mode (Sun / Moon)',
-    part: 'Top Navigation Bar (Right)',
-    category: 'Header & Global Controls',
-    whatItDoes: 'Flips interface between Daylight Mario Sky (high-contrast day reading) and Late-Night Subterranean dark mode.',
-    howToUse: 'Click the sun/moon icon to switch reading contrast on the fly.',
-    proTip: 'Remembers your preference across browser reloads.',
+    whatItDoes: 'Switches between bright Daylight Sky and restful Dark Night mode, and scales lesson text across 3 comfort sizes.',
+    howToUse: 'Click the Sun/Moon toggle or cycle A / A+ / A++ until text feels effortless to read.',
+    proTip: 'Your chosen theme and font scale persist automatically across reloads.',
+    targetTab: 'modules',
   },
   {
     id: 'btn-walkthrough-guide',
-    name: 'Interactive Walkthrough Guide ("Guide / ?")',
-    part: 'Top Navigation Bar (Right)',
+    name: 'Interactive Walkthrough & Control Atlas ("Guide")',
+    part: 'Top Navigation Bar & Mobile Menu',
     category: 'Header & Global Controls',
-    whatItDoes: 'Opens this comprehensive modal with both the 10-chapter guided tour and the complete button directory.',
-    howToUse: 'Click anytime you want a refresher on any tab, tool, or calculation feature.',
-    proTip: 'First-time completion awards a bonus +25 study coins!',
-  },
-  {
-    id: 'btn-printable-guide',
-    name: 'Print Study Guide (Printer Icon)',
-    part: 'Top Navigation Bar (Right)',
-    category: 'Header & Global Controls',
-    whatItDoes: 'Opens the high-contrast, ink-saving printable compendium of Philippine Labor Standards.',
-    howToUse: 'Click the printer icon to review the full codal syllabus and trigger your browser’s print dialog.',
-    proTip: 'Includes statutory multiplier breakdown tables and regional minimum wage matrices formatted for 8.5x11 paper.',
+    whatItDoes: 'Opens this 14-step guided walkthrough and searchable button-by-button reference atlas.',
+    howToUse: 'Step through all 14 chapters in order or search any specific button/tool here in the Control Atlas.',
+    proTip: 'Completing the guide for the first time awards +25 Gold Coins!',
+    targetTab: 'map',
   },
   {
     id: 'btn-user-profile',
-    name: 'User Profile & Milestone Dossier (Avatar)',
-    part: 'Top Navigation Bar (Right)',
+    name: 'User Profile, Streak Calendar & Badges (Avatar Button)',
+    part: 'Top Navigation Bar (Far Right)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Opens your Bar Candidate profile, Recharts weekly focus bar chart, 24-character selector, and achievements.',
-    howToUse: 'Click your active Mario avatar face to track cumulative study time, login streak, and study habits.',
-    proTip: 'Features a live Recharts bar chart tracking your daily Pomodoro focus history over the past 7 days.',
-  },
-  {
-    id: 'btn-back-to-top',
-    name: 'Back to Top Floating Warp Pipe',
-    part: 'Bottom-Right Floating',
-    category: 'Header & Global Controls',
-    whatItDoes: 'Smoothly scrolls your view back to the top navigation header.',
-    howToUse: 'Click the green warp pipe whenever you reach the bottom of long statutory module texts.',
-    proTip: 'Accompanied by the classic Mario pipe descending sound effect.',
+    whatItDoes: 'Opens your personal learner profile featuring your Monthly Streak Calendar, 7-day study chart, World Badges, and Achievements.',
+    howToUse: 'Click your character avatar in the top-right corner to inspect your stats, edit your display name, or export your Score Card PDF.',
+    proTip: 'Complete all lessons inside any World to earn thematic badges like Overtime Guru and Wage Expert!',
+    targetTab: 'map',
   },
 
-  // 2. World Map Navigation
+  // 2. Overworld Map & Floating Helpers
   {
     id: 'btn-world-nodes',
-    name: 'World Map Level Nodes (Worlds 1 to 6)',
-    part: 'World Map Progression Canvas',
-    category: 'World Map Progression',
-    whatItDoes: 'Launches into all 6 Labor Code module worlds (Hours of Work, Holidays, Wages, Special Groups, Protective Laws, and World 6 Statutory Leaves).',
-    howToUse: 'Click any unlocked level node to jump straight to that subject syllabus.',
-    proTip: 'Equip Toad’s Bar Exam Shortcut Map from the Shop to highlight high-yield Bar exam doctrines across Worlds 1–6.',
+    name: 'Overworld Map Stage Nodes (Worlds 1 to 6)',
+    part: 'World Map Canvas',
+    category: 'Map & Floating Tools',
+    whatItDoes: 'Shows visual progress across all 6 Labor Standards worlds and lets you open stage checklists or jump to lessons.',
+    howToUse: 'Click any World node on the map to inspect its topics or warp directly to that World in Modules.',
+    proTip: 'Finishing 100% of a World triggers a celebratory fanfare, +50 Bonus Coins, and a World Mastery Badge!',
+    targetTab: 'map',
   },
   {
     id: 'btn-fire-flower-streak',
-    name: 'Consecutive Days Studied · Fire Flower Tracker',
+    name: 'Daily Streak Tracker & 5-Min Quick Study Launcher',
     part: 'World Map Top Banner',
-    category: 'World Map Progression',
-    whatItDoes: 'Displays your consecutive daily study streak, awarding a glowing Fire Flower icon every 5-day milestone with a live milestone progress bar.',
-    howToUse: 'Study daily (or use a Fire Flower Streak Booster in Toad’s Shop) to fill the milestone progress bar.',
-    proTip: 'Click "5-Min Quick Study Deck" or "Global Coin Leaderboard" right next to the tracker to review weak topics or compare coin totals.',
+    category: 'Map & Floating Tools',
+    whatItDoes: 'Tracks consecutive study days, displays your daily minute goal, and launches a 5-minute flashcard sprint.',
+    howToUse: 'Click 5-Min Quick Study on the banner for a fast review session, or Leaderboard to compare Gold Coins.',
+    proTip: 'Studying even 5–15 minutes a day lights up your Profile’s visual calendar grid.',
+    targetTab: 'map',
   },
   {
-    id: 'btn-bowser-castle',
-    name: "Bowser's Castle Keep",
-    part: 'World Map Progression Canvas',
-    category: 'World Map Progression',
-    whatItDoes: 'Launches the Bowser 3-Heart Boss Battle combat arena covering the entire 6-World statutory syllabus.',
-    howToUse: 'Click the ominous red lava keep to test your knowledge against randomized Bar exam questions.',
-    proTip: 'Activate a Super Star Power-up first to double your Boss victory coin bounty!',
+    id: 'btn-floating-autoscroll',
+    name: 'Floating Auto-Scroll Controller ("SCROLL")',
+    part: 'Bottom-Right Floating Button (Reading Tabs)',
+    category: 'Map & Floating Tools',
+    whatItDoes: 'Scrolls module lessons, holidays, and regional tables smoothly hands-free at 1x, 2x, 3x, or 4x speed.',
+    howToUse: 'Tap SCROLL in the bottom-right corner, press READ to start or PAUSE to stop, and tap the speed badge (1x–4x) to adjust pace.',
+    proTip: 'Tap the X icon on the expanded bar anytime to fold it back into the compact SCROLL pill.',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-toad-shop-pipe',
-    name: "Toad's Item Shop Pipe",
-    part: 'World Map Progression Canvas',
-    category: 'World Map Progression',
-    whatItDoes: 'Warp directly to Toad’s Grand Bazaar to browse 34 heroes, Super Star 2x buffs, Shortcut Maps, Companions, Card Frames, and Restore Audio Pack.',
-    howToUse: 'Click the mushroom-emblazoned pipe on the world map.',
-    proTip: 'Open 3-Tier Mystery Chests (15c / 60c / 150c) or restore missing audio packs in the Audio tab anytime!',
-  },
-
-  // 3. Modules & Codal Reader
-  {
-    id: 'btn-tts-speaker',
-    name: 'TTS Audio Read Aloud (Speaker Icon)',
-    part: 'Module Topic Card Header',
-    category: 'Modules & Codal Reader',
-    whatItDoes: 'Reads the unabridged Labor Code statutory provisions aloud using browser speech synthesis.',
-    howToUse: 'Click the speaker button to start audio playback; click again to pause.',
-    proTip: 'Perfect for hands-free audio revision while commuting or resting your eyes.',
-  },
-  {
-    id: 'btn-codal-toggle',
-    name: 'Codal Verbatim vs Bar Review Toggle',
-    part: 'Module Topic Card Top Controls',
-    category: 'Modules & Codal Reader',
-    whatItDoes: 'Switches between full, unabridged statutory article text and high-yield condensed Bar review mnemonics.',
-    howToUse: 'Toggle between "Verbatim Codal" for exact statutory wording and "Bar Review" for doctrinal summaries.',
-    proTip: 'Always memorize the verbatim exceptions for Article 82 exclusions (government employees, managerial staff).',
-  },
-  {
-    id: 'btn-complexity-switch',
-    name: 'Beginner vs Advanced Complexity Switch',
-    part: 'Module Topic Card Controls',
-    category: 'Modules & Codal Reader',
-    whatItDoes: 'Toggles plain-English explanations and practical takeaways versus rigorous jurisprudential doctrines.',
-    howToUse: 'Select "Beginner" if learning for the first time, or "Advanced" for deep Bar exam doctrinal rules.',
-    proTip: 'Both modes maintain 100% zero omission of statutory legal rules.',
-  },
-  {
-    id: 'btn-copy-codal',
-    name: 'Copy Statutory Text Button',
-    part: 'Module Topic Card Footer',
-    category: 'Modules & Codal Reader',
-    whatItDoes: 'Copies the entire codal article, exceptions, and key doctrines to your system clipboard.',
-    howToUse: 'Click the copy button and paste into your personal digital notebook or case brief.',
-    proTip: 'Shows an instant visual checkmark toast confirming text was copied.',
-  },
-  {
-    id: 'btn-complete-topic',
-    name: 'Mark Topic Complete (Green Checkmark)',
-    part: 'Module Topic Card Footer',
-    category: 'Modules & Codal Reader',
-    whatItDoes: 'Marks the statutory topic as mastered, awards +10 coins, and advances your World Map completion progress.',
-    howToUse: 'Click after finishing your study of the article.',
-    proTip: 'Unlocks milestone achievements in your User Profile when you complete entire worlds.',
-  },
-  {
-    id: 'btn-table-scroll',
-    name: 'Horizontal Scrollable Comparative Matrices',
-    part: 'Module Topic Comparative Tables',
-    category: 'Modules & Codal Reader',
-    whatItDoes: 'Enables horizontal scrolling for multi-column comparative tables without awkward vertical text wrapping.',
-    howToUse: 'Swipe or drag horizontally to view all columns clearly with clean typography.',
-    proTip: 'Fixed to prevent vertical character stacking even at extra-large font sizes.',
+    id: 'btn-floating-study-notes',
+    name: 'Floating Study Notes Drawer ("NOTES") & Category Selector',
+    part: 'Right-Edge / Bottom-Right Floating Button',
+    category: 'Map & Floating Tools',
+    whatItDoes: 'Opens your persistent personal Study Notes Pad from any reading tab with World tags, voice dictation, and 1-tap templates.',
+    howToUse: 'Tap NOTES, pick "General / All Worlds" or Worlds 1–6 in the category dropdown, type or dictate your note, and click SAVE NOTE.',
+    proTip: 'All saved notes are stored locally and can be included automatically inside your downloaded Study Guide PDF!',
+    targetTab: 'modules',
   },
 
-  // 4. Regional Wage Matrix & Holidays Hub
+  // 3. Modules Deck & Topic Cards
   {
-    id: 'btn-sector-tabs',
-    name: 'Sector Tabs (Non-Agri vs Kasambahay)',
-    part: 'Regional Wage Matrix Tab Header',
-    category: 'Wages Matrix & Holidays',
-    whatItDoes: 'Switches between commercial/industrial minimum wage rates and Batas Kasambahay domestic worker rates.',
-    howToUse: 'Click "Commercial / Industrial" or "Domestic (Kasambahay)" tab.',
-    proTip: 'Covers all 17 administrative regions from NCR to BARMM with effective wage order dates.',
+    id: 'btn-module-world-selector',
+    name: 'World Selector Cards (Worlds 1–6 + All 19 Modules)',
+    part: 'Modules Tab Top Grid',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Filters the Module Deck to a single World (W1–W6) or displays all 19 modules together.',
+    howToUse: 'Click any World card at the top of the Modules tab, or click All 19 to browse the entire syllabus.',
+    proTip: 'Each World card shows a live completion bar so you always see which World is closest to 100%.',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-wage-search',
-    name: 'Region Search Input Field',
-    part: 'Regional Wage Matrix Search Bar',
-    category: 'Wages Matrix & Holidays',
-    whatItDoes: 'Filters regional wage orders in real-time by region code (e.g. "NCR", "Region IV-A", "Region VII").',
-    howToUse: 'Type your target region name or number to isolate specific minimum wage rates.',
-    proTip: 'Instant real-time filtering helps you quickly calculate multi-region payroll rates.',
+    id: 'btn-module-sort-dropdown',
+    name: 'Sort Topics Dropdown Menu',
+    part: 'Module Deck Bar (Directly Above Topic Cards)',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Reorders the displayed module cards by Stage Order, Alphabetical (A → Z), Difficulty (Easiest First), or Difficulty (Hardest First).',
+    howToUse: 'Click the "Sort Topics" dropdown right above the topic cards and select your preferred order.',
+    proTip: 'Choose "Difficulty (Easiest First)" when starting out so foundational concepts build naturally into advanced rules!',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-holiday-tabs',
-    name: 'Holiday Category Tabs (Regular vs Special)',
-    part: 'Holidays Hub Filter Bar',
-    category: 'Wages Matrix & Holidays',
-    whatItDoes: 'Separates 200% statutory regular holidays from 130% special non-working days.',
-    howToUse: 'Click the category filter pills to learn legal distinctions and unworked pay rules.',
-    proTip: 'Remember: Unworked regular holiday pay is 100%, while unworked special day is "No Work, No Pay".',
-  },
-
-  // 5. Statutory Wage Calculator
-  {
-    id: 'btn-calc-daily-input',
-    name: 'Daily Rate ($/day) Input Box',
-    part: 'Statutory Wage Calculator (Left Panel)',
-    category: 'Statutory Calculator',
-    whatItDoes: 'Accepts your base daily wage and automatically calculates the derived hourly rate (Daily / 8).',
-    howToUse: 'Type your daily rate (e.g., 610 for NCR non-agriculture).',
-    proTip: 'Can be linked with the regional wage matrix to test statutory compliance.',
+    id: 'btn-module-view-modes',
+    name: '5 Module View Modes (Stream, Grid, Outline, Focus, Slide Deck)',
+    part: 'Modules Command Deck Toolbar',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Transforms how lessons are presented — from full scrollable cards to a 2-column grid, compact outline, single-topic reader, or interactive Slide Deck.',
+    howToUse: 'Click Stream, Grid, Outline, Focus, or Slides in the View bar, and optionally toggle Split Notes on desktop.',
+    proTip: 'Slide Deck mode breaks every module into clean, bite-sized presentation slides you can step through with Left/Right arrows!',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-calc-day-type',
-    name: 'Workday Type Radio Selectors',
-    part: 'Statutory Wage Calculator (Left Panel)',
-    category: 'Statutory Calculator',
-    whatItDoes: 'Sets statutory multiplier: Ordinary (100%), Special Day (130%), Regular Holiday (200%), Double Holiday (300%).',
-    howToUse: 'Click the radio button matching the day worked.',
-    proTip: 'Selecting "Rest Day" automatically stacks the statutory +30% rest day premium.',
+    id: 'btn-module-status-filters',
+    name: 'Status Filter Buttons (All, Unread, Mastered, Flagged, Pinned) & Depth Switch',
+    part: 'Modules Command Deck Toolbar',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Filters topics by completion/bookmark status and switches between Beginner takeaways and Unabridged depth.',
+    howToUse: 'Click Unread to focus on remaining lessons, Pinned to see saved favorites, or Beginner/Unabridged to adjust detail.',
+    proTip: 'Combine "Unread" + "Difficulty (Easiest First)" for an effortless step-by-step study queue.',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-calc-ot-stepper',
-    name: 'Overtime Hours Stepper (+ / - Buttons)',
-    part: 'Statutory Wage Calculator (Left Panel)',
-    category: 'Statutory Calculator',
-    whatItDoes: 'Increments or decrements hours worked beyond 8 hours, applying statutory overtime multipliers (125%, 130%, 169%, 260%).',
-    howToUse: 'Click + or - to set exact overtime hours.',
-    proTip: 'Overtime is computed on top of the day’s regular hourly rate, not base daily rate.',
+    id: 'btn-topic-study-lenses',
+    name: 'Inside-Card Study Lenses (Full, Key Rules, Cloze Recall, Checklist)',
+    part: 'Inside Every Expanded Topic Card',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Lets you study each topic four ways: full reading, condensed summary, fill-in-the-blank active recall, or interactive rule checklist.',
+    howToUse: 'Click the Study Lens buttons near the top of any expanded Topic Card.',
+    proTip: 'Cloze Recall hides key numbers and rates behind tap-to-reveal blanks so you can test yourself as you read!',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-calc-nsd-stepper',
-    name: 'Night Shift Differential Stepper (+ / - Buttons)',
-    part: 'Statutory Wage Calculator (Left Panel)',
-    category: 'Statutory Calculator',
-    whatItDoes: 'Calculates the +10% Night Shift Differential premium for work performed between 10:00 PM and 6:00 AM.',
-    howToUse: 'Set hours worked during the nocturnal 10pm–6am window.',
-    proTip: 'Stacks multiplicatively with overtime and holiday multipliers.',
+    id: 'btn-topic-tts-glossary',
+    name: 'Voice Reader (Listen 0.8x–1.5x) & Clickable Glossary Highlights',
+    part: 'Inside Every Topic Card',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Reads module rules aloud via speech synthesis and opens plain-English popups when you click underlined terms.',
+    howToUse: 'Click Listen in the card header to play/pause narration, or tap any dotted-underlined keyword in the text.',
+    proTip: 'Great for auditory learners or reviewing lessons hands-free while commuting.',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-calc-factor-select',
-    name: 'Monthly Factor Selector (365, 313, 261, 394.4)',
-    part: 'Statutory Wage Calculator (Monthly Estimator)',
-    category: 'Statutory Calculator',
-    whatItDoes: 'Selects the DOLE working day factor to convert daily wage to statutory monthly equivalent.',
-    howToUse: 'Choose Factor 365 (everyday workers), 313 (rest days unpaid), 261 (5-day work week), or 394.4.',
-    proTip: 'Crucial for computing correct 13th month pay and separation pay packages.',
-  },
-  {
-    id: 'btn-calc-reset',
-    name: 'Reset Calculator Button',
-    part: 'Statutory Wage Calculator (Top Right)',
-    category: 'Statutory Calculator',
-    whatItDoes: 'Instantly resets all hours, premiums, and dropdowns back to a standard 8-hour ordinary workday.',
-    howToUse: 'Click the reset button to start a fresh calculation scenario.',
-    proTip: 'Restores the baseline daily wage without reloading the page.',
+    id: 'btn-topic-quick-check',
+    name: 'Quick Knowledge Check Mini-Quiz (+3 Coins) & Mark Studied',
+    part: 'Bottom of Every Expanded Topic Card',
+    category: 'Modules & Study Lenses',
+    whatItDoes: 'Tests the core concept of each module with an instant 4-choice check, clear explanation, and a one-time +3 Coin bonus.',
+    howToUse: 'Pick an answer at the bottom of the card to verify understanding, then click Mark Studied (+2 Coins) and Pin if desired!',
+    proTip: 'Answering the Quick Knowledge Check right after reading locks key percentages and deadlines into memory.',
+    targetTab: 'modules',
   },
 
-  // 6. Mystery Flashcards & Spaced Repetition
+  // 4. Holidays, Wages & Calculator
   {
-    id: 'btn-card-flip',
-    name: 'Flashcard Flip Surface / Flip Button',
-    part: 'Flashcard Study Arena',
-    category: 'Flashcards & Spaced Repetition',
-    whatItDoes: 'Flips card between statutory hypothetical question and codified doctrinal answer.',
-    howToUse: 'Click the card body or the "Flip Card" button.',
-    proTip: 'Use keyboard Spacebar to flip cards rapidly for speed reviews.',
+    id: 'btn-holidays-controls',
+    name: 'Holiday Category Filters & Day-Before Absence Simulator',
+    part: 'Holidays Hub Tab',
+    category: 'Holidays, Wages & Calculator',
+    whatItDoes: 'Separates Regular Holidays (200%) from Special Days (130%) and simulates consecutive-holiday absence scenarios.',
+    howToUse: 'Filter holiday cards at the top and toggle employee status in the interactive Holiday Eligibility Simulator.',
+    proTip: 'Remember: Regular Holidays pay 100% even when unworked, whereas Special Non-Working Days follow "No Work, No Pay".',
+    targetTab: 'holidays',
   },
   {
-    id: 'btn-card-thumbs-up',
-    name: '"Got It" Thumbs Up (Green Up Button)',
-    part: 'Flashcard Rating Controls',
-    category: 'Flashcards & Spaced Repetition',
-    whatItDoes: 'Records successful retention, awards coins, and schedules the card for later spaced repetition interval.',
-    howToUse: 'Click when you recalled the statutory rule accurately.',
-    proTip: 'Consistently getting cards right unlocks mastery star badges.',
+    id: 'btn-regional-wages-controls',
+    name: '17-Region Search, Island Filters & Kasambahay Matrix',
+    part: 'Regions Wage Directory Tab',
+    category: 'Holidays, Wages & Calculator',
+    whatItDoes: 'Searches and filters daily minimum wages across Luzon, Visayas, and Mindanao for Non-Agri, Agri, and Kasambahay workers.',
+    howToUse: 'Type a region/city in the search input or click All, Luzon, Visayas, or Mindanao filter buttons.',
+    proTip: 'Compare NCR vs. regional rates to understand how local Wage Boards adjust regional minimums.',
+    targetTab: 'wages_matrix',
   },
   {
-    id: 'btn-card-thumbs-down',
-    name: '"Need Review" Thumbs Down (Red Down Button)',
-    part: 'Flashcard Rating Controls',
-    category: 'Flashcards & Spaced Repetition',
-    whatItDoes: 'Marks the doctrine for high-priority re-testing in the current deck cycle.',
-    howToUse: 'Click if you missed an exception or statutory percentage.',
-    proTip: 'Focus your final review hours on your "Need Review" cards.',
-  },
-  {
-    id: 'btn-card-shuffle',
-    name: 'Shuffle Deck Button',
-    part: 'Flashcard Top Controls',
-    category: 'Flashcards & Spaced Repetition',
-    whatItDoes: 'Randomizes the card presentation order to prevent memorizing answers by positional habit.',
-    howToUse: 'Click before starting a review session.',
-    proTip: 'Simulates the unpredictable sequence of real Bar exam questions.',
+    id: 'btn-calculator-modes',
+    name: 'Pay Calculator Inputs, Day-Type Multipliers & Sub-Calculators',
+    part: 'Calculator Tab',
+    category: 'Holidays, Wages & Calculator',
+    whatItDoes: 'Computes regular shift pay, overtime, night shift differential (+10%), 13th month pay, SIL cash value, and 22.5-day retirement pay.',
+    howToUse: 'Enter a daily wage, pick the day type (Ordinary, Rest Day, Special, Regular, Double), adjust OT/NSD hours, and copy the formula breakdown.',
+    proTip: 'Switch between the Shift Pay, 13th Month, Retirement, and Wage Distortion tabs to explore every statutory formula.',
+    targetTab: 'calculator',
   },
 
-  // 7. Bar Quizzes & Bowser Combat
+  // 5. Flashcards, Quizzes & 22-Game Vault
   {
-    id: 'btn-quiz-mcq-options',
-    name: 'MCQ Option Choice Buttons (A, B, C, D)',
-    part: 'Bar Quiz Question Arena',
-    category: 'Bar Quizzes & Boss Combat',
-    whatItDoes: 'Submits your answer to scenario-based legal problems and displays instant statutory rationale.',
-    howToUse: 'Click your chosen option button.',
-    proTip: 'Detailed statutory rationale cites exact Article numbers and Supreme Court jurisprudence.',
+    id: 'btn-flashcard-controls',
+    name: 'Flashcard Flip, World Filter, Shuffle Deck & 5-Min Quick Study',
+    part: 'Flashcards Tab',
+    category: 'Flashcards, Quizzes & Games',
+    whatItDoes: 'Flips 240+ question-and-answer cards, shuffles card order, and tracks Mastered vs. Need Review cards.',
+    howToUse: 'Click Shuffle to randomize the current deck, click the card (or press Space) to flip, and rate your recall.',
+    proTip: 'Shuffling before each study session prevents memorizing answers by card order!',
+    targetTab: 'flashcards',
   },
   {
-    id: 'btn-lakitu-5050',
-    name: 'Lakitu 50/50 Glasses Booster Button',
-    part: 'Bar Quiz & Boss Battle Controls',
-    category: 'Bar Quizzes & Boss Combat',
-    whatItDoes: 'Eliminates 2 incorrect distractors on difficult questions.',
-    howToUse: 'Click the Lakitu cloud button when unlocked from Toad’s Shop.',
-    proTip: 'Saves critical hearts during Bowser Boss combat.',
+    id: 'btn-quiz-modes',
+    name: '5-Item Quick Test, 10-Item Timed Exam Simulation, Practice Bank & Bowser Boss',
+    part: 'Quiz & Boss Tab',
+    category: 'Flashcards, Quizzes & Games',
+    whatItDoes: 'Offers untimed World checkups, a timed 10-question randomized Exam Simulation with score breakdown, 65+ item practice sets, and Bowser combat.',
+    howToUse: 'Pick your mode in the Quiz tab, select answers (with optional Lakitu 50/50 hint), and read the full explanation screen at the end.',
+    proTip: 'Timed Exam Simulation draws fresh randomized questions across all topics and breaks down every answer afterward!',
+    targetTab: 'quiz',
   },
   {
-    id: 'btn-boss-attack',
-    name: 'Attack Bowser Fireball Button',
-    part: 'Bowser Boss Battle Combat Screen',
-    category: 'Bar Quizzes & Boss Combat',
-    whatItDoes: 'Deals damage to Bowser’s health bar when answering correctly.',
-    howToUse: 'Click following a correct legal answer to launch Mario’s fireball strike.',
-    proTip: 'Defeating Bowser awards a massive +50 coin bounty and unlocks the Boss Slayer trophy!',
-  },
-
-  // 8. Pomodoro Focus Timer
-  {
-    id: 'btn-pomodoro-play-pause',
-    name: 'Start / Pause Timer Button',
-    part: 'Pomodoro Timer Interface',
-    category: 'Pomodoro Focus Timer',
-    whatItDoes: 'Starts or pauses the countdown focus timer.',
-    howToUse: 'Click the big circular play/pause button.',
-    proTip: 'Persists in background so you can read modules while your focus session runs.',
-  },
-  {
-    id: 'btn-pomodoro-quick-reset',
-    name: 'Quick Reset Button',
-    part: 'Pomodoro Timer Modal & Overlay',
-    category: 'Pomodoro Focus Timer',
-    whatItDoes: 'Immediately stops any active session and resets the timer back to the 25-minute default state.',
-    howToUse: 'Click the Quick Reset button whenever you want a fresh 25m focus round.',
-    proTip: 'Works in both the main timer modal and the pinned bottom-screen overlay.',
-  },
-  {
-    id: 'btn-pomodoro-sound-toggle',
-    name: 'Completion Sound Alert Toggle Switch',
-    part: 'Pomodoro Timer Modal & Overlay',
-    category: 'Pomodoro Focus Timer',
-    whatItDoes: 'Toggles audio alerts on/off for Mario-themed timer completion fanfares while keeping visual countdowns active.',
-    howToUse: 'Click the speaker/mute icon in the timer controls to silence audio in quiet libraries.',
-    proTip: 'When muted, visual confetti and notifications still celebrate your session completion.',
-  },
-  {
-    id: 'btn-pomodoro-pin-overlay',
-    name: 'Pin Overlay to Screen Button',
-    part: 'Pomodoro Timer Modal',
-    category: 'Pomodoro Focus Timer',
-    whatItDoes: 'Minimizes the timer into a compact, floating bottom-right screen pill while you browse modules.',
-    howToUse: 'Click the pin/minimize icon.',
-    proTip: 'Features sound toggle, quick reset, and play/pause controls right inside the mini pill.',
-  },
-  {
-    id: 'btn-pomodoro-presets',
-    name: 'Interval Presets (25m Focus / 5m Break / 15m Long Break)',
-    part: 'Pomodoro Timer Modal',
-    category: 'Pomodoro Focus Timer',
-    whatItDoes: 'One-click switching between standard Pomodoro study intervals.',
-    howToUse: 'Click 25m Focus, 5m Short Break, or 15m Long Break.',
-    proTip: 'Taking 5-minute rest breaks after each 25-minute cycle increases long-term codal retention.',
+    id: 'btn-vault-games',
+    name: '22-Game Arcade Vault & Yoshi’s Precision Cloud Lock',
+    part: 'Game Vault Tab',
+    category: 'Flashcards, Quizzes & Games',
+    whatItDoes: 'Launches 22 playable mini-games (Kart GP, 2D/3D Platformers, Yoshi Egg Toss, Payroll Blitz, Due Process Relay, Wage Factory, Spellbook & more).',
+    howToUse: 'Filter games by category or click any game card to play. Every run deals non-repeating questions and shuffled answer slots!',
+    proTip: 'In Yoshi’s Statutory Egg Toss, tap or click directly on any answer cloud to auto-lock the exact ballistic arc with zero front-cloud collisions!',
+    targetTab: 'vault',
   },
 
-  // 9. Toad's Hero Shop & Vault
+  // 6. Toad's Shop, Profile & Theme-Aware PDF Studio
   {
-    id: 'btn-shop-category-tabs',
-    name: 'Shop Category Tabs (Heroes, Themes, Boosters, Titles, Audio)',
-    part: "Toad's Grand Bazaar Header",
-    category: "Toad's Hero Shop & Vault",
-    whatItDoes: 'Navigates between all available reward categories in the coin store.',
-    howToUse: 'Click any category tab to view available items.',
-    proTip: 'Check out the new Prestige Titles category to unlock honorary legal degrees.',
+    id: 'btn-shop-bazaar',
+    name: 'Toad’s Shop Tabs (34 Heroes, Power-Ups, Companions, Frames, ? Chests)',
+    part: 'Toad’s Shop Tab',
+    category: 'Shop, Profile & PDF Prints',
+    whatItDoes: 'Lets you unlock and equip 34 characters, 2x Coin Super Stars, Shortcut Maps, desk companions, card frames, and Mystery Chests.',
+    howToUse: 'Select a category tab in Toad’s Shop and click Buy or Equip using your earned Gold Coins.',
+    proTip: 'Equip Toad’s Shortcut Map to highlight must-know rules across all module cards.',
+    targetTab: 'shop',
   },
   {
-    id: 'btn-mystery-gacha-hit',
-    name: 'Lucky ? Block Mystery Hit Button',
-    part: "Toad's Shop (? Block Tab)",
-    category: "Toad's Hero Shop & Vault",
-    whatItDoes: 'Gambles 15 coins to jump-hit the ? Block for randomized payouts up to 50 coins!',
-    howToUse: 'Click the giant bouncing ? Block button.',
-    proTip: 'Features celebratory fanfare and confetti when you hit the 50-coin jackpot.',
+    id: 'btn-profile-calendar-stats',
+    name: 'Visual Monthly Streak Calendar, 7-Day Bar Chart & World Badges',
+    part: 'User Profile Modal',
+    category: 'Shop, Profile & PDF Prints',
+    whatItDoes: 'Visualizes daily study streaks and completed goal days on a monthly calendar grid alongside a 7-day rolling bar graph and earned badges.',
+    howToUse: 'Open your Profile from the top-right avatar button, browse months on the Streak Calendar, and export your Hero Score Card PDF.',
+    proTip: 'Green calendar cells mark days you hit your daily study goal; gold highlights today’s live progress!',
+    targetTab: 'map',
   },
   {
-    id: 'btn-print-diploma',
-    name: 'Print Master Diploma Button',
-    part: "Toad's Shop (Master Diploma Tab)",
-    category: "Toad's Hero Shop & Vault",
-    whatItDoes: 'Prints the high-resolution Commemorative Certificate of Labor Standards Mastery.',
-    howToUse: 'Type your candidate name into the diploma field and click "Print Certificate".',
-    proTip: 'Features the Mushroom Kingdom Gold Seal and signature of Chief Arbiter Toad!',
-  },
-
-  // 10. User Profile & Milestones
-  {
-    id: 'btn-profile-edit-name',
-    name: 'Edit Candidate Name (Pencil Icon)',
-    part: 'User Profile Modal Header',
-    category: 'User Profile & Statistics',
-    whatItDoes: 'Customizes your Bar candidate profile name.',
-    howToUse: 'Click the pencil icon, type your name, and hit Save.',
-    proTip: 'Synchronizes automatically with the printable score card and master diploma.',
-  },
-  {
-    id: 'btn-profile-recharts',
-    name: 'Recharts Weekly Pomodoro History Chart',
-    part: 'User Profile Modal (Weekly History Section)',
-    category: 'User Profile & Statistics',
-    whatItDoes: 'Interactive bar chart showing your daily focus sessions over the past 7 days.',
-    howToUse: 'Hover or tap on any bar to see session count, minutes focused, and study streaks.',
-    proTip: 'Highlights today’s bar in radiant gold so you can monitor your daily consistency.',
-  },
-  {
-    id: 'btn-export-score-card',
-    name: 'Export Score Card Button',
-    part: 'User Profile Modal Header',
-    category: 'User Profile & Statistics',
-    whatItDoes: 'Generates a clean summary card of your codal mastery, quiz scores, and achievements.',
-    howToUse: 'Click to view, copy, or print your milestone dossier.',
-    proTip: 'Great for sharing your review progress with law school study groups.',
+    id: 'btn-print-pdf-studio',
+    name: 'Theme-Aware Print & Direct A4 PDF Studio (Summary, Reviewer, Certificate)',
+    part: 'Print / PDF Studio Modal',
+    category: 'Shop, Profile & PDF Prints',
+    whatItDoes: 'Customizes and directly downloads 1-Page A4 Formulas & Deadlines, Landscape Mastery Certificates, and Multi-Page Study Reviewers as .pdf files.',
+    howToUse: 'Switch between 1-Page A4, Reviewer, or Certificate, pick your Color Theme (Navy, Ink-Saver B&W, Crimson, Emerald, Parchment) & Font Family, and click Download PDF.',
+    proTip: 'Both the live on-screen preview and the downloaded .pdf file apply your chosen theme colors, fonts, margins, and section toggles with zero cropping!',
+    targetTab: 'map',
   },
 ];
 
@@ -591,23 +470,31 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
     switch (id) {
       case 'welcome_setup':
         return <Compass className={`${cls} text-amber-400`} />;
+      case 'header_navigation':
+        return <Sliders className={`${cls} text-sky-400`} />;
       case 'world_map_progression':
         return <Map className={`${cls} text-emerald-400`} />;
-      case 'unabridged_modules':
+      case 'modules_command_deck':
+        return <Layers className={`${cls} text-amber-300`} />;
+      case 'topic_card_lenses':
         return <BookOpen className={`${cls} text-red-400`} />;
-      case 'holidays_and_regions':
+      case 'scroller_and_notes':
+        return <Clock className={`${cls} text-cyan-300`} />;
+      case 'holidays_hub':
         return <Calendar className={`${cls} text-rose-400`} />;
+      case 'regional_wages':
+        return <MapPin className={`${cls} text-emerald-300`} />;
       case 'statutory_calculator':
         return <Calculator className={`${cls} text-cyan-400`} />;
       case 'mystery_flashcards':
         return <HelpCircle className={`${cls} text-yellow-300`} />;
       case 'quizzes_and_boss':
         return <Trophy className={`${cls} text-amber-300`} />;
-      case 'pomodoro_audio_notes':
-        return <Clock className={`${cls} text-sky-400`} />;
-      case 'vault_and_shop':
+      case 'arcade_game_vault':
         return <Gamepad2 className={`${cls} text-emerald-300`} />;
-      case 'profile_print_pwa':
+      case 'toad_shop_and_perks':
+        return <Sparkles className={`${cls} text-pink-300`} />;
+      case 'profile_pdf_offline':
       default:
         return <Award className={`${cls} text-amber-400`} />;
     }
@@ -667,10 +554,11 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 }`}
               >
                 <Compass className="w-3.5 h-3.5 shrink-0" />
-                <span>10-Chapter Tour</span>
+                <span>14-Step Tour</span>
               </button>
               <button
                 type="button"
+                data-testid="walkthrough-control-atlas-tab"
                 onClick={() => {
                   setActiveMode('directory');
                   marioAudio.playTabSwitch();
@@ -682,7 +570,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 }`}
               >
                 <MousePointerClick className="w-3.5 h-3.5 shrink-0" />
-                <span>Button Atlas</span>
+                <span>Control Atlas</span>
               </button>
             </div>
 
@@ -728,7 +616,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
             <aside className="lg:col-span-4 bg-slate-950/90 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4">
               <div className="hidden lg:block mb-2.5">
                 <span className="text-[10px] font-black uppercase text-slate-400 font-mario">
-                  10 GUIDE CHAPTERS
+                  14 STEP-BY-STEP CHAPTERS
                 </span>
               </div>
               <div className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible no-scrollbar">
@@ -948,10 +836,10 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   </div>
                 )}
 
-                {/* Step 8 Audio Preview */}
-                {stepIdx === 7 && (
+                {/* Step 2 Audio Preview */}
+                {chapter.id === 'header_navigation' && (
                   <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
                         TRY SOUND ALERTS &amp; AMBIENT SOUNDSCAPES
                       </span>
@@ -985,14 +873,14 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   </div>
                 )}
 
-                {/* Pro Study Tip Box */}
+                {/* Helpful Study Tip Box */}
                 <div className="bg-slate-900/90 rounded-2xl p-3 border border-slate-700 flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-amber-400/15 border border-amber-400/40 flex items-center justify-center shrink-0">
                     <MarioStarIcon className="w-4 h-4" />
                   </div>
                   <div className="space-y-0.5">
                     <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
-                      PRO BAR REVIEW TIP
+                      HELPFUL STUDY TIP
                     </span>
                     <p className="text-xs sm:text-sm text-slate-200 font-semibold leading-relaxed">
                       {chapter.proTip}
@@ -1088,10 +976,10 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                     </button>
 
                     {isExpanded && (
-                      <div className="px-3.5 pb-3.5 pt-1 border-t border-slate-800 space-y-2 bg-slate-950/60 text-xs">
+                      <div className="px-3.5 pb-3.5 pt-2 border-t border-slate-800 space-y-2.5 bg-slate-950/60 text-xs">
                         <div className="space-y-0.5">
                           <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
-                            HOW TO OPERATE
+                            HOW TO USE STEP BY STEP
                           </span>
                           <p className="text-slate-200 font-semibold leading-relaxed">
                             {btn.howToUse}
@@ -1101,12 +989,28 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                         <div className="space-y-0.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700">
                           <span className="text-[10px] font-black uppercase text-emerald-300 font-mario flex items-center gap-1">
                             <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                            <span>BAR CANDIDATE PRO TIP</span>
+                            <span>SMART STUDY TIP</span>
                           </span>
                           <p className="text-slate-300 leading-relaxed font-medium">
                             {btn.proTip}
                           </p>
                         </div>
+
+                        {btn.targetTab && (
+                          <div className="flex justify-end pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onCompleteWalkthrough(btn.targetTab);
+                                marioAudio.playTabSwitch();
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                            >
+                              <span>Jump &amp; Try This Part</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

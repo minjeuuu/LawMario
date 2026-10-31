@@ -15,7 +15,6 @@ import {
   buildRapidFireReviewQuiz,
   RapidFireReviewQuestion,
 } from '../utils/studyModes';
-import { triggerCleanPrint } from '../utils/printHelper';
 import { generateNeedsImprovementPdfBytes } from '../utils/weakFlashcardsPdf';
 import { formatPomodoroSeconds } from '../utils/engagementFeatures';
 import { PlayerProfileStats } from '../utils/profileAchievements';
@@ -291,16 +290,6 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
     setPdfDownloadedNotice(true);
     marioAudio.playCoin();
     window.setTimeout(() => setPdfDownloadedNotice(false), 3000);
-  };
-
-  const handlePrintWeakPdf = () => {
-    if (needsImprovementData.cards.length === 0) return;
-    marioAudio.playClick();
-    triggerCleanPrint({
-      mode: 'weak-flashcards',
-      orientation: 'portrait',
-      marginCss: '10mm 12mm',
-    });
   };
 
   useEffect(() => {
@@ -1751,7 +1740,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             aria-modal="true"
             aria-label="Export Needs Improvement Flashcards to PDF"
             data-testid="weak-flashcards-pdf-modal"
-            className="fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+            className="fixed inset-0 z-[80] bg-slate-950/85 flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
             onClick={() => setIsExportWeakPdfOpen(false)}
           >
             <div
@@ -1759,12 +1748,12 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
             {/* Modal Header */}
-            <div className="weak-pdf-modal-chrome print:hidden bg-slate-950 text-white px-5 py-4 flex items-center justify-between gap-3 border-b-2 border-black shrink-0">
+            <div className="weak-pdf-modal-chrome print:hidden bg-slate-950 text-white px-4 sm:px-5 py-4 flex items-center justify-between gap-3 border-b-2 border-black shrink-0">
               <div className="min-w-0">
                 <span className="text-[11px] font-bold text-amber-300 block">
-                  Offline Study Reviewer · PDF Export
+                  Offline Study Reviewer · Direct PDF Download
                 </span>
-                <h3 className="text-lg sm:text-xl font-black font-display truncate">
+                <h3 className="text-base sm:text-xl font-black font-display truncate">
                   Needs Improvement Flashcards ({needsImprovementData.cards.length} Cards)
                 </h3>
               </div>
@@ -1772,14 +1761,14 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                 type="button"
                 aria-label="Close PDF Export Modal"
                 onClick={() => setIsExportWeakPdfOpen(false)}
-                className="min-h-[40px] min-w-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center cursor-pointer shrink-0"
+                className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Action Toolbar */}
-            <div className="weak-pdf-modal-chrome print:hidden bg-slate-100 px-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div className="weak-pdf-modal-chrome print:hidden bg-slate-100 px-4 sm:px-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-3 shrink-0">
               <div className="text-xs font-semibold text-slate-700">
                 {needsImprovementData.hasFlaggedItems
                   ? needsImprovementData.sourceSummary
@@ -1791,28 +1780,14 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                   data-testid="download-weak-flashcards-pdf-file-btn"
                   disabled={needsImprovementData.cards.length === 0}
                   onClick={handleDownloadWeakPdf}
-                  className={`min-h-[42px] px-4 py-2 rounded-xl font-black text-xs border-2 border-black inline-flex items-center gap-1.5 ${
+                  className={`min-h-[44px] px-4 py-2 rounded-xl font-black text-xs border-2 border-black inline-flex items-center gap-1.5 whitespace-nowrap ${
                     needsImprovementData.cards.length > 0
                       ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-[0_2px_0_#000] cursor-pointer'
                       : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
                   }`}
                 >
                   <FileDown className="w-4 h-4 shrink-0" />
-                  <span>{pdfDownloadedNotice ? 'PDF Downloaded' : 'Download PDF (.pdf)'}</span>
-                </button>
-                <button
-                  type="button"
-                  data-testid="print-weak-flashcards-pdf-btn"
-                  disabled={needsImprovementData.cards.length === 0}
-                  onClick={handlePrintWeakPdf}
-                  className={`min-h-[42px] px-4 py-2 rounded-xl font-black text-xs border-2 border-black inline-flex items-center gap-1.5 ${
-                    needsImprovementData.cards.length > 0
-                      ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-[0_2px_0_#000] cursor-pointer'
-                      : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
-                  }`}
-                >
-                  <Printer className="w-4 h-4 shrink-0" />
-                  <span>Print / Save as PDF</span>
+                  <span>{pdfDownloadedNotice ? 'PDF Downloaded (.pdf)' : 'Download Weak Cards PDF (.pdf)'}</span>
                 </button>
               </div>
             </div>

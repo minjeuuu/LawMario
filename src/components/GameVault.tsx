@@ -26,6 +26,12 @@ import {
   ChronoPrescriptionBlitzGame,
 } from './NewVaultGames';
 import {
+  HammerBrosPayrollBlitzGame,
+  ToadetteDueProcessRelayGame,
+  ShyGuyWageOrderFactoryGame,
+  KamekDeadlineSpellbookGame,
+} from './BonusVaultGames';
+import {
   MarioCharacterAvatar,
   MarioMushroomIcon,
   MarioQuestionBlockIcon,
@@ -52,6 +58,9 @@ import {
   Eye,
   Timer,
   Disc,
+  Factory,
+  Wand2,
+  ListOrdered,
 } from 'lucide-react';
 import { GameDoctrinesModal } from './GameDoctrinesModal';
 
@@ -85,7 +94,11 @@ export type VaultGameId =
   | 'koopa_breaker'
   | 'yoshi_toss'
   | 'boo_burden'
-  | 'chrono_blitz';
+  | 'chrono_blitz'
+  | 'hammer_blitz'
+  | 'toadette_relay'
+  | 'shy_conveyor'
+  | 'kamek_duel';
 
 export const GameVault: React.FC<GameVaultProps> = ({
   equippedAvatar,
@@ -270,18 +283,50 @@ export const GameVault: React.FC<GameVaultProps> = ({
       badge: 'NEW DEFUSAL',
       icon: <Timer className="w-6 h-6 text-amber-600" />,
     },
+    {
+      id: 'hammer_blitz',
+      title: 'Hammer Bros. Payroll Blitz',
+      genre: '3-Lane Payroll Shield & Smash',
+      desc: 'Guard the Castle Payroll Vault! Shield lawful statutory premiums and smash illegal undertime offsets & deductions!',
+      badge: 'BONUS BLITZ',
+      icon: <Hammer className="w-6 h-6 text-amber-700" />,
+    },
+    {
+      id: 'toadette_relay',
+      title: "Toadette's Twin-Notice Relay",
+      genre: 'Procedural Sequence Builder',
+      desc: 'Assemble chronological Just Cause, Authorized Cause, Disease, and Abandonment due process steps without nominal damages!',
+      badge: 'DUE PROCESS',
+      icon: <ListOrdered className="w-6 h-6 text-pink-600" />,
+    },
+    {
+      id: 'shy_conveyor',
+      title: "Shy Guy's Wage & D.O. 174 Belt",
+      genre: 'Real-Time Factory Conveyor',
+      desc: 'Inspect moving crates on Shy Guy’s factory belt: certify P5M contractors & Pineda formulas, and bust labor-only chits!',
+      badge: 'CONVEYOR',
+      icon: <Factory className="w-6 h-6 text-emerald-700" />,
+    },
+    {
+      id: 'kamek_duel',
+      title: "Kamek's Statutory Deadlines Duel",
+      genre: 'Prescriptive Spell-Shield',
+      desc: 'Reflect Kamek’s hexes by casting exact statutory prescriptive periods (1 Yr ULP, 3 Yrs Money, 4 Yrs Dismissal, 20 Yrs SSS)!',
+      badge: 'SPELL DUEL',
+      icon: <Wand2 className="w-6 h-6 text-indigo-600" />,
+    },
   ];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Game Vault Hero Banner */}
       <div className="bg-[#1e293b] text-white rounded-3xl p-4 sm:p-7 mario-card border-4 border-slate-950 shadow-[6px_6px_0_#000]">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
+        <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-12 h-12 bg-amber-400 rounded-2xl border-3 border-black flex items-center justify-center shadow-[0_3px_0_#000] shrink-0">
               <Gamepad2 className="w-7 h-7 text-slate-950" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-red-600 text-white font-black rounded-lg border border-black text-[10px] uppercase font-mario mb-1">
                 <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
                 <span>{games.length} PLAYABLE ARCADE GAMES • {HERO_ROSTER.length} HEROES</span>
@@ -296,7 +341,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
           </div>
 
           {/* Equipped Hero Quick Switcher & Read Doctrines Button */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto shrink-0">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full xl:w-auto shrink-0">
             <button
               type="button"
               data-testid="open-game-doctrines-btn"
@@ -370,6 +415,50 @@ export const GameVault: React.FC<GameVaultProps> = ({
             })}
           </div>
         )}
+      </div>
+
+      {/* Quick 22-Game Selector Strip Above Stage (Zero Scrolling Required to Switch Games) */}
+      <div
+        data-testid="vault-quick-switcher"
+        className="bg-[#0f172a] border-2 border-slate-800 rounded-2xl p-3 space-y-2"
+      >
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
+            QUICK SWITCH ALL {games.length} GAMES
+          </span>
+          <span className="text-xs font-bold text-slate-300">
+            Now Playing:{' '}
+            <strong className="text-emerald-300">
+              {games.find((gm) => gm.id === activeGame)?.title}
+            </strong>
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {games.map((gm, idx) => {
+            const isSel = activeGame === gm.id;
+            return (
+              <button
+                key={`quick-${gm.id}`}
+                type="button"
+                data-testid={`quick-select-game-${gm.id}`}
+                onClick={() => {
+                  setActiveGame(gm.id);
+                  marioAudio.playPipe();
+                }}
+                className={`min-h-[36px] px-2.5 py-1 rounded-xl text-xs font-black border transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 max-w-full ${
+                  isSel
+                    ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                    : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
+                }`}
+              >
+                <span className="text-[10px] font-mono opacity-75 tabular-nums shrink-0">
+                  {idx + 1}.
+                </span>
+                <span className="truncate">{gm.title}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Active Game Surface First on Mobile for Immediate Thumb Reach, Followed by Full Game Shelf */}
@@ -451,9 +540,33 @@ export const GameVault: React.FC<GameVaultProps> = ({
             onEarnCoins={handleEarnCoins}
           />
         )}
+        {activeGame === 'hammer_blitz' && (
+          <HammerBrosPayrollBlitzGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+          />
+        )}
+        {activeGame === 'toadette_relay' && (
+          <ToadetteDueProcessRelayGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+          />
+        )}
+        {activeGame === 'shy_conveyor' && (
+          <ShyGuyWageOrderFactoryGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+          />
+        )}
+        {activeGame === 'kamek_duel' && (
+          <KamekDeadlineSpellbookGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+          />
+        )}
       </div>
 
-      {/* 18-Game Selection Shelf */}
+      {/* 22-Game Selection Shelf */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {games.map((g) => {
           const isSelected = activeGame === g.id;
@@ -461,6 +574,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
             <button
               key={g.id}
               type="button"
+              data-testid={`launch-game-${g.id}`}
               onClick={() => {
                 setActiveGame(g.id);
                 marioAudio.playPipe();

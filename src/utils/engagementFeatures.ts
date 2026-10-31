@@ -521,13 +521,22 @@ export interface PrintGuideFormatOptions {
     | 'clean_inter'
     | 'condensed_narrow'
     | 'warm_charter'
-    | 'retro_mario_mono';
+    | 'retro_mario_mono'
+    | 'playfair_royal'
+    | 'space_grotesk';
   colorAccent:
     | 'executive_navy'
     | 'ink_saver_bw'
     | 'supreme_court_crimson'
     | 'forest_dole_emerald'
-    | 'vintage_parchment';
+    | 'vintage_parchment'
+    | 'mario_mushroom_red'
+    | 'starlight_cobalt'
+    | 'royal_amethyst'
+    | 'yoshi_jade_lime'
+    | 'teal_tribunal'
+    | 'terracotta_codal'
+    | 'bowser_obsidian_gold';
   pageBreakPerWorld: boolean;
   pageBreakPerModule: boolean;
   paperSize?: 'letter' | 'legal' | 'a4';
@@ -613,7 +622,7 @@ export function getAutoScrollMobilePosition(pomodoroState: {
   if (pomodoroState.active) {
     return {
       hidden: false,
-      bottomClass: pomodoroState.hasNotice ? 'bottom-[18rem]' : 'bottom-[11rem]',
+      bottomClass: pomodoroState.hasNotice ? 'bottom-[19rem]' : 'bottom-[13rem]',
     };
   }
   return {

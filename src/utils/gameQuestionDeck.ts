@@ -355,7 +355,7 @@ const CURATED_KART_QUESTIONS: KartQuestionItem[] = [
 
 export const KART_QUESTION_BANK: KartQuestionItem[] = [
   ...CURATED_KART_QUESTIONS,
-  ...PRACTICE_QUESTIONS.slice(0, 24).map((pq, idx) => ({
+  ...PRACTICE_QUESTIONS.map((pq, idx) => ({
     id: `kart-pq-${pq.id}`,
     question: pq.scenario,
     options: pq.options,
@@ -512,6 +512,102 @@ export const SLOTS_TRIVIA_BANK: SlotTriviaItem[] = [
     id: 'slot-20',
     q: 'Under R.A. 10911 (Anti-Age Discrimination), can job ads specify an arbitrary age ceiling without a BFOQ?',
     opts: ['Yes, employer prerogative', 'No, strictly prohibited', 'Allowed for offices'],
+    ans: 1,
+  },
+  {
+    id: 'slot-21',
+    q: 'Under R.A. 7641, how many days per year of service make up the statutory minimum retirement pay?',
+    opts: ['15 days per year', '22.5 days per year', '30 days per year'],
+    ans: 1,
+  },
+  {
+    id: 'slot-22',
+    q: 'Under Art. 87, what is the overtime multiplier for hours beyond 8 on a Rest Day or Special Day?',
+    opts: ['+25% of hourly rate', '+30% of hourly rate on said day', '+50% of hourly rate'],
+    ans: 1,
+  },
+  {
+    id: 'slot-23',
+    q: 'Under Art. 306, money claims arising from employer-employee relations prescribe in how many years?',
+    opts: ['1 year from accrual', '3 years from accrual', '4 years from accrual'],
+    ans: 1,
+  },
+  {
+    id: 'slot-24',
+    q: 'Under Art. 1146 of the Civil Code, illegal dismissal complaints prescribe within how many years?',
+    opts: ['2 years from dismissal', '3 years from dismissal', '4 years from dismissal'],
+    ans: 2,
+  },
+  {
+    id: 'slot-25',
+    q: 'Under King of Kings Transport, what is the minimum reasonable period to submit a written explanation?',
+    opts: ['24 hours from notice', '5 calendar days from notice', '15 working days from notice'],
+    ans: 1,
+  },
+  {
+    id: 'slot-26',
+    q: 'Under Art. 298, authorized cause termination requires advance written notice to DOLE and workers at least:',
+    opts: ['15 days before effectivity', '30 days before effectivity', '60 days before effectivity'],
+    ans: 1,
+  },
+  {
+    id: 'slot-27',
+    q: 'Under R.A. 11360, managerial employees receive what share of collected hotel/restaurant service charges?',
+    opts: ['0% (excluded by law)', '15% management share', '50% equal split'],
+    ans: 0,
+  },
+  {
+    id: 'slot-28',
+    q: 'Under Art. 103, wages must be paid at least once every two weeks or twice a month at intervals not exceeding:',
+    opts: ['10 calendar days', '16 calendar days', '30 calendar days'],
+    ans: 1,
+  },
+  {
+    id: 'slot-29',
+    q: 'Under Art. 83, health personnel in cities of 1M+ population or 100+ bed hospitals work a regular week of:',
+    opts: ['5 days / 40 hours', '6 days / 48 hours', '7 days / 56 hours'],
+    ans: 0,
+  },
+  {
+    id: 'slot-30',
+    q: 'If a health worker covered by the 5-day / 40-hour rule is suffered to work on the 6th day, they earn:',
+    opts: ['Regular 100% pay only', '+30% Rest Day premium pay', '+10% Night Shift pay'],
+    ans: 1,
+  },
+  {
+    id: 'slot-31',
+    q: 'Under Art. 296, what is the general statutory cap on probationary employment unless covered by apprenticeship?',
+    opts: ['3 months from Day 1', '6 months from Day 1', '12 months from Day 1'],
+    ans: 1,
+  },
+  {
+    id: 'slot-32',
+    q: 'Under Art. 301, bona fide suspension of business operations ("floating status") must not exceed:',
+    opts: ['3 months maximum', '6 months maximum', '12 months maximum'],
+    ans: 1,
+  },
+  {
+    id: 'slot-33',
+    q: 'Under R.A. 9262 (Anti-VAWC), how many paid leave days are granted upon presenting a Protection Order certification?',
+    opts: ['Up to 5 paid days', 'Up to 10 paid days', 'Up to 15 paid days'],
+    ans: 1,
+  },
+  {
+    id: 'slot-34',
+    q: 'Under Agabon v. NLRC, valid Just Cause dismissal with defective procedural notice warrants nominal damages of:',
+    opts: ['₱10,000 nominal damages', '₱30,000 nominal damages', '₱50,000 nominal damages'],
+    ans: 1,
+  },
+  {
+    id: 'slot-35',
+    q: 'Under Jaka Food Processing, valid Authorized Cause dismissal with defective 30-day notice warrants nominal damages of:',
+    opts: ['₱20,000 nominal damages', '₱30,000 nominal damages', '₱50,000 nominal damages'],
+    ans: 2,
+  },
+  {
+    id: 'slot-36',
+    q: 'Under R.A. 10361, at what minimum age may a person be lawfully employed as a Kasambahay?',
+    opts: ['15 years old and above', '18 years old and above', '21 years old and above'],
     ans: 1,
   },
 ];
@@ -1247,8 +1343,1413 @@ export const PLATFORMER_2D_DOCTRINES_BANK: string[] = [
   'World 6: Paternity Leave (R.A. 8187): 7 calendar days full pay for first 4 deliveries of legitimate spouse.',
   'World 6: Expanded Solo Parent Leave (R.A. 11861): 7 working days after just 6 months of service!',
   'World 6: Magna Carta Sec. 18 grants up to 2 months full-pay leave after gynecological surgery; RA 9262 grants 10d VAWC leave!',
+  'World 1: Waiting time is compensable if waiting is an integral part of work or worker is engaged to wait!',
+  'World 1: Health workers in 100+ bed hospitals have a 40-hour / 5-day workweek with +30% pay on Day 6 (Art. 83).',
+  'World 2: Successive regular holidays — absent without pay before Holiday 1 forfeits both unless Holiday 1 is worked!',
+  'World 2: Retail & service establishments with fewer than 10 regular workers are exempt from Holiday Pay and SIL.',
+  'World 3: Wages must be paid in legal tender — promissory notes, vouchers, or chits are strictly prohibited (Art. 102)!',
+  'World 3: Wage distortion occurs when a wage order obliterates intentional quantitative pay distinctions between grades.',
+  'World 3: Under Art. 110, unpaid workers enjoy first statutory preference in case of employer bankruptcy or liquidation!',
+  'World 4: Night workers are entitled to free health assessment and transfer if certified unfit for night work (R.A. 10151).',
+  'World 4: Apprentices must be at least 15 years old in an approved apprenticeable trade under TESDA.',
+  'World 5: Employers cannot require HIV testing (R.A. 11166) or Hepatitis B negative status as a hiring condition!',
+  'World 5: Mental Health Act (R.A. 11036) mandates workplace mental health policies and zero stigma.',
+  'World 6: Unused Paternity Leave, Solo Parent Leave, and VAWC Leave are NOT convertible to cash.',
+  'World 6: Optional retirement starts at age 60 and compulsory retirement at age 65 with >= 5 years service (R.A. 7641).',
 ];
 
 export function drawPlatformer2DDoctrine(rng: () => number = Math.random): string {
   return drawOneFromDeck('platformer_2d_doctrines', PLATFORMER_2D_DOCTRINES_BANK, rng);
+}
+
+// ============================================================================
+// 14. KOOPA SHELL BRICK BREAKER QUESTION BANK (20 Distinct Items + Shuffled Choices)
+// ============================================================================
+export interface BrickBreakerQuestionItem {
+  id: string;
+  q: string;
+  opts: string[];
+  correct: number;
+  cite: string;
+}
+
+export const BRICK_BREAKER_QUESTION_BANK: BrickBreakerQuestionItem[] = [
+  {
+    id: 'bb-1',
+    q: 'Normal hours of work of any covered employee shall NOT exceed:',
+    opts: ['6 hours a day', '8 hours a day', '10 hours a day', '12 hours a day'],
+    correct: 1,
+    cite: 'Art. 83, Labor Code',
+  },
+  {
+    id: 'bb-2',
+    q: 'Night Shift Differential of at least +10% applies to work between:',
+    opts: ['8:00 PM – 4:00 AM', '9:00 PM – 5:00 AM', '10:00 PM – 6:00 AM', '11:00 PM – 7:00 AM'],
+    correct: 2,
+    cite: 'Art. 86, Labor Code',
+  },
+  {
+    id: 'bb-3',
+    q: 'Regular meal period under Article 85 shall NOT be less than:',
+    opts: ['15 minutes time-off', '30 minutes time-off', '45 minutes time-off', '60 minutes time-off'],
+    correct: 3,
+    cite: 'Art. 85, Labor Code',
+  },
+  {
+    id: 'bb-4',
+    q: 'Overtime work on an ordinary working day is paid an additional:',
+    opts: ['+10% of hourly rate', '+20% of hourly rate', '+25% of hourly rate', '+30% of hourly rate'],
+    correct: 2,
+    cite: 'Art. 87, Labor Code',
+  },
+  {
+    id: 'bb-5',
+    q: 'Minimum weekly rest day after 6 consecutive normal workdays is at least:',
+    opts: ['12 consecutive hours', '18 consecutive hours', '24 consecutive hours', '36 consecutive hours'],
+    correct: 2,
+    cite: 'Art. 91, Labor Code',
+  },
+  {
+    id: 'bb-6',
+    q: 'Service Incentive Leave after 1 year of service under Article 95 is:',
+    opts: ['3 days with pay', '5 days with pay', '7 days with pay', '10 days with pay'],
+    correct: 1,
+    cite: 'Art. 95, Labor Code',
+  },
+  {
+    id: 'bb-7',
+    q: 'Expanded Maternity Leave for live childbirth (non-solo parent) is:',
+    opts: ['60 days full pay', '78 days full pay', '105 days full pay', '120 days full pay'],
+    correct: 2,
+    cite: 'R.A. 11210 Sec. 3',
+  },
+  {
+    id: 'bb-8',
+    q: 'Collected service charges distributed to covered workers under R.A. 11360:',
+    opts: ['75% to workers', '85% to workers', '90% to workers', '100% to workers'],
+    correct: 3,
+    cite: 'Art. 96 as amended by R.A. 11360',
+  },
+  {
+    id: 'bb-9',
+    q: 'Paternity Leave for legitimate spouse’s delivery covers up to:',
+    opts: ['7 days (first 4 deliveries)', '7 days (unlimited)', '14 days (first 2 deliveries)', '5 days (first 4 deliveries)'],
+    correct: 0,
+    cite: 'R.A. 8187 Sec. 2',
+  },
+  {
+    id: 'bb-10',
+    q: 'Substantial capital threshold for legitimate contracting under DO 174-17:',
+    opts: ['₱1,000,000 capital', '₱3,000,000 capital', '₱5,000,000 capital', '₱10,000,000 capital'],
+    correct: 2,
+    cite: 'DOLE D.O. 174-17 Sec. 3(l)',
+  },
+  {
+    id: 'bb-11',
+    q: '13th Month Pay under P.D. 851 must be paid to rank-and-file workers not later than:',
+    opts: ['November 30', 'December 15', 'December 24', 'December 31'],
+    correct: 2,
+    cite: 'P.D. No. 851',
+  },
+  {
+    id: 'bb-12',
+    q: 'Paid lactation breaks for nursing employees per 8-hour shift must total at least:',
+    opts: ['15 minutes paid', '20 minutes paid', '40 minutes paid', '60 minutes paid'],
+    correct: 2,
+    cite: 'R.A. 10028 Sec. 12',
+  },
+  {
+    id: 'bb-13',
+    q: 'Power brownouts / interruptions are compensable hours worked if NOT exceeding:',
+    opts: ['10 minutes', '20 minutes', '30 minutes', '45 minutes'],
+    correct: 1,
+    cite: 'Omnibus Rules Book III',
+  },
+  {
+    id: 'bb-14',
+    q: 'Special Leave Benefit following gynecological surgery under R.A. 9710 is up to:',
+    opts: ['15 calendar days', '30 calendar days', '2 months full pay', '3 months half pay'],
+    correct: 2,
+    cite: 'R.A. 9710 Sec. 18',
+  },
+  {
+    id: 'bb-15',
+    q: 'Anti-VAWC paid leave under R.A. 9262 with a Protection Order certification is:',
+    opts: ['Up to 5 paid days', 'Up to 7 paid days', 'Up to 10 paid days', 'Up to 15 paid days'],
+    correct: 2,
+    cite: 'R.A. 9262 Sec. 43',
+  },
+  {
+    id: 'bb-16',
+    q: 'Expanded Solo Parent Leave of 7 working days requires minimum service of:',
+    opts: ['3 months service', '6 months service', '12 months service', '24 months service'],
+    correct: 1,
+    cite: 'R.A. 11861 Sec. 8',
+  },
+  {
+    id: 'bb-17',
+    q: 'Daily pay rate for 8 hours worked on a Regular Holiday falling on a Rest Day:',
+    opts: ['200% daily wage', '230% daily wage', '260% daily wage', '300% daily wage'],
+    correct: 2,
+    cite: 'Art. 94, Labor Code',
+  },
+  {
+    id: 'bb-18',
+    q: 'Daily pay rate for 8 hours worked on a Special Non-Working Day:',
+    opts: ['100% daily wage', '125% daily wage', '130% daily wage', '150% daily wage'],
+    correct: 2,
+    cite: 'Art. 93, Labor Code',
+  },
+  {
+    id: 'bb-19',
+    q: 'Statutory minimum retirement pay factor per year of service under R.A. 7641:',
+    opts: ['15 days / year', '20 days / year', '22.5 days / year', '30 days / year'],
+    correct: 2,
+    cite: 'Art. 302 (R.A. 7641)',
+  },
+  {
+    id: 'bb-20',
+    q: 'Minimum employable age for a domestic worker (Kasambahay) under R.A. 10361:',
+    opts: ['15 years old', '16 years old', '18 years old', '21 years old'],
+    correct: 2,
+    cite: 'R.A. 10361 Sec. 16',
+  },
+];
+
+export function drawBrickBreakerQuestions(
+  count: number,
+  rng: () => number = Math.random
+): BrickBreakerQuestionItem[] {
+  return drawUniqueFromDeck('brick_breaker_questions', BRICK_BREAKER_QUESTION_BANK, count, rng).map(
+    (item) => {
+      const shuffled = shuffleChoiceOptions(item.opts, item.correct, rng);
+      return {
+        ...item,
+        opts: shuffled.options,
+        correct: shuffled.correctIndex,
+      };
+    }
+  );
+}
+
+// ============================================================================
+// 15. YOSHI'S STATUTORY EGG TOSS BANK (24 Distinct Rounds + Shuffled 4-Cloud Choices)
+// ============================================================================
+export interface YoshiEggRoundItem {
+  id: string;
+  prompt: string;
+  options: [string, string, string, string];
+  correctIdx: number;
+  note: string;
+}
+
+export const YOSHI_EGG_ROUNDS_BANK: YoshiEggRoundItem[] = [
+  {
+    id: 'yoshi-1',
+    prompt: 'Regular Holiday Worked (First 8 Hours)',
+    options: ['130% Pay', '150% Pay', '200% Pay', '260% Pay'],
+    correctIdx: 2,
+    note: 'Art. 94: Working on a Regular Holiday pays 200% for the first 8 hours.',
+  },
+  {
+    id: 'yoshi-2',
+    prompt: 'Regular Holiday Worked ON A REST DAY',
+    options: ['200% Pay', '230% Pay', '260% Pay', '300% Pay'],
+    correctIdx: 2,
+    note: '200% Holiday rate × 1.30 Rest Day premium = 260%!',
+  },
+  {
+    id: 'yoshi-3',
+    prompt: 'Special Non-Working Day Worked (Ordinary Day)',
+    options: ['100% Pay', '125% Pay', '130% Pay', '150% Pay'],
+    correctIdx: 2,
+    note: 'Art. 93: Special Non-Working Day worked pays +30% premium (130%).',
+  },
+  {
+    id: 'yoshi-4',
+    prompt: 'Special Non-Working Day Worked ON A REST DAY',
+    options: ['130% Pay', '150% Pay', '195% Pay', '200% Pay'],
+    correctIdx: 1,
+    note: 'Art. 93(c): Special Day falling on Rest Day pays +50% premium (150%).',
+  },
+  {
+    id: 'yoshi-5',
+    prompt: 'Double Regular Holiday Worked (Ordinary Day)',
+    options: ['200% Pay', '260% Pay', '300% Pay', '390% Pay'],
+    correctIdx: 2,
+    note: 'DOLE Handbook: Working on a Double Regular Holiday pays 300%!',
+  },
+  {
+    id: 'yoshi-6',
+    prompt: 'Double Regular Holiday Worked ON A REST DAY',
+    options: ['300% Pay', '330% Pay', '360% Pay', '390% Pay'],
+    correctIdx: 3,
+    note: '300% Double Holiday × 1.30 Rest Day = 390%!',
+  },
+  {
+    id: 'yoshi-7',
+    prompt: 'VAWC Paid Leave Entitlement (R.A. 9262)',
+    options: ['5 Days', '7 Days', '10 Days', '15 Days'],
+    correctIdx: 2,
+    note: 'Sec. 43, R.A. 9262 grants up to 10 paid VAWC leave days (extendible per Protection Order).',
+  },
+  {
+    id: 'yoshi-8',
+    prompt: 'Expanded Solo Parent Leave Service Requirement',
+    options: ['3 Months', '6 Months', '12 Months', '24 Months'],
+    correctIdx: 1,
+    note: 'R.A. 11861 reduced the service requirement from 1 year down to 6 months!',
+  },
+  {
+    id: 'yoshi-9',
+    prompt: 'Gynecological Surgery Special Leave (R.A. 9710)',
+    options: ['15 Days', '30 Days', '2 Months', '105 Days'],
+    correctIdx: 2,
+    note: 'Sec. 18, Magna Carta of Women grants up to 2 months leave with full pay.',
+  },
+  {
+    id: 'yoshi-10',
+    prompt: 'Miscarriage / Emergency Termination Leave',
+    options: ['30 Days', '45 Days', '60 Days', '105 Days'],
+    correctIdx: 2,
+    note: 'R.A. 11210 grants 60 calendar days with full pay for miscarriage or ETP.',
+  },
+  {
+    id: 'yoshi-11',
+    prompt: 'Ordinary Day Overtime Rate (Beyond 8 Hours)',
+    options: ['110% Hrly', '125% Hrly', '130% Hrly', '150% Hrly'],
+    correctIdx: 1,
+    note: 'Art. 87: Ordinary workday overtime pays +25% (125% of basic hourly rate).',
+  },
+  {
+    id: 'yoshi-12',
+    prompt: 'Rest Day Overtime Rate (Beyond 8 Hours)',
+    options: ['130% Hrly', '150% Hrly', '169% Hrly', '200% Hrly'],
+    correctIdx: 2,
+    note: '130% Rest Day rate × 1.30 Overtime multiplier = 169% of basic hourly rate!',
+  },
+  {
+    id: 'yoshi-13',
+    prompt: 'Regular Holiday Overtime Rate (Beyond 8 Hours)',
+    options: ['200% Hrly', '230% Hrly', '250% Hrly', '260% Hrly'],
+    correctIdx: 3,
+    note: '200% Holiday rate × 1.30 Overtime multiplier = 260% of basic hourly rate!',
+  },
+  {
+    id: 'yoshi-14',
+    prompt: 'Night Shift Differential Window (Art. 86)',
+    options: ['8PM–4AM', '9PM–5AM', '10PM–6AM', '11PM–7AM'],
+    correctIdx: 2,
+    note: 'Art. 86 mandates at least +10% Night Shift Differential from 10:00 PM to 6:00 AM.',
+  },
+  {
+    id: 'yoshi-15',
+    prompt: 'Service Incentive Leave After 1 Year (Art. 95)',
+    options: ['3 Days', '5 Days', '7 Days', '10 Days'],
+    correctIdx: 1,
+    note: 'Art. 95 grants 5 days paid SIL per year, commutable to cash if unused.',
+  },
+  {
+    id: 'yoshi-16',
+    prompt: 'Live Childbirth Maternity Leave (Solo Parent)',
+    options: ['90 Days', '105 Days', '120 Days', '135 Days'],
+    correctIdx: 2,
+    note: 'R.A. 11210: 105 days standard + 15 days solo parent = 120 paid calendar days!',
+  },
+  {
+    id: 'yoshi-17',
+    prompt: 'Transferable Maternity Days to Child’s Father',
+    options: ['Up to 3d', 'Up to 5d', 'Up to 7d', 'Up to 14d'],
+    correctIdx: 2,
+    note: 'R.A. 11210 lets the mother allocate up to 7 paid days to the father (married or not).',
+  },
+  {
+    id: 'yoshi-18',
+    prompt: 'Service Charge Share for Workers (R.A. 11360)',
+    options: ['75% Share', '85% Share', '90% Share', '100% Share'],
+    correctIdx: 3,
+    note: 'R.A. 11360 mandates 100% distribution of service charges to covered workers!',
+  },
+  {
+    id: 'yoshi-19',
+    prompt: 'Substantial Capital under D.O. 174-17',
+    options: ['₱1M Cap', '₱3M Cap', '₱5M Cap', '₱10M Cap'],
+    correctIdx: 2,
+    note: 'DOLE D.O. 174-17 requires at least ₱5,000,000 paid-up capital or net worth.',
+  },
+  {
+    id: 'yoshi-20',
+    prompt: '13th Month Pay Statutory Deadline (P.D. 851)',
+    options: ['Nov 30', 'Dec 15', 'Dec 24', 'Dec 31'],
+    correctIdx: 2,
+    note: 'P.D. 851 requires payment of 13th Month Pay on or before December 24.',
+  },
+  {
+    id: 'yoshi-21',
+    prompt: 'Paid Lactation Break per 8-Hr Shift (R.A. 10028)',
+    options: ['15 Mins', '25 Mins', '40 Mins', '60 Mins'],
+    correctIdx: 2,
+    note: 'R.A. 10028 mandates at least 40 compensable minutes per 8-hour shift.',
+  },
+  {
+    id: 'yoshi-22',
+    prompt: 'Compensable Power Brownout Threshold',
+    options: ['<=10 Mins', '<=20 Mins', '<=30 Mins', '<=45 Mins'],
+    correctIdx: 1,
+    note: 'Power interruptions not exceeding 20 minutes are treated as compensable hours worked.',
+  },
+  {
+    id: 'yoshi-23',
+    prompt: 'Retirement Pay Days per Year of Service',
+    options: ['15 Days', '20 Days', '22.5 Days', '30 Days'],
+    correctIdx: 2,
+    note: 'R.A. 7641: 15 days + 5 days SIL + 2.5 days (1/12 of 13th month) = 22.5 days!',
+  },
+  {
+    id: 'yoshi-24',
+    prompt: 'Unworked Regular Holiday Pay (Eligible Worker)',
+    options: ['0% Pay', '50% Pay', '100% Pay', '200% Pay'],
+    correctIdx: 2,
+    note: 'Art. 94: Eligible employees earn 100% daily wage even on an unworked Regular Holiday.',
+  },
+];
+
+export function drawYoshiEggRounds(
+  count: number,
+  rng: () => number = Math.random
+): YoshiEggRoundItem[] {
+  return drawUniqueFromDeck('yoshi_egg_rounds', YOSHI_EGG_ROUNDS_BANK, count, rng).map((item) => {
+    const shuffled = shuffleChoiceOptions(item.options, item.correctIdx, rng);
+    return {
+      ...item,
+      options: [
+        shuffled.options[0],
+        shuffled.options[1],
+        shuffled.options[2],
+        shuffled.options[3],
+      ],
+      correctIdx: shuffled.correctIndex,
+    };
+  });
+}
+
+// ============================================================================
+// 16. BOO'S BURDEN OF PROOF MANSION BANK (20 Distinct Cases)
+// ============================================================================
+export interface BooBurdenCaseItem {
+  id: string;
+  dispute: string;
+  detail: string;
+  burden: 'employer' | 'employee';
+  explanation: string;
+}
+
+export const BOO_BURDEN_CASES_BANK: BooBurdenCaseItem[] = [
+  {
+    id: 'boo-1',
+    dispute: 'Payment of Basic Wages, Holiday Pay & SIL',
+    detail: 'Worker alleges non-payment of regular minimum wages, holiday pay, and 5-day Service Incentive Leave.',
+    burden: 'employer',
+    explanation: 'EMPLOYER bears the burden! Payrolls, vouchers, and daily time records are in the employer’s custody (Minsola v. New City Builders).',
+  },
+  {
+    id: 'boo-2',
+    dispute: 'Fact of Rendering Overtime Work',
+    detail: 'Worker claims unpaid overtime pay for allegedly working 2 extra hours every night for 2 years.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE bears the burden! Overtime is never presumed; the worker must first prove overtime was actually rendered.',
+  },
+  {
+    id: 'boo-3',
+    dispute: 'Validity of Dismissal (Just / Authorized Cause)',
+    detail: 'Terminated worker files an illegal dismissal complaint; company claims serious misconduct.',
+    burden: 'employer',
+    explanation: 'EMPLOYER bears the burden to prove by substantial evidence that dismissal was for a valid cause and with due process!',
+  },
+  {
+    id: 'boo-4',
+    dispute: 'Fact of Dismissal Before Validity Is Questioned',
+    detail: 'Company denies firing the worker and shows a return-to-work order; worker claims verbal firing.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE must first establish the fact of dismissal by positive and overt acts before the employer proves valid cause (Brown Madonna Press).',
+  },
+  {
+    id: 'boo-5',
+    dispute: 'Payment of 13th Month Pay (P.D. 851)',
+    detail: 'Rank-and-file employee alleges non-payment of statutory 13th Month Pay for the calendar year.',
+    burden: 'employer',
+    explanation: 'EMPLOYER bears the burden of proving payment of mandatory statutory benefits like 13th Month Pay.',
+  },
+  {
+    id: 'boo-6',
+    dispute: 'Existence of Employer-Employee Relationship',
+    detail: 'Claimant asserts they were an employee of ABC Corp., which denies ever hiring or controlling them.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE/CLAIMANT asserting the existence of an employment relationship bears the initial burden of proving it via substantial evidence.',
+  },
+  {
+    id: 'boo-7',
+    dispute: 'Legitimacy of Independent Job Contractor (D.O. 174)',
+    detail: 'Principal claims deployed workers belong to an independent contractor, not the principal.',
+    burden: 'employer',
+    explanation: 'EMPLOYER/PRINCIPAL bears the burden! Contractors are presumed labor-only unless substantial capital/investment and control are proven.',
+  },
+  {
+    id: 'boo-8',
+    dispute: 'Entitlement to Discretionary Performance Bonus',
+    detail: 'Worker demands a management productivity bonus claiming it is due over and above statutory pay.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE bears the burden of proving a non-statutory bonus ripened into an enforceable company practice or CBA obligation.',
+  },
+  {
+    id: 'boo-9',
+    dispute: 'Voluntariness of Resignation Letter',
+    detail: 'Employer invokes a signed resignation letter as defense against an illegal dismissal complaint.',
+    burden: 'employer',
+    explanation: 'EMPLOYER invoking resignation bears the burden of proving the employee voluntarily and knowingly resigned ( Paredes v. Feed the Children ).',
+  },
+  {
+    id: 'boo-10',
+    dispute: 'Abandonment of Work as Ground for Dismissal',
+    detail: 'Company claims worker abandoned their job after 4 days of absence without official leave (AWOL).',
+    burden: 'employer',
+    explanation: 'EMPLOYER must prove BOTH unjustified absence AND overt acts showing clear intent to sever the employment relationship!',
+  },
+  {
+    id: 'boo-11',
+    dispute: 'Actual Rendition of Night Shift Hours',
+    detail: 'Day-shift clerk claims Night Shift Differential for allegedly staying past 10:00 PM on unrecorded dates.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE must first prove that work was actually performed between 10:00 PM and 6:00 AM before differential pay attaches.',
+  },
+  {
+    id: 'boo-12',
+    dispute: 'Valid Project Employment Status',
+    detail: 'Construction firm claims terminated carpenter was hired for a specific project only, not as a regular worker.',
+    burden: 'employer',
+    explanation: 'EMPLOYER bears the burden of proving project scope and duration were clearly communicated at the time of engagement!',
+  },
+  {
+    id: 'boo-13',
+    dispute: 'Communication of Probationary Standards on Day 1',
+    detail: 'Company terminates a probationary staffer at Month 5 for failing to meet company standards.',
+    burden: 'employer',
+    explanation: 'EMPLOYER must prove reasonable regularization standards were made known at the time of engagement; otherwise, worker is regular!',
+  },
+  {
+    id: 'boo-14',
+    dispute: 'Lawfulness of Facility Deduction from Wages',
+    detail: 'Employer deducted ₱2,500/month for staff meals and lodging from minimum-wage workers.',
+    burden: 'employer',
+    explanation: 'EMPLOYER must prove all 3 Mabeza requisites: customary benefit, voluntary written acceptance, and fair reasonable value!',
+  },
+  {
+    id: 'boo-15',
+    dispute: 'Claim for Moral & Exemplary Damages',
+    detail: 'Dismissed worker seeks ₱200,000 moral damages alleging bad faith and public humiliation.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE must prove by clear and convincing evidence that dismissal was attended by bad faith, fraud, or oppressive conduct.',
+  },
+  {
+    id: 'boo-16',
+    dispute: 'Serious Business Losses in Retrenchment (Art. 298)',
+    detail: 'Company retrenches 30 workers citing financial downturn and declining revenues.',
+    burden: 'employer',
+    explanation: 'EMPLOYER must prove substantial actual or imminent losses via independently audited financial statements!',
+  },
+  {
+    id: 'boo-17',
+    dispute: 'Good Faith in Abolishing Redundant Positions',
+    detail: 'Employer abolishes 4 supervisor posts due to reorganization and staffing duplication.',
+    burden: 'employer',
+    explanation: 'EMPLOYER bears the burden of proving good faith and fair, reasonable criteria (efficiency, seniority, status) in redundancy.',
+  },
+  {
+    id: 'boo-18',
+    dispute: 'Entitlement to Unpaid Sales Commissions',
+    detail: 'Sales agent demands 5% override commission on accounts allegedly closed personally.',
+    burden: 'employee',
+    explanation: 'EMPLOYEE claiming non-statutory sales commissions must first prove the governing agreement and actual closing of qualifying sales.',
+  },
+  {
+    id: 'boo-19',
+    dispute: 'Remittance of SSS, PhilHealth & Pag-IBIG Contributions',
+    detail: 'Employee complains that statutory social welfare contributions were not remitted.',
+    burden: 'employer',
+    explanation: 'EMPLOYER has the statutory duty and custody of official remittance receipts to prove timely SSS/PhilHealth/Pag-IBIG payment!',
+  },
+  {
+    id: 'boo-20',
+    dispute: 'Constructive Dismissal via Coerced Quitclaim',
+    detail: 'Employee already signed a notarized quitclaim but claims the consideration was unconscionably low.',
+    burden: 'employer',
+    explanation: 'EMPLOYER relying on a quitclaim bears the burden of proving it was voluntary, without fraud, and for reasonable consideration!',
+  },
+];
+
+export function drawBooBurdenCases(
+  count: number,
+  rng: () => number = Math.random
+): BooBurdenCaseItem[] {
+  return drawUniqueFromDeck('boo_burden_cases', BOO_BURDEN_CASES_BANK, count, rng);
+}
+
+// ============================================================================
+// 17. CHRONO PRESCRIPTION BLITZ BANK (20 Distinct Claims + Shuffled Choices)
+// ============================================================================
+export interface ChronoPrescriptionClaimItem {
+  id: string;
+  claim: string;
+  options: [string, string, string, string];
+  correctIdx: number;
+  basis: string;
+}
+
+export const CHRONO_PRESCRIPTION_CLAIMS_BANK: ChronoPrescriptionClaimItem[] = [
+  {
+    id: 'cp-1',
+    claim: 'Unfair Labor Practice (ULP) Complaints',
+    options: ['1 Year', '3 Years', '4 Years', '5 Years'],
+    correctIdx: 0,
+    basis: 'Art. 305, Labor Code: All ULP offenses prescribe after 1 year from accrual!',
+  },
+  {
+    id: 'cp-2',
+    claim: 'Pure Money Claims (Unpaid OT, Holiday Pay, 13th Month)',
+    options: ['1 Year', '3 Years', '4 Years', '10 Years'],
+    correctIdx: 1,
+    basis: 'Art. 306, Labor Code: Money claims arising from employer-employee relations prescribe in 3 years.',
+  },
+  {
+    id: 'cp-3',
+    claim: 'Illegal Dismissal & Reinstatement Complaint',
+    options: ['1 Year', '2 Years', '3 Years', '4 Years'],
+    correctIdx: 3,
+    basis: 'Art. 1146, Civil Code (Callanta v. Carnation): Injury to employee rights prescribes in 4 years!',
+  },
+  {
+    id: 'cp-4',
+    claim: 'Unremitted SSS Contributions Liability',
+    options: ['3 Years', '4 Years', '10 Years', '20 Years'],
+    correctIdx: 3,
+    basis: 'R.A. 11199 (Social Security Act): Action against employers for SSS remittance prescribes in 20 years!',
+  },
+  {
+    id: 'cp-5',
+    claim: 'Anti-Sexual Harassment Administrative / Independent Action (R.A. 7877)',
+    options: ['1 Year', '3 Years', '4 Years', '5 Years'],
+    correctIdx: 1,
+    basis: 'Sec. 7, R.A. 7877: Any action arising from workplace sexual harassment prescribes in 3 years.',
+  },
+  {
+    id: 'cp-6',
+    claim: 'Criminal Offenses Penalized Under the Labor Code',
+    options: ['1 Year', '3 Years', '4 Years', '5 Years'],
+    correctIdx: 1,
+    basis: 'Art. 305, Labor Code: Offenses penalized under the Labor Code generally prescribe in 3 years.',
+  },
+  {
+    id: 'cp-7',
+    claim: 'Unused Service Incentive Leave (SIL) Cash Commutation',
+    options: ['1 Year from Year-End', '3 Years from Refusal/Separation', '4 Years from Hiring', '5 Years from Accrual'],
+    correctIdx: 1,
+    basis: 'Auto Bus Transport v. Bautista: 3-year prescription runs from employer refusal upon demand or upon separation!',
+  },
+  {
+    id: 'cp-8',
+    claim: 'Employees’ Compensation (EC) Disability / Sickness Claim',
+    options: ['1 Year', '3 Years', '4 Years', '10 Years'],
+    correctIdx: 1,
+    basis: 'Art. 207, Labor Code: Employees’ Compensation claims prescribe in 3 years from accrual of cause of action.',
+  },
+  {
+    id: 'cp-9',
+    claim: 'Illegal Recruitment (Simple / Non-Syndicated) Criminal Action',
+    options: ['3 Years', '5 Years', '10 Years', '20 Years'],
+    correctIdx: 1,
+    basis: 'R.A. 8042 as amended: Simple illegal recruitment cases prescribe in 5 years!',
+  },
+  {
+    id: 'cp-10',
+    claim: 'Illegal Recruitment Involving Economic Sabotage (Syndicated / Large Scale)',
+    options: ['5 Years', '10 Years', '15 Years', '20 Years'],
+    correctIdx: 3,
+    basis: 'R.A. 8042 Sec. 12: Illegal recruitment involving economic sabotage prescribes in 20 years!',
+  },
+  {
+    id: 'cp-11',
+    claim: 'Appeal from Labor Arbiter Decision to NLRC Commission',
+    options: ['5 Calendar Days', '10 Calendar Days', '15 Calendar Days', '30 Calendar Days'],
+    correctIdx: 1,
+    basis: 'Art. 229, Labor Code: Decisions of the Labor Arbiter are appealable within 10 calendar days from receipt!',
+  },
+  {
+    id: 'cp-12',
+    claim: 'Minimum Reasonable Period to Answer First Written Notice (Twin-Notice)',
+    options: ['24 Hours', '3 Calendar Days', '5 Calendar Days', '10 Working Days'],
+    correctIdx: 2,
+    basis: 'King of Kings Transport v. Mamac: "Ample opportunity to be heard" means at least 5 calendar days!',
+  },
+  {
+    id: 'cp-13',
+    claim: 'Advance Written Notice to DOLE & Worker for Authorized Causes',
+    options: ['10 Days Before', '15 Days Before', '30 Days Before', '60 Days Before'],
+    correctIdx: 2,
+    basis: 'Art. 298, Labor Code: Written notice must be served on both worker and DOLE at least 30 days ahead!',
+  },
+  {
+    id: 'cp-14',
+    claim: 'Maximum Preventive Suspension Period (Non-Construction)',
+    options: ['15 Days', '30 Days', '45 Days', '60 Days'],
+    correctIdx: 1,
+    basis: 'Omnibus Rules: Preventive suspension cannot exceed 30 days; extension requires reinstatement on payroll!',
+  },
+  {
+    id: 'cp-15',
+    claim: 'Maximum Bona Fide Suspension of Operations ("Floating Status")',
+    options: ['3 Months', '6 Months', '9 Months', '12 Months'],
+    correctIdx: 1,
+    basis: 'Art. 301, Labor Code: Bona fide suspension of business or security off-detail must not exceed 6 months!',
+  },
+  {
+    id: 'cp-16',
+    claim: 'Release of Final Pay & Clearance After Separation (DOLE LA 06-20)',
+    options: ['Within 7 Days', 'Within 15 Days', 'Within 30 Days', 'Within 60 Days'],
+    correctIdx: 2,
+    basis: 'DOLE Labor Advisory No. 06-20: Final pay must be released within 30 days from date of separation!',
+  },
+  {
+    id: 'cp-17',
+    claim: 'Issuance of Certificate of Employment Upon Worker Request',
+    options: ['Within 3 Days', 'Within 7 Days', 'Within 15 Days', 'Within 30 Days'],
+    correctIdx: 0,
+    basis: 'DOLE Labor Advisory No. 06-20: Certificate of Employment (COE) must be issued within 3 days from request!',
+  },
+  {
+    id: 'cp-18',
+    claim: 'Backpay / Money Claims Joined with Illegal Dismissal Suit',
+    options: ['1 Year', '2 Years', '3 Years', '4 Years'],
+    correctIdx: 3,
+    basis: 'Accessory backwages in an illegal dismissal complaint follow the 4-year prescriptive period of the principal action (Arriola v. Pilipino Star)!',
+  },
+  {
+    id: 'cp-19',
+    claim: 'Distribution Cycle of Collected Service Charges (R.A. 11360)',
+    options: ['Once a Month', 'Every 2 Weeks / Twice a Month', 'Quarterly', 'Every December 24'],
+    correctIdx: 1,
+    basis: 'IRR of R.A. 11360: Distributed completely and equally at least once every 2 weeks or twice a month!',
+  },
+  {
+    id: 'cp-20',
+    claim: 'Employer Reimbursement by SSS of Advanced Maternity Benefit',
+    options: ['Within 30 Days', 'Within 60 Days', 'Within 1 Year', 'Within 10 Years'],
+    correctIdx: 3,
+    basis: 'R.A. 11210 / SSS Rules: Employer advances full maternity pay within 30 days of filing; SSS reimburses 100%.',
+  },
+];
+
+export function drawChronoPrescriptionClaims(
+  count: number,
+  rng: () => number = Math.random
+): ChronoPrescriptionClaimItem[] {
+  return drawUniqueFromDeck(
+    'chrono_prescription_claims',
+    CHRONO_PRESCRIPTION_CLAIMS_BANK,
+    count,
+    rng
+  ).map((item) => {
+    const shuffled = shuffleChoiceOptions(item.options, item.correctIdx, rng);
+    return {
+      ...item,
+      options: [
+        shuffled.options[0],
+        shuffled.options[1],
+        shuffled.options[2],
+        shuffled.options[3],
+      ],
+      correctIdx: shuffled.correctIndex,
+    };
+  });
+}
+
+// ============================================================================
+// 18. HAMMER BROS. PAYROLL BLITZ BANK (16 Distinct Shifts + Shuffled Choices)
+// ============================================================================
+export interface HammerBrosShiftItem {
+  id: string;
+  worker: string;
+  scenario: string;
+  equation: string;
+  options: [string, string, string, string];
+  correctIdx: number;
+  cite: string;
+}
+
+export const HAMMER_BROS_SHIFTS_BANK: HammerBrosShiftItem[] = [
+  {
+    id: 'hb-1',
+    worker: 'Toad (Warehouse Clerk)',
+    scenario: 'Daily Rate = ₱800 (₱100/hr). Worked 10 hours on an Ordinary Workday (8 hrs regular + 2 hrs Overtime).',
+    equation: '₱800 + (2 hrs × ₱100 × 1.25) = ₱800 + ₱250',
+    options: ['₱1,000', '₱1,050', '₱1,060', '₱1,100'],
+    correctIdx: 1,
+    cite: 'Art. 87: Ordinary Day Overtime = +25% of hourly rate.',
+  },
+  {
+    id: 'hb-2',
+    worker: 'Luigi (Hotel Barista)',
+    scenario: 'Daily Rate = ₱645. Worked 8 hours on a Regular Holiday (Independence Day).',
+    equation: '₱645 × 200%',
+    options: ['₱838.50', '₱967.50', '₱1,290.00', '₱1,677.00'],
+    correctIdx: 2,
+    cite: 'Art. 94: Worked Regular Holiday = 200% daily wage for first 8 hours.',
+  },
+  {
+    id: 'hb-3',
+    worker: 'Peach (Hospital Nurse)',
+    scenario: 'Daily Rate = ₱1,000. Worked 8 hours on a Regular Holiday that ALSO fell on her Rest Day.',
+    equation: '₱1,000 × 200% × 1.30 (260%)',
+    options: ['₱2,000', '₱2,300', '₱2,600', '₱3,000'],
+    correctIdx: 2,
+    cite: 'Art. 94(c): Regular Holiday on Rest Day = 260% of regular wage.',
+  },
+  {
+    id: 'hb-4',
+    worker: 'Yoshi (Call Center Agent)',
+    scenario: 'Daily Rate = ₱800 (₱100/hr). Worked an 8-hour shift entirely from 10:00 PM to 6:00 AM on an Ordinary Day.',
+    equation: '₱800 + (8 hrs × ₱100 × 10% NSD)',
+    options: ['₱840', '₱880', '₱960', '₱1,000'],
+    correctIdx: 1,
+    cite: 'Art. 86: Night Shift Differential adds +10% per hour from 10PM to 6AM.',
+  },
+  {
+    id: 'hb-5',
+    worker: 'Daisy (Retail Cashier)',
+    scenario: 'Daily Rate = ₱600. Worked 8 hours on Ninoy Aquino Day (Special Non-Working Day, not a rest day).',
+    equation: '₱600 × 130%',
+    options: ['₱600', '₱750', '₱780', '₱900'],
+    correctIdx: 2,
+    cite: 'Art. 93: Special Non-Working Day worked = 130% of basic pay.',
+  },
+  {
+    id: 'hb-6',
+    worker: 'Rosalina (Accounting Staff)',
+    scenario: 'Earned ₱24,000/month basic salary for 6 months (₱144,000 total basic salary earned) before resigning.',
+    equation: '₱144,000 Total Basic Salary Earned ÷ 12',
+    options: ['₱6,000', '₱12,000', '₱18,000', '₱24,000'],
+    correctIdx: 1,
+    cite: 'P.D. 851: Pro-rated 13th Month Pay = Total Basic Salary Earned ÷ 12.',
+  },
+  {
+    id: 'hb-7',
+    worker: 'Mario (Plant Technician)',
+    scenario: 'Daily Rate = ₱1,000. Worked 8 hours on Araw ng Kagitingan coinciding with Maundy Thursday (Double Regular Holiday).',
+    equation: '₱1,000 × 300%',
+    options: ['₱2,000', '₱2,600', '₱3,000', '₱3,900'],
+    correctIdx: 2,
+    cite: 'DOLE Handbook: Double Regular Holiday worked = 300% of basic daily wage.',
+  },
+  {
+    id: 'hb-8',
+    worker: 'Wario (Senior Mechanic)',
+    scenario: 'Daily Rate = ₱1,000. Retires at age 60 after 10 years of service under R.A. 7641 (no company retirement plan).',
+    equation: '₱1,000 × 22.5 days × 10 years',
+    options: ['₱150,000', '₱200,000', '₱225,000', '₱300,000'],
+    correctIdx: 2,
+    cite: 'R.A. 7641 (Elegir v. PAL): Minimum retirement pay = 22.5 days per year of service.',
+  },
+  {
+    id: 'hb-9',
+    worker: 'Bowser Jr. (Delivery Rider)',
+    scenario: 'Daily Rate = ₱700. Worked 8 hours on his scheduled Weekly Rest Day (ordinary non-holiday Sunday).',
+    equation: '₱700 × 130%',
+    options: ['₱770', '₱875', '₱910', '₱1,050'],
+    correctIdx: 2,
+    cite: 'Art. 93(a): Work performed on a scheduled Rest Day pays 130% of regular wage.',
+  },
+  {
+    id: 'hb-10',
+    worker: 'Pauline (Bakery Supervisor)',
+    scenario: 'Daily Rate = ₱800. Worked 8 hours on a Special Non-Working Day that ALSO fell on her scheduled Rest Day.',
+    equation: '₱800 × 150%',
+    options: ['₱1,040', '₱1,120', '₱1,200', '₱1,600'],
+    correctIdx: 2,
+    cite: 'Art. 93(c): Special Non-Working Day falling on a Rest Day pays 150%!',
+  },
+  {
+    id: 'hb-11',
+    worker: 'Toadette (Office Clerk)',
+    scenario: 'Daily Rate = ₱650. Completed 1 full year of service and did not use any of her 5-day Service Incentive Leave.',
+    equation: '5 unused SIL days × ₱650 current daily wage',
+    options: ['₱1,950', '₱3,250', '₱4,550', '₱6,500'],
+    correctIdx: 1,
+    cite: 'Art. 95: Unused 5-day SIL is commutable to cash based on the salary rate at date of commutation.',
+  },
+  {
+    id: 'hb-12',
+    worker: 'Waluigi (Resort Waitstaff)',
+    scenario: 'Hotel collected ₱90,000 in net service charges over two weeks with 10 covered employees and 2 managers.',
+    equation: '100% × ₱90,000 ÷ 10 covered workers (managers excluded)',
+    options: ['₱6,375 each', '₱7,500 each', '₱7,650 each', '₱9,000 each'],
+    correctIdx: 3,
+    cite: 'R.A. 11360: 100% of service charges go equally to covered rank-and-file & supervisory staff; managers get 0%.',
+  },
+  {
+    id: 'hb-13',
+    worker: 'Birdo (Factory Operator)',
+    scenario: 'Daily Rate = ₱1,000. Worked 8 hours on a Double Regular Holiday that ALSO fell on her Rest Day.',
+    equation: '₱1,000 × 300% × 1.30 (390%)',
+    options: ['₱3,000', '₱3,300', '₱3,600', '₱3,900'],
+    correctIdx: 3,
+    cite: 'DOLE Handbook: Double Regular Holiday on Rest Day pays 390% for the first 8 hours!',
+  },
+  {
+    id: 'hb-14',
+    worker: 'Diddy Kong (Encoder)',
+    scenario: 'Daily Rate = ₱800 (₱100/hr). Did NOT work on Bonifacio Day (Regular Holiday), and was present on the workday before.',
+    equation: '₱800 × 100% unworked Regular Holiday pay',
+    options: ['₱0 (No Work No Pay)', '₱400', '₱800', '₱1,600'],
+    correctIdx: 2,
+    cite: 'Art. 94: Eligible employees receive 100% daily wage even if unworked on a Regular Holiday.',
+  },
+  {
+    id: 'hb-15',
+    worker: 'Dixie Kong (Store Assistant)',
+    scenario: 'Daily Rate = ₱620. Did NOT work on All Saints’ Day (Special Non-Working Day); no CBA grant.',
+    equation: 'Special Non-Working Day unworked = No Work, No Pay',
+    options: ['₱0', '₱186', '₱310', '₱620'],
+    correctIdx: 0,
+    cite: 'DOLE Handbook: Unworked Special Non-Working Days follow "No Work, No Pay" unless granted by policy/CBA.',
+  },
+  {
+    id: 'hb-16',
+    worker: 'Donkey Kong (Logistics Lead)',
+    scenario: 'Monthly Basic = ₱30,000. Position abolished due to Redundancy after 4 years of service.',
+    equation: 'At least 1 month pay per year of service = ₱30,000 × 4 years',
+    options: ['₱60,000', '₱90,000', '₱120,000', '₱150,000'],
+    correctIdx: 2,
+    cite: 'Art. 298: Redundancy or labor-saving device separation pay = 1 month pay or 1 month per year of service, whichever is higher.',
+  },
+];
+
+export function drawHammerBrosShifts(
+  count: number,
+  rng: () => number = Math.random
+): HammerBrosShiftItem[] {
+  return drawUniqueFromDeck('hammer_bros_shifts', HAMMER_BROS_SHIFTS_BANK, count, rng).map(
+    (item) => {
+      const shuffled = shuffleChoiceOptions(item.options, item.correctIdx, rng);
+      return {
+        ...item,
+        options: [
+          shuffled.options[0],
+          shuffled.options[1],
+          shuffled.options[2],
+          shuffled.options[3],
+        ],
+        correctIdx: shuffled.correctIndex,
+      };
+    }
+  );
+}
+
+// ============================================================================
+// 19. TOADETTE'S DUE PROCESS RELAY BANK (16 Distinct Cases + Shuffled Choices)
+// ============================================================================
+export interface DueProcessRelayCaseItem {
+  id: string;
+  stageLabel: string;
+  title: string;
+  facts: string;
+  question: string;
+  options: [string, string, string, string];
+  correctIdx: number;
+  doctrine: string;
+}
+
+export const DUE_PROCESS_RELAY_BANK: DueProcessRelayCaseItem[] = [
+  {
+    id: 'dp-1',
+    stageLabel: 'STEP 1 · FIRST WRITTEN NOTICE',
+    title: 'Notice to Explain (NTE) Specificity',
+    facts: 'Employer hands Koopa a memo stating only: "Explain within 24 hours why you should not be fired for violating company rules."',
+    question: 'Why is this First Written Notice legally defective under King of Kings Transport?',
+    options: [
+      'It lacks specific acts/facts AND gives less than 5 calendar days to explain',
+      'It was not notarized by a Barangay Captain',
+      'It should have given 30 working days to reply',
+      'First notices can be purely verbal if witnessed by HR',
+    ],
+    correctIdx: 0,
+    doctrine: 'King of Kings Transport v. Mamac: First notice must detail specific acts, cite the rule, and grant at least 5 calendar days!',
+  },
+  {
+    id: 'dp-2',
+    stageLabel: 'STEP 2 · PREVENTIVE SUSPENSION',
+    title: 'Preventive Suspension Duration Cap',
+    facts: 'Cashier Goomba is placed under preventive suspension while an audit of missing vault funds is ongoing.',
+    question: 'What is the maximum lawful duration of preventive suspension (non-construction) without pay?',
+    options: ['15 calendar days', '30 days maximum', '60 calendar days', '90 working days'],
+    correctIdx: 1,
+    doctrine: 'Omnibus Rules Book V: Preventive suspension cannot exceed 30 days; extension requires payroll reinstatement!',
+  },
+  {
+    id: 'dp-3',
+    stageLabel: 'STEP 3 · OPPORTUNITY TO BE HEARD',
+    title: 'When Is a Formal Trial-Type Hearing Mandatory?',
+    facts: 'Shy Guy submits a detailed written explanation with affidavits, but demands a courtroom-style cross-examination.',
+    question: 'Under Perez v. PT&T, when is a formal hearing strictly REQUIRED?',
+    options: [
+      'In every termination case without exception',
+      'Only when requested in writing, substantial evidentiary disputes exist, or company rules require it',
+      'Never under any circumstance',
+      'Only when DOLE sends an arbiter to the office',
+    ],
+    correctIdx: 1,
+    doctrine: 'Perez v. PT&T: Ample opportunity to be heard does not always mean a formal hearing unless requested in writing or needed for disputed facts.',
+  },
+  {
+    id: 'dp-4',
+    stageLabel: 'STEP 4 ·AUTHORIZED CAUSE NOTICE',
+    title: 'Redundancy & Retrenchment Dual Notice',
+    facts: 'Mushroom Corp. abolishes 5 redundant IT posts effective tomorrow, offering full separation pay today.',
+    question: 'What procedural requirement under Article 298 was violated?',
+    options: [
+      'Advance written notice to BOTH workers and DOLE at least 30 days before effectivity',
+      'Twin-notice and 5-day NTE hearing',
+      'Prior approval from the NLRC Chairman',
+      'Publication in a newspaper for 3 weeks',
+    ],
+    correctIdx: 0,
+    doctrine: 'Art. 298: Authorized causes require written notice to BOTH the employee and DOLE at least 1 month (30 days) prior!',
+  },
+  {
+    id: 'dp-5',
+    stageLabel: 'STEP 5 · NOMINAL DAMAGES (JUST CAUSE)',
+    title: 'Agabon v. NLRC Doctrine',
+    facts: 'Employee committed proven theft (valid Just Cause), but employer fired him on the spot without Twin Notices.',
+    question: 'What is the legal status of the dismissal and employer liability under Agabon?',
+    options: [
+      'Dismissal is illegal; full reinstatement + backwages',
+      'Dismissal stands as valid, but employer pays ₱30,000 nominal damages',
+      'Dismissal stands with ₱50,000 nominal damages',
+      'No liability at all since theft was proven',
+    ],
+    correctIdx: 1,
+    doctrine: 'Agabon v. NLRC: Valid Just Cause + defective due process = valid dismissal + ₱30,000 nominal damages!',
+  },
+  {
+    id: 'dp-6',
+    stageLabel: 'STEP 6 · NOMINAL DAMAGES (AUTHORIZED)',
+    title: 'Jaka Food Processing Doctrine',
+    facts: 'Company suffered proven severe audited losses (valid Retrenchment), but failed to give the 30-day advance notice.',
+    question: 'Under Jaka Food Processing, how much nominal damages apply to defective Authorized Cause notice?',
+    options: ['₱10,000 nominal damages', '₱30,000 nominal damages', '₱50,000 nominal damages', '₱100,000 nominal damages'],
+    correctIdx: 2,
+    doctrine: 'Jaka Food Processing v. Pacot: Valid Authorized Cause + defective 30-day notice = ₱50,000 nominal damages!',
+  },
+  {
+    id: 'dp-7',
+    stageLabel: 'STEP 7 · SECOND WRITTEN NOTICE',
+    title: 'Notice of Decision / Termination',
+    facts: 'After reviewing the employee’s written explanation and holding a conference, management decides to dismiss for willful disobedience.',
+    question: 'What must the Second Written Notice contain to complete Twin-Notice due process?',
+    options: [
+      'Clear statement that all circumstances were considered and grounds for termination are established',
+      'Only the final paycheck amount without stating reasons',
+      'A blank quitclaim form for compulsory signature',
+      'A verbal exit interview summary',
+    ],
+    correctIdx: 0,
+    doctrine: 'Omnibus Rules: The Second Notice must inform the worker in writing that all circumstances were considered and grounds were established.',
+  },
+  {
+    id: 'dp-8',
+    stageLabel: 'STEP 8 · DISEASE AS AUTHORIZED CAUSE',
+    title: 'Termination Due to Disease (Art. 299)',
+    facts: 'Employer wants to terminate an employee suffering from a contagious illness.',
+    question: 'What mandatory medical document is indispensable under Article 299?',
+    options: [
+      'Certification by a competent public health authority that the disease cannot be cured within 6 months',
+      'Note from the company HR nurse',
+      'Self-declaration by the employee’s supervisor',
+      'Barangay health clearance',
+    ],
+    correctIdx: 0,
+    doctrine: 'Art. 299 (Deoferio v. Intel): Requires certification from a competent public health authority that disease is incurable within 6 months!',
+  },
+  {
+    id: 'dp-9',
+    stageLabel: 'STEP 9 · ABANDONMENT DEFENSES',
+    title: 'Twin Elements of Abandonment',
+    facts: 'Lakitu was absent for 6 days without leave, then immediately filed an illegal dismissal complaint on Day 7.',
+    question: 'Does Lakitu’s immediate filing of a complaint support or negate abandonment?',
+    options: [
+      'Proves abandonment automatically after 3 days AWOL',
+      'Negates intent to sever employment — immediate protest for reinstatement disproves animus revertendi loss',
+      'Waives all backwages automatically',
+      'Converts dismissal into voluntary resignation',
+    ],
+    correctIdx: 1,
+    doctrine: 'Jurisprudence: Immediate filing of an illegal dismissal complaint asking for reinstatement negates intent to abandon work!',
+  },
+  {
+    id: 'dp-10',
+    stageLabel: 'STEP 10 · PROBATIONARY TERMINATION',
+    title: 'Failure to Qualify as Regular Employee',
+    facts: 'Toadstool Tech hires a designer on 6-month probation without explaining evaluation metrics upon hiring, then fires her at Month 5.',
+    question: 'Is the termination for failure to meet probationary standards valid?',
+    options: [
+      'No — failure to communicate reasonable standards at hiring makes the worker regular from Day 1',
+      'Yes — employers have absolute discretion during the first 6 months',
+      'Yes — standards can be disclosed on the day of dismissal',
+      'Only if approved by TESDA',
+    ],
+    correctIdx: 0,
+    doctrine: 'Art. 296 (Abbott Laboratories v. Alcaraz): Reasonable standards must be made known at the time of engagement!',
+  },
+  {
+    id: 'dp-11',
+    stageLabel: 'STEP 11 · LOSS OF TRUST & CONFIDENCE',
+    title: 'Fiduciary Rank-and-File vs. Managerial Staff',
+    facts: 'Employer invokes "loss of trust and confidence" to dismiss a regular janitor who does not handle money or property.',
+    question: 'Why does loss of trust and confidence fail here?',
+    options: [
+      'It applies only to managerial personnel or fiduciary rank-and-file who routinely handle money/property',
+      'It requires criminal conviction beyond reasonable doubt first',
+      'It applies only to government officials',
+      'It requires 10 years of tenure',
+    ],
+    correctIdx: 0,
+    doctrine: 'Art. 297(c): Loss of trust applies only to employees holding positions of trust and confidence (managers or fiduciary cash/property custodians)!',
+  },
+  {
+    id: 'dp-12',
+    stageLabel: 'STEP 12 · FLOATING STATUS LIMIT',
+    title: 'Security Guard Off-Detail Past 6 Months',
+    facts: 'A security agency places Guard Hammer Bro on "floating status" for 8 months without assigning a new client post.',
+    question: 'What happens legally once floating status exceeds 6 months under Article 301?',
+    options: [
+      'It ripens into illegal constructive dismissal entitling the guard to reinstatement/separation pay + backwages',
+      'Agency can extend floating status up to 2 years unpaid',
+      'Guard automatically forfeits tenure',
+      'Guard becomes an independent contractor',
+    ],
+    correctIdx: 0,
+    doctrine: 'Art. 301 (Exocet Security): Off-detail / floating status beyond 6 months amounts to constructive dismissal!',
+  },
+];
+
+export function drawDueProcessRelayCases(
+  count: number,
+  rng: () => number = Math.random
+): DueProcessRelayCaseItem[] {
+  return drawUniqueFromDeck('due_process_relay', DUE_PROCESS_RELAY_BANK, count, rng).map((item) => {
+    const shuffled = shuffleChoiceOptions(item.options, item.correctIdx, rng);
+    return {
+      ...item,
+      options: [
+        shuffled.options[0],
+        shuffled.options[1],
+        shuffled.options[2],
+        shuffled.options[3],
+      ],
+      correctIdx: shuffled.correctIndex,
+    };
+  });
+}
+
+// ============================================================================
+// 20. SHY GUY'S WAGE ORDER FACTORY BANK (20 Distinct Packages)
+// ============================================================================
+export interface WageFactoryPackageItem {
+  id: string;
+  label: string;
+  detail: string;
+  verdict: 'lawful' | 'unlawful';
+  ruleNote: string;
+}
+
+export const WAGE_FACTORY_PACKAGES_BANK: WageFactoryPackageItem[] = [
+  {
+    id: 'wf-1',
+    label: 'Company Promissory Vouchers',
+    detail: 'Factory pays 50% cash and 50% store vouchers redeemable only at the boss’s canteen.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Art. 102 strictly prohibits paying wages in promissory notes, vouchers, coupons, tokens, or chits.',
+  },
+  {
+    id: 'wf-2',
+    label: 'ATM Payroll w/ Written Consent',
+    detail: 'Bank ATM payroll within 1 km of workplace with paid time to withdraw and zero ATM fees.',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! DOLE Labor Advisory allows ATM wage payment with employee consent and accessible fee-free withdrawal.',
+  },
+  {
+    id: 'wf-3',
+    label: 'Safety Helmet & Uniform Deduction',
+    detail: 'Construction company deducts ₱1,200 from minimum wage for required hardhats and vests.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! PPE and uniforms worn for the employer’s protection/business are SUPPLEMENTS — never deductible!',
+  },
+  {
+    id: 'wf-4',
+    label: 'SSS, PhilHealth & Pag-IBIG Share',
+    detail: 'Payroll deducts mandatory statutory employee contributions and remits them in full.',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! Statutory deductions mandated by law (SSS, PhilHealth, Pag-IBIG, withholding tax) require no extra consent.',
+  },
+  {
+    id: 'wf-5',
+    label: '15% Management Cut on Service Charge',
+    detail: 'Hotel retains 15% of collected service charges for breakage and executive bonuses.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Under R.A. 11360, 100% of collected service charges belong to covered rank-and-file and supervisory staff.',
+  },
+  {
+    id: 'wf-6',
+    label: 'Subsidized Dormitory w/ Written Consent',
+    detail: 'Customary staff dorm at fair cost (30% subsidized) with voluntary signed authorization.',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! Meets all 3 Mabeza requisites for deductible facilities: customary, written consent, and fair value.',
+  },
+  {
+    id: 'wf-7',
+    label: 'Automatic Cash Bond Deduction (No Practice)',
+    detail: 'Retail shop deducts ₱500/week "security deposit" though not a recognized trade practice or DOLE-approved.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Art. 114 prohibits deposits for loss/damage unless DOLE-authorized or a recognized desirable trade practice.',
+  },
+  {
+    id: 'wf-8',
+    label: 'Union Agency Fee Check-Off',
+    detail: 'Non-union members who accept CBA benefits have equal union dues checked off for the bargaining agent.',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! Art. 259(e) expressly allows check-off of reasonable agency fees from non-union CBA beneficiaries without individual consent.',
+  },
+  {
+    id: 'wf-9',
+    label: 'Offsetting Monday Undertime w/ Tuesday OT',
+    detail: 'Payroll cancels 2 hours of Tuesday overtime pay because worker arrived 2 hours late on Monday.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Art. 88 strictly prohibits offsetting undertime on one day by overtime work on another day.',
+  },
+  {
+    id: 'wf-10',
+    label: 'Twice-Monthly Payday (15th & 30th)',
+    detail: 'Company pays full legal tender wages every 15th and 30th of the month (interval <= 16 days).',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! Art. 103 requires payment at least once every 2 weeks or twice a month at intervals not exceeding 16 days.',
+  },
+  {
+    id: 'wf-11',
+    label: 'Kasambahay Recruitment Fee Deduction',
+    detail: 'Employer deducts agency finder’s fee from the domestic worker’s first 3 monthly salaries.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Sec. 13, R.A. 10361 forbids charging any recruitment or finder’s fee against the Kasambahay.',
+  },
+  {
+    id: 'wf-12',
+    label: 'Voluntary Co-op Loan Check-Off',
+    detail: 'Employee signs a written authorization to remit ₱1,000/month to the accredited employees’ credit cooperative (employer gets 0% kickback).',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! Art. 113(b) allows third-party payment deductions with individual written authorization when employer receives no pecuniary benefit.',
+  },
+  {
+    id: 'wf-13',
+    label: 'Withholding Final Pay to Force Quitclaim Away Claims',
+    detail: 'HR refuses to release earned last salary unless worker waives unpaid overtime claims.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Art. 116 prohibits withholding wages through force, stealth, intimidation, or threat.',
+  },
+  {
+    id: 'wf-14',
+    label: 'P.I. Manufacturing Wage Distortion Formula',
+    detail: 'After an RTWPB wage order compresses pay brackets, company restores partial pay gap via (Min Wage / Actual Salary) × Increase.',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! Supreme Court approved the P.I. Manufacturing formula to equitably correct statutory wage distortion (Art. 124).',
+  },
+  {
+    id: 'wf-15',
+    label: 'Paying Wages Inside a Casino / Nightclub Bar',
+    detail: 'Construction contractor distributes cash envelopes to masons inside a neighborhood beerhouse.',
+    verdict: 'unlawful',
+    ruleNote: 'UNLAWFUL! Art. 104 / Labor Code rules prohibit paying wages in bars, nightclubs, casinos, or massage clinics except for staff employed therein.',
+  },
+  {
+    id: 'wf-16',
+    label: '40-Minute Paid Lactation Break Included in Basic Pay',
+    detail: 'Payroll credits nursing mother’s two 20-minute lactation breaks as full paid working hours.',
+    verdict: 'lawful',
+    ruleNote: 'LAWFUL! R.A. 10028 mandates that lactation periods of >= 40 minutes per 8-hour shift are compensable working time.',
+  },
+];
+
+export function drawWageFactoryPackages(
+  count: number,
+  rng: () => number = Math.random
+): WageFactoryPackageItem[] {
+  return drawUniqueFromDeck('wage_factory_packages', WAGE_FACTORY_PACKAGES_BANK, count, rng);
+}
+
+// ============================================================================
+// 21. KAMEK'S DEADLINE SPELLBOOK BANK (18 Distinct Spells + Shuffled Choices)
+// ============================================================================
+export interface KamekSpellItem {
+  id: string;
+  spellName: string;
+  prompt: string;
+  options: [string, string, string, string];
+  correctIdx: number;
+  citation: string;
+}
+
+export const KAMEK_SPELLS_BANK: KamekSpellItem[] = [
+  {
+    id: 'km-1',
+    spellName: 'HEX OF MANDATORY BONUS',
+    prompt: 'Latest calendar date every year to pay mandatory 13th Month Pay:',
+    options: ['November 15', 'November 30', 'December 24', 'December 31'],
+    correctIdx: 2,
+    citation: 'P.D. No. 851 — Payable not later than December 24 of every year!',
+  },
+  {
+    id: 'km-2',
+    spellName: 'CURSE OF FINAL CLEARANCE',
+    prompt: 'DOLE deadline to release Final Pay after employee separation (LA 06-20):',
+    options: ['Within 7 days', 'Within 15 days', 'Within 30 days', 'Within 60 days'],
+    correctIdx: 2,
+    citation: 'DOLE Labor Advisory No. 06-20 — Within 30 days from separation (unless more favorable company policy).',
+  },
+  {
+    id: 'km-3',
+    spellName: 'SIGIL OF EMPLOYMENT PROOF',
+    prompt: 'Deadline for employer to issue a Certificate of Employment (COE) upon request:',
+    options: ['Within 24 hours', 'Within 3 days', 'Within 10 days', 'Within 30 days'],
+    correctIdx: 1,
+    citation: 'DOLE Labor Advisory No. 06-20 — COE must be issued within 3 days from employee request!',
+  },
+  {
+    id: 'km-4',
+    spellName: 'WARD OF MATERNITY ADVANCE',
+    prompt: 'Employer must advance full R.A. 11210 Maternity Benefit within how many days from filing?',
+    options: ['Within 7 days', 'Within 15 days', 'Within 30 days', 'Within 60 days'],
+    correctIdx: 2,
+    citation: 'R.A. 11210 Sec. 5 — Full payment advanced by employer within 30 days from filing leave application!',
+  },
+  {
+    id: 'km-5',
+    spellName: 'RUNE OF RETRENCHMENT',
+    prompt: 'Advance written notice to DOLE and workers before Authorized Cause dismissal:',
+    options: ['At least 5 days', 'At least 15 days', 'At least 30 days', 'At least 45 days'],
+    correctIdx: 2,
+    citation: 'Art. 298, Labor Code — Written notice at least 1 month (30 days) before intended date!',
+  },
+  {
+    id: 'km-6',
+    spellName: 'SEAL OF PROBATIONARY CAP',
+    prompt: 'General maximum period of Probationary Employment from first day of work:',
+    options: ['3 months', '6 months', '9 months', '12 months'],
+    correctIdx: 1,
+    citation: 'Art. 296, Labor Code — Shall not exceed 6 months from date employee started working!',
+  },
+  {
+    id: 'km-7',
+    spellName: 'CHARM OF COMPULSORY RETIREMENT',
+    prompt: 'Optional and Compulsory Retirement ages for general workers under R.A. 7641:',
+    options: ['50 Optional / 60 Compulsory', '55 Optional / 60 Compulsory', '60 Optional / 65 Compulsory', '62 Optional / 70 Compulsory'],
+    correctIdx: 2,
+    citation: 'Art. 302 (R.A. 7641) — Optional at 60, Compulsory at 65 (with at least 5 years of service)!',
+  },
+  {
+    id: 'km-8',
+    spellName: 'ORB OF FLOATING STATUS',
+    prompt: 'Maximum lawful period of bona fide business suspension / security off-detail:',
+    options: ['30 days', '3 months', '6 months', '1 year'],
+    correctIdx: 2,
+    citation: 'Art. 301, Labor Code — Suspension of operations or off-detail must not exceed 6 months!',
+  },
+  {
+    id: 'km-9',
+    spellName: 'SCROLL OF ARBITER APPEAL',
+    prompt: 'Reglementary period to appeal a Labor Arbiter decision to the NLRC:',
+    options: ['5 calendar days', '10 calendar days', '15 working days', '30 calendar days'],
+    correctIdx: 1,
+    citation: 'Art. 229, Labor Code — Non-extendible 10 calendar days from receipt of decision!',
+  },
+  {
+    id: 'km-10',
+    spellName: 'GLYPH OF FIRST NOTICE',
+    prompt: 'Minimum period given to an employee to submit a written explanation to an NTE:',
+    options: ['24 hours', '48 hours', '5 calendar days', '15 calendar days'],
+    correctIdx: 2,
+    citation: 'King of Kings Transport v. Mamac — Reasonable opportunity means at least 5 calendar days!',
+  },
+  {
+    id: 'km-11',
+    spellName: 'AEGIS OF PAYDAY INTERVAL',
+    prompt: 'Maximum interval between twice-monthly wage paydays under Article 103:',
+    options: ['7 calendar days', '14 calendar days', '16 calendar days', '30 calendar days'],
+    correctIdx: 2,
+    citation: 'Art. 103, Labor Code — Paid at least once every 2 weeks or twice a month at intervals <= 16 days!',
+  },
+  {
+    id: 'km-12',
+    spellName: 'VORTEX OF SERVICE CHARGES',
+    prompt: 'Frequency of distributing 100% of collected service charges to workers:',
+    options: ['Once every 2 weeks / twice a month', 'Once every quarter', 'Only on December 24', 'Upon resignation only'],
+    correctIdx: 0,
+    citation: 'R.A. 11360 IRR — Distributed completely and equally at least once every 2 weeks or twice a month!',
+  },
+  {
+    id: 'km-13',
+    spellName: 'TONIC OF PREVENTIVE SUSPENSION',
+    prompt: 'Maximum preventive suspension period before mandatory payroll reinstatement:',
+    options: ['10 days', '15 days', '30 days', '60 days'],
+    correctIdx: 2,
+    citation: 'Omnibus Rules Book V — Preventive suspension shall not last longer than 30 days!',
+  },
+  {
+    id: 'km-14',
+    spellName: 'CREST OF UNDERGROUND MINERS',
+    prompt: 'Optional and Compulsory Retirement ages for underground/surface mine workers:',
+    options: ['45 Optional / 55 Compulsory', '50 Optional / 60 Compulsory', '55 Optional / 65 Compulsory', '60 Optional / 65 Compulsory'],
+    correctIdx: 1,
+    citation: 'R.A. 8558 & R.A. 10757 — Underground and surface mine workers retire at 50 (optional) and 60 (compulsory)!',
+  },
+  {
+    id: 'km-15',
+    spellName: 'TALISMAN OF ULP PRESCRIPTION',
+    prompt: 'Prescriptive period for filing Unfair Labor Practice (ULP) complaints:',
+    options: ['6 months', '1 year', '3 years', '4 years'],
+    correctIdx: 1,
+    citation: 'Art. 305, Labor Code — All ULP complaints must be filed within 1 year from accrual!',
+  },
+  {
+    id: 'km-16',
+    spellName: 'PRISM OF MONEY CLAIMS',
+    prompt: 'Prescriptive period for pure statutory money claims (OT, Holiday, Wage Differentials):',
+    options: ['1 year', '2 years', '3 years', '4 years'],
+    correctIdx: 2,
+    citation: 'Art. 306, Labor Code — Money claims prescribe within 3 years from accrual of cause of action!',
+  },
+];
+
+export function drawKamekSpells(
+  count: number,
+  rng: () => number = Math.random
+): KamekSpellItem[] {
+  return drawUniqueFromDeck('kamek_spells', KAMEK_SPELLS_BANK, count, rng).map((item) => {
+    const shuffled = shuffleChoiceOptions(item.options, item.correctIdx, rng);
+    return {
+      ...item,
+      options: [
+        shuffled.options[0],
+        shuffled.options[1],
+        shuffled.options[2],
+        shuffled.options[3],
+      ],
+      correctIdx: shuffled.correctIndex,
+    };
+  });
 }

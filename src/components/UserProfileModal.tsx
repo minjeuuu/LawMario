@@ -46,6 +46,8 @@ import {
   saveStoredDailyStudyGoal,
   computeDailyStudyGoalStatus,
   computeWorldMasteryBadges,
+  buildMonthlyStudyCalendar,
+  MonthlyCalendarDayCell,
 } from '../utils/profileAchievements';
 import { marioAudio } from '../utils/audio';
 import {
@@ -162,44 +164,38 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     } catch {}
   };
 
-  // Monthly Calendar & Streak Heatmap State
+  // Monthly Calendar & Streak + Completed Daily Goal Grid State
   const [calendarViewDate, setCalendarViewDate] = useState(() => new Date());
+  const [selectedCalendarDayKey, setSelectedCalendarDayKey] = useState<string>(() =>
+    formatDateKey(new Date())
+  );
   const calYear = calendarViewDate.getFullYear();
   const calMonth = calendarViewDate.getMonth();
   const monthName = calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const isCurrentCalendarMonth =
+    calYear === referenceNow.getFullYear() && calMonth === referenceNow.getMonth();
 
-  const daysInCurrentMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(calYear, calMonth, 1).getDay(); // 0 is Sunday
+  const monthlyCalendar = React.useMemo(
+    () =>
+      buildMonthlyStudyCalendar({
+        stats,
+        year: calYear,
+        month: calMonth,
+        loginStreak,
+        dailyGoalTarget,
+        referenceToday: referenceNow,
+      }),
+    [stats, calYear, calMonth, loginStreak, dailyGoalTarget, todayStr]
+  );
 
-  const today = referenceNow;
-
-  // Calculate streak dates set (spanning loginStreak days back from today)
-  const streakDatesSet = React.useMemo(() => {
-    const set = new Set<string>();
-    const count = Math.max(1, loginStreak);
-    for (let i = 0; i < count; i++) {
-      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      d.setDate(d.getDate() - i);
-      set.add(formatDateKey(d));
-    }
-    return set;
-  }, [loginStreak, todayStr]);
-
-  // Compute days studied in this month (including active study seconds/minutes or Pomodoro sessions)
-  const monthlyDaysStudied = React.useMemo(() => {
-    let count = 0;
-    for (let day = 1; day <= daysInCurrentMonth; day++) {
-      const dayStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const log = stats.dailyPomodoroLogs?.[dayStr];
-      const hasStudyOnDay = Boolean(
-        log && ((log.sessions || 0) > 0 || (log.minutes || 0) > 0 || (log.activeSeconds || 0) >= 15)
-      );
-      if (hasStudyOnDay || (streakDatesSet.has(dayStr) && new Date(calYear, calMonth, day) <= today)) {
-        count++;
-      }
-    }
-    return count;
-  }, [calYear, calMonth, daysInCurrentMonth, stats.dailyPomodoroLogs, streakDatesSet, todayStr]);
+  const selectedCalendarCell: MonthlyCalendarDayCell | null = React.useMemo(
+    () =>
+      monthlyCalendar.cells.find((d) => d.dateKey === selectedCalendarDayKey) ||
+      monthlyCalendar.cells.find((d) => d.isToday) ||
+      monthlyCalendar.cells[0] ||
+      null,
+    [monthlyCalendar.cells, selectedCalendarDayKey]
+  );
 
   const weeklyChartData = React.useMemo(
     () => getWeeklyPomodoroChartData(stats, referenceNow, weekOffset),
@@ -324,9 +320,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       role="dialog"
       aria-label="User Profile and Achievements"
       data-testid="user-profile-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xs select-none overflow-y-auto print:hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/85 select-none overflow-y-auto print:hidden"
     >
-      <div className="bg-[#1e293b] text-white w-screen h-[100dvh] max-h-[100dvh] rounded-none border-0 sm:w-full sm:max-w-4xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl sm:border-4 sm:border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden my-auto flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="bg-[#1e293b] text-white w-full h-[100dvh] max-h-[100dvh] rounded-none border-0 sm:w-full sm:max-w-4xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl sm:border-4 sm:border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden my-auto flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         {/* Top Modal Header */}
         <div className="bg-[#0f172a] px-4 sm:px-6 py-3.5 sm:py-4 border-b-2 border-slate-700 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -462,8 +458,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onClick={() => setShowAvatarPicker((prev) => !prev)}
                   className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
+                  <ShoppingBag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>{showAvatarPicker ? 'Hide Heroes' : 'Switch Hero'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenExportScoreCard();
+                  }}
+                  className="sm:hidden min-h-[44px] px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <Trophy className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <span>Score Card</span>
                 </button>
                 <button
                   type="button"
@@ -473,7 +480,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   }}
                   className="min-h-[44px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                 >
-                  <Compass className="w-3.5 h-3.5" />
+                  <Compass className="w-3.5 h-3.5 shrink-0" />
                   <span>App Guide</span>
                 </button>
               </div>
@@ -1215,172 +1222,304 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2B: Monthly Study Calendar & Streak Heatmap */}
+          {/* Section 2B: Visual Calendar View — Daily Study Streaks & Completed Goal Days Grid */}
           <div
             data-testid="monthly-study-calendar-section"
             className="bg-slate-900 rounded-2xl p-4 sm:p-5 border-2 border-slate-700 space-y-4"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500 border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000] shrink-0">
                   <Calendar className="w-5 h-5 text-slate-950" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-[10px] font-black uppercase text-emerald-400 font-mario block">
-                    DAILY ENGAGEMENT HEATMAP
+                    STREAKS &amp; COMPLETED DAILY GOALS
                   </span>
-                  <h3 className="text-base sm:text-lg font-black text-white font-display">
-                    MONTHLY STUDY CALENDAR &amp; STREAK
+                  <h3 className="text-base sm:text-lg font-black text-white font-display truncate">
+                    VISUAL STUDY CALENDAR
                   </h3>
                 </div>
               </div>
 
-              {/* Month Navigation Controls & Stats */}
-              <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
-                <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-slate-700 text-xs">
-                  <span className="text-slate-400 font-medium">Days Active:</span>
-                  <strong className="text-emerald-400 font-bold font-mono">{monthlyDaysStudied} / {daysInCurrentMonth}</strong>
-                  <span className="text-slate-600">|</span>
-                  <span className="text-amber-400 font-bold font-mono flex items-center gap-1">
-                    <Flame className="w-3.5 h-3.5 text-amber-400" />
-                    {loginStreak} Day Streak
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1">
+              {/* Month Navigation Controls */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {!isCurrentCalendarMonth && (
                   <button
                     type="button"
-                    aria-label="Previous Month"
                     onClick={() => {
-                      setCalendarViewDate(new Date(calYear, calMonth - 1, 1));
-                      marioAudio.playJump();
+                      const now = new Date();
+                      setCalendarViewDate(new Date(now.getFullYear(), now.getMonth(), 1));
+                      setSelectedCalendarDayKey(formatDateKey(now));
+                      marioAudio.playCoin();
                     }}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white cursor-pointer"
+                    className="min-h-[40px] px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black cursor-pointer whitespace-nowrap"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    Today
                   </button>
-                  <span className="text-xs font-black uppercase text-amber-300 font-mario px-2 min-w-[120px] text-center">
-                    {monthName}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Next Month"
-                    onClick={() => {
-                      setCalendarViewDate(new Date(calYear, calMonth + 1, 1));
-                      marioAudio.playJump();
-                    }}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white cursor-pointer"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                )}
+                <button
+                  type="button"
+                  aria-label="Previous Month"
+                  onClick={() => {
+                    const prev = new Date(calYear, calMonth - 1, 1);
+                    setCalendarViewDate(prev);
+                    setSelectedCalendarDayKey(formatDateKey(prev));
+                    marioAudio.playJump();
+                  }}
+                  className="min-h-[40px] min-w-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white inline-flex items-center justify-center cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span
+                  data-testid="calendar-month-label"
+                  className="text-xs font-black uppercase text-amber-300 font-mario px-2 min-w-[132px] text-center whitespace-nowrap"
+                >
+                  {monthName}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Next Month"
+                  onClick={() => {
+                    const next = new Date(calYear, calMonth + 1, 1);
+                    setCalendarViewDate(next);
+                    setSelectedCalendarDayKey(formatDateKey(next));
+                    marioAudio.playJump();
+                  }}
+                  className="min-h-[40px] min-w-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 hover:text-white inline-flex items-center justify-center cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
-            {/* Calendar Grid */}
+            {/* 3-Card Streak & Goal Summary Strip */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800 flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                    Current Streak
+                  </span>
+                  <span
+                    data-testid="calendar-streak-count"
+                    className="text-base sm:text-lg font-black text-amber-300 font-mono tabular-nums"
+                  >
+                    {loginStreak} {loginStreak === 1 ? 'Day' : 'Days'}
+                  </span>
+                </div>
+                <Flame className="w-5 h-5 text-orange-400 shrink-0" />
+              </div>
+
+              <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800 flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                    Goal Days Met (&ge;{dailyGoalTarget}m)
+                  </span>
+                  <span
+                    data-testid="calendar-completed-goals-count"
+                    className="text-base sm:text-lg font-black text-emerald-400 font-mono tabular-nums"
+                  >
+                    {monthlyCalendar.completedGoalDaysCount} / {monthlyCalendar.daysInMonth}
+                  </span>
+                </div>
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              </div>
+
+              <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800 flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                    Active Study Days
+                  </span>
+                  <span
+                    data-testid="calendar-active-days-count"
+                    className="text-base sm:text-lg font-black text-sky-300 font-mono tabular-nums"
+                  >
+                    {monthlyCalendar.activeDaysCount} / {monthlyCalendar.daysInMonth}
+                  </span>
+                </div>
+                <Calendar className="w-5 h-5 text-sky-400 shrink-0" />
+              </div>
+            </div>
+
+            {/* 7-Column Interactive Calendar Grid */}
             <div className="space-y-2">
-              {/* Day of Week Headers */}
               <div className="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] sm:text-xs font-black text-slate-400 uppercase font-mono">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                  <div key={d} className="py-1">{d}</div>
+                  <div key={d} className="py-1">
+                    {d}
+                  </div>
                 ))}
               </div>
 
-              {/* Day Cells */}
-              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-                {/* Empty offset placeholders */}
-                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                  <div key={`offset-${i}`} className="aspect-square rounded-xl bg-slate-950/30 border border-slate-800/40 opacity-20" />
+              <div
+                data-testid="visual-calendar-grid"
+                className="grid grid-cols-7 gap-1 sm:gap-1.5"
+              >
+                {Array.from({ length: monthlyCalendar.firstDayOffset }).map((_, i) => (
+                  <div
+                    key={`offset-${i}`}
+                    aria-hidden="true"
+                    className="min-h-[44px] sm:min-h-[54px] rounded-xl bg-slate-950/25 border border-slate-800/30"
+                  />
                 ))}
 
-                {/* Days of the month */}
-                {Array.from({ length: daysInCurrentMonth }).map((_, i) => {
-                  const dayNum = i + 1;
-                  const dayDate = new Date(calYear, calMonth, dayNum);
-                  const dayStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                  const isDayToday = dayStr === todayStr;
-                  const isFuture = dayDate > today;
-                  const logRecord = stats.dailyPomodoroLogs?.[dayStr];
-                  const sessionCount = logRecord?.sessions || 0;
-                  const minutesStudied =
-                    logRecord?.minutes ??
-                    Math.max(
-                      sessionCount * 25,
-                      Math.floor((logRecord?.activeSeconds || 0) / 60)
-                    );
-                  const hasLoggedStudy =
-                    sessionCount > 0 ||
-                    minutesStudied > 0 ||
-                    (logRecord?.activeSeconds || 0) >= 15;
-                  const isStreakDay = streakDatesSet.has(dayStr) && !isFuture;
-                  const hasActivity = hasLoggedStudy || isStreakDay;
-
-                  // Determine heatmap styling
-                  let cellBg = 'bg-slate-950/60 border-slate-800 text-slate-500';
-                  if (hasActivity) {
-                    if (sessionCount >= 3 || minutesStudied >= 75) {
-                      cellBg = 'bg-amber-400 border-amber-300 text-slate-950 font-black shadow-[0_2px_4px_rgba(251,191,36,0.3)]';
-                    } else if (sessionCount >= 2 || minutesStudied >= 45) {
-                      cellBg = 'bg-emerald-500 border-emerald-400 text-slate-950 font-extrabold';
-                    } else {
-                      cellBg = 'bg-emerald-600/70 border-emerald-500/80 text-emerald-100 font-bold';
-                    }
-                  } else if (isFuture) {
-                    cellBg = 'bg-slate-950/30 border-slate-900 text-slate-700';
+                {monthlyCalendar.cells.map((cell) => {
+                  const isSelected = selectedCalendarCell?.dateKey === cell.dateKey;
+                  let cellTone = 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-600';
+                  if (cell.isFuture) {
+                    cellTone = 'bg-slate-950/30 border-slate-900 text-slate-600';
+                  } else if (cell.isGoalCompleted) {
+                    cellTone =
+                      'bg-emerald-500 border-emerald-300 text-slate-950 font-black shadow-[0_2px_0_rgba(0,0,0,0.6)]';
+                  } else if (cell.isStreakDay) {
+                    cellTone =
+                      'bg-amber-500/20 border-amber-400 text-amber-100 font-extrabold hover:bg-amber-500/30';
+                  } else if (cell.hasActivity) {
+                    cellTone =
+                      'bg-sky-900/50 border-sky-400/70 text-sky-100 font-bold hover:bg-sky-900/70';
                   }
 
+                  const statusLabel = cell.isFuture
+                    ? 'Upcoming date'
+                    : cell.isGoalCompleted && cell.isStreakDay
+                    ? `Daily goal completed (${cell.minutesStudied}m) and active streak day`
+                    : cell.isGoalCompleted
+                    ? `Daily goal completed (${cell.minutesStudied}m)`
+                    : cell.isStreakDay
+                    ? `Active streak day (${cell.minutesStudied}m studied)`
+                    : cell.hasActivity
+                    ? `${cell.minutesStudied}m studied`
+                    : 'No study logged';
+
                   return (
-                    <div
-                      key={`day-${dayNum}`}
-                      title={`${dayStr}: ${hasActivity ? (sessionCount ? `${sessionCount} study blocks (${minutesStudied}m)` : minutesStudied > 0 ? `${minutesStudied}m active study` : 'Active streak day') : isFuture ? 'Upcoming day' : 'No study logged'}`}
-                      className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center p-1 transition-all select-none ${cellBg} ${
-                        isDayToday ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900' : ''
-                      }`}
+                    <button
+                      key={cell.dateKey}
+                      type="button"
+                      data-testid={`calendar-day-${cell.dateKey}`}
+                      data-streak={cell.isStreakDay ? 'true' : 'false'}
+                      data-goal-completed={cell.isGoalCompleted ? 'true' : 'false'}
+                      aria-label={`${cell.dateKey}: ${statusLabel}`}
+                      aria-pressed={isSelected}
+                      onClick={() => {
+                        setSelectedCalendarDayKey(cell.dateKey);
+                        marioAudio.playClick();
+                      }}
+                      className={`relative min-h-[44px] sm:min-h-[54px] rounded-xl border p-1 sm:p-1.5 flex flex-col items-center justify-between transition-colors cursor-pointer select-none ${cellTone} ${
+                        cell.isToday ? 'ring-2 ring-amber-400' : ''
+                      } ${isSelected ? 'outline-2 outline-white -outline-offset-2' : ''}`}
                     >
-                      <span className={`text-[11px] sm:text-xs leading-none ${hasActivity && sessionCount >= 2 ? 'font-black' : 'font-semibold'}`}>
-                        {dayNum}
+                      <span className="text-[11px] sm:text-xs font-mono tabular-nums leading-none">
+                        {cell.dayNum}
                       </span>
-                      {hasActivity && (
-                        <div className="flex items-center gap-0.5 mt-0.5">
-                          {sessionCount >= 3 ? (
-                            <span className="text-[9px] font-mono leading-none">3+</span>
-                          ) : (
-                            <div className={`w-1.5 h-1.5 rounded-full ${sessionCount >= 2 ? 'bg-slate-950' : 'bg-emerald-300'}`} />
-                          )}
-                        </div>
-                      )}
-                      {isDayToday && (
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                        </span>
-                      )}
-                    </div>
+
+                      <div className="flex items-center justify-center gap-0.5 min-h-[14px]">
+                        {cell.isStreakDay && (
+                          <Flame
+                            className={`w-3 h-3 shrink-0 ${
+                              cell.isGoalCompleted ? 'text-slate-950 fill-amber-300' : 'text-orange-400 fill-orange-400/40'
+                            }`}
+                          />
+                        )}
+                        {cell.isGoalCompleted && (
+                          <CheckCircle2 className="w-3 h-3 shrink-0 text-slate-950" />
+                        )}
+                        {!cell.isGoalCompleted && cell.minutesStudied > 0 && (
+                          <span className="text-[9px] font-mono tabular-nums leading-none">
+                            {cell.minutesStudied}m
+                          </span>
+                        )}
+                      </div>
+                    </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Heatmap Legend */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-800 text-[10px] sm:text-xs text-slate-400">
-              <span className="font-medium">Daily Study Frequency &amp; Pomodoro Intensity</span>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-slate-950 border border-slate-800" />
-                  <span>0 Sessions</span>
+            {/* Selected Calendar Date Detail Inspector */}
+            {selectedCalendarCell && (
+              <div
+                data-testid="calendar-selected-day-detail"
+                className="bg-slate-950/90 rounded-xl p-3 sm:p-3.5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs"
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono font-black text-white tabular-nums">
+                      {selectedCalendarCell.dateKey}
+                    </span>
+                    {selectedCalendarCell.isToday && (
+                      <span className="text-amber-300 font-bold">· Today</span>
+                    )}
+                    <span aria-hidden="true" className="text-slate-600">
+                      ·
+                    </span>
+                    <span
+                      className={`font-bold ${
+                        selectedCalendarCell.isStreakDay ? 'text-orange-300' : 'text-slate-400'
+                      }`}
+                    >
+                      {selectedCalendarCell.isStreakDay ? 'Active Streak Day' : 'Outside Current Streak'}
+                    </span>
+                    <span aria-hidden="true" className="text-slate-600">
+                      ·
+                    </span>
+                    <span
+                      className={`font-bold ${
+                        selectedCalendarCell.isGoalCompleted ? 'text-emerald-400' : 'text-slate-300'
+                      }`}
+                    >
+                      {selectedCalendarCell.isFuture
+                        ? 'Upcoming Day'
+                        : selectedCalendarCell.isGoalCompleted
+                        ? 'Daily Goal Completed'
+                        : `Goal Progress: ${selectedCalendarCell.minutesStudied} / ${dailyGoalTarget}m`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    {selectedCalendarCell.isFuture
+                      ? 'Future calendar date — keep your study streak alive each day!'
+                      : `${selectedCalendarCell.minutesStudied} min active study · ${selectedCalendarCell.sessions} Pomodoro ${
+                          selectedCalendarCell.sessions === 1 ? 'session' : 'sessions'
+                        } (${selectedCalendarCell.goalProgressPercent}% of ${dailyGoalTarget}m daily target)`}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-emerald-600/70 border border-emerald-500" />
-                  <span>1 Session</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-emerald-500 border border-emerald-400" />
-                  <span>2 Sessions</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-amber-400 border border-amber-300" />
-                  <span>3+ Sessions</span>
-                </div>
+
+                {!selectedCalendarCell.isFuture && (
+                  <div className="w-full sm:w-36 shrink-0 space-y-1">
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden border border-slate-700">
+                      <div
+                        className={`h-full transition-all ${
+                          selectedCalendarCell.isGoalCompleted ? 'bg-emerald-400' : 'bg-amber-400'
+                        }`}
+                        style={{ width: `${selectedCalendarCell.goalProgressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Calendar Visual Legend */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+              <span className="text-slate-400 font-medium">Tap any date cell to inspect streak &amp; goal details:</span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-emerald-500 border border-emerald-300 inline-flex items-center justify-center">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-slate-950" />
+                  </span>
+                  <span>Goal Met (&ge;{dailyGoalTarget}m)</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400/40" />
+                  <span>Streak Day</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-sky-900/70 border border-sky-400/70" />
+                  <span>Partial Study</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded bg-slate-950 border border-slate-800" />
+                  <span>No Activity</span>
+                </span>
               </div>
             </div>
           </div>

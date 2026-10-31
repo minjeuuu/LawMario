@@ -33,6 +33,7 @@ import {
   Eye,
   EyeOff,
   ListChecks,
+  Bookmark,
 } from 'lucide-react';
 import {
   MarioMushroomIcon,
@@ -51,6 +52,7 @@ import {
 } from '../data/quickGlossaryData';
 import { QuickGlossaryModal } from './QuickGlossaryModal';
 import { extractClozeSegments } from '../utils/studyModes';
+import { getTopicQuickCheck } from '../utils/moduleSorting';
 
 interface TopicCardProps {
   topic: LawTopic;
@@ -66,6 +68,9 @@ interface TopicCardProps {
   equippedCardFrame?: string;
   expandCollapseSignal?: { mode: 'expand' | 'collapse'; seq: number } | null;
   compactView?: boolean;
+  onEarnCoins?: (amount: number) => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
 export const TopicCard: React.FC<TopicCardProps> = ({
@@ -82,6 +87,9 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   equippedCardFrame = 'frame_default',
   expandCollapseSignal = null,
   compactView = false,
+  onEarnCoins,
+  isBookmarked = false,
+  onToggleBookmark,
 }) => {
   const [isExpanded, setIsExpanded] = useState(() => !compactView);
   const [studyLens, setStudyLens] = useState<'full' | 'summary' | 'cloze' | 'checklist'>('full');
@@ -98,6 +106,17 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   const [viewTab, setViewTab] = useState<'all' | 'cards' | 'tables'>('all');
   const [isGlossaryModalOpen, setIsGlossaryModalOpen] = useState(false);
   const [selectedGlossaryTermId, setSelectedGlossaryTermId] = useState<string | null>(null);
+  const [quickCheckChoice, setQuickCheckChoice] = useState<number | null>(null);
+  const [quickCheckClaimed, setQuickCheckClaimed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = JSON.parse(localStorage.getItem('mario_claimed_quick_checks') || '[]');
+      return Array.isArray(saved) && saved.includes(topic.id);
+    } catch {
+      return false;
+    }
+  });
+  const quickCheck = useMemo(() => getTopicQuickCheck(topic), [topic]);
   const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressTriggeredRef = useRef(false);
 
@@ -781,6 +800,23 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             )}
           </div>
 
+          {onToggleBookmark && (
+            <button
+              type="button"
+              data-testid={`bookmark-topic-${topic.id}`}
+              onClick={onToggleBookmark}
+              title={isBookmarked ? 'Remove topic bookmark' : 'Pin / Bookmark topic for quick access'}
+              className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-xl font-black text-xs border-2 cursor-pointer transition-all whitespace-nowrap leading-none ${
+                isBookmarked
+                  ? 'bg-sky-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+              }`}
+            >
+              <Bookmark className={`w-3.5 h-3.5 shrink-0 ${isBookmarked ? 'fill-current' : ''}`} />
+              <span>{isBookmarked ? 'Bookmarked' : 'Pin Topic'}</span>
+            </button>
+          )}
+
           {onToggleNeedsImprovement && (
             <button
               type="button"
@@ -889,10 +925,10 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             <div className="flex items-center gap-1.5 flex-wrap">
               {(
                 [
-                  { id: 'full' as const, label: 'Full Codal', icon: <BookOpen className="w-3.5 h-3.5 shrink-0" /> },
+                  { id: 'full' as const, label: 'Full Guide', icon: <BookOpen className="w-3.5 h-3.5 shrink-0" /> },
                   { id: 'summary' as const, label: 'Exec Summary', icon: <Sparkles className="w-3.5 h-3.5 shrink-0" /> },
                   { id: 'cloze' as const, label: 'Cloze Recall', icon: <Eye className="w-3.5 h-3.5 shrink-0" /> },
-                  { id: 'checklist' as const, label: 'Bar Checklist', icon: <ListChecks className="w-3.5 h-3.5 shrink-0" /> },
+                  { id: 'checklist' as const, label: 'Study Checklist', icon: <ListChecks className="w-3.5 h-3.5 shrink-0" /> },
                 ]
               ).map((lens) => (
                 <button
@@ -922,7 +958,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-500" />
                   <span className="font-black text-sm uppercase font-mario text-amber-900 dark:text-amber-300">
-                    MARIO EXECUTIVE SUMMARY · QUICK BAR REVIEW
+                    MARIO EXECUTIVE SUMMARY · QUICK STUDY REVIEW
                   </span>
                 </div>
                 <span className="text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400">
@@ -1786,7 +1822,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               <div className="flex items-center gap-2">
                 <MarioStarIcon className="w-6 h-6 flex-shrink-0" />
                 <span className="font-black text-base sm:text-lg uppercase tracking-wide text-red-950 font-display">
-                  POWER-UP: KEY STATUTORY CHECKPOINTS &amp; BAR DISTINCTIONS
+                  POWER-UP: KEY STATUTORY CHECKPOINTS &amp; PRACTICAL DISTINCTIONS
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -1806,6 +1842,118 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               </div>
             </div>
           )}
+
+          {/* Interactive Micro-Quiz: Quick Knowledge Check (+3 Coins) */}
+          <section
+            data-testid={`topic-quick-check-${topic.id}`}
+            className="rounded-2xl border-2 border-slate-900 bg-slate-900 text-white p-4 sm:p-5 space-y-3.5 shadow-[4px_4px_0_#000]"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <MarioQuestionBlockIcon className="w-5 h-5 shrink-0" />
+                <h4 className="text-sm sm:text-base font-black text-amber-300 font-display">
+                  Quick Knowledge Check
+                </h4>
+              </div>
+              <span className="text-xs font-bold text-emerald-300 tabular-nums">
+                {quickCheckClaimed
+                  ? '✓ +3 Coins Claimed'
+                  : `Answer Correctly for +${quickCheck.rewardCoins} Coins`}
+              </span>
+            </div>
+
+            <p className="text-sm font-bold text-slate-100 leading-relaxed">
+              {quickCheck.question}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {quickCheck.options.map((optText, optIdx) => {
+                const isSelected = quickCheckChoice === optIdx;
+                const isCorrectOpt = optIdx === quickCheck.correctIndex;
+                const showResult = quickCheckChoice !== null;
+
+                let btnStyle =
+                  'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700';
+                if (showResult) {
+                  if (isCorrectOpt) {
+                    btnStyle = 'bg-emerald-500 text-slate-950 border-black font-black';
+                  } else if (isSelected) {
+                    btnStyle = 'bg-rose-500 text-white border-black font-black';
+                  } else {
+                    btnStyle = 'bg-slate-950/60 text-slate-400 border-slate-800';
+                  }
+                }
+
+                return (
+                  <button
+                    key={optIdx}
+                    type="button"
+                    data-testid={`quick-check-opt-${topic.id}-${optIdx}`}
+                    onClick={() => {
+                      setQuickCheckChoice(optIdx);
+                      if (optIdx === quickCheck.correctIndex) {
+                        marioAudio.playCoin();
+                        if (!quickCheckClaimed) {
+                          setQuickCheckClaimed(true);
+                          onEarnCoins?.(quickCheck.rewardCoins);
+                          try {
+                            const saved = JSON.parse(
+                              localStorage.getItem('mario_claimed_quick_checks') || '[]'
+                            );
+                            const next = Array.isArray(saved)
+                              ? Array.from(new Set([...saved, topic.id]))
+                              : [topic.id];
+                            localStorage.setItem(
+                              'mario_claimed_quick_checks',
+                              JSON.stringify(next)
+                            );
+                          } catch {
+                            // ignore storage errors
+                          }
+                        }
+                      } else {
+                        marioAudio.playWrongAnswer();
+                      }
+                    }}
+                    className={`min-h-[44px] px-3.5 py-2.5 rounded-xl border-2 text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-start gap-2 ${btnStyle}`}
+                  >
+                    <span className="font-mono font-black shrink-0">
+                      {String.fromCharCode(65 + optIdx)}.
+                    </span>
+                    <span className="min-w-0 break-words">{optText}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {quickCheckChoice !== null && (
+              <div
+                className={`rounded-xl p-3 border text-xs sm:text-sm font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                  quickCheckChoice === quickCheck.correctIndex
+                    ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-100'
+                    : 'bg-rose-950/80 border-rose-500/60 text-rose-100'
+                }`}
+              >
+                <p className="leading-relaxed">
+                  <strong className="font-black">
+                    {quickCheckChoice === quickCheck.correctIndex
+                      ? 'Correct! '
+                      : 'Not quite — try another choice! '}
+                  </strong>
+                  {quickCheck.explanation}
+                </p>
+                {quickCheckChoice !== quickCheck.correctIndex && (
+                  <button
+                    type="button"
+                    onClick={() => setQuickCheckChoice(null)}
+                    className="min-h-[36px] px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs border border-slate-600 shrink-0 cursor-pointer"
+                  >
+                    Try Again
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
           </>
           )}
         </div>

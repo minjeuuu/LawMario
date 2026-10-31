@@ -20,6 +20,12 @@ import {
   CHRONO_BLITZ_BANK,
 } from './NewVaultGames';
 import {
+  HAMMER_BROS_PAYROLL_BANK,
+  TOADETTE_DUE_PROCESS_CASES,
+  SHY_GUY_CONVEYOR_BANK,
+  KAMEK_DEADLINE_SPELLS,
+} from './BonusVaultGames';
+import {
   MarioQuestionBlockIcon,
   MarioStarIcon,
   MarioMushroomIcon,
@@ -218,6 +224,58 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
       });
     });
 
+    // 13. Hammer Bros. Payroll Blitz
+    HAMMER_BROS_PAYROLL_BANK.forEach((hb) => {
+      list.push({
+        id: `hammer-${hb.id}`,
+        category: 'hammer_blitz',
+        title: `Hammer Bros. Payroll Blitz • ${hb.label}`,
+        questionOrDoctrine: hb.detail,
+        answerOrRule: hb.isValidPayroll
+          ? 'LAWFUL STATUTORY PAYROLL (Shield!)'
+          : 'PROHIBITED PAYROLL VIOLATION (Smash!)',
+        legalBasis: hb.statute,
+      });
+    });
+
+    // 14. Toadette's Twin-Notice Relay
+    TOADETTE_DUE_PROCESS_CASES.forEach((dp) => {
+      list.push({
+        id: `relay-${dp.id}`,
+        category: 'toadette_relay',
+        title: `Toadette Due Process Relay • ${dp.title}`,
+        questionOrDoctrine: dp.scenario,
+        answerOrRule: `1) ${dp.orderedSteps[0]} → 2) ${dp.orderedSteps[1]} → 3) ${dp.orderedSteps[2]} (${dp.doctrineNote})`,
+        legalBasis: dp.statute,
+      });
+    });
+
+    // 15. Shy Guy's Wage & D.O. 174 Conveyor
+    SHY_GUY_CONVEYOR_BANK.forEach((sg) => {
+      list.push({
+        id: `conveyor-${sg.id}`,
+        category: 'shy_conveyor',
+        title: `Shy Guy Conveyor • ${sg.title}`,
+        questionOrDoctrine: sg.spec,
+        answerOrRule: sg.isCompliant
+          ? 'COMPLIANT ARRANGEMENT / FORMULA'
+          : 'DOLE / STATUTORY VIOLATION',
+        legalBasis: sg.basis,
+      });
+    });
+
+    // 16. Kamek's Statutory Deadlines Duel
+    KAMEK_DEADLINE_SPELLS.forEach((km) => {
+      list.push({
+        id: `kamek-${km.id}`,
+        category: 'kamek_duel',
+        title: `Kamek Deadlines Duel • ${km.spellTitle}`,
+        questionOrDoctrine: km.claimPrompt,
+        answerOrRule: `Mandatory Period: ${km.correctAnswer}`,
+        legalBasis: km.basis,
+      });
+    });
+
     return list;
   }, []);
 
@@ -265,7 +323,7 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[80] flex items-center justify-center p-2.5 sm:p-5 bg-black/85 backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-2.5 sm:p-5 bg-black/85 animate-in fade-in"
     >
       <div className="bg-slate-900 border-4 border-amber-400 rounded-3xl w-[96vw] max-w-7xl h-[90vh] flex flex-col shadow-[0_0_35px_rgba(251,191,36,0.25)] overflow-hidden text-white">
         {/* Header */}
@@ -353,6 +411,10 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
               { id: 'yoshi_toss', label: 'Yoshi Egg Toss' },
               { id: 'boo_burden', label: 'Burden Mansion' },
               { id: 'chrono_blitz', label: 'Prescription Blitz' },
+              { id: 'hammer_blitz', label: 'Hammer Blitz' },
+              { id: 'toadette_relay', label: 'Due Process Relay' },
+              { id: 'shy_conveyor', label: 'D.O. 174 Belt' },
+              { id: 'kamek_duel', label: 'Kamek Deadlines' },
             ].map((tab) => (
               <button
                 key={tab.id}

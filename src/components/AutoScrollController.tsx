@@ -5,12 +5,18 @@ import { getAutoScrollMobilePosition } from '../utils/engagementFeatures';
 
 export type ScrollSpeed = 1 | 2 | 3 | 4;
 
-export const AutoScrollController: React.FC = () => {
+interface AutoScrollControllerProps {
+  activeTab?: string;
+}
+
+const READING_TABS = new Set(['modules', 'citations', 'holidays', 'regions', 'wages_matrix']);
+
+export const AutoScrollController: React.FC<AutoScrollControllerProps> = ({
+  activeTab = 'modules',
+}) => {
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const [speed, setSpeed] = useState<ScrollSpeed>(2);
-  const [isMinimized, setIsMinimized] = useState<boolean>(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 640 : true
-  );
+  const [isMinimized, setIsMinimized] = useState<boolean>(true);
   const [pomodoroState, setPomodoroState] = useState<{
     active: boolean;
     hasNotice: boolean;
@@ -28,6 +34,26 @@ export const AutoScrollController: React.FC = () => {
 
   const scrollAnimRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+  const isReadingTab = READING_TABS.has(activeTab);
+
+  useEffect(() => {
+    if (!isReadingTab && isScrolling) {
+      setIsScrolling(false);
+    }
+  }, [isReadingTab, isScrolling]);
+
+  useEffect(() => {
+    const handleExternalToggle = () => {
+      setIsMinimized(false);
+      setIsScrolling((prev) => {
+        if (!prev) marioAudio.playPipe();
+        else marioAudio.playJump();
+        return !prev;
+      });
+    };
+    window.addEventListener('mario-toggle-autoscroll', handleExternalToggle);
+    return () => window.removeEventListener('mario-toggle-autoscroll', handleExternalToggle);
+  }, []);
 
   useEffect(() => {
     const handleState = (e: Event) => {
@@ -42,8 +68,7 @@ export const AutoScrollController: React.FC = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(max-width: 639px)');
-    if (mq.matches) setIsMinimized(true);
+    const mq = window.matchMedia('(max-width: 1279px)');
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) setIsMinimized(true);
     };
@@ -60,7 +85,7 @@ export const AutoScrollController: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isScrolling) {
+    if (!isScrolling || !isReadingTab) {
       if (scrollAnimRef.current) cancelAnimationFrame(scrollAnimRef.current);
       return;
     }
@@ -89,7 +114,7 @@ export const AutoScrollController: React.FC = () => {
     return () => {
       if (scrollAnimRef.current) cancelAnimationFrame(scrollAnimRef.current);
     };
-  }, [isScrolling, speed]);
+  }, [isScrolling, speed, isReadingTab]);
 
   const handleToggleScroll = () => {
     if (!isScrolling) {
@@ -102,11 +127,16 @@ export const AutoScrollController: React.FC = () => {
 
   const handleCycleSpeed = () => {
     setSpeed((prev) => {
-      const next = (prev % 4) + 1 as ScrollSpeed;
+      const next = ((prev % 4) + 1) as ScrollSpeed;
       marioAudio.playCoin();
       return next;
     });
   };
+
+  // Never float AutoScroll over non-reading tabs (Games, Map, Quiz, Flashcards, Shop)
+  if (!isReadingTab) {
+    return null;
+  }
 
   // Compute dynamic mobile positioning so AutoScroll sits safely above the Pomodoro overlay
   const mobilePosition = getAutoScrollMobilePosition(pomodoroState);
@@ -119,14 +149,15 @@ export const AutoScrollController: React.FC = () => {
     return (
       <button
         id="floating-autoscroll"
+        type="button"
         onClick={() => setIsMinimized(false)}
         title="Open Auto-Scroll Control"
         data-testid="floating-autoscroll-btn"
-        className={`fixed ${mobileBottomClass} right-3 lg:bottom-4 lg:right-4 z-40 p-2 sm:p-2.5 ${
+        className={`flex fixed ${mobileBottomClass} right-3 lg:bottom-4 lg:right-4 z-30 px-3 py-2 ${
           isScrolling
             ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 animate-pulse'
             : 'bg-amber-400 hover:bg-amber-300 text-slate-950'
-        } font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer flex items-center gap-1.5 text-xs font-mario print:hidden transition-[bottom,transform] duration-300 ease-out`}
+        } font-black rounded-2xl border-2 border-black shadow-[0_3px_0_#000] cursor-pointer items-center gap-1.5 text-xs font-mario print:hidden transition-[bottom,transform] duration-200 ease-out`}
       >
         <ChevronDown className="w-4 h-4 stroke-[3]" />
         <span>SCROLL</span>
@@ -137,7 +168,7 @@ export const AutoScrollController: React.FC = () => {
   return (
     <div
       id="floating-autoscroll"
-      className={`fixed ${mobileBottomClass} right-3 lg:bottom-4 lg:right-4 z-40 bg-[#1e293b] text-white border-3 border-slate-950 rounded-2xl p-2 sm:p-2.5 shadow-[4px_4px_0_#000] flex items-center gap-1.5 sm:gap-2 font-mario text-xs select-none print:hidden transition-[bottom,transform] duration-300 ease-out`}
+      className={`fixed ${mobileBottomClass} right-3 lg:bottom-4 lg:right-4 z-30 bg-[#1e293b] text-white border-2 border-slate-950 rounded-2xl p-2 sm:p-2.5 shadow-[4px_4px_0_#000] flex items-center gap-1.5 sm:gap-2 font-mario text-xs select-none print:hidden transition-[bottom,transform] duration-200 ease-out`}
     >
       <span className="text-[10px] text-amber-400 font-black uppercase pl-1 hidden sm:inline">
         AUTO-SCROLL:

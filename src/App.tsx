@@ -21,7 +21,7 @@ import { DailyRewardModal } from './components/DailyRewardModal';
 import { AutoScrollController } from './components/AutoScrollController';
 import { ExportProgressModal } from './components/ExportProgressModal';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
-import { PrintStudyGuideModal } from './components/PrintStudyGuideModal';
+import { PrintStudyGuideModal, PrintModalDocumentMode } from './components/PrintStudyGuideModal';
 import { StudyNotesDrawer } from './components/StudyNotesDrawer';
 import { IntegratedStudyNotesPanel } from './components/IntegratedStudyNotesPanel';
 import { LevelUpModal } from './components/LevelUpModal';
@@ -120,7 +120,18 @@ import {
   ChevronRight,
   ChevronsDown,
   ChevronsUp,
+  FileDown,
+  Bookmark,
+  Presentation,
+  ArrowUpDown,
 } from 'lucide-react';
+import {
+  sortModuleTopics,
+  TOPIC_SORT_OPTIONS,
+  TopicSortOption,
+  getFriendlyDifficultyLabel,
+  getTopicQuickCheck,
+} from './utils/moduleSorting';
 
 const TOAD_PRO_TIPS = [
   {
@@ -258,6 +269,12 @@ export default function App() {
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState<boolean>(false);
   const [isPrintGuideOpen, setIsPrintGuideOpen] = useState<boolean>(false);
+  const [printGuideInitialMode, setPrintGuideInitialMode] =
+    useState<PrintModalDocumentMode>('summary');
+  const openPrintStudio = (mode: PrintModalDocumentMode = 'summary') => {
+    setPrintGuideInitialMode(mode);
+    setIsPrintGuideOpen(true);
+  };
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
   const [isLegalCitationsOpen, setIsLegalCitationsOpen] = useState<boolean>(false);
@@ -624,14 +641,46 @@ export default function App() {
   // Modules Side-by-Side Split View (Topic Cards Left + Saved Study Notes Right)
   const [isSplitView, setIsSplitView] = useState<boolean>(false);
 
-  // Additional Module Study & View Options (Stream / 2-Col Grid / Compact Outline / Focus Reader + Status Filter)
-  const [moduleViewMode, setModuleViewMode] = useState<'stream' | 'grid' | 'outline' | 'focus'>('stream');
-  const [moduleStatusFilter, setModuleStatusFilter] = useState<'all' | 'unread' | 'mastered' | 'flagged'>('all');
+  // Additional Module Study & View Options (Stream / 2-Col Grid / Compact Outline / Focus Reader / Slide Deck + Status & Sort)
+  const [moduleViewMode, setModuleViewMode] = useState<
+    'stream' | 'grid' | 'outline' | 'focus' | 'slides'
+  >('stream');
+  const [moduleStatusFilter, setModuleStatusFilter] = useState<
+    'all' | 'unread' | 'mastered' | 'flagged' | 'bookmarked'
+  >('all');
+  const [topicSortBy, setTopicSortBy] = useState<TopicSortOption>('default');
+  const [bookmarkedTopicIds, setBookmarkedTopicIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mario_bookmarked_topics');
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  const handleToggleBookmarkTopic = (topicId: string) => {
+    setBookmarkedTopicIds((prev) => {
+      const next = prev.includes(topicId)
+        ? prev.filter((id) => id !== topicId)
+        : [...prev, topicId];
+      try {
+        localStorage.setItem('mario_bookmarked_topics', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+    marioAudio.playCoin();
+  };
   const [expandCollapseSignal, setExpandCollapseSignal] = useState<{
     mode: 'expand' | 'collapse';
     seq: number;
   } | null>(null);
   const [focusTopicIdx, setFocusTopicIdx] = useState<number>(0);
+  const [slideStepIdx, setSlideStepIdx] = useState<number>(0);
+  const [slideQuizChoice, setSlideQuizChoice] = useState<number | null>(null);
 
   // Daily Login Streak Counter synced with localStorage
   const [loginStreak, setLoginStreak] = useState<number>(() => {
@@ -780,9 +829,9 @@ export default function App() {
     }
   };
 
-  // Filter topics based on active world, difficulty tag, and search query
+  // Filter and sort topics based on active world, difficulty tag, status, search query, and sort option
   const displayedTopics = useMemo(() => {
-    return ALL_LAW_TOPICS.filter((topic) => {
+    const filtered = ALL_LAW_TOPICS.filter((topic) => {
       const matchesWorld = activeWorld === 'all' || topic.worldId === activeWorld;
       if (!matchesWorld) return false;
 
@@ -803,6 +852,9 @@ export default function App() {
       ) {
         return false;
       }
+      if (moduleStatusFilter === 'bookmarked' && !bookmarkedTopicIds.includes(topic.id)) {
+        return false;
+      }
 
       if (!searchQuery.trim()) return true;
 
@@ -821,6 +873,8 @@ export default function App() {
 
       return titleMatch || summaryMatch || badgeMatch || docMatch || rulesMatch || tipsMatch;
     });
+
+    return sortModuleTopics(filtered, topicSortBy, TOPIC_DIFFICULTY_MAP);
   }, [
     activeWorld,
     searchQuery,
@@ -828,11 +882,15 @@ export default function App() {
     moduleStatusFilter,
     completedTopicIds,
     profileStats.needsImprovementTopicIds,
+    bookmarkedTopicIds,
+    topicSortBy,
   ]);
 
   useEffect(() => {
     setFocusTopicIdx(0);
-  }, [activeWorld, difficultyFilter, moduleStatusFilter, searchQuery]);
+    setSlideStepIdx(0);
+    setSlideQuizChoice(null);
+  }, [activeWorld, difficultyFilter, moduleStatusFilter, searchQuery, topicSortBy]);
 
   // Quick Jump searchable dropdown items
   const quickJumpFilteredTopics = useMemo(() => {
@@ -1052,7 +1110,17 @@ export default function App() {
       }));
     }
     if (navigateToTab) {
-      setActiveTab(navigateToTab);
+      if (navigateToTab === 'print') {
+        openPrintStudio('summary');
+      } else if (navigateToTab === 'profile') {
+        setIsProfileOpen(true);
+      } else if (navigateToTab === 'glossary') {
+        setIsQuickGlossaryOpen(true);
+      } else if (navigateToTab === 'search') {
+        setIsGlobalSearchOpen(true);
+      } else {
+        setActiveTab(navigateToTab);
+      }
     }
     setIsWalkthroughOpen(false);
   };
@@ -1154,7 +1222,8 @@ export default function App() {
           onOpenDailyReward={() => setIsDailyRewardOpen(true)}
           onOpenExportProgress={() => setIsExportModalOpen(true)}
           onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
-          onOpenPrintGuide={() => setIsPrintGuideOpen(true)}
+          onOpenPrintGuide={() => openPrintStudio('guide')}
+          onOpenOnePageSummary={() => openPrintStudio('summary')}
           onOpenLegalCitationsModal={() => setIsLegalCitationsOpen(true)}
           onOpenQuickGlossary={() => setIsQuickGlossaryOpen(true)}
           showLegalCitations={showLegalCitations}
@@ -1347,7 +1416,7 @@ export default function App() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-black text-slate-950 text-sm sm:text-base font-display truncate">Game Vault</h3>
-                    <p className="text-xs font-bold text-slate-600 truncate">17 Arcade Games</p>
+                    <p className="text-xs font-bold text-slate-600 truncate">22 Arcade Games</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-amber-600 shrink-0" />
@@ -1378,145 +1447,7 @@ export default function App() {
 
         {/* Tab 1: All Unabridged Modules View */}
         {activeTab === 'modules' && (
-          <div className="space-y-4 sm:space-y-6">
-            {/* Breadcrumb Navigation Trail with Horizontal Scroll & Equal Flex-Grow Segments */}
-            <div className="w-full overflow-x-auto no-scrollbar py-0.5">
-              <nav
-                aria-label="Module Breadcrumb Navigation"
-                data-testid="modules-breadcrumb-nav"
-                className="bg-white rounded-2xl border-3 border-slate-950 p-1.5 sm:p-2.5 shadow-[3px_3px_0_#000] flex items-stretch gap-1.5 sm:gap-2 min-w-max text-xs font-black text-slate-800"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleWorldSelect('all');
-                  }}
-                  className={`flex-1 grow shrink-0 w-36 min-w-[140px] max-w-[155px] h-11 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer text-center ${
-                    activeWorld === 'all'
-                      ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] font-black'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'
-                  }`}
-                >
-                  <MarioMushroomIcon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">All 6 Worlds</span>
-                </button>
-
-                <div className="flex items-center text-slate-400 font-bold select-none px-0.5">/</div>
-
-                {WORLDS_METADATA.map((w) => {
-                  const isCurActive = activeWorld === w.id;
-                  return (
-                    <button
-                      key={w.id}
-                      type="button"
-                      onClick={() => {
-                        handleWorldSelect(w.id);
-                      }}
-                      className={`flex-1 grow shrink-0 w-36 min-w-[140px] max-w-[155px] h-11 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-xs transition-all cursor-pointer text-center ${
-                        isCurActive
-                          ? 'bg-red-600 text-white border-2 border-black shadow-[0_2px_0_#000] font-black'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'
-                      }`}
-                    >
-                      {renderWorldIcon(w.iconType, 'w-3.5 h-3.5 shrink-0')}
-                      <span className="whitespace-nowrap">W{w.worldNumber}:</span>
-                      <span className="truncate">{w.shortTitle}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Quick Jump Searchable Dropdown Menu */}
-            <div
-              data-testid="modules-quick-jump-container"
-              className="bg-amber-400/95 border-3 border-slate-950 rounded-2xl p-2.5 sm:p-3 shadow-[3px_3px_0_#000] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-slate-950 text-amber-400 flex items-center justify-center shrink-0 shadow-[0_1px_0_#000]">
-                  <Compass className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase text-slate-950 font-mario block">
-                    TOPIC QUICK JUMP
-                  </span>
-                  <span className="text-xs font-bold text-slate-900 hidden sm:inline">
-                    Instantly jump to any Labor Standards topic card
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-2 flex-1 md:max-w-xl">
-                <div className="relative w-full sm:w-44 shrink-0">
-                  <input
-                    type="text"
-                    value={quickJumpSearch}
-                    onChange={(e) => setQuickJumpSearch(e.target.value)}
-                    placeholder="Filter topics..."
-                    aria-label="Filter Quick Jump Topics"
-                    className="w-full h-11 bg-white text-slate-950 placeholder:text-slate-500 text-xs font-bold border-2 border-slate-950 rounded-xl px-3 py-1 shadow-[0_2px_0_#000] focus:outline-none focus:ring-2 focus:ring-red-600"
-                  />
-                  {quickJumpSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setQuickJumpSearch('')}
-                      className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-800 text-xs font-bold cursor-pointer"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="relative flex-1 w-full">
-                  <select
-                    data-testid="quick-jump-select"
-                    aria-label="Quick Jump to Topic Card"
-                    value=""
-                    onChange={(e) => {
-                      const topicId = e.target.value;
-                      if (!topicId) return;
-                      handleRecordAccessedTopic(topicId);
-                      marioAudio.playPipe();
-                      const targetTopic = ALL_LAW_TOPICS.find((t) => t.id === topicId);
-                      if (targetTopic) {
-                        if (activeWorld !== 'all' && activeWorld !== targetTopic.worldId) {
-                          setActiveWorld(targetTopic.worldId);
-                        }
-                        setTimeout(() => {
-                          const el = document.getElementById(`topic-card-${topicId}`);
-                          if (el) {
-                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            el.classList.add('ring-4', 'ring-amber-400');
-                            setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
-                          }
-                        }, 120);
-                      }
-                    }}
-                    className="w-full min-h-[44px] h-11 bg-white text-slate-950 text-xs sm:text-sm font-bold border-2 border-slate-950 rounded-xl px-3 py-2 pr-8 shadow-[0_2px_0_#000] cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-600 truncate"
-                  >
-                    <option value="" disabled>
-                      {quickJumpFilteredTopics.length === 0
-                        ? '-- No Matching Topics Found --'
-                        : `-- Jump to Topic (${quickJumpFilteredTopics.length} available) --`}
-                    </option>
-                    {WORLDS_METADATA.map((world) => {
-                      const worldTopics = quickJumpFilteredTopics.filter((t) => t.worldId === world.id);
-                      if (worldTopics.length === 0) return null;
-                      return (
-                        <optgroup key={world.id} label={`World ${world.worldNumber}: ${world.title}`}>
-                          {worldTopics.map((top) => (
-                            <option key={top.id} value={top.id}>
-                              {top.badge} — {top.title}
-                            </option>
-                          ))}
-                        </optgroup>
-                      );
-                    })}
-                  </select>
-                </div>
-              </div>
-            </div>
-
+          <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
             {/* Visual Progress Bar with Equipped Avatar */}
             <StageProgressBar
               completedCount={completedTopicIds.length}
@@ -1533,24 +1464,43 @@ export default function App() {
               onOpenExportProgress={() => setIsExportModalOpen(true)}
             />
 
-            {/* Stage Select Banner */}
-            <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-6 md:p-8 shadow-[6px_6px_0_#000]">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b-2 border-slate-200 pb-4 mb-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-red-600 text-white font-black rounded-lg border border-black text-[11px] uppercase mb-1.5 font-mario">
-                    <MarioMushroomIcon className="w-3.5 h-3.5" />
+            {/* Unified Dark-Slate Stage & Study Command Deck (Zero White Cropped Navigator, Zero Horizontal Overflow) */}
+            <section
+              aria-label="Modules Stage and Study Command Deck"
+              data-testid="modules-command-deck"
+              className="bg-[#1e293b] text-white rounded-3xl border-4 border-slate-950 p-4 sm:p-6 shadow-[6px_6px_0_#000] w-full max-w-full overflow-hidden space-y-4"
+            >
+              {/* Row 1: Title & Primary Study Actions */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-700/80 pb-4">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-red-600 text-white font-black rounded-lg border border-black text-[10px] uppercase mb-1.5 font-mario">
+                    <MarioMushroomIcon className="w-3.5 h-3.5 shrink-0" />
                     <span>PHILIPPINE LABOR STANDARDS</span>
                   </div>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-950 tracking-tight font-display">
-                    LABOR STANDARDS & PROTECTIVE LAWS
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight font-display">
+                    LABOR STANDARDS &amp; PROTECTIVE LAWS
                   </h1>
-                  <p className={`${bodyTextClass} text-slate-700 font-bold mt-1 max-w-2xl text-xs sm:text-sm`}>
-                    100% Unabridged memory aid with zero omissions: statutory provisions, standards, exceptions, and wage formulas.
+                  <p className={`${bodyTextClass} text-slate-300 font-semibold mt-0.5 max-w-2xl text-xs sm:text-sm`}>
+                    Unabridged statutory provisions, wage multipliers, exceptions, and Supreme Court doctrines across Worlds 1–6.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-                  {/* Direct Legal Glossary Quick Launcher (Zero Scroll Needed) */}
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  {/* Direct 1-Page A4 Legal Summary PDF Launcher */}
+                  <button
+                    type="button"
+                    data-testid="modules-one-page-summary-btn"
+                    onClick={() => {
+                      openPrintStudio('summary');
+                      marioAudio.playCoin();
+                    }}
+                    className="min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap active:translate-y-0.5"
+                  >
+                    <FileDown className="w-4 h-4 text-slate-950 shrink-0" />
+                    <span>1-Page A4 PDF</span>
+                  </button>
+
+                  {/* Direct Legal Glossary Quick Launcher */}
                   <button
                     type="button"
                     data-testid="modules-top-glossary-btn"
@@ -1558,10 +1508,10 @@ export default function App() {
                       setIsQuickGlossaryOpen(true);
                       marioAudio.playPowerUp();
                     }}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-2xl text-xs font-black font-mario bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap active:translate-y-0.5"
+                    className="min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap active:translate-y-0.5"
                   >
                     <MarioQuestionBlockIcon className="w-4 h-4 text-slate-950 shrink-0" />
-                    <span>GLOSSARY</span>
+                    <span>Glossary</span>
                   </button>
 
                   {/* Split View Toggle for Integrated Reading & Note-taking */}
@@ -1572,103 +1522,384 @@ export default function App() {
                       setIsSplitView(!isSplitView);
                       marioAudio.playPipe();
                     }}
-                    className={`min-h-[38px] px-3.5 py-1.5 rounded-2xl text-xs font-black border-2 border-black cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    className={`min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-black border-2 border-black cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap ${
                       isSplitView
                         ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
                         : 'bg-slate-900 text-slate-200 hover:text-white'
                     }`}
                   >
-                    <Columns className="w-4 h-4 text-amber-400" />
+                    <Columns className="w-4 h-4 text-amber-400 shrink-0" />
                     <span>{isSplitView ? 'Split View ON' : 'Split View'}</span>
                   </button>
 
-                  {/* Complexity Quick Switcher in Modules Header */}
-                  <div className="flex items-center gap-2 bg-slate-900 p-1.5 rounded-2xl border-2 border-black">
-                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario pl-2">MODE:</span>
+                  {/* Inline Study Notes Drawer Trigger (replaces overlapping floating tab on mobile/tablet/laptop) */}
+                  <button
+                    type="button"
+                    data-testid="modules-open-notes-btn"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('mario-open-study-notes'));
+                    }}
+                    className="min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 text-amber-300 border-2 border-black cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap"
+                  >
+                    <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Notes ({studyNotes.length})</span>
+                  </button>
+
+                  {/* Complexity Quick Switcher */}
+                  <div className="inline-flex items-center gap-1 bg-slate-950 p-1 rounded-xl border-2 border-black">
                     <button
+                      type="button"
                       onClick={() => handleSetComplexityMode('beginner')}
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      className={`min-h-[34px] inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                         complexityMode === 'beginner'
-                          ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                          ? 'bg-amber-400 text-slate-950'
                           : 'text-slate-300 hover:text-white'
                       }`}
                     >
-                      <MarioMushroomIcon className="w-3.5 h-3.5" />
+                      <MarioMushroomIcon className="w-3.5 h-3.5 shrink-0" />
                       <span>Beginner</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleSetComplexityMode('advanced')}
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      className={`min-h-[34px] inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                         complexityMode === 'advanced'
-                          ? 'bg-red-600 text-white shadow-[0_2px_0_#000]'
+                          ? 'bg-red-600 text-white'
                           : 'text-slate-300 hover:text-white'
                       }`}
                     >
-                      <Flame className="w-3.5 h-3.5" />
+                      <Flame className="w-3.5 h-3.5 shrink-0" />
                       <span>Advanced</span>
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* World Selector Stage Buttons - Mobile Responsive Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-2.5">
+              {/* Row 2: Responsive 7-Button World Stage Selector Grid (Zero Overflow / Zero Right Crop) */}
+              <div
+                role="tablist"
+                aria-label="Select Labor Law World Stage"
+                className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 w-full"
+              >
                 <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeWorld === 'all'}
                   onClick={() => handleWorldSelect('all')}
-                  className={`p-2.5 sm:p-3 rounded-2xl border-2 sm:border-3 border-black text-left transition-all cursor-pointer ${
+                  className={`min-h-[54px] p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer min-w-0 ${
                     activeWorld === 'all'
-                      ? 'bg-amber-400 text-slate-950 shadow-[0_3px_0_#000] -translate-y-0.5'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                      ? 'bg-amber-400 text-slate-950 border-black shadow-[0_3px_0_#000] -translate-y-0.5'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700'
                   }`}
                 >
-                  <span className="text-[10px] font-black uppercase text-slate-600 block font-mario">ALL WORLDS</span>
-                  <span className="font-black text-xs sm:text-sm flex items-center justify-between mt-1">
-                    <span>Complete View</span>
-                    <MarioStarIcon className="w-4 h-4 flex-shrink-0" />
+                  <span
+                    className={`text-[10px] font-black uppercase block font-mario truncate ${
+                      activeWorld === 'all' ? 'text-slate-800' : 'text-amber-300'
+                    }`}
+                  >
+                    ALL WORLDS
+                  </span>
+                  <span className="font-black text-xs flex items-center justify-between gap-1 mt-0.5 min-w-0">
+                    <span className="truncate">Complete View</span>
+                    <MarioStarIcon className="w-4 h-4 shrink-0" />
                   </span>
                 </button>
 
-                {WORLDS_METADATA.map((w) => (
-                  <button
-                    key={w.id}
-                    onClick={() => handleWorldSelect(w.id)}
-                    className={`p-2.5 sm:p-3 rounded-2xl border-2 sm:border-3 border-black text-left transition-all cursor-pointer ${
-                      activeWorld === w.id
-                        ? 'bg-amber-400 text-slate-950 shadow-[0_3px_0_#000] -translate-y-0.5'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
-                    }`}
-                  >
-                    <span className="text-[10px] font-black uppercase text-slate-600 block font-mario">
-                      WORLD {w.worldNumber}
-                    </span>
-                    <span className="font-black text-xs sm:text-sm flex items-center justify-between mt-1">
-                      <span className="truncate">{w.shortTitle}</span>
-                      {renderWorldIcon(w.iconType, 'w-4 h-4 flex-shrink-0')}
-                    </span>
-                  </button>
-                ))}
+                {WORLDS_METADATA.map((w) => {
+                  const isActiveW = activeWorld === w.id;
+                  return (
+                    <button
+                      key={w.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActiveW}
+                      onClick={() => handleWorldSelect(w.id)}
+                      className={`min-h-[54px] p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer min-w-0 ${
+                        isActiveW
+                          ? 'bg-amber-400 text-slate-950 border-black shadow-[0_3px_0_#000] -translate-y-0.5'
+                          : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700'
+                      }`}
+                    >
+                      <span
+                        className={`text-[10px] font-black uppercase block font-mario truncate ${
+                          isActiveW ? 'text-slate-800' : 'text-slate-400'
+                        }`}
+                      >
+                        WORLD {w.worldNumber}
+                      </span>
+                      <span className="font-black text-xs flex items-center justify-between gap-1 mt-0.5 min-w-0">
+                        <span className="truncate">{w.shortTitle}</span>
+                        {renderWorldIcon(w.iconType, 'w-4 h-4 shrink-0')}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Dynamic Difficulty Filters: All, Foundation, Intermediate, Bar Master */}
+              {/* Row 3: Integrated Topic Quick Jump Bar */}
               <div
-                data-testid="difficulty-filter-container"
-                className="mt-4 pt-3.5 border-t-2 border-slate-200 flex flex-wrap items-center justify-between gap-2.5"
+                data-testid="modules-quick-jump-container"
+                className="bg-slate-900/90 border-2 border-slate-700 rounded-2xl p-2.5 sm:p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 w-full min-w-0"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase text-slate-800 font-mario flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>FILTER BY STATUTORY COMPLEXITY:</span>
-                  </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 border border-black">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                      TOPIC QUICK JUMP
+                    </span>
+                    <span className="text-xs font-semibold text-slate-300 hidden sm:inline">
+                      Jump directly to any statutory card
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 md:max-w-xl min-w-0">
+                  <div className="relative w-full sm:w-44 shrink-0">
+                    <input
+                      type="text"
+                      value={quickJumpSearch}
+                      onChange={(e) => setQuickJumpSearch(e.target.value)}
+                      placeholder="Filter topics..."
+                      aria-label="Filter Quick Jump Topics"
+                      className="w-full min-h-[42px] bg-slate-950 text-white placeholder:text-slate-400 text-xs font-bold border-2 border-slate-700 rounded-xl px-3 py-1.5 pr-8 focus:outline-none focus:border-amber-400"
+                    />
+                    {quickJumpSearch && (
+                      <button
+                        type="button"
+                        aria-label="Clear topic filter"
+                        onClick={() => setQuickJumpSearch('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="relative flex-1 w-full min-w-0">
+                    <select
+                      data-testid="quick-jump-select"
+                      aria-label="Quick Jump to Topic Card"
+                      value=""
+                      onChange={(e) => {
+                        const topicId = e.target.value;
+                        if (!topicId) return;
+                        handleRecordAccessedTopic(topicId);
+                        marioAudio.playPipe();
+                        const targetTopic = ALL_LAW_TOPICS.find((t) => t.id === topicId);
+                        if (targetTopic) {
+                          if (activeWorld !== 'all' && activeWorld !== targetTopic.worldId) {
+                            setActiveWorld(targetTopic.worldId);
+                          }
+                          setTimeout(() => {
+                            const el = document.getElementById(`topic-card-${topicId}`);
+                            if (el) {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              el.classList.add('ring-4', 'ring-amber-400');
+                              setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
+                            }
+                          }, 120);
+                        }
+                      }}
+                      className="w-full min-h-[42px] bg-slate-950 text-white text-xs sm:text-sm font-bold border-2 border-slate-700 rounded-xl px-3 py-2 pr-8 cursor-pointer focus:outline-none focus:border-amber-400 truncate"
+                    >
+                      <option value="" disabled>
+                        {quickJumpFilteredTopics.length === 0
+                          ? '-- No Matching Topics Found --'
+                          : `-- Jump to Topic (${quickJumpFilteredTopics.length} available) --`}
+                      </option>
+                      {WORLDS_METADATA.map((world) => {
+                        const worldTopics = quickJumpFilteredTopics.filter(
+                          (t) => t.worldId === world.id
+                        );
+                        if (worldTopics.length === 0) return null;
+                        return (
+                          <optgroup
+                            key={world.id}
+                            label={`World ${world.worldNumber}: ${world.title}`}
+                          >
+                            {worldTopics.map((top) => (
+                              <option key={top.id} value={top.id}>
+                                {top.badge} — {top.title}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 4: View Mode, Complexity & Completion Status Controls */}
+              <div
+                data-testid="module-view-options-bar"
+                className="pt-3 border-t border-slate-700/80 space-y-3"
+              >
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
+                  {/* View Layout Selector */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-bold text-amber-300 mr-1 whitespace-nowrap">
+                      View:
+                    </span>
+                    {(
+                      [
+                        {
+                          id: 'stream' as const,
+                          label: 'Stream',
+                          icon: <BookOpen className="w-3.5 h-3.5 shrink-0" />,
+                        },
+                        {
+                          id: 'grid' as const,
+                          label: '2-Col Grid',
+                          icon: <LayoutGrid className="w-3.5 h-3.5 shrink-0" />,
+                        },
+                        {
+                          id: 'outline' as const,
+                          label: 'Outline',
+                          icon: <List className="w-3.5 h-3.5 shrink-0" />,
+                        },
+                        {
+                          id: 'focus' as const,
+                          label: 'Focus Reader',
+                          icon: <Compass className="w-3.5 h-3.5 shrink-0" />,
+                        },
+                        {
+                          id: 'slides' as const,
+                          label: 'Slide Deck',
+                          icon: <Presentation className="w-3.5 h-3.5 shrink-0" />,
+                        },
+                      ]
+                    ).map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        data-testid={`module-view-mode-${mode.id}`}
+                        onClick={() => {
+                          setModuleViewMode(mode.id);
+                          if (mode.id === 'outline') {
+                            setExpandCollapseSignal((prev) => ({
+                              mode: 'collapse',
+                              seq: (prev?.seq || 0) + 1,
+                            }));
+                          } else if (mode.id === 'stream' || mode.id === 'focus') {
+                            setExpandCollapseSignal((prev) => ({
+                              mode: 'expand',
+                              seq: (prev?.seq || 0) + 1,
+                            }));
+                          }
+                          marioAudio.playClick();
+                        }}
+                        className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-black inline-flex items-center gap-1.5 border transition-colors cursor-pointer whitespace-nowrap ${
+                          moduleViewMode === mode.id
+                            ? 'bg-amber-400 text-slate-950 border-black'
+                            : 'bg-slate-900 text-slate-200 hover:text-white border-slate-700'
+                        }`}
+                      >
+                        {mode.icon}
+                        <span>{mode.label}</span>
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      data-testid="modules-expand-all-btn"
+                      onClick={() => {
+                        setExpandCollapseSignal((prev) => ({
+                          mode: 'expand',
+                          seq: (prev?.seq || 0) + 1,
+                        }));
+                        marioAudio.playJump();
+                      }}
+                      className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                    >
+                      <ChevronsDown className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Expand All</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="modules-collapse-all-btn"
+                      onClick={() => {
+                        setExpandCollapseSignal((prev) => ({
+                          mode: 'collapse',
+                          seq: (prev?.seq || 0) + 1,
+                        }));
+                        marioAudio.playPipe();
+                      }}
+                      className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                    >
+                      <ChevronsUp className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Collapse All</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="modules-autoscroll-toggle-btn"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('mario-toggle-autoscroll'));
+                      }}
+                      className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 hover:text-amber-200 inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                    >
+                      <ChevronsDown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Auto-Scroll</span>
+                    </button>
+                  </div>
+
+                  {/* Completion Status Filter */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-400 mr-1 whitespace-nowrap">
+                      Status:
+                    </span>
+                    {(
+                      [
+                        { id: 'all' as const, label: 'All' },
+                        { id: 'unread' as const, label: 'Unread' },
+                        { id: 'mastered' as const, label: 'Mastered' },
+                        { id: 'flagged' as const, label: 'Flagged' },
+                        {
+                          id: 'bookmarked' as const,
+                          label: `Pinned (${bookmarkedTopicIds.length})`,
+                        },
+                      ]
+                    ).map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        data-testid={`module-status-filter-${st.id}`}
+                        onClick={() => {
+                          setModuleStatusFilter(st.id);
+                          marioAudio.playClick();
+                        }}
+                        className={`min-h-[40px] px-3 py-1 rounded-xl text-xs font-black border transition-colors cursor-pointer whitespace-nowrap ${
+                          moduleStatusFilter === st.id
+                            ? 'bg-emerald-400 text-slate-950 border-black'
+                            : 'bg-slate-900 text-slate-300 hover:text-white border-slate-700'
+                        }`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Statutory Complexity Filter */}
+                <div
+                  data-testid="difficulty-filter-container"
+                  className="flex flex-wrap items-center gap-1.5"
+                >
+                  <span className="text-xs font-bold text-slate-400 mr-1 whitespace-nowrap">
+                    Difficulty:
+                  </span>
                   {[
-                    { id: 'all', label: 'All Difficulties' },
-                    { id: 'Foundation', label: 'Foundation' },
+                    { id: 'all', label: 'All Levels' },
+                    { id: 'Foundation', label: 'Foundation (Easy)' },
                     { id: 'Intermediate', label: 'Intermediate' },
-                    { id: 'Bar Master', label: 'Bar Master' },
+                    { id: 'Bar Master', label: 'Advanced Mastery' },
                   ].map((diff) => {
                     const isSel = difficultyFilter === diff.id;
-                    const testId = `difficulty-filter-${diff.id.toLowerCase().replace(/\s+/g, '')}`;
+                    const testId = `difficulty-filter-${diff.id
+                      .toLowerCase()
+                      .replace(/\s+/g, '')}`;
                     return (
                       <button
                         key={diff.id}
@@ -1678,18 +1909,18 @@ export default function App() {
                           setDifficultyFilter(diff.id as any);
                           marioAudio.playCoin();
                         }}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-black text-xs border-2 transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
+                        className={`min-h-[38px] px-3 py-1 rounded-xl font-black text-xs border transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                           isSel
-                            ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                            ? 'bg-amber-400 text-slate-950 border-black'
+                            : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
                         }`}
                       >
                         {diff.id === 'Bar Master' ? (
                           <MarioStarIcon className="w-3 h-3 text-amber-500 shrink-0" />
                         ) : diff.id === 'Foundation' ? (
-                          <MarioMushroomIcon className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <MarioMushroomIcon className="w-3 h-3 text-emerald-500 shrink-0" />
                         ) : diff.id === 'Intermediate' ? (
-                          <MarioFireFlowerIcon className="w-3 h-3 text-red-600 shrink-0" />
+                          <MarioFireFlowerIcon className="w-3 h-3 text-red-500 shrink-0" />
                         ) : null}
                         <span>{diff.label}</span>
                       </button>
@@ -1697,124 +1928,13 @@ export default function App() {
                   })}
                 </div>
               </div>
-            </div>
-
-            {/* Study Layout & Completion Status Toolbar */}
-            <div
-              data-testid="module-view-options-bar"
-              className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 border-3 border-slate-950 shadow-[4px_4px_0_#000] flex flex-col xl:flex-row xl:items-center justify-between gap-3"
-            >
-              {/* Left: View Layout Selector */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-xs font-bold text-amber-300 mr-1">View Mode:</span>
-                {(
-                  [
-                    { id: 'stream' as const, label: 'Full Stream', icon: <BookOpen className="w-3.5 h-3.5 shrink-0" /> },
-                    { id: 'grid' as const, label: '2-Col Grid', icon: <LayoutGrid className="w-3.5 h-3.5 shrink-0" /> },
-                    { id: 'outline' as const, label: 'Compact Outline', icon: <List className="w-3.5 h-3.5 shrink-0" /> },
-                    { id: 'focus' as const, label: 'Focus Reader', icon: <Compass className="w-3.5 h-3.5 shrink-0" /> },
-                  ]
-                ).map((mode) => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    data-testid={`module-view-mode-${mode.id}`}
-                    onClick={() => {
-                      setModuleViewMode(mode.id);
-                      if (mode.id === 'outline') {
-                        setExpandCollapseSignal((prev) => ({
-                          mode: 'collapse',
-                          seq: (prev?.seq || 0) + 1,
-                        }));
-                      } else if (mode.id === 'stream' || mode.id === 'focus') {
-                        setExpandCollapseSignal((prev) => ({
-                          mode: 'expand',
-                          seq: (prev?.seq || 0) + 1,
-                        }));
-                      }
-                      marioAudio.playClick();
-                    }}
-                    className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-black inline-flex items-center gap-1.5 border transition-colors cursor-pointer whitespace-nowrap ${
-                      moduleViewMode === mode.id
-                        ? 'bg-amber-400 text-slate-950 border-black'
-                        : 'bg-slate-800 text-slate-200 hover:text-white border-slate-700'
-                    }`}
-                  >
-                    {mode.icon}
-                    <span>{mode.label}</span>
-                  </button>
-                ))}
-
-                <div className="inline-flex items-center gap-1 ml-0 sm:ml-1">
-                  <button
-                    type="button"
-                    data-testid="modules-expand-all-btn"
-                    onClick={() => {
-                      setExpandCollapseSignal((prev) => ({
-                        mode: 'expand',
-                        seq: (prev?.seq || 0) + 1,
-                      }));
-                      marioAudio.playJump();
-                    }}
-                    className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                  >
-                    <ChevronsDown className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Expand All</span>
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="modules-collapse-all-btn"
-                    onClick={() => {
-                      setExpandCollapseSignal((prev) => ({
-                        mode: 'collapse',
-                        seq: (prev?.seq || 0) + 1,
-                      }));
-                      marioAudio.playPipe();
-                    }}
-                    className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                  >
-                    <ChevronsUp className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>Collapse All</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right: Completion Status Filter */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-xs font-bold text-slate-400 mr-1">Status:</span>
-                {(
-                  [
-                    { id: 'all' as const, label: 'All' },
-                    { id: 'unread' as const, label: 'Unread' },
-                    { id: 'mastered' as const, label: 'Mastered' },
-                    { id: 'flagged' as const, label: 'Flagged Review' },
-                  ]
-                ).map((st) => (
-                  <button
-                    key={st.id}
-                    type="button"
-                    data-testid={`module-status-filter-${st.id}`}
-                    onClick={() => {
-                      setModuleStatusFilter(st.id);
-                      marioAudio.playClick();
-                    }}
-                    className={`min-h-[38px] px-3 py-1 rounded-xl text-xs font-black border transition-colors cursor-pointer whitespace-nowrap ${
-                      moduleStatusFilter === st.id
-                        ? 'bg-emerald-400 text-slate-950 border-black'
-                        : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700'
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            </section>
 
             {/* Smooth Slide-In Container on World / Topic Filter Switch */}
             <div
-              key={`module-stream-${activeWorld}-${difficultyFilter}-${complexityMode}-${moduleViewMode}-${moduleStatusFilter}`}
+              key={`module-stream-${activeWorld}-${difficultyFilter}-${complexityMode}-${moduleViewMode}-${moduleStatusFilter}-${topicSortBy}`}
               data-testid="module-doctrine-transition"
-              className="space-y-6 animate-module-slide-in"
+              className="space-y-5 animate-module-slide-in"
             >
               {/* Active World Spotlight Banner */}
               {activeWorld !== 'all' && (
@@ -1844,6 +1964,45 @@ export default function App() {
                 </div>
               )}
 
+              {/* Topic Sort Drop-Down Bar directly above the Topic Cards */}
+              <div
+                data-testid="module-topic-sort-bar"
+                className="bg-slate-900 text-white rounded-2xl px-4 py-3 border-3 border-black shadow-[4px_4px_0_#000] flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0"
+              >
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-200 min-w-0">
+                  <ArrowUpDown className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="truncate">
+                    Showing <strong className="font-black text-amber-300 tabular-nums">{displayedTopics.length}</strong>{' '}
+                    {displayedTopics.length === 1 ? 'topic module' : 'topic modules'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
+                  <label
+                    htmlFor="module-topic-sort-select"
+                    className="text-xs font-black text-amber-300 whitespace-nowrap shrink-0"
+                  >
+                    Sort Topics:
+                  </label>
+                  <select
+                    id="module-topic-sort-select"
+                    data-testid="module-topic-sort-select"
+                    value={topicSortBy}
+                    onChange={(e) => {
+                      setTopicSortBy(e.target.value as TopicSortOption);
+                      marioAudio.playClick();
+                    }}
+                    className="min-h-[42px] min-w-0 w-full sm:w-auto flex-1 rounded-xl bg-slate-950 border-2 border-slate-700 focus:border-amber-400 px-3 py-1.5 text-xs sm:text-sm font-bold text-white cursor-pointer"
+                  >
+                    {TOPIC_SORT_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               {/* Topics Stream with Optional Side-by-Side Split View Notes Workspace */}
               {displayedTopics.length > 0 ? (
                 <div className={isSplitView ? 'grid grid-cols-1 lg:grid-cols-12 gap-6 items-start' : 'space-y-6'}>
@@ -1858,7 +2017,256 @@ export default function App() {
                         : 'space-y-6'
                     } module-doctrine-stream`}
                   >
-                    {moduleViewMode === 'focus' ? (
+                    {moduleViewMode === 'slides' ? (
+                      (() => {
+                        const clampedIdx = Math.min(
+                          Math.max(0, focusTopicIdx),
+                          displayedTopics.length - 1
+                        );
+                        const slideTopic = displayedTopics[clampedIdx];
+                        if (!slideTopic) return null;
+                        const slideDiff =
+                          slideTopic.difficulty ||
+                          TOPIC_DIFFICULTY_MAP[slideTopic.id] ||
+                          'Intermediate';
+                        const slideCheck = getTopicQuickCheck(slideTopic);
+                        const totalSlides = 5;
+                        const safeStep = Math.min(Math.max(0, slideStepIdx), totalSlides - 1);
+
+                        return (
+                          <div
+                            data-testid="module-slides-deck"
+                            className="bg-slate-900 text-white rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden"
+                          >
+                            {/* Slide Deck Header */}
+                            <div className="bg-slate-950 px-4 py-3.5 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <Presentation className="w-5 h-5 text-amber-400 shrink-0" />
+                                <select
+                                  aria-label="Select presentation module"
+                                  value={clampedIdx}
+                                  onChange={(e) => {
+                                    setFocusTopicIdx(Number(e.target.value) || 0);
+                                    setSlideStepIdx(0);
+                                    setSlideQuizChoice(null);
+                                    marioAudio.playClick();
+                                  }}
+                                  className="min-h-[40px] min-w-0 max-w-full sm:max-w-md rounded-xl bg-slate-900 border border-slate-700 px-3 text-xs sm:text-sm font-bold text-white"
+                                >
+                                  {displayedTopics.map((item, idx) => (
+                                    <option key={item.id} value={idx}>
+                                      {idx + 1}. {item.title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs font-bold text-slate-300 tabular-nums">
+                                <span>{getFriendlyDifficultyLabel(slideDiff)}</span>
+                                <span aria-hidden="true">·</span>
+                                <span className="text-amber-300">
+                                  Slide {safeStep + 1} / {totalSlides}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Active Slide Canvas */}
+                            <div className="p-5 sm:p-8 min-h-[300px] flex flex-col justify-between gap-6">
+                              {safeStep === 0 && (
+                                <div className="space-y-4">
+                                  <span className="text-xs font-bold text-amber-300 block">
+                                    01. Practical Overview · {slideTopic.badge}
+                                  </span>
+                                  <h3 className="text-xl sm:text-3xl font-black font-display text-white leading-tight">
+                                    {slideTopic.title}
+                                  </h3>
+                                  <p className="text-sm sm:text-base font-medium text-slate-200 leading-relaxed">
+                                    {complexityMode === 'beginner' && slideTopic.beginnerSummary
+                                      ? slideTopic.beginnerSummary
+                                      : slideTopic.summary}
+                                  </p>
+                                </div>
+                              )}
+
+                              {safeStep === 1 && (
+                                <div className="space-y-4">
+                                  <span className="text-xs font-bold text-emerald-300 block">
+                                    02. Core Workplace Precepts
+                                  </span>
+                                  <h3 className="text-lg sm:text-2xl font-black font-display text-white">
+                                    Essential Rules to Remember
+                                  </h3>
+                                  <ul className="space-y-2.5">
+                                    {slideTopic.keyDoctrines.slice(0, 5).map((doc, dIdx) => (
+                                      <li
+                                        key={dIdx}
+                                        className="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 text-xs sm:text-sm font-semibold text-slate-100 leading-relaxed"
+                                      >
+                                        {doc}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {safeStep === 2 && (
+                                <div className="space-y-4">
+                                  <span className="text-xs font-bold text-sky-300 block">
+                                    03. Key Statutory Rules &amp; Exceptions
+                                  </span>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {slideTopic.rules.slice(0, 4).map((rule, rIdx) => (
+                                      <div
+                                        key={rIdx}
+                                        className="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 space-y-1.5"
+                                      >
+                                        <h4 className="text-sm font-black text-amber-300">
+                                          {rule.heading}
+                                        </h4>
+                                        <p className="text-xs text-slate-200 leading-relaxed">
+                                          {rule.description ||
+                                            rule.items?.[0] ||
+                                            'Refer to full statutory breakdown.'}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {safeStep === 3 && (
+                                <div className="space-y-4">
+                                  <span className="text-xs font-bold text-amber-300 block">
+                                    04. Practical Study Checkpoints
+                                  </span>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {(slideTopic.keyTips || slideTopic.barTips || [slideTopic.summary])
+                                      .slice(0, 4)
+                                      .map((tip, tIdx) => (
+                                        <div
+                                          key={tIdx}
+                                          className="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 text-xs sm:text-sm font-semibold text-slate-100 leading-relaxed"
+                                        >
+                                          {tip}
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {safeStep === 4 && (
+                                <div className="space-y-4">
+                                  <span className="text-xs font-bold text-lime-300 block">
+                                    05. Interactive Slide Check (+3 Coins)
+                                  </span>
+                                  <p className="text-sm sm:text-base font-extrabold text-white">
+                                    {slideCheck.question}
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {slideCheck.options.map((opt, oIdx) => {
+                                      const picked = slideQuizChoice === oIdx;
+                                      const isRight = oIdx === slideCheck.correctIndex;
+                                      return (
+                                        <button
+                                          key={oIdx}
+                                          type="button"
+                                          onClick={() => {
+                                            setSlideQuizChoice(oIdx);
+                                            if (isRight) {
+                                              handleEarnCoins(3);
+                                              marioAudio.playCoin();
+                                            } else {
+                                              marioAudio.playWrongAnswer();
+                                            }
+                                          }}
+                                          className={`min-h-[44px] p-3 rounded-xl border-2 text-left text-xs sm:text-sm font-bold cursor-pointer ${
+                                            slideQuizChoice !== null
+                                              ? isRight
+                                                ? 'bg-emerald-500 text-slate-950 border-black'
+                                                : picked
+                                                ? 'bg-rose-500 text-white border-black'
+                                                : 'bg-slate-950/60 text-slate-400 border-slate-800'
+                                              : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+                                          }`}
+                                        >
+                                          {String.fromCharCode(65 + oIdx)}. {opt}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  {slideQuizChoice !== null && (
+                                    <p className="text-xs sm:text-sm font-semibold text-emerald-300">
+                                      {slideCheck.explanation}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Slide Navigation Footer */}
+                              <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                                <button
+                                  type="button"
+                                  disabled={safeStep === 0}
+                                  onClick={() => {
+                                    setSlideStepIdx((s) => Math.max(0, s - 1));
+                                    marioAudio.playClick();
+                                  }}
+                                  className="min-h-[42px] px-4 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white font-black text-xs border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <ChevronLeft className="w-4 h-4" />
+                                  <span>Prev Slide</span>
+                                </button>
+
+                                <div className="flex items-center gap-1.5">
+                                  {[0, 1, 2, 3, 4].map((dot) => (
+                                    <button
+                                      key={dot}
+                                      type="button"
+                                      aria-label={`Go to slide ${dot + 1}`}
+                                      onClick={() => setSlideStepIdx(dot)}
+                                      className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                                        safeStep === dot
+                                          ? 'w-7 bg-amber-400'
+                                          : 'w-2.5 bg-slate-700 hover:bg-slate-500'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+
+                                {safeStep < totalSlides - 1 ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSlideStepIdx((s) => Math.min(totalSlides - 1, s + 1));
+                                      marioAudio.playClick();
+                                    }}
+                                    className="min-h-[42px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <span>Next Slide</span>
+                                    <ChevronRight className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleToggleTopicComplete(slideTopic.id);
+                                      if (clampedIdx < displayedTopics.length - 1) {
+                                        setFocusTopicIdx(clampedIdx + 1);
+                                        setSlideStepIdx(0);
+                                        setSlideQuizChoice(null);
+                                      }
+                                    }}
+                                    className="min-h-[42px] px-4 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs border-2 border-black inline-flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    <span>Master &amp; Next Topic</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : moduleViewMode === 'focus' ? (
                       (() => {
                         const clampedIdx = Math.min(
                           Math.max(0, focusTopicIdx),
@@ -1938,6 +2346,9 @@ export default function App() {
                                 equippedCardFrame={equippedCardFrame}
                                 expandCollapseSignal={expandCollapseSignal}
                                 compactView={false}
+                                onEarnCoins={handleEarnCoins}
+                                isBookmarked={bookmarkedTopicIds.includes(focusedTopic.id)}
+                                onToggleBookmark={() => handleToggleBookmarkTopic(focusedTopic.id)}
                               />
                             )}
                           </div>
@@ -1964,6 +2375,9 @@ export default function App() {
                           equippedCardFrame={equippedCardFrame}
                           expandCollapseSignal={expandCollapseSignal}
                           compactView={moduleViewMode === 'outline'}
+                          onEarnCoins={handleEarnCoins}
+                          isBookmarked={bookmarkedTopicIds.includes(topic.id)}
+                          onToggleBookmark={() => handleToggleBookmarkTopic(topic.id)}
                         />
                       ))
                     )}
@@ -2257,7 +2671,7 @@ export default function App() {
             }, 150);
           }
         }}
-        onOpenPrintGuide={() => setIsPrintGuideOpen(true)}
+        onOpenPrintGuide={() => openPrintStudio('summary')}
         onOpenShop={() => {
           setActiveTab('shop');
           marioAudio.playCoin();
@@ -2273,6 +2687,7 @@ export default function App() {
         completedTopicIds={completedTopicIds}
         coins={coins}
         studyNotes={studyNotes}
+        initialMode={printGuideInitialMode}
       />
 
       {/* World Completion 'Level Up' Celebration Modal */}
@@ -2332,7 +2747,7 @@ export default function App() {
       <OfflineIndicator />
 
       {/* Floating Auto-Scroll Speed Controller */}
-      <AutoScrollController />
+      <AutoScrollController activeTab={activeTab} />
 
       {/* Summoned Study Companion Desk Widget (coordinated so it never overlaps Toad's Pro Tip on Map) */}
       {equippedCompanion !== 'comp_none' && (
@@ -2458,18 +2873,18 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Mobile-Friendly Bottom Navigation Bar (5 equal columns, >=44px touch targets & notch safe-area padding) */}
+      {/* Mobile-Friendly Bottom Navigation Bar (5 equal columns, >=44px touch targets & compact landscape layout) */}
       <nav
         aria-label="Mobile Bottom Navigation"
         data-testid="mobile-bottom-nav"
-        className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 border-t-2 border-amber-400 px-1 py-1 grid grid-cols-5 w-full gap-1 lg:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.6)] select-none safe-bottom-dock print:hidden"
+        className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 border-t-2 border-amber-400 px-1 py-1 [@media(max-height:500px)]:py-0.5 grid grid-cols-5 w-full gap-1 lg:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.6)] select-none safe-bottom-dock print:hidden"
       >
         {[
-          { id: 'map', label: 'Map', icon: <Compass className="w-5 h-5 shrink-0" /> },
-          { id: 'modules', label: 'Modules', icon: <BookOpen className="w-5 h-5 shrink-0" /> },
-          { id: 'flashcards', label: 'Cards', icon: <HelpCircle className="w-5 h-5 shrink-0" /> },
-          { id: 'quiz', label: 'Quiz', icon: <Trophy className="w-5 h-5 shrink-0" /> },
-          { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-5 h-5 shrink-0" /> },
+          { id: 'map', label: 'Map', icon: <Compass className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+          { id: 'modules', label: 'Modules', icon: <BookOpen className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+          { id: 'flashcards', label: 'Cards', icon: <HelpCircle className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+          { id: 'quiz', label: 'Quiz', icon: <Trophy className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+          { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -2480,14 +2895,14 @@ export default function App() {
                 setActiveTab(tab.id);
                 marioAudio.playTabSwitch();
               }}
-              className={`min-h-[50px] h-[52px] w-full min-w-0 flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer ${
+              className={`min-h-[50px] h-[52px] [@media(max-height:500px)]:min-h-[38px] [@media(max-height:500px)]:h-[38px] w-full min-w-0 flex-1 flex flex-col [@media(max-height:500px)]:flex-row [@media(max-height:500px)]:gap-1.5 items-center justify-center py-1 [@media(max-height:500px)]:py-0.5 px-0.5 rounded-xl transition-all cursor-pointer ${
                 isActive
                   ? 'bg-amber-400 text-slate-950 font-black shadow-[0_2px_0_#000]'
                   : 'text-slate-300 hover:text-white'
               }`}
             >
               {tab.icon}
-              <span className="text-[9.5px] sm:text-[10px] font-black uppercase font-mario mt-0.5 leading-tight truncate max-w-full text-center">
+              <span className="text-[9.5px] sm:text-[10px] font-black uppercase font-mario mt-0.5 [@media(max-height:500px)]:mt-0 leading-tight truncate max-w-full text-center">
                 {tab.label}
               </span>
             </button>

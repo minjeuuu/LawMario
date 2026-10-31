@@ -10,8 +10,8 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
-  triggerCleanPrint,
 } from '../utils/printHelper';
+import { downloadScoreCardLandscapePdf } from '../utils/pdfExportService';
 import confetti from 'canvas-confetti';
 import {
   Download,
@@ -20,7 +20,7 @@ import {
   Trophy,
   Award,
   X,
-  Printer,
+  FileDown,
   Flame,
   CheckCircle2,
   ShieldCheck,
@@ -55,15 +55,23 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [downloadedOnce, setDownloadedOnce] = useState(false);
+  const [pdfDownloadedOnce, setPdfDownloadedOnce] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     applyPrintPageRule('landscape', '8mm');
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       clearPrintPageRule();
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -731,18 +739,34 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
               type="button"
               data-testid="print-scorecard-btn"
               onClick={() => {
-                marioAudio.playClick();
-                triggerCleanPrint({
-                  mode: 'scorecard',
-                  orientation: 'landscape',
-                  marginCss: '8mm',
+                marioAudio.playCoin();
+                downloadScoreCardLandscapePdf({
+                  playerName,
+                  heroName: equippedAvatar.toUpperCase(),
+                  heroRank: playerRank,
+                  completedCount,
+                  totalTopics,
+                  coins,
+                  loginStreak,
+                  studyDurationFormatted: `${studiedMinutes}m`,
+                  unlockedAchievementsCount,
+                  totalAchievementsCount,
+                  quizRunsCompleted,
+                  worldBreakdown: worldStats.map((ws) => ({
+                    worldNumber: ws.worldNumber,
+                    shortTitle: ws.shortTitle,
+                    completed: ws.completed,
+                    total: ws.total,
+                    percent: ws.percent,
+                  })),
                 });
+                setPdfDownloadedOnce(true);
               }}
-              className="inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs rounded-xl border border-slate-700 cursor-pointer whitespace-nowrap"
-              title="Print Score Summary in Landscape"
+              className="inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+              title="Download Score Summary directly as A4 Landscape PDF"
             >
-              <Printer className="w-4 h-4 shrink-0" />
-              <span>Print Score Card</span>
+              <FileDown className="w-4 h-4 shrink-0" />
+              <span>{pdfDownloadedOnce ? 'Download Score PDF Again' : 'Download Score PDF (.pdf)'}</span>
             </button>
           </div>
 

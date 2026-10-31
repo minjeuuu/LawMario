@@ -295,7 +295,7 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
       {/* Quick Mnemonic Shortcuts */}
       <div className="space-y-1.5">
         <span className="text-[10px] font-black uppercase text-slate-400 font-mario block">
-          INSERT BAR MNEMONIC PRESET:
+          INSERT STUDY MNEMONIC PRESET:
         </span>
         <div className="flex flex-wrap gap-1.5">
           {QUICK_MNEMONIC_TEMPLATES.map((tmpl) => (
@@ -350,11 +350,13 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
           className="w-full text-xs font-medium bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400 resize-y"
         />
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col gap-2 min-w-0">
           <select
+            aria-label="Split Note World Category"
+            data-testid="integrated-notes-world-select"
             value={draftWorldTag}
             onChange={(e) => setDraftWorldTag(e.target.value)}
-            className="text-[11px] font-bold bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-300 cursor-pointer focus:outline-none"
+            className="w-full min-w-0 max-w-full truncate text-[11px] font-bold bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-amber-300 cursor-pointer focus:outline-none focus:border-amber-400"
           >
             {worldTagOptions.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -363,7 +365,7 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
             ))}
           </select>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-end gap-1.5">
             {editingId && (
               <button
                 type="button"
@@ -372,7 +374,7 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
                   setDraftTitle('');
                   setDraftContent('');
                 }}
-                className="text-[11px] px-2.5 py-1 rounded-lg text-slate-400 hover:text-white"
+                className="text-[11px] px-2.5 py-1 rounded-lg text-slate-400 hover:text-white cursor-pointer"
               >
                 Cancel
               </button>
@@ -380,9 +382,9 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
             <button
               type="submit"
               disabled={!draftContent.trim()}
-              className="text-xs font-black px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 rounded-xl border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1 leading-none"
+              className="text-xs font-black px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 rounded-xl border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1 leading-none whitespace-nowrap shrink-0"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>{editingId ? 'Update' : 'Save Note'}</span>
             </button>
           </div>
@@ -390,21 +392,22 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
       </form>
 
       {/* Filter / Search Bar */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-0">
+        <div className="relative flex-1 min-w-0">
           <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter saved notes..."
-            className="w-full text-xs bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-2.5 py-1.5 text-slate-200 placeholder-slate-500 focus:outline-none"
+            className="w-full min-w-0 text-xs bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-2.5 py-1.5 text-slate-200 placeholder-slate-500 focus:outline-none"
           />
         </div>
         <select
+          aria-label="Filter Split Notes by World"
           value={worldFilter}
           onChange={(e) => setWorldFilter(e.target.value)}
-          className="text-xs font-bold bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-slate-300 cursor-pointer"
+          className="w-full sm:w-36 min-w-0 max-w-full truncate text-xs font-bold bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-slate-300 cursor-pointer"
         >
           <option value="all">All Tags</option>
           {WORLDS_METADATA.map((w) => (

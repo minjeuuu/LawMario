@@ -1250,7 +1250,7 @@ export function evaluateAchievements(
   };
 }
 
-// ==================== 10-CHAPTER COMPLETE INTERACTIVE APP WALKTHROUGH ====================
+// ==================== 14-CHAPTER COMPLETE STEP-BY-STEP INTERACTIVE APP WALKTHROUGH ====================
 
 export interface WalkthroughChapter {
   stepNumber: number;
@@ -1269,301 +1269,564 @@ export const WALKTHROUGH_CHAPTERS: readonly WalkthroughChapter[] = [
   {
     stepNumber: 1,
     id: 'welcome_setup',
-    shortTitle: 'Welcome & Setup',
-    kicker: 'Chapter 01 · Mission Briefing',
-    headline: 'Master Philippine Labor Standards Through Adventure',
+    shortTitle: '1. Welcome & Setup',
+    kicker: 'Step 01 · Getting Started',
+    headline: 'Learn Philippine Workplace Rights & Labor Standards Step by Step',
     summary:
-      'Welcome to Super Mario Labor Adventure — Created by Matthew (Main Creator of this Memory Aid). Experience a 100% unabridged, zero-omission interactive reviewer covering the Philippine Labor Code (Arts. 82–155), D.O. 174, RA 11360, PD 851, Kasambahay, Protective Laws, and Statutory Leaves.',
+      'Welcome to Super Mario Labor Adventure — Created by Matthew (Main Creator of this Memory Aid). This interactive study guide helps college learners, future professionals, HR/business students, and everyday workers understand the Philippine Labor Code (Arts. 82–155), D.O. 174, R.A. 11360, P.D. 851, Kasambahay rules, Protective Laws, and Statutory Leaves with zero intimidating jargon.',
     highlights: [
       {
-        label: '6 Progressive Worlds',
+        label: '6 Easy-to-Follow Worlds',
         detail:
-          'Hours of Work (W1), Rest & Holidays (W2), Wages & D.O. 174 (W3), Special Groups (W4), Protective Statutes (W5), and Statutory Leaves (W6).',
+          'Hours of Work (W1), Rest & Holidays (W2), Wages & Contracting (W3), Special Groups (W4), Workplace Protections (W5), and Paid Leaves (W6).',
       },
       {
-        label: 'Global Difficulty Switch',
+        label: 'Study Mode Switch',
         detail:
-          'Switch anytime between Casual (easy definitions & guided hints) and Exam Prep (Bar-level 4-choice scenarios).',
+          'Choose Casual Mode for plain-English summaries and friendly hints, or Challenge Mode for 4-choice practical workplace scenarios.',
       },
       {
-        label: 'Created by Matthew',
+        label: 'Personalize Right Below',
         detail:
-          'Authored & architected by Matthew Cesar Corpuz as a high-yield visual memory aid for Philippine Labor Law mastery.',
+          'Pick your favorite Mario character, toggle Dark or Daylight mode, and choose your preferred reading comfort before jumping in.',
       },
     ],
     proTip:
-      'Customize your Hero Avatar, Theme Mode, and Study Difficulty right below before starting Stage 1-1!',
+      'You can reopen this Walkthrough anytime from the Guide button in the top bar or inside the mobile Menu drawer!',
     targetTab: 'map',
     ctaLabel: 'Explore Overworld Map',
   },
   {
     stepNumber: 2,
-    id: 'world_map_progression',
-    shortTitle: 'Overworld Map',
-    kicker: 'Chapter 02 · Visual Progression',
-    headline: 'Track Unlocked Stages Across the Overworld Map',
+    id: 'header_navigation',
+    shortTitle: '2. Top Bar & Controls',
+    kicker: 'Step 02 · Header & Navigation Bar',
+    headline: 'Every Top Bar Button, Search Tool, Audio Control & Utility Explained',
     summary:
-      'The interactive World Map visualizes your real-time mastery across every Labor Law domain, lighting up trails and unlocking castle stages as you study.',
+      'The top navigation bar gives you one-tap access to every section of the app, plus global search, audio tracks, focus timers, font sizing, and instant A4 PDF downloads.',
     highlights: [
       {
-        label: 'Live Stage Checklists',
+        label: 'Search (Ctrl+K) & 1-Pg PDF',
         detail:
-          'Click any World node to inspect its modules, see Locked/Unlocked status, and mark topics complete on the spot.',
+          'Click Search to jump straight to any Labor Code article, topic, or glossary term. Click 1-Pg PDF to download a 1-page A4 formulas & deadlines sheet.',
       },
       {
-        label: '+2 Coins Per Module',
+        label: 'Calculator, Shop & Profile',
         detail:
-          'Every statutory topic you mark Studied plays the classic Coin chime and adds +2 Gold Coins to your wallet.',
+          'Launch the Pay Calculator, visit Toad’s Shop to spend Gold Coins, or click your Hero Avatar to view your Study Streak Calendar and Badges.',
       },
       {
-        label: '+50 Coin World Level-Up',
+        label: 'Music, SFX, Pomodoro & Text Size',
         detail:
-          'Clearing 100% of all modules in any World triggers a Stage Clear Fanfare & awards +50 Bonus Coins!',
+          'Play 4 ambient chiptune tracks, mute sound effects, start a 25m/5m Pomodoro focus timer, toggle Dark/Daylight theme, or scale text (A / A+ / A++).',
       },
     ],
     proTip:
-      'You can also jump directly into Warp Pipe tools (Calculator, 17-Region Wages, and Holidays Hub) right from the map.',
+      'On phones, the bottom dock switches between Map, Modules, Cards, Quiz, and Arcade, while the top utility row gives quick access to Menu, Search, 1-Pg PDF, Calculator, and Shop.',
     targetTab: 'map',
-    ctaLabel: 'Jump to World Map',
+    ctaLabel: 'Check Out Header Controls',
   },
   {
     stepNumber: 3,
-    id: 'unabridged_modules',
-    shortTitle: 'All Modules',
-    kicker: 'Chapter 03 · 100% Unabridged Codal',
-    headline: 'Read Cleanly Structured Statutory Rules & Doctrines',
+    id: 'world_map_progression',
+    shortTitle: '3. Overworld Map',
+    kicker: 'Step 03 · Visual Progress Map',
+    headline: 'Unlock Worlds 1 to 6, Daily Quests & Warp Pipe Shortcuts',
     summary:
-      'Every module in All Modules preserves complete statutory enumerations, general rules, exceptions, and Bar Exam tips — formatted into scannable cards and comparison tables.',
+      'The Overworld Map shows your real-time learning journey across all six Philippine Labor Standards worlds, lighting up paths and castles as you finish topics.',
     highlights: [
       {
-        label: 'Beginner vs Advanced View',
+        label: 'Interactive World Nodes',
         detail:
-          'Beginner highlights high-yield takeaways; Advanced reveals full legal requisites, exceptions, and jurisprudence.',
+          'Tap any World node on the map to inspect its stage checklist, jump straight to a specific lesson, or mark a topic completed.',
       },
       {
-        label: 'Built-In Voice Reader (TTS)',
+        label: 'Coin Rewards & World Badges',
         detail:
-          'Press Listen on any module card to hear doctrines read aloud at 0.8x to 1.5x speed while commuting or resting.',
+          'Earn +2 Gold Coins for every module marked Studied, plus a +50 Coin World Clear bonus and a thematic badge when you finish 100% of a World.',
       },
       {
-        label: 'Font Scaler & Hands-Free Scroll',
+        label: 'Daily Streak & Quick Warp Pipes',
         detail:
-          'Adjust text size (A / A+ / A++) in the top bar or activate the bottom-left Auto-Scroll controller.',
+          'Keep your daily study streak alive and use the map’s Warp Pipe buttons to hop directly to Holidays, Regional Wages, or the Calculator.',
       },
     ],
     proTip:
-      'Use the Card / Table tabs inside each module to isolate numerical rate tables for rapid pre-exam review.',
-    targetTab: 'modules',
-    ctaLabel: 'Open Statutory Modules',
+      'Check your Daily Study Goal bar on the map or Profile to build consistent 15-minute daily learning habits.',
+    targetTab: 'map',
+    ctaLabel: 'Open Overworld Map',
   },
   {
     stepNumber: 4,
-    id: 'holidays_and_regions',
-    shortTitle: 'Holidays & Wages',
-    kicker: 'Chapter 04 · Rates & Wage Boards',
-    headline: '12 Regular Holidays, Special Days & All 17 Regions',
+    id: 'modules_command_deck',
+    shortTitle: '4. Modules & Sorting',
+    kicker: 'Step 04 · Modules Command Deck',
+    headline: 'Filter by World, Switch Viewing Layouts & Sort Topics Your Way',
     summary:
-      'Two dedicated reference hubs keep tricky Philippine holiday rules and Regional Tripartite Wages and Productivity Board (RTWPB) rates at your fingertips.',
+      'The Modules tab organizes all 19 unabridged lessons with flexible filters, five viewing modes, a Quick-Jump index, and a Topic Sort dropdown right above the cards.',
     highlights: [
       {
-        label: 'Philippine Holidays Hub',
+        label: 'Topic Sort Dropdown Menu',
         detail:
-          'Master the 12 Regular Holidays (200% worked / 100% unworked), Special Non-Working Days (+30%), and 300%/390% Double Holidays.',
+          'Use the Sort Topics dropdown above the cards to order lessons by Stage Order, Alphabetical (A → Z), Difficulty (Easiest First), or Difficulty (Hardest First).',
       },
       {
-        label: 'Preceding Absence Doctrine',
+        label: '5 Engaging View Modes',
         detail:
-          'Interactive simulator tests successive holiday rules and paid-leave exceptions with instant explanations.',
+          'Switch between Stream (full cards), 2-Column Grid, Compact Outline, Focus Single-Topic reader, or Interactive Slide Deck mode.',
       },
       {
-        label: '17-Region Wage Matrix',
+        label: 'Status Filters & Split Notes',
         detail:
-          'Search and compare Non-Agriculture and Agriculture daily minimum wages across NCR, CAR, and Regions I–BARMM.',
+          'Filter by All, Unread, Mastered, Flagged, or Pinned topics — and toggle Split Notes on desktop to type notes side-by-side while reading!',
       },
     ],
     proTip:
-      'Filter the Regional Wage Matrix by island group (Luzon, Visayas, Mindanao) to spot regional wage differentials fast.',
-    targetTab: 'holidays',
-    ctaLabel: 'Visit Holidays Hub',
+      'New to a topic? Sort by "Difficulty (Easiest First)" and turn on Beginner Depth to build confidence from foundational concepts upward!',
+    targetTab: 'modules',
+    ctaLabel: 'Browse & Sort Modules',
   },
   {
     stepNumber: 5,
-    id: 'statutory_calculator',
-    shortTitle: 'Pay Calculator',
-    kicker: 'Chapter 05 · Exact Computations',
-    headline: 'Compute Overtime, Night Diff, Holidays & 13th Month Pay',
+    id: 'topic_card_lenses',
+    shortTitle: '5. Inside Topic Cards',
+    kicker: 'Step 05 · Interactive Module Cards',
+    headline: 'Study Lenses, Voice Reader, Highlighted Terms & Quick Knowledge Checks',
     summary:
-      'The Warp Pipe Calculator performs step-by-step Labor Code math so you can verify Bar Exam problem sets and payroll scenarios down to the centavo.',
+      'Every Topic Card is an interactive learning station packed with visual aids, plain-language takeaways, audio narration, and a built-in mini-quiz.',
     highlights: [
       {
-        label: 'Stacked Multiplier Engine',
+        label: '4 Study Lenses Inside Every Card',
         detail:
-          'Automatically compounds Ordinary Day, Rest Day, Special Day, Regular Holiday, Double Holiday, OT (+25%/+30%), and NSD (+10%).',
+          'Switch between Full Lesson, Key Rules Only, Visual Map (structured rule breakdown), and Self-Recall (blur-to-reveal memory check).',
       },
       {
-        label: '365 vs 261 Factor Converter',
+        label: 'Listen Aloud (TTS) & Glossary',
         detail:
-          'Convert seamlessly between Daily Wage, Monthly Equivalent, and Hourly Basic Rate.',
+          'Press Listen to hear rules read aloud at 0.8x–1.5x speed, and tap underlined workplace terms to view plain-English definitions.',
       },
       {
-        label: '13th Month & Wage Distortion',
+        label: 'Quick Knowledge Check (+3 Coins)',
         detail:
-          'Includes dedicated calculators for pro-rated PD 851 13th Month Pay and P.I. Manufacturing Wage Distortion formulas.',
+          'Answer the interactive 1-question check at the bottom of each card for instant feedback and a +3 Coin mastery bonus, then click Mark Studied!',
       },
     ],
     proTip:
-      'Click any formula row in the calculator breakdown to copy the exact legal equation to your clipboard!',
-    targetTab: 'calculator',
-    ctaLabel: 'Try Pay Calculator',
+      'Use the Pin button on important cards to save them to your Pinned filter, or Flag Review on tricky lessons to add them to your 5-Min Quick Study deck.',
+    targetTab: 'modules',
+    ctaLabel: 'Try a Topic Card',
   },
   {
     stepNumber: 6,
-    id: 'mystery_flashcards',
-    shortTitle: 'Flashcards',
-    kicker: 'Chapter 06 · Active Recall',
-    headline: 'Hit [?] Mystery Blocks & 5-Min Quick Study Mode',
+    id: 'scroller_and_notes',
+    shortTitle: '6. Scroller & Notes',
+    kicker: 'Step 06 · Hands-Free Reading & Note-Taking',
+    headline: 'Floating Auto-Scroll Controller & Persistent Study Notes Drawer',
     summary:
-      'Turn passive reading into active recall with 240+ interactive [?] Block Flashcards across all 6 Worlds + Holidays, including a 5-Minute Quick Study deck curated from your Need Improvement topics.',
+      'Two floating helpers stay within reach while you read so you can scroll hands-free and jot down personal study notes from any device.',
     highlights: [
       {
-        label: '5-Min Quick Study Deck',
+        label: 'Floating SCROLL Button',
         detail:
-          'Generates an instant 5-minute curated flashcard sprint targeting topics you flagged as Need Improvement in your Profile.',
+          'Tap the SCROLL button in the bottom-right corner to open the Auto-Scroll bar, press READ/PAUSE, and cycle smoothly through 1x, 2x, 3x, or 4x reading speeds.',
       },
       {
-        label: 'World 1–6 & Holidays Filtering',
+        label: 'Floating NOTES Button & Drawer',
         detail:
-          'Isolate specific modules (including World 6 Statutory Leaves & Philippine Holidays) and shuffle cards for genuine recall.',
+          'Tap the NOTES button on the right edge (or bottom-right on mobile) to slide open your personal Study Notes Pad without losing your reading spot.',
       },
       {
-        label: 'Mastery & Coin Rewards',
+        label: '1-Tap Templates & Voice Dictation',
         detail:
-          'Mark cards Mastered to track deck completion and earn Gold Coins (doubled during active Super Star buffs!).',
+          'Tag notes by World ("General / All Worlds" or Worlds 1–6), insert 1-tap memory starters, dictate via Voice Memo, and include your notes in PDF exports!',
       },
     ],
     proTip:
-      'Flag tricky doctrines as "Need Improvement" in your Profile or on any module card, then hit Quick Study Mode for a focused 5-minute blitz!',
-    targetTab: 'flashcards',
-    ctaLabel: 'Flip Flashcards',
+      'Auto-Scroll automatically pauses if you manually touch or wheel-scroll the page so it never fights your thumb.',
+    targetTab: 'modules',
+    ctaLabel: 'Open Modules & Notes',
   },
   {
     stepNumber: 7,
-    id: 'quizzes_and_boss',
-    shortTitle: 'Quizzes & Boss',
-    kicker: 'Chapter 07 · Bar Exam Arena',
-    headline: '5-Question Quick Tests, Practice Runs & Bowser Boss',
+    id: 'holidays_hub',
+    shortTitle: '7. Holidays Hub',
+    kicker: 'Step 07 · Philippine Holidays Guide',
+    headline: 'Master Regular Holidays, Special Days & Double Holiday Multipliers',
     summary:
-      'Test your mastery across three distinct battle modes in Quest & Boss — every completed quiz counts toward your User Profile Achievements!',
+      'The Holidays tab breaks down every nationwide Philippine holiday category, pay multiplier, and absence rule using visual calendars and interactive scenarios.',
     highlights: [
       {
-        label: '5-Question Quick Test',
+        label: 'Regular vs. Special Days',
         detail:
-          'Pulls 5 random questions from your active World for a 2-minute checkup and rewards coins scaled to accuracy.',
+          'Compare the 12 Regular Holidays (200% if worked / 100% even if unworked) against Special Non-Working Days ("No Work, No Pay" or 130% if worked).',
       },
       {
-        label: '65+ Question Practice Arena',
+        label: 'Rest Day & Double Holiday Stacking',
         detail:
-          'Choose 15, 30, or full 65-question runs filtered by World with detailed legal rationales after every answer.',
+          'See clearly how Regular Holiday + Rest Day reaches 260%, Double Regular Holiday hits 300%, and Double Holiday + Rest Day reaches 390%.',
       },
       {
-        label: 'Timed Bowser Boss Battle',
+        label: 'Day-Before Absence Checker',
         detail:
-          'Survive 25-second rapid-fire statutory combat with hearts and combo streaks to earn +100/+200 Coins and Boss Badges!',
+          'Test how being absent without pay vs. on paid leave on the workday before a holiday affects holiday pay eligibility.',
       },
     ],
     proTip:
-      'Score 5/5 (100%) on a World 3 (Wages) Quick Test to immediately unlock the coveted "Perfect score on Wage Quiz" badge!',
-    targetTab: 'quiz',
-    ctaLabel: 'Enter Quiz Quest',
+      'Use the category filter buttons at the top of the Holidays Hub to isolate Regular Holidays from Special Non-Working Days.',
+    targetTab: 'holidays',
+    ctaLabel: 'Explore Holidays Hub',
   },
   {
     stepNumber: 8,
-    id: 'pomodoro_audio_notes',
-    shortTitle: 'Pomodoro & Notes',
-    kicker: 'Chapter 08 · Deep Study Workflow',
-    headline: '25m/5m Pomodoro Overlay, Mario Music & Study Notes',
+    id: 'regional_wages',
+    shortTitle: '8. Regional Wages',
+    kicker: 'Step 08 · 17-Region Wage Directory',
+    headline: 'Compare Minimum Wages & Kasambahay Rates Across All 17 Regions',
     summary:
-      'Stay in peak flow state with built-in focus tools that persist across every tab as you study.',
+      'The Regions tab provides a searchable directory of daily minimum wage rates for Non-Agriculture, Agriculture, and Domestic Workers (Kasambahay) nationwide.',
     highlights: [
       {
-        label: 'Pomodoro Screen Overlay',
+        label: 'Luzon, Visayas & Mindanao Filter',
         detail:
-          'Run 25-minute Study intervals + 5-minute Mushroom Break reminders in the Navbar OR pin the floating timer overlay onto your screen, complete with Mario sound alerts!',
+          'Filter all 17 regions (NCR, CAR, Regions I to XIII, and BARMM) by island group or type any region/city into the instant search bar.',
       },
       {
-        label: '4 Mario Ambient Soundscapes',
+        label: 'Non-Agri vs. Agriculture Tranches',
         detail:
-          'Play/Pause Overworld Breeze, Underground Cavern, Bowser’s Castle, or Star Road Lullaby chiptune loops from the top bar.',
+          'Compare regional wage orders side by side to understand how Regional Tripartite Wages and Productivity Boards set local wage floors.',
       },
       {
-        label: 'Right-Edge Study Notes Pad',
+        label: 'Kasambahay Monthly Minimums',
         detail:
-          'Click the persistent NOTES handle on the right edge of the screen anytime to save, pin, and filter personal mnemonics.',
+          'Switch or scroll to the Kasambahay wage table under R.A. 10361 to check monthly domestic worker minimums by region.',
       },
     ],
     proTip:
-      'Every minute you study in Pomodoro automatically builds toward your "Studied 5 hours" profile achievement!',
-    targetTab: 'modules',
-    ctaLabel: 'Start Studying',
+      'Click a region card and send its daily rate straight into mind when testing real-world computations in the Calculator tab!',
+    targetTab: 'regions',
+    ctaLabel: 'View 17-Region Wages',
   },
   {
     stepNumber: 9,
-    id: 'vault_and_shop',
-    shortTitle: 'Games & Shop',
-    kicker: 'Chapter 09 · Play & Customize',
-    headline: '18 Playable Arcade Games, Toad’s Shop & Coin Leaderboard',
+    id: 'statutory_calculator',
+    shortTitle: '9. Pay Calculator',
+    kicker: 'Step 09 · Step-by-Step Computations',
+    headline: 'Compute Overtime, Night Shift, Holiday Pay, 13th Month & Retirement',
     summary:
-      'Recharge between study blocks in the expanded 18-Game Vault, climb the Global Coin Leaderboard, and spend your study coins on Super Star 2x buffs, Shortcut Maps, Companions & 34 Mario Heroes.',
+      'Tap the Calculator button in the top bar anytime to run step-by-step Philippine payroll computations with transparent formulas.',
     highlights: [
       {
-        label: '18-Game Arcade Vault',
+        label: 'Shift, Overtime & Night Diff Engine',
         detail:
-          'Play Drift-Tuned Labor Kart GP, Variable-Jump 2D Platformer, 3D Mushroom Island, Yoshi Egg Toss, Koopa Brick Breaker, Boo Burden Spotlight, Chrono-Clock Prescription Blitz & more.',
+          'Enter any daily rate and hours worked across Ordinary Days, Rest Days, Special Days, Regular Holidays, or Double Holidays to see exact peso totals.',
       },
       {
-        label: '34 Heroes, Power-Ups & Maps',
+        label: '13th Month & SIL Cash Conversion',
         detail:
-          'Activate Super Star Power-ups (2x coins for 10 mins), Shortcut Maps (highlights high-yield Bar topics), Desk Companions, Card Frames, and 34 Mario character skins.',
+          'Compute pro-rated 13th Month Pay (Total Basic Salary Earned ÷ 12) and unused 5-day Service Incentive Leave cash commutation.',
       },
       {
-        label: 'Global Coin Leaderboard',
+        label: '22.5-Day Retirement & Wage Distortion',
         detail:
-          'Compare your total Gold Coins and Fire Flower streaks against top law student earners on the Global Coin Leaderboard.',
+          'Verify R.A. 7641 retirement pay (15 days + 5 days SIL + 1/12 of 13th Month = 22.5 days per year) and wage distortion adjustments.',
       },
     ],
     proTip:
-      'Activate a Super Star Power-up in Toad’s Shop right before fighting Bowser or running a Quick Study sprint to earn 2x Gold Coins!',
-    targetTab: 'vault',
-    ctaLabel: 'Open Game Vault',
+      'Click Copy Equation on any calculator result card to paste the clean step-by-step computation straight into your Study Notes!',
+    targetTab: 'calculator',
+    ctaLabel: 'Open Pay Calculator',
   },
   {
     stepNumber: 10,
-    id: 'profile_print_pwa',
-    shortTitle: 'Profile, Print & PWA',
-    kicker: 'Chapter 10 · Mastery & Offline Access',
-    headline: 'Unlock Thematic World Badges, Print Reviewers & Install Offline',
+    id: 'mystery_flashcards',
+    shortTitle: '10. Flashcards &Glossary',
+    kicker: 'Step 10 · Active Memory Practice',
+    headline: 'Flip 240+ [?] Mystery Cards, Shuffle Decks & Search the Glossary',
     summary:
-      'Everything you accomplish is saved automatically on your device — ready online, offline, or on printed paper.',
+      'Strengthen long-term retention in the Cards tab using interactive flip cards, randomized deck shuffling, 5-minute sprints, and an expanded workplace glossary.',
     highlights: [
       {
-        label: '6 World Badges & 17 Achievements',
+        label: 'Shuffle Button & World Decks',
         detail:
-          'Complete all modules in any World to unlock thematic badges ("Overtime Guru", "Wage Expert", "Statutory Leave Specialist") plus milestone badges in your Profile.',
+          'Filter cards by World 1–6 or Holidays and click Shuffle anytime to randomize card order so you remember concepts rather than sequence.',
       },
       {
-        label: 'Ctrl+K Search & Print PDF',
+        label: '5-Min Quick Study Sprint',
         detail:
-          'Press Ctrl+K (or Cmd+K) to jump to any doctrine instantly, or click PRINT to generate an ink-friendly PDF Study Guide including your personal notes.',
+          'Launch a focused 5-minute flashcard session prioritizing topics you flagged for extra review.',
       },
       {
-        label: 'Installable Offline PWA',
+        label: 'Expanded Plain-English Glossary',
         detail:
-          'Click Install App in the Navbar or browser bar to study 100% offline on phone, tablet, or laptop!',
+          'Open the Glossary modal from the Menu or search bar to look up dozens of labor standards terms, formulas, and agencies in clear everyday language.',
       },
     ],
     proTip:
-      'Click "Finish Guide & Claim +25 Coins" below to graduate from onboarding and unlock your first Achievement Badge!',
+      'Use Left/Right arrow keys to move through flashcards and Spacebar to flip cards rapidly on laptop or desktop!',
+    targetTab: 'flashcards',
+    ctaLabel: 'Practice Flashcards',
+  },
+  {
+    stepNumber: 11,
+    id: 'quizzes_and_boss',
+    shortTitle: '11. Quizzes & Boss',
+    kicker: 'Step 11 · Knowledge Checks & Simulation',
+    headline: 'Quick Tests, 10-Item Timed Exam Simulation & Bowser Boss Arena',
+    summary:
+      'Put what you learned into action across four distinct quiz modes in the Quiz tab — each giving clear explanations for every single question.',
+    highlights: [
+      {
+        label: '5-Question World Quick Test',
+        detail:
+          'Take a brisk 5-item checkup tailored to your current World to verify understanding right after reading.',
+      },
+      {
+        label: 'Timed 10-Item Exam Simulation',
+        detail:
+          'Generate a randomized 10-question cross-topic quiz with a countdown timer and a complete post-quiz score breakdown & answer rationale screen.',
+      },
+      {
+        label: '65+ Practice Bank & Bowser Boss',
+        detail:
+          'Run 15/30/65-question custom practice sets or battle Bowser under a 25-second shot clock with hearts and combo multipliers for +100/+200 Coins!',
+      },
+    ],
+    proTip:
+      'Review the post-quiz explanation cards carefully — understanding why wrong choices fail is the fastest way to master tricky exceptions.',
+    targetTab: 'quiz',
+    ctaLabel: 'Start a Quiz',
+  },
+  {
+    stepNumber: 12,
+    id: 'arcade_game_vault',
+    shortTitle: '12. 22-Game Vault',
+    kicker: 'Step 12 · Learn Through Play',
+    headline: '22 Unique Arcade Mini-Games Powered by Shuffled Question Decks',
+    summary:
+      'Take an energizing study break in the Game Vault — featuring 22 playable Mario-inspired mini-games where every round draws fresh, non-repeating questions and shuffled choices.',
+    highlights: [
+      {
+        label: 'Action, Racing & Precision Games',
+        detail:
+          'Drift in Labor Kart GP, jump through 2D & 3D Mushroom Kingdom courses, or lock onto radial clouds in Yoshi’s Statutory Egg Toss with click-to-aim precision!',
+      },
+      {
+        label: 'Sorting, Relay & Strategy Games',
+        detail:
+          'Play Hammer Bros. Payroll Blitz, Toadette Due Process Relay, Shy Guy Wage Factory, Kamek Deadline Spellbook, Dr. Mario Payroll Clinic, and Whack-a-Violation.',
+      },
+      {
+        label: 'Fresh Shuffled Decks Every Run',
+        detail:
+          'Our session deck shuffler ensures questions and answer positions rotate across runs so every game stays fresh, challenging, and rewarding.',
+      },
+    ],
+    proTip:
+      'In Yoshi’s Egg Toss, you can either aim with Up/Down + Space OR click/tap directly on the matching answer cloud to auto-lock the exact throw arc!',
+    targetTab: 'vault',
+    ctaLabel: 'Play in Game Vault',
+  },
+  {
+    stepNumber: 13,
+    id: 'toad_shop_and_perks',
+    shortTitle: '13. Toad’s Shop',
+    kicker: 'Step 13 · Rewards & Customization',
+    headline: 'Unlock 34 Heroes, 2x Coin Power-Ups, Companions & Leaderboard Ranks',
+    summary:
+      'Every module you read, flashcard you master, and game you clear awards Gold Coins you can spend in Toad’s Shop.',
+    highlights: [
+      {
+        label: '34 Unlockable Characters',
+        detail:
+          'Collect and equip Mario, Luigi, Peach, Rosalina, Yoshi, Toadette, Bowser Jr., and 27 more characters — updating your avatar across the whole app.',
+      },
+      {
+        label: 'Power-Ups, Companions & Themes',
+        detail:
+          'Activate Super Star buffs (2x coins for 10 minutes), unlock Shortcut Maps that highlight must-know rules, or equip pixel desk companions and card frames.',
+      },
+      {
+        label: 'Coin Leaderboard',
+        detail:
+          'Open the Leaderboard modal from the top bar or Menu to see how your Gold Coins and study streaks rank across tiers!',
+      },
+    ],
+    proTip:
+      'Trigger a Super Star 2x Coin boost right before completing a Quiz Simulation or Boss Battle to double your coin payout!',
+    targetTab: 'shop',
+    ctaLabel: 'Visit Toad’s Shop',
+  },
+  {
+    stepNumber: 14,
+    id: 'profile_pdf_offline',
+    shortTitle: '14. Profile, PDF & App',
+    kicker: 'Step 14 · Analytics, Prints & Offline Mode',
+    headline: 'Streak Calendar, Theme-Aware A4 PDF Downloads & Offline Access',
+    summary:
+      'Your progress saves automatically on your device, with rich visual analytics in your Profile and custom-styled, direct-download A4 PDFs.',
+    highlights: [
+      {
+        label: 'Profile Streak Calendar & Badges',
+        detail:
+          'Click your Profile avatar to inspect your Monthly Study Streak & Goal Calendar grid, 7-day study bar chart, World Mastery Badges, and Achievement Trophies.',
+      },
+      {
+        label: 'Theme-Aware Direct PDF Studio',
+        detail:
+          'Open Print / PDF Studio to customize Color Theme, Font Family, Margins, and Sections — then download crisp 1-Page A4 Summaries, Landscape Certificates, or Full Reviewers directly as .pdf files!',
+      },
+      {
+        label: 'Installable Offline App (PWA)',
+        detail:
+          'Use Install App in the top bar or browser menu to save the guide to your phone, tablet, or laptop home screen for 100% offline study.',
+      },
+    ],
+    proTip:
+      'Click "Finish Guide & Claim +25 Coins" below to complete the tour and collect your +25 Gold Coin welcome reward!',
     targetTab: 'map',
     ctaLabel: 'Finish Guide & Claim +25 Coins',
   },
 ] as const;
+
+// ==================== VISUAL MONTHLY STUDY STREAK & DAILY GOAL CALENDAR ====================
+
+export interface MonthlyCalendarDayCell {
+  dayNum: number;
+  dateKey: string;
+  dateLabel: string;
+  weekdayShort: string;
+  isToday: boolean;
+  isFuture: boolean;
+  minutesStudied: number;
+  sessions: number;
+  dailyGoalTarget: number;
+  goalProgressPercent: number;
+  isGoalCompleted: boolean;
+  isStreakDay: boolean;
+  hasActivity: boolean;
+}
+
+export interface MonthlyStudyCalendarModel {
+  year: number;
+  month: number;
+  monthLabel: string;
+  firstDayOffset: number;
+  daysInMonth: number;
+  dailyGoalTarget: number;
+  activeDaysCount: number;
+  streakDaysInMonth: number;
+  completedGoalDaysCount: number;
+  cells: MonthlyCalendarDayCell[];
+}
+
+export interface BuildMonthlyStudyCalendarParams {
+  stats: PlayerProfileStats;
+  year: number;
+  month: number; // 0-indexed (0 = Jan .. 11 = Dec)
+  loginStreak: number;
+  dailyGoalTarget: number;
+  referenceToday?: Date;
+}
+
+const WEEKDAY_SHORT_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
+export function buildMonthlyStudyCalendar({
+  stats,
+  year,
+  month,
+  loginStreak,
+  dailyGoalTarget,
+  referenceToday = new Date(),
+}: BuildMonthlyStudyCalendarParams): MonthlyStudyCalendarModel {
+  const safeGoalTarget = Math.max(5, Math.round(dailyGoalTarget || 25));
+  const todayMidnight = new Date(
+    referenceToday.getFullYear(),
+    referenceToday.getMonth(),
+    referenceToday.getDate()
+  );
+  const todayKey = formatDateKey(todayMidnight);
+
+  const viewDate = new Date(year, month, 1);
+  const resolvedYear = viewDate.getFullYear();
+  const resolvedMonth = viewDate.getMonth();
+  const monthLabel = viewDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const daysInMonth = new Date(resolvedYear, resolvedMonth + 1, 0).getDate();
+  const firstDayOffset = new Date(resolvedYear, resolvedMonth, 1).getDay();
+
+  // Build consecutive active streak dates spanning back from today
+  const streakDatesSet = new Set<string>();
+  const streakLen = Math.max(0, Math.floor(loginStreak));
+  for (let i = 0; i < streakLen; i++) {
+    const d = new Date(todayMidnight);
+    d.setDate(d.getDate() - i);
+    streakDatesSet.add(formatDateKey(d));
+  }
+
+  let activeDaysCount = 0;
+  let streakDaysInMonth = 0;
+  let completedGoalDaysCount = 0;
+  const cells: MonthlyCalendarDayCell[] = [];
+
+  for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+    const cellDate = new Date(resolvedYear, resolvedMonth, dayNum);
+    const dateKey = formatDateKey(cellDate);
+    const isToday = dateKey === todayKey;
+    const isFuture = cellDate.getTime() > todayMidnight.getTime();
+    const log = stats.dailyPomodoroLogs?.[dateKey];
+
+    const sessions = Math.max(0, log?.sessions || 0);
+    const loggedMinutes = Math.max(0, log?.minutes || 0);
+    const activeSecMinutes = Math.floor(Math.max(0, log?.activeSeconds || 0) / 60);
+    const minutesStudied = isFuture
+      ? 0
+      : Math.max(loggedMinutes, sessions * 25, activeSecMinutes);
+
+    const hasLoggedStudy =
+      !isFuture &&
+      (sessions > 0 || minutesStudied > 0 || (log?.activeSeconds || 0) >= 15);
+    const isStreakDay = !isFuture && streakDatesSet.has(dateKey);
+    const isGoalCompleted = !isFuture && minutesStudied >= safeGoalTarget;
+    const hasActivity = hasLoggedStudy || isStreakDay || isGoalCompleted;
+    const goalProgressPercent = isFuture
+      ? 0
+      : Math.min(100, Math.round((minutesStudied / safeGoalTarget) * 100));
+
+    if (hasActivity) activeDaysCount++;
+    if (isStreakDay) streakDaysInMonth++;
+    if (isGoalCompleted) completedGoalDaysCount++;
+
+    cells.push({
+      dayNum,
+      dateKey,
+      dateLabel: cellDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      weekdayShort: WEEKDAY_SHORT_NAMES[cellDate.getDay()],
+      isToday,
+      isFuture,
+      minutesStudied,
+      sessions,
+      dailyGoalTarget: safeGoalTarget,
+      goalProgressPercent,
+      isGoalCompleted,
+      isStreakDay,
+      hasActivity,
+    });
+  }
+
+  return {
+    year: resolvedYear,
+    month: resolvedMonth,
+    monthLabel,
+    firstDayOffset,
+    daysInMonth,
+    dailyGoalTarget: safeGoalTarget,
+    activeDaysCount,
+    streakDaysInMonth,
+    completedGoalDaysCount,
+    cells,
+  };
+}
+

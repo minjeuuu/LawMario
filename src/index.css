@@ -1202,6 +1202,46 @@ body.printing-scorecard-only {
   }
 }
 
-
-
-
+/* 12 Print Studio Font Style Families */
+.print-font-modern-sans {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.print-font-editorial-serif {
+  font-family: 'Merriweather', Georgia, Cambria, serif;
+}
+.print-font-playfair-royal {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+.print-font-academic-times {
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  letter-spacing: -0.005em;
+}
+.print-font-formal-georgia {
+  font-family: Georgia, 'Palatino Linotype', 'Book Antiqua', serif;
+}
+.print-font-warm-charter {
+  font-family: 'Lora', Charter, Cambria, Georgia, serif;
+}
+.print-font-clean-inter {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+}
+.print-font-space-grotesk {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+}
+.print-font-condensed-narrow {
+  font-family: 'Noto Sans', 'Arial Narrow', sans-serif;
+  letter-spacing: -0.025em;
+}
+.print-font-dyslexic-sans {
+  font-family: Verdana, Tahoma, 'Noto Sans', sans-serif;
+  letter-spacing: 0.03em;
+  word-spacing: 0.08em;
+}
+.print-font-classic-monospace {
+  font-family: 'JetBrains Mono', 'Courier New', ui-monospace, monospace;
+}
+.print-font-retro-mario-mono {
+  font-family: 'Courier New', 'JetBrains Mono', monospace;
+  letter-spacing: 0.015em;
+}

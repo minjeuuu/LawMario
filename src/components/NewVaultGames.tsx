@@ -21,6 +21,27 @@ import {
   Scale,
   ShieldAlert,
 } from 'lucide-react';
+import {
+  YOSHI_LAUNCH_X,
+  YOSHI_LAUNCH_Y,
+  YOSHI_EGG_SPEED,
+  YOSHI_EGG_GRAVITY,
+  YOSHI_MIN_AIM_DEG,
+  YOSHI_MAX_AIM_DEG,
+  YOSHI_RADIAL_CLOUD_SLOTS,
+  YoshiTargetState,
+  computeYoshiCloudY,
+  solveMovingCloudAimDeg,
+  checkEggHitsCloud,
+  predictLockedCloudSlot,
+} from '../utils/yoshiBallistics';
+import {
+  drawBrickBreakerQuestions,
+  drawYoshiEggRounds,
+  YoshiEggRoundItem,
+  drawBooBurdenCases,
+  drawChronoPrescriptionClaims,
+} from '../utils/gameQuestionDeck';
 
 interface NewVaultGameProps {
   equippedAvatar: MarioAvatar;
@@ -167,11 +188,21 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
     const rowColors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'];
     const list: StatutoryBrick[] = [];
 
+    const dynamicItems = drawBrickBreakerQuestions(12).map((item) => ({
+      rateTag: item.opts[item.correct].slice(0, 14),
+      doctrine: `${item.cite}: ${item.q} → ${item.opts[item.correct]}`,
+    }));
+    const combinedPool = [...KOOPA_BREAKER_DOCTRINES, ...dynamicItems];
+    for (let i = combinedPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [combinedPool[i], combinedPool[j]] = [combinedPool[j], combinedPool[i]];
+    }
+
     let dIdx = 0;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const isQ = (r + c) % 2 === 0;
-        const doc = KOOPA_BREAKER_DOCTRINES[dIdx % KOOPA_BREAKER_DOCTRINES.length];
+        const doc = combinedPool[dIdx % combinedPool.length];
         dIdx++;
         list.push({
           x: padX + c * (brickW + gapX),
@@ -923,67 +954,85 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
   const onEarnCoinsRef = useRef(onEarnCoins);
   onEarnCoinsRef.current = onEarnCoins;
 
+  const [rounds, setRounds] = useState<YoshiEggRoundItem[]>(() => drawYoshiEggRounds(8));
+  const roundsRef = useRef<YoshiEggRoundItem[]>(rounds);
+  roundsRef.current = rounds;
+
   const [shellState, setShellState] = useState<ArcadeShellState>(() =>
     hasAutoStartParam() ? 'playing' : 'title'
   );
   const [roundIdx, setRoundIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [aimDeg, setAimDeg] = useState(38);
+  const [aimDeg, setAimDeg] = useState(42);
+  const [lockedSlot, setLockedSlot] = useState<number | null>(1);
   const [feedback, setFeedback] = useState<string>(
-    'Aim Yoshi’s Egg trajectory at the cloud carrying the exact statutory multiplier!'
+    'Click any cloud, tap a Quick-Cloud button below, or slide the angle to launch Yoshi’s Egg!'
   );
   const [snapshot, setSnapshot] = useState<EndRunSnapshot | null>(null);
 
   const simRef = useRef({
-    aimRad: (38 * Math.PI) / 180,
+    aimRad: (42 * Math.PI) / 180,
+    intendedSlot: null as number | null,
     eggActive: false,
-    eggX: 88,
-    eggY: 364,
+    eggX: YOSHI_LAUNCH_X,
+    eggY: YOSHI_LAUNCH_Y,
     eggVx: 0,
     eggVy: 0,
     roundIndex: 0,
     score: 0,
     lives: 3,
     coinsEarned: 0,
-    targets: [] as { x: number; baseY: number; y: number; phase: number; label: string; isCorrect: boolean }[],
+    targets: [] as YoshiTargetState[],
   });
 
-  const setupRoundTargets = useCallback((idx: number) => {
-    const round = YOSHI_RATE_ROUNDS[idx % YOSHI_RATE_ROUNDS.length];
-    const labels = [round.correctRate, ...round.distractors];
-    // Deterministic varied order by round
-    for (let i = labels.length - 1; i > 0; i--) {
-      const j = (idx * 3 + i * 7) % (i + 1);
-      [labels[i], labels[j]] = [labels[j], labels[i]];
-    }
-    simRef.current.targets = labels.map((lbl, slot) => ({
-      x: 340 + slot * 108,
-      baseY: 96 + (slot % 2) * 86,
-      y: 96 + (slot % 2) * 86,
-      phase: slot * 1.35,
-      label: lbl,
-      isCorrect: lbl === round.correctRate,
-    }));
+  const setupRoundTargets = useCallback((idx: number, deckOverride?: YoshiEggRoundItem[]) => {
+    const activeDeck = deckOverride || roundsRef.current;
+    const round = activeDeck[idx % activeDeck.length];
+    if (!round) return;
+
+    const builtTargets: YoshiTargetState[] = YOSHI_RADIAL_CLOUD_SLOTS.map((geom, slot) => {
+      const label = round.options[slot] ?? `${slot + 1}`;
+      const y = computeYoshiCloudY(geom.baseY, geom.phaseOffset, geom.bobAmplitude);
+      return {
+        slot,
+        x: geom.x,
+        baseY: geom.baseY,
+        y,
+        bobAmplitude: geom.bobAmplitude,
+        bobFrequency: geom.bobFrequency,
+        phase: geom.phaseOffset,
+        label,
+        isCorrect: slot === round.correctIdx,
+      };
+    });
+
+    simRef.current.targets = builtTargets;
     simRef.current.eggActive = false;
-    simRef.current.eggX = 88;
-    simRef.current.eggY = 364;
+    simRef.current.intendedSlot = null;
+    simRef.current.eggX = YOSHI_LAUNCH_X;
+    simRef.current.eggY = YOSHI_LAUNCH_Y;
+    setLockedSlot(predictLockedCloudSlot(simRef.current.aimRad, builtTargets));
   }, []);
 
   const startGame = useCallback(() => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
+    const freshRounds = drawYoshiEggRounds(8);
+    roundsRef.current = freshRounds;
+    setRounds(freshRounds);
+
     simRef.current.roundIndex = 0;
     simRef.current.score = 0;
     simRef.current.lives = 3;
     simRef.current.coinsEarned = 0;
-    setupRoundTargets(0);
+    setupRoundTargets(0, freshRounds);
     setRoundIdx(0);
     setScore(0);
     setLives(3);
     setSnapshot(null);
-    setFeedback('Aim at the correct statutory cloud and tap FIRE EGG!');
+    setFeedback('Staggered sky lanes unlocked! Click a cloud directly or use Quick-Cloud Lock & Throw.');
     setShellState('playing');
     syncBodyGameState('playing');
     marioAudio.playPowerUp();
@@ -994,17 +1043,48 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
     syncBodyGameState(shellState);
   }, [setupRoundTargets, shellState]);
 
-  const fireEgg = useCallback(() => {
-    const sim = simRef.current;
-    if (shellState !== 'playing' || sim.eggActive) return;
-    const speed = 640;
-    sim.eggActive = true;
-    sim.eggX = 88;
-    sim.eggY = 364;
-    sim.eggVx = Math.cos(sim.aimRad) * speed;
-    sim.eggVy = -Math.sin(sim.aimRad) * speed;
-    marioAudio.playJump();
-  }, [shellState]);
+  const fireEggWithAngle = useCallback(
+    (overrideDeg?: number, targetSlotOverride?: number | null) => {
+      const sim = simRef.current;
+      if (shellState !== 'playing' || sim.eggActive) return;
+
+      if (typeof overrideDeg === 'number') {
+        const clamped = Math.max(YOSHI_MIN_AIM_DEG, Math.min(YOSHI_MAX_AIM_DEG, overrideDeg));
+        setAimDeg(Math.round(clamped));
+        sim.aimRad = (clamped * Math.PI) / 180;
+      }
+
+      sim.intendedSlot =
+        targetSlotOverride !== undefined
+          ? targetSlotOverride
+          : predictLockedCloudSlot(sim.aimRad, sim.targets);
+      setLockedSlot(sim.intendedSlot);
+
+      sim.eggActive = true;
+      sim.eggX = YOSHI_LAUNCH_X;
+      sim.eggY = YOSHI_LAUNCH_Y;
+      sim.eggVx = Math.cos(sim.aimRad) * YOSHI_EGG_SPEED;
+      sim.eggVy = -Math.sin(sim.aimRad) * YOSHI_EGG_SPEED;
+      marioAudio.playJump();
+    },
+    [shellState]
+  );
+
+  const lockAndThrowAtSlot = useCallback(
+    (slot: number) => {
+      if (shellState === 'title') {
+        startGame();
+        return;
+      }
+      const sim = simRef.current;
+      if (shellState !== 'playing' || sim.eggActive) return;
+      const target = sim.targets.find((t) => t.slot === slot);
+      if (!target) return;
+      const solvedDeg = solveMovingCloudAimDeg(target);
+      fireEggWithAngle(solvedDeg, slot);
+    },
+    [fireEggWithAngle, shellState, startGame]
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1030,7 +1110,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
         score: sim.score,
         best: sim.score,
         cleared: sim.roundIndex,
-        total: YOSHI_RATE_ROUNDS.length,
+        total: roundsRef.current.length,
         coinsEarned: sim.coinsEarned,
       });
       setShellState(outcome);
@@ -1043,60 +1123,76 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       const sim = simRef.current;
 
       for (const t of sim.targets) {
-        t.phase += dt * 2.1;
-        t.y = t.baseY + Math.sin(t.phase) * 26;
+        t.phase += dt * t.bobFrequency;
+        t.y = computeYoshiCloudY(t.baseY, t.phase, t.bobAmplitude);
       }
 
+      const livePredictedSlot = sim.eggActive
+        ? sim.intendedSlot
+        : predictLockedCloudSlot(sim.aimRad, sim.targets);
+
       if (shellState === 'playing' && sim.eggActive) {
-        sim.eggX += sim.eggVx * dt;
-        sim.eggY += sim.eggVy * dt;
-        sim.eggVy += 410 * dt; // Gravity arc
+        // Sub-step integration so fast eggs never skip through target clouds
+        const subSteps = 3;
+        const stepDt = dt / subSteps;
+        let hitHandled = false;
 
-        for (const t of sim.targets) {
-          const dist = Math.hypot(sim.eggX - t.x, sim.eggY - t.y);
-          if (dist <= 40) {
-            sim.eggActive = false;
-            const round = YOSHI_RATE_ROUNDS[sim.roundIndex % YOSHI_RATE_ROUNDS.length];
-            if (t.isCorrect) {
-              sim.score += 100;
-              sim.coinsEarned += 5;
-              onEarnCoinsRef.current(5);
-              setScore(sim.score);
-              setFeedback(`BULLSEYE! ${round.statute}`);
-              marioAudio.playCoin();
+        for (let s = 0; s < subSteps && !hitHandled; s++) {
+          sim.eggX += sim.eggVx * stepDt;
+          sim.eggY += sim.eggVy * stepDt;
+          sim.eggVy += YOSHI_EGG_GRAVITY * stepDt;
 
-              if (sim.roundIndex + 1 >= YOSHI_RATE_ROUNDS.length) {
-                sim.roundIndex += 1;
-                endGame('victory');
+          for (const t of sim.targets) {
+            if (checkEggHitsCloud(sim.eggX, sim.eggY, t, sim.intendedSlot)) {
+              sim.eggActive = false;
+              hitHandled = true;
+              const activeDeck = roundsRef.current;
+              const round = activeDeck[sim.roundIndex % activeDeck.length];
+              const correctLabel = round.options[round.correctIdx];
+
+              if (t.isCorrect) {
+                sim.score += 100;
+                sim.coinsEarned += 5;
+                onEarnCoinsRef.current(5);
+                setScore(sim.score);
+                setFeedback(`BULLSEYE (${t.label})! ${round.note}`);
+                marioAudio.playCoin();
+
+                if (sim.roundIndex + 1 >= activeDeck.length) {
+                  sim.roundIndex += 1;
+                  endGame('victory');
+                } else {
+                  sim.roundIndex += 1;
+                  setRoundIdx(sim.roundIndex);
+                  setupRoundTargets(sim.roundIndex);
+                }
               } else {
-                sim.roundIndex += 1;
-                setRoundIdx(sim.roundIndex);
-                setupRoundTargets(sim.roundIndex);
+                sim.lives -= 1;
+                setLives(sim.lives);
+                setFeedback(
+                  `Hit ${t.label} — incorrect! Exact rule answer is ${correctLabel}. (${round.note})`
+                );
+                if (sim.lives <= 0) {
+                  endGame('gameover');
+                } else {
+                  marioAudio.playWrongAnswer();
+                }
               }
-            } else {
-              sim.lives -= 1;
-              setLives(sim.lives);
-              setFeedback(`Missed! ${t.label} is wrong — correct rate is ${round.correctRate}.`);
-              if (sim.lives <= 0) {
-                endGame('gameover');
-              } else {
-                marioAudio.playWrongAnswer();
-              }
+              break;
             }
-            break;
           }
         }
 
-        if (sim.eggX > 775 || sim.eggY > 450 || sim.eggY < -40) {
+        if (sim.eggActive && (sim.eggX > 775 || sim.eggY > 445 || sim.eggY < -45)) {
           sim.eggActive = false;
-          setFeedback('Egg flew off-stage! Adjust Yoshi’s angle and fire again.');
+          setFeedback('Egg sailed past the clouds! Tap a cloud directly or use Quick-Cloud buttons.');
         }
       }
 
       // Draw Sky Island Canvas
       const sky = ctx.createLinearGradient(0, 0, 0, 420);
-      sky.addColorStop(0, '#0284c7');
-      sky.addColorStop(0.75, '#38bdf8');
+      sky.addColorStop(0, '#0369a1');
+      sky.addColorStop(0.7, '#0ea5e9');
       sky.addColorStop(1, '#7dd3fc');
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, 760, 420);
@@ -1107,19 +1203,19 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       ctx.fillStyle = '#15803d';
       ctx.fillRect(0, 384, 760, 6);
 
-      // Launcher Platform & Dotted Trajectory Preview
+      // Dotted Ballistic Trajectory Preview with Target Lock Indicator
       if (!sim.eggActive) {
-        const speed = 640;
-        const vx = Math.cos(sim.aimRad) * speed;
-        const vy = -Math.sin(sim.aimRad) * speed;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-        for (let step = 1; step <= 14; step++) {
-          const tSec = step * 0.065;
-          const px = 88 + vx * tSec;
-          const py = 364 + vy * tSec + 0.5 * 410 * tSec * tSec;
-          if (px > 750 || py > 390) break;
+        const vx = Math.cos(sim.aimRad) * YOSHI_EGG_SPEED;
+        const vy = -Math.sin(sim.aimRad) * YOSHI_EGG_SPEED;
+        ctx.fillStyle =
+          livePredictedSlot !== null ? 'rgba(190, 242, 100, 0.95)' : 'rgba(255, 255, 255, 0.85)';
+        for (let step = 1; step <= 18; step++) {
+          const tSec = step * 0.055;
+          const px = YOSHI_LAUNCH_X + vx * tSec;
+          const py = YOSHI_LAUNCH_Y + vy * tSec + 0.5 * YOSHI_EGG_GRAVITY * tSec * tSec;
+          if (px > 752 || py > 390) break;
           ctx.beginPath();
-          ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+          ctx.arc(px, py, step % 3 === 0 ? 4 : 3, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -1129,30 +1225,36 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       ctx.strokeStyle = '#020617';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(88, 366, 22, 0, Math.PI * 2);
+      ctx.arc(YOSHI_LAUNCH_X, YOSHI_LAUNCH_Y + 4, 22, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // Cloud Targets
+      // Staggered Radial Cloud Targets (non-blocking corridors)
       for (const t of sim.targets) {
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineWidth = 3;
+        const isLocked = livePredictedSlot === t.slot;
+        ctx.fillStyle = isLocked ? '#ecfccb' : '#ffffff';
+        ctx.strokeStyle = isLocked ? '#65a30d' : '#0f172a';
+        ctx.lineWidth = isLocked ? 4 : 3;
         ctx.beginPath();
-        ctx.roundRect(t.x - 42, t.y - 26, 84, 52, 22);
+        ctx.roundRect(t.x - 46, t.y - 25, 92, 50, 22);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = '#0f172a';
-        ctx.font = '900 17px "Plus Jakarta Sans", sans-serif';
+        // Slot number tag on top-left corner of cloud
+        ctx.fillStyle = isLocked ? '#4d7c0f' : '#334155';
+        ctx.font = '800 10px "Plus Jakarta Sans", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(t.label, t.x, t.y + 1);
+        ctx.fillText(`#${t.slot + 1}`, t.x, t.y - 14);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '900 15px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(t.label, t.x, t.y + 5);
       }
 
       // Flying Spotted Yoshi Egg
-      const ex = sim.eggActive ? sim.eggX : 88;
-      const ey = sim.eggActive ? sim.eggY : 344;
+      const ex = sim.eggActive ? sim.eggX : YOSHI_LAUNCH_X;
+      const ey = sim.eggActive ? sim.eggY : YOSHI_LAUNCH_Y - 18;
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#020617';
       ctx.lineWidth = 2.5;
@@ -1171,12 +1273,14 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
 
     rafId = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(rafId);
-  }, [ setupRoundTargets, shellState]);
+  }, [setupRoundTargets, shellState]);
 
   const adjustAngle = (nextDeg: number) => {
-    const clamped = Math.max(12, Math.min(72, nextDeg));
-    setAimDeg(clamped);
-    simRef.current.aimRad = (clamped * Math.PI) / 180;
+    const clamped = Math.max(YOSHI_MIN_AIM_DEG, Math.min(YOSHI_MAX_AIM_DEG, nextDeg));
+    setAimDeg(Math.round(clamped));
+    const rad = (clamped * Math.PI) / 180;
+    simRef.current.aimRad = rad;
+    setLockedSlot(predictLockedCloudSlot(rad, simRef.current.targets));
   };
 
   const handleCanvasAim = (clientX: number, clientY: number, fireNow: boolean) => {
@@ -1186,14 +1290,37 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
     if (rect.width <= 0 || rect.height <= 0) return;
     const wx = ((clientX - rect.left) / rect.width) * 760;
     const wy = ((clientY - rect.top) / rect.height) * 420;
-    const dx = Math.max(20, wx - 88);
-    const dy = Math.max(15, 364 - wy);
-    const deg = Math.round((Math.atan2(dy, dx) * 180) / Math.PI);
+
+    // Snap with lead-assist if hovering/clicking directly on or near a cloud
+    let snappedTarget: YoshiTargetState | null = null;
+    let bestDist = 66;
+    for (const t of simRef.current.targets) {
+      const dist = Math.hypot(wx - t.x, wy - t.y);
+      if (dist < bestDist) {
+        bestDist = dist;
+        snappedTarget = t;
+      }
+    }
+
+    if (snappedTarget) {
+      const solvedDeg = solveMovingCloudAimDeg(snappedTarget);
+      adjustAngle(solvedDeg);
+      if (fireNow) {
+        fireEggWithAngle(solvedDeg, snappedTarget.slot);
+      }
+      return;
+    }
+
+    const dx = Math.max(20, wx - YOSHI_LAUNCH_X);
+    const dy = Math.max(12, YOSHI_LAUNCH_Y - wy);
+    const deg = (Math.atan2(dy, dx) * 180) / Math.PI;
     adjustAngle(deg);
-    if (fireNow) fireEgg();
+    if (fireNow) {
+      fireEggWithAngle(deg);
+    }
   };
 
-  const currentRound = YOSHI_RATE_ROUNDS[roundIdx % YOSHI_RATE_ROUNDS.length];
+  const currentRound = rounds[roundIdx % rounds.length] || rounds[0];
 
   return (
     <div
@@ -1212,7 +1339,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
               YOSHI’S STATUTORY EGG TOSS
             </span>
             <span className="text-xs font-bold text-slate-300 block">
-              Hero: {hero.name} · Wave {Math.min(roundIdx + 1, YOSHI_RATE_ROUNDS.length)} of {YOSHI_RATE_ROUNDS.length}
+              Hero: {hero.name} · Wave {Math.min(roundIdx + 1, rounds.length)} of {rounds.length}
             </span>
           </div>
         </div>
@@ -1236,10 +1363,10 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       {/* Live Payroll Scenario Prompt */}
       <div className="bg-slate-800/95 px-4 py-3 border-b-2 border-slate-950 space-y-1">
         <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
-          TARGET PAYROLL SCENARIO:
+          TARGET LABOR STANDARDS RULE:
         </span>
         <p className="text-sm sm:text-base font-extrabold text-white leading-snug">
-          {currentRound.prompt}
+          {currentRound?.prompt}
         </p>
         <p className="text-xs font-semibold text-emerald-300">{feedback}</p>
       </div>
@@ -1261,7 +1388,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
               YOSHI’S STATUTORY EGG TOSS
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-md mt-2 mb-5">
-              Aim Yoshi’s dotted arc and launch spotted eggs at the exact Labor Code multiplier cloud (100% to 390%) across 8 waves!
+              Click any sky cloud directly, use Quick-Cloud Lock &amp; Throw, or adjust Yoshi’s angle across 8 non-repeating statutory waves!
             </p>
             <button
               type="button"
@@ -1303,36 +1430,65 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
                 onClick={startGame}
                 className="min-h-[48px] w-full px-5 py-3 bg-lime-400 hover:bg-lime-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-xs cursor-pointer"
               >
-                PLAY AGAIN
+                PLAY AGAIN (NEW QUESTIONS)
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Angle Slider & Fire Controls */}
-      <div className="p-3.5 bg-slate-950 border-t-2 border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1">
-          <label htmlFor="yoshi-aim-slider" className="text-xs font-black font-mono text-lime-300 whitespace-nowrap tabular-nums">
-            ANGLE: {aimDeg}°
-          </label>
-          <input
-            id="yoshi-aim-slider"
-            type="range"
-            min={12}
-            max={72}
-            value={aimDeg}
-            onChange={(e) => adjustAngle(Number(e.target.value))}
-            className="w-full accent-lime-400 cursor-pointer"
-          />
+      {/* Quick-Cloud Lock & Throw Buttons + Precision Angle Slider */}
+      <div className="p-3.5 bg-slate-950 border-t-2 border-slate-800 space-y-3">
+        {currentRound && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {currentRound.options.map((optLabel, slotIdx) => {
+              const isLocked = lockedSlot === slotIdx;
+              return (
+                <button
+                  key={`${currentRound.id}-slot-${slotIdx}`}
+                  type="button"
+                  data-testid={`yoshi-cloud-btn-${slotIdx}`}
+                  onClick={() => lockAndThrowAtSlot(slotIdx)}
+                  className={`min-h-[42px] px-2.5 py-1.5 rounded-xl font-black text-xs border-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-0 ${
+                    isLocked
+                      ? 'bg-lime-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700'
+                  }`}
+                >
+                  <span className="text-[10px] font-mono opacity-80 shrink-0">#{slotIdx + 1}</span>
+                  <span className="truncate">{optLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <label
+              htmlFor="yoshi-aim-slider"
+              className="text-xs font-black font-mono text-lime-300 whitespace-nowrap tabular-nums"
+            >
+              ANGLE: {aimDeg}°
+            </label>
+            <input
+              id="yoshi-aim-slider"
+              type="range"
+              min={YOSHI_MIN_AIM_DEG}
+              max={YOSHI_MAX_AIM_DEG}
+              value={aimDeg}
+              onChange={(e) => adjustAngle(Number(e.target.value))}
+              className="w-full accent-lime-400 cursor-pointer"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => (shellState === 'title' ? startGame() : fireEggWithAngle())}
+            className="min-h-[46px] px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0"
+          >
+            FIRE YOSHI EGG
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => (shellState === 'title' ? startGame() : fireEgg())}
-          className="min-h-[46px] px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0"
-        >
-          FIRE YOSHI EGG
-        </button>
       </div>
     </div>
   );
@@ -1447,11 +1603,27 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
   const [lives, setLives] = useState(3);
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [selectedSide, setSelectedSide] = useState<'employer' | 'employee' | null>(null);
-  const [deck, setDeck] = useState<BurdenMansionCase[]>(BOO_BURDEN_CASES);
+  const [deck, setDeck] = useState<BurdenMansionCase[]>(() =>
+    drawBooBurdenCases(8).map((c) => ({
+      id: c.id,
+      claimTitle: c.dispute,
+      scenario: c.detail,
+      correctBurden: c.burden,
+      explanation: c.explanation,
+      citation: 'Philippine Labor Jurisprudence · Onus Probandi',
+    }))
+  );
 
   const startGame = () => {
-    const shuffled = [...BOO_BURDEN_CASES].sort(() => Math.random() - 0.5);
-    setDeck(shuffled);
+    const fresh = drawBooBurdenCases(8).map((c) => ({
+      id: c.id,
+      claimTitle: c.dispute,
+      scenario: c.detail,
+      correctBurden: c.burden,
+      explanation: c.explanation,
+      citation: 'Philippine Labor Jurisprudence · Onus Probandi',
+    }));
+    setDeck(fresh);
     setCaseIdx(0);
     setScore(0);
     setLives(3);
@@ -1752,7 +1924,15 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
   const [shellState, setShellState] = useState<ArcadeShellState>(() =>
     hasAutoStartParam() ? 'playing' : 'title'
   );
-  const [deck, setDeck] = useState<ChronoBlitzQuestion[]>(CHRONO_BLITZ_BANK);
+  const [deck, setDeck] = useState<ChronoBlitzQuestion[]>(() =>
+    drawChronoPrescriptionClaims(8).map((c) => ({
+      id: c.id,
+      claim: c.claim,
+      correctPeriod: c.options[c.correctIdx],
+      options: c.options,
+      basis: c.basis,
+    }))
+  );
   const [idx, setIdx] = useState(0);
   const [fuseLeft, setFuseLeft] = useState(14);
   const [score, setScore] = useState(0);
@@ -1761,7 +1941,15 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
   const [picked, setPicked] = useState<string | null>(null);
 
   const startGame = () => {
-    setDeck([...CHRONO_BLITZ_BANK].sort(() => Math.random() - 0.5));
+    setDeck(
+      drawChronoPrescriptionClaims(8).map((c) => ({
+        id: c.id,
+        claim: c.claim,
+        correctPeriod: c.options[c.correctIdx],
+        options: c.options,
+        basis: c.basis,
+      }))
+    );
     setIdx(0);
     setFuseLeft(14);
     setScore(0);
