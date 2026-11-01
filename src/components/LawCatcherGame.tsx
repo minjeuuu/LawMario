@@ -313,20 +313,21 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
             <button
               type="button"
               onClick={() => setIsPaused((p) => !p)}
-              className={`h-8 px-2.5 rounded-xl border-2 font-black text-xs inline-flex items-center gap-1 cursor-pointer transition-colors ${
+              className={`min-h-[40px] px-3 rounded-xl border-2 font-black text-xs inline-flex items-center gap-1 cursor-pointer transition-colors ${
                 isPaused
                   ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
                   : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
               }`}
             >
               {isPaused ? <Play className="w-3.5 h-3.5 fill-current" /> : <Pause className="w-3.5 h-3.5 fill-current" />}
-              <span>{isPaused ? 'Resume' : 'Pause & Study'}</span>
+              <span>{isPaused ? 'Resume' : 'Pause'}</span>
             </button>
           )}
 
           <button
+            type="button"
             onClick={startGame}
-            className="h-8 px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-black rounded-xl font-black text-xs inline-flex items-center gap-1 cursor-pointer"
+            className="min-h-[40px] px-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-black rounded-xl font-black text-xs inline-flex items-center gap-1 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>{gameState === 'start' ? 'Play' : 'Restart'}</span>
@@ -339,8 +340,8 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
         {latestCaught}
       </div>
 
-      {/* Canvas Area (Fixed minimum height ensuring full playability and prominent Start button on mobile) */}
-      <div className="relative mx-auto max-w-xl w-full h-[360px] sm:h-[400px] rounded-2xl overflow-hidden border-3 border-black shadow-inner arcade-viewport-scaled flex items-center justify-center bg-slate-950">
+      {/* Canvas Area (Matched 4:3 mobile height so controls stay in thumb zone) */}
+      <div className="relative mx-auto max-w-xl w-full h-[250px] min-[400px]:h-[280px] sm:h-[400px] rounded-2xl overflow-hidden border-3 border-black shadow-inner arcade-viewport-scaled flex items-center justify-center bg-slate-950">
         <canvas
           ref={canvasRef}
           width={480}
@@ -349,16 +350,17 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
         />
 
         {gameState === 'start' && (
-          <div className="absolute inset-0 z-20 bg-slate-950/90 flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-3.5 overflow-y-auto">
-            <h3 className="text-xl sm:text-2xl font-black text-white font-display">
+          <div className="absolute inset-0 z-20 bg-slate-950/90 flex flex-col items-center justify-center p-3 sm:p-6 text-center space-y-2 sm:space-y-3.5 overflow-y-auto">
+            <h3 className="text-lg sm:text-2xl font-black text-white font-display">
               CATCH STATUTORY RIGHTS!
             </h3>
-            <p className="text-xs text-slate-300 max-w-md font-semibold leading-relaxed">
-              Use Left / Right Arrows or Touch Controls to catch 13th Month coins, 105-Day leaves, and Service Charges while dodging Thwomps &amp; Diminution poisons!
+            <p className="text-[11px] sm:text-xs text-slate-300 max-w-md font-semibold leading-snug line-clamp-2 sm:line-clamp-none">
+              Use Left / Right Arrows or Touch Controls to catch 13th Month coins, 105-Day leaves, and Service Charges while dodging Thwomps!
             </p>
             <button
+              type="button"
               onClick={startGame}
-              className="min-h-[50px] px-8 py-3 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black font-mario text-xs sm:text-sm uppercase cursor-pointer shadow-[0_4px_0_#000] z-30"
+              className="min-h-[44px] sm:min-h-[50px] px-6 sm:px-8 py-2.5 sm:py-3 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black font-mario text-xs sm:text-sm uppercase cursor-pointer shadow-[0_4px_0_#000] z-30 shrink-0"
             >
               Start Game
             </button>
@@ -366,20 +368,21 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
         )}
 
         {gameState === 'gameover' && (
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center space-y-3">
-            <Trophy className="w-12 h-12 text-amber-400" />
-            <h3 className="text-2xl font-black text-white font-display">GAME OVER!</h3>
-            <p className="text-sm font-bold text-slate-300">
-              Total Score: <span className="text-amber-300 text-lg">{score}</span>
+          <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-2.5 overflow-y-auto">
+            <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-amber-400 shrink-0" />
+            <h3 className="text-xl sm:text-2xl font-black text-white font-display">GAME OVER!</h3>
+            <p className="text-xs sm:text-sm font-bold text-slate-300 tabular-nums">
+              Total Score: <span className="text-amber-300 text-base sm:text-lg">{score}</span>
             </p>
             <button
+              type="button"
               onClick={() => {
                 onEarnCoins(Math.max(5, Math.round(score / 4)));
                 startGame();
               }}
-              className="px-6 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-xs font-mario uppercase cursor-pointer"
+              className="min-h-[44px] px-5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-xs font-mario uppercase cursor-pointer shrink-0"
             >
-              Collect Coins & Play Again
+              Collect Coins &amp; Play Again
             </button>
           </div>
         )}
@@ -388,25 +391,33 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
       {/* Ergonomic Mobile Controls */}
       <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto pt-1">
         <button
-          onMouseDown={() => (keysRef.current.left = true)}
-          onMouseUp={() => (keysRef.current.left = false)}
-          onTouchStart={() => (keysRef.current.left = true)}
-          onTouchEnd={() => (keysRef.current.left = false)}
-          className="h-14 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-slate-950 rounded-2xl border-2 border-slate-700 flex items-center justify-center font-black text-sm cursor-pointer select-none gap-2 shadow"
+          type="button"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            keysRef.current.left = true;
+          }}
+          onPointerUp={() => (keysRef.current.left = false)}
+          onPointerLeave={() => (keysRef.current.left = false)}
+          onPointerCancel={() => (keysRef.current.left = false)}
+          className="min-h-[48px] h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-slate-950 rounded-2xl border-2 border-slate-700 flex items-center justify-center font-black text-xs sm:text-sm cursor-pointer select-none touch-none gap-1.5 sm:gap-2 shadow"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
           <span>MOVE LEFT</span>
         </button>
 
         <button
-          onMouseDown={() => (keysRef.current.right = true)}
-          onMouseUp={() => (keysRef.current.right = false)}
-          onTouchStart={() => (keysRef.current.right = true)}
-          onTouchEnd={() => (keysRef.current.right = false)}
-          className="h-14 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-slate-950 rounded-2xl border-2 border-slate-700 flex items-center justify-center font-black text-sm cursor-pointer select-none gap-2 shadow"
+          type="button"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            keysRef.current.right = true;
+          }}
+          onPointerUp={() => (keysRef.current.right = false)}
+          onPointerLeave={() => (keysRef.current.right = false)}
+          onPointerCancel={() => (keysRef.current.right = false)}
+          className="min-h-[48px] h-12 sm:h-14 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-slate-950 rounded-2xl border-2 border-slate-700 flex items-center justify-center font-black text-xs sm:text-sm cursor-pointer select-none touch-none gap-1.5 sm:gap-2 shadow"
         >
           <span>MOVE RIGHT</span>
-          <ArrowRight className="w-6 h-6" />
+          <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
         </button>
       </div>
 

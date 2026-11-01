@@ -21,6 +21,12 @@ import {
 } from '../utils/studyModes';
 import { drawUniqueFromDeck, shuffleChoiceOptions } from '../utils/gameQuestionDeck';
 import { QuizCompletionPayload } from '../utils/profileAchievements';
+import { ALL_LAW_TOPICS } from '../data/laborLawData';
+import {
+  buildTargetedWeaknessDrillDeck,
+  QuizCategoryAnswerInput,
+} from '../utils/round8Features';
+import { QuizResultSummaryChart } from './QuizResultSummaryChart';
 import {
   Trophy,
   CheckCircle,
@@ -81,6 +87,21 @@ interface BarQuizQuestProps {
   unlockedAchievementsCount?: number;
   needsImprovementTopicIds?: string[];
   needsImprovementWorlds?: string[];
+  onBossQuizCompleted?: () => void;
+  onRecordBossBattleLog?: (input: {
+    modeLabel: string;
+    score: number;
+    totalQuestions: number;
+    timeTakenSeconds: number;
+    incorrectTopics: string[];
+    victory?: boolean;
+  }) => void;
+  onOpenBossBattleLog?: () => void;
+  bossBattleLogCount?: number;
+  externalLaunchMode?: {
+    mode: 'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss';
+    nonce: number;
+  } | null;
 }
 
 export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
@@ -95,10 +116,21 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   unlockedAchievementsCount,
   needsImprovementTopicIds = [],
   needsImprovementWorlds = [],
+  onBossQuizCompleted,
+  onRecordBossBattleLog,
+  onOpenBossBattleLog,
+  bossBattleLogCount = 0,
+  externalLaunchMode = null,
 }) => {
   const [activeMode, setActiveMode] = useState<
     'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss'
   >('quick');
+
+  useEffect(() => {
+    if (externalLaunchMode && externalLaunchMode.nonce > 0) {
+      setActiveMode(externalLaunchMode.mode);
+    }
+  }, [externalLaunchMode]);
 
   // ==================== MODE 0A: EXAM SIMULATION (10 Randomized All-Topic Qs + Timer + Breakdown) ====================
   const [simTimePreset, setSimTimePreset] = useState<300 | 600 | 900>(600);
@@ -170,6 +202,20 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       totalCount: summary.totalCount,
       topicTitle: '10-Question Bar Exam Simulation (All Worlds)',
     });
+    onBossQuizCompleted?.();
+    if (snap.difficulty === 'exam_prep') {
+      const missedTopics = snap.deck
+        .filter((q, idx) => snap.answers[idx] !== q.correctIndex)
+        .map((q) => `${q.world} (${q.legalBasis})`);
+      onRecordBossBattleLog?.({
+        modeLabel: 'Exam Simulation (10 Qs)',
+        score: summary.correctCount,
+        totalQuestions: summary.totalCount,
+        timeTakenSeconds: elapsed,
+        incorrectTopics: missedTopics,
+        victory: !didTimeOut && summary.accuracyPercent >= 70,
+      });
+    }
     if (summary.coinsEarned > 0) {
       onEarnCoins(summary.coinsEarned);
     }
@@ -361,6 +407,20 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         totalCount: quickDeck.length,
         topicTitle: `${activeWorldTitle} (5-Question Quick Test)`,
       });
+      onBossQuizCompleted?.();
+      if (studyDifficulty === 'exam_prep') {
+        const missed = quickRecords
+          .filter((r) => !r.isCorrect)
+          .map((r) => `${r.question.world} (${r.question.legalBasis})`);
+        onRecordBossBattleLog?.({
+          modeLabel: `Quick Test · ${activeWorldTitle}`,
+          score: correctTotal,
+          totalQuestions: quickDeck.length,
+          timeTakenSeconds: elapsed,
+          incorrectTopics: missed,
+          victory: summary.accuracyPercent >= 70,
+        });
+      }
       if (summary.coinsEarned > 0) {
         onEarnCoins(summary.coinsEarned);
       }
@@ -386,12 +446,44 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     );
   }, [quickRecords, quickDeck.length, studyDifficulty]);
 
-  // ==================== MODE 0.5: FLASHBACK QUIZ (TARGETED WEAK AREAS) ====================
-  const [flashbackDeck, setFlashbackDeck] = useState<AdaptedQuizQuestion[]>(() =>
-    pickFlashbackQuizQuestions(needsImprovementTopicIds, needsImprovementWorlds, studyDifficulty, 5).questions
+  // ==================== MODE 0.5: TARGETED WEAKNESS DRILL (FLAGGED TOPICS REINFORCEMENT) ====================
+  const buildWeaknessDrillState = () => {
+    const poolForDiff = getQuizQuestionsForDifficulty(studyDifficulty);
+    const targeted = buildTargetedWeaknessDrillDeck({
+      pool: poolForDiff,
+      allTopics: ALL_LAW_TOPICS,
+      needsImprovementTopicIds,
+      needsImprovementWorlds,
+      deckSize: 6,
+    });
+    if (targeted.deck.length > 0) {
+      const adaptedDeck = targeted.deck.map((item) => {
+        const shuffled = shuffleChoiceOptions(item.options, item.correctIndex);
+        return {
+          ...item,
+          options: shuffled.options,
+          correctIndex: shuffled.correctIndex,
+        } as AdaptedQuizQuestion;
+      });
+      return {
+        questions: adaptedDeck,
+        sourceLabel: targeted.summaryLabel,
+      };
+    }
+    const fallback = pickFlashbackQuizQuestions(
+      needsImprovementTopicIds,
+      needsImprovementWorlds,
+      studyDifficulty,
+      5
+    );
+    return fallback;
+  };
+
+  const [flashbackDeck, setFlashbackDeck] = useState<AdaptedQuizQuestion[]>(
+    () => buildWeaknessDrillState().questions
   );
-  const [flashbackLabel, setFlashbackLabel] = useState<string>(() =>
-    pickFlashbackQuizQuestions(needsImprovementTopicIds, needsImprovementWorlds, studyDifficulty, 5).sourceLabel
+  const [flashbackLabel, setFlashbackLabel] = useState<string>(
+    () => buildWeaknessDrillState().sourceLabel
   );
   const [flashbackIdx, setFlashbackIdx] = useState(0);
   const [flashbackSelected, setFlashbackSelected] = useState<number | null>(null);
@@ -403,12 +495,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   const [flashbackElapsedSeconds, setFlashbackElapsedSeconds] = useState<number>(45);
 
   const startFreshFlashback = () => {
-    const res = pickFlashbackQuizQuestions(
-      needsImprovementTopicIds,
-      needsImprovementWorlds,
-      studyDifficulty,
-      5
-    );
+    const res = buildWeaknessDrillState();
     setFlashbackDeck(res.questions);
     setFlashbackLabel(res.sourceLabel);
     setFlashbackIdx(0);
@@ -475,8 +562,22 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         worldCode: 'FLASHBACK',
         correctCount: correctTotal,
         totalCount: flashbackDeck.length,
-        topicTitle: `Flashback Sprint: ${flashbackLabel}`,
+        topicTitle: `Targeted Weakness Drill: ${flashbackLabel}`,
       });
+      onBossQuizCompleted?.();
+      if (studyDifficulty === 'exam_prep') {
+        const missed = flashbackRecords
+          .filter((r) => !r.isCorrect)
+          .map((r) => `${r.question.world} (${r.question.legalBasis})`);
+        onRecordBossBattleLog?.({
+          modeLabel: 'Targeted Weakness Drill',
+          score: correctTotal,
+          totalQuestions: flashbackDeck.length,
+          timeTakenSeconds: elapsed,
+          incorrectTopics: missed,
+          victory: summary.accuracyPercent >= 70,
+        });
+      }
       if (bonusReward > 0) {
         onEarnCoins(bonusReward);
       }
@@ -512,6 +613,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
+  const [practiceRecords, setPracticeRecords] = useState<QuizCategoryAnswerInput[]>([]);
+  const [practiceMissedTopics, setPracticeMissedTopics] = useState<string[]>([]);
+  const practiceStartTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     setCurrentIdx(0);
@@ -519,6 +623,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setIsAnswerSubmitted(false);
     setScore(0);
     setIsQuizComplete(false);
+    setPracticeRecords([]);
+    setPracticeMissedTopics([]);
+    practiceStartTimeRef.current = Date.now();
   }, [studyDifficulty]);
 
   // ==================== MODE 2: BOWSER BOSS ====================
@@ -535,6 +642,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   const defaultBossSeconds = studyDifficulty === 'casual' ? 32 : 25;
   const [timeLeft, setTimeLeft] = useState(defaultBossSeconds);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [bossRecords, setBossRecords] = useState<QuizCategoryAnswerInput[]>([]);
+  const [bossMissedTopics, setBossMissedTopics] = useState<string[]>([]);
+  const bossStartTimeRef = useRef<number>(Date.now());
 
   const [badges, setBadges] = useState<DigitalBadge[]>(() => {
     if (typeof window !== 'undefined') {
@@ -592,6 +702,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setIsAnswerSubmitted(false);
     setScore(0);
     setIsQuizComplete(false);
+    setPracticeRecords([]);
+    setPracticeMissedTopics([]);
+    practiceStartTimeRef.current = Date.now();
   };
 
   const handleSelectOption = (idx: number) => {
@@ -603,7 +716,12 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   const handleSubmitAnswer = () => {
     if (selectedAnswer === null || !q) return;
     setIsAnswerSubmitted(true);
-    if (selectedAnswer === q.correctIndex) {
+    const isRight = selectedAnswer === q.correctIndex;
+    setPracticeRecords((prev) => [
+      ...prev,
+      { worldCode: q.worldCode || 'w1', isCorrect: isRight },
+    ]);
+    if (isRight) {
       setScore((s) => s + 1);
       onEarnCoins(studyDifficulty === 'exam_prep' ? 6 : 4);
       marioAudio.playSuccess();
@@ -614,6 +732,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         // ignore
       }
     } else {
+      setPracticeMissedTopics((prev) => [...prev, `${q.world} (${q.legalBasis})`]);
       marioAudio.playTryAgain();
     }
   };
@@ -628,12 +747,24 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       setIsQuizComplete(true);
       const practiceLabel =
         worldFilter === 'all' ? 'All Worlds Practice' : `World ${worldFilter.toUpperCase()} Practice`;
+      const elapsed = Math.max(15, Math.round((Date.now() - practiceStartTimeRef.current) / 1000));
       onQuizCompleted?.({
         worldCode: worldFilter,
         correctCount: score,
         totalCount: activePracticePool.length,
         topicTitle: `${practiceLabel} (${activePracticePool.length} Qs)`,
       });
+      onBossQuizCompleted?.();
+      if (studyDifficulty === 'exam_prep') {
+        onRecordBossBattleLog?.({
+          modeLabel: practiceLabel,
+          score,
+          totalQuestions: activePracticePool.length,
+          timeTakenSeconds: elapsed,
+          incorrectTopics: practiceMissedTopics,
+          victory: score >= Math.ceil(activePracticePool.length * 0.7),
+        });
+      }
       marioAudio.playQuizComplete();
       try {
         confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
@@ -672,11 +803,29 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setBossAnswerSubmitted(true);
     marioAudio.playTryAgain();
     setComboStreak(0);
+    const curWorldCode = rawBossQ?.worldCode || 'boss';
+    const nextRecs = [...bossRecords, { worldCode: curWorldCode, isCorrect: false }];
+    const nextMissed = rawBossQ
+      ? [...bossMissedTopics, `${rawBossQ.world} (${rawBossQ.legalBasis})`]
+      : bossMissedTopics;
+    setBossRecords(nextRecs);
+    setBossMissedTopics(nextMissed);
     setPlayerHearts((h) => {
       const next = h - 1;
       if (next <= 0) {
         setBossBattleState('defeat');
         marioAudio.playGameOver();
+        if (studyDifficulty === 'exam_prep') {
+          const elapsed = Math.max(10, Math.round((Date.now() - bossStartTimeRef.current) / 1000));
+          onRecordBossBattleLog?.({
+            modeLabel: `Bowser Boss (${bossTier === 'mega' ? 'Mega 200 HP' : 'Standard 100 HP'})`,
+            score: nextRecs.filter((r) => r.isCorrect).length,
+            totalQuestions: nextRecs.length,
+            timeTakenSeconds: elapsed,
+            incorrectTopics: nextMissed,
+            victory: false,
+          });
+        }
       }
       return next;
     });
@@ -705,6 +854,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setBossSelectedAnswer(null);
     setBossAnswerSubmitted(false);
     setComboStreak(0);
+    setBossRecords([]);
+    setBossMissedTopics([]);
+    bossStartTimeRef.current = Date.now();
     setTimeLeft(defaultBossSeconds);
     setBossBattleState('combat');
     marioAudio.playPowerUp();
@@ -721,7 +873,16 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     if (timerRef.current) clearInterval(timerRef.current);
     setBossAnswerSubmitted(true);
 
-    if (bossSelectedAnswer === bossQ.correctIndex) {
+    const isRight = bossSelectedAnswer === bossQ.correctIndex;
+    const curWorldCode = rawBossQ?.worldCode || bossQ.worldCode || 'boss';
+    const nextRecs = [...bossRecords, { worldCode: curWorldCode, isCorrect: isRight }];
+    const nextMissed = isRight
+      ? bossMissedTopics
+      : [...bossMissedTopics, `${bossQ.world} (${bossQ.legalBasis})`];
+    setBossRecords(nextRecs);
+    setBossMissedTopics(nextMissed);
+
+    if (isRight) {
       marioAudio.playSuccess();
       marioAudio.playFireball();
       marioAudio.playBowserHit();
@@ -740,13 +901,25 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       if (nextHp <= 0) {
         setTimeout(() => {
           setBossBattleState('victory');
+          const elapsed = Math.max(10, Math.round((Date.now() - bossStartTimeRef.current) / 1000));
           onQuizCompleted?.({
             worldCode: 'BOSS',
-            correctCount: bossTier === 'mega' ? 10 : 5,
-            totalCount: bossTier === 'mega' ? 10 : 5,
+            correctCount: nextRecs.filter((r) => r.isCorrect).length,
+            totalCount: nextRecs.length,
             isBossVictory: true,
             topicTitle: `Bowser Lava Keep (${bossTier === 'mega' ? 'Mega 10-Hit' : 'Standard 5-Hit'})`,
           });
+          onBossQuizCompleted?.();
+          if (studyDifficulty === 'exam_prep') {
+            onRecordBossBattleLog?.({
+              modeLabel: `Bowser Boss (${bossTier === 'mega' ? 'Mega 200 HP' : 'Standard 100 HP'})`,
+              score: nextRecs.filter((r) => r.isCorrect).length,
+              totalQuestions: nextRecs.length,
+              timeTakenSeconds: elapsed,
+              incorrectTopics: nextMissed,
+              victory: true,
+            });
+          }
           marioAudio.playQuizComplete();
           onEarnCoins(bossTier === 'mega' ? 200 : 100);
           try {
@@ -785,6 +958,17 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         setTimeout(() => {
           setBossBattleState('defeat');
           marioAudio.playGameOver();
+          if (studyDifficulty === 'exam_prep') {
+            const elapsed = Math.max(10, Math.round((Date.now() - bossStartTimeRef.current) / 1000));
+            onRecordBossBattleLog?.({
+              modeLabel: `Bowser Boss (${bossTier === 'mega' ? 'Mega 200 HP' : 'Standard 100 HP'})`,
+              score: nextRecs.filter((r) => r.isCorrect).length,
+              totalQuestions: nextRecs.length,
+              timeTakenSeconds: elapsed,
+              incorrectTopics: nextMissed,
+              victory: false,
+            });
+          }
         }, 900);
       }
     }
@@ -1092,15 +1276,15 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playPowerUp();
               startFreshFlashback();
             }}
-            data-testid="quiz-mode-flashback"
+            data-testid="quiz-mode-weakness-drill"
             className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
               activeMode === 'flashback'
                 ? 'bg-rose-500 text-white border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-rose-300 hover:text-white border-2 border-slate-700'
             }`}
           >
-            <RotateCcw className="w-4 h-4 shrink-0" />
-            <span>Flashback Quiz</span>
+            <Target className="w-4 h-4 shrink-0" />
+            <span>Weakness Drill</span>
           </button>
 
           <button
@@ -1210,6 +1394,21 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>{isExamMode ? 'Exit Exam Mode' : 'Exam Focus Mode'}</span>
             </button>
+
+            {onOpenBossBattleLog && (
+              <button
+                type="button"
+                data-testid="open-boss-battle-log-btn"
+                onClick={() => {
+                  onOpenBossBattleLog();
+                  marioAudio.playCoin();
+                }}
+                className="min-h-[34px] px-3 rounded-lg bg-red-950/90 hover:bg-red-900 border border-red-600 inline-flex items-center gap-1.5 text-xs font-black text-amber-300 tabular-nums cursor-pointer whitespace-nowrap"
+              >
+                <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Boss Log ({bossBattleLogCount})</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -1547,6 +1746,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Visual Result Summary Breakdown Chart (Right vs Wrong per World/Category) */}
+              <QuizResultSummaryChart
+                records={simDeck.map((item, idx) => ({
+                  worldCode: item.worldCode,
+                  isCorrect: simAnswers[idx] === item.correctIndex,
+                }))}
+              />
 
               {/* Per-World Topic Accuracy Breakdown */}
               <div className="space-y-3">
@@ -1972,6 +2179,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 </div>
               </div>
 
+              {/* Visual Result Summary Breakdown Chart */}
+              <QuizResultSummaryChart
+                records={quickRecords.map((r) => ({
+                  worldCode: r.question.worldCode || activeWorldCode,
+                  isCorrect: r.isCorrect,
+                }))}
+              />
+
               {/* Per-Question Breakdown */}
               <div className="space-y-2.5">
                 <h4 className="text-xs font-black uppercase font-mario text-slate-700">
@@ -2042,16 +2257,16 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       {/* ==================== MODE 0.5: FLASHBACK QUIZ (TARGETED WEAK AREAS REINFORCEMENT) ==================== */}
       {activeMode === 'flashback' && (
         <div className="space-y-5">
-          {/* Flashback Banner */}
+          {/* Targeted Weakness Drill Banner */}
           <div className="bg-gradient-to-r from-rose-900 via-red-950 to-slate-900 text-white rounded-3xl p-4 sm:p-6 mario-card border-4 border-slate-950 space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-400 text-slate-950 font-black rounded-lg border border-black text-[10px] uppercase font-mario leading-snug">
-                  <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-                  <span>TARGETED WEAK AREA FLASHBACK</span>
+                  <Target className="w-3.5 h-3.5 shrink-0" />
+                  <span>TARGETED WEAKNESS DRILL</span>
                 </div>
                 <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white font-display">
-                  FLASHBACK SPRINT: WEAK AREAS
+                  TARGETED WEAKNESS DRILL
                 </h2>
                 <p className="text-xs sm:text-sm text-rose-100 font-semibold max-w-2xl">
                   {flashbackLabel}
@@ -2067,7 +2282,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 className="min-h-[42px] px-4 inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black shadow-[0_2px_0_#000] text-xs cursor-pointer whitespace-nowrap shrink-0 w-full sm:w-auto"
               >
                 <Shuffle className="w-3.5 h-3.5 shrink-0" />
-                <span>New Flashback 5</span>
+                <span>New Weakness Drill</span>
               </button>
             </div>
           </div>
@@ -2261,6 +2476,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   </span>
                 </div>
               </div>
+
+              {/* Visual Result Summary Breakdown Chart */}
+              <QuizResultSummaryChart
+                records={flashbackRecords.map((r) => ({
+                  worldCode: r.question.worldCode || 'w1',
+                  isCorrect: r.isCorrect,
+                }))}
+              />
 
               {/* Detailed Breakdown */}
               <div className="space-y-3 pt-2">
@@ -2596,6 +2819,8 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 )}
               </div>
 
+              <QuizResultSummaryChart records={practiceRecords} />
+
               <div className="pt-2 text-left">
                 <QuizResultsLeaderboard
                   categoryKey={`practice_${worldFilter}`}
@@ -2829,6 +3054,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 <MarioCoinIcon className="w-5 h-5 shrink-0" />
                 <span>+{bossTier === 'mega' ? 200 : 100} MARIO COINS ADDED!</span>
               </div>
+              <QuizResultSummaryChart records={bossRecords} darkSurface />
               <button
                 type="button"
                 onClick={() => setBossBattleState('intro')}
@@ -2848,6 +3074,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               <h3 className="text-2xl sm:text-3xl font-black text-white font-display">
                 DEFEATED IN THE LAVA KEEP!
               </h3>
+              <QuizResultSummaryChart records={bossRecords} darkSurface />
               <button
                 type="button"
                 onClick={() => handleStartBossBattle(bossTier)}

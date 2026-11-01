@@ -26,6 +26,14 @@ import {
   KAMEK_DEADLINE_SPELLS,
 } from './BonusVaultGames';
 import {
+  YOSHI_OVERTIME_EXPRESS_BANK,
+  LUIGI_NIGHTSHIFT_BANK,
+  ROSALINA_WAGE_MATRIX_BANK,
+  PEACH_ROYAL_LEAVES_BANK,
+  WARIO_DEDUCTION_AUDIT_BANK,
+  TOADSWORTH_RETIREMENT_BANK,
+} from './MasterVaultGames';
+import {
   MarioQuestionBlockIcon,
   MarioStarIcon,
   MarioMushroomIcon,
@@ -276,6 +284,28 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
       });
     });
 
+    // 17–22. Master Vault Games Question Banks
+    const masterBanks: { category: string; label: string; bank: readonly typeof YOSHI_OVERTIME_EXPRESS_BANK[number][] }[] = [
+      { category: 'yoshi_overtime', label: "Yoshi's Overtime Express", bank: YOSHI_OVERTIME_EXPRESS_BANK },
+      { category: 'luigi_nightshift', label: "Luigi's Night Shift Poltergust", bank: LUIGI_NIGHTSHIFT_BANK },
+      { category: 'rosalina_observatory', label: "Rosalina's Wage Observatory", bank: ROSALINA_WAGE_MATRIX_BANK },
+      { category: 'peach_dispatch', label: "Peach's Royal Leave Dispatch", bank: PEACH_ROYAL_LEAVES_BANK },
+      { category: 'wario_vault', label: "Wario's Deduction Vault", bank: WARIO_DEDUCTION_AUDIT_BANK },
+      { category: 'toadsworth_tribunal', label: "Toadsworth's Retirement Tribunal", bank: TOADSWORTH_RETIREMENT_BANK },
+    ];
+    for (const grp of masterBanks) {
+      grp.bank.forEach((sc) => {
+        list.push({
+          id: `${grp.category}-${sc.id}`,
+          category: grp.category,
+          title: `${grp.label} • ${sc.headline}`,
+          questionOrDoctrine: sc.prompt,
+          answerOrRule: `${sc.options[sc.correctIndex]} — ${sc.explanation}`,
+          legalBasis: sc.statute,
+        });
+      });
+    }
+
     return list;
   }, []);
 
@@ -415,6 +445,12 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
               { id: 'toadette_relay', label: 'Due Process Relay' },
               { id: 'shy_conveyor', label: 'D.O. 174 Belt' },
               { id: 'kamek_duel', label: 'Kamek Deadlines' },
+              { id: 'yoshi_overtime', label: 'Yoshi Overtime' },
+              { id: 'luigi_nightshift', label: 'Luigi Night Shift' },
+              { id: 'rosalina_observatory', label: 'Rosalina Wages' },
+              { id: 'peach_dispatch', label: 'Peach Leaves' },
+              { id: 'wario_vault', label: 'Wario Vault' },
+              { id: 'toadsworth_tribunal', label: 'Toadsworth Tribunal' },
             ].map((tab) => (
               <button
                 key={tab.id}

@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import {
   StudyNoteItem,
+  StudyNoteCategoryTag,
+  STUDY_NOTE_CATEGORY_TAGS,
   loadStudyNotes,
   saveStudyNotes,
   createStudyNote,
@@ -86,15 +88,30 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
   const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
   const [draftWorldTag, setDraftWorldTag] = useState<string>('all');
+  const [draftCategoryTag, setDraftCategoryTag] =
+    useState<StudyNoteCategoryTag>('Quick Reference');
   const [worldFilter, setWorldFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Voice Memo / SpeechRecognition state
+  // Voice Memo / Multi-Language SpeechRecognition state ('' = Auto-Detect All Languages)
+  const [voiceLang, setVoiceLang] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
   const [speechNotice, setSpeechNotice] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  const voiceLanguageOptions = [
+    { code: '', label: 'Auto-Detect (All Languages)' },
+    { code: 'fil-PH', label: 'Filipino / Tagalog (PH)' },
+    { code: 'en-PH', label: 'English (Philippines)' },
+    { code: 'en-US', label: 'English (US)' },
+    { code: 'es-ES', label: 'Español' },
+    { code: 'ja-JP', label: '日本語 (Japanese)' },
+    { code: 'ko-KR', label: '한국어 (Korean)' },
+    { code: 'zh-CN', label: '中文 (Mandarin)' },
+  ];
 
   const handleToggleVoiceMemo = () => {
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -119,11 +136,16 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
       const rec = new SpeechRec();
       rec.continuous = true;
       rec.interimResults = false;
-      rec.lang = 'en-US';
+      if (voiceLang) {
+        rec.lang = voiceLang;
+      }
 
       rec.onstart = () => {
         setIsListening(true);
-        setSpeechNotice('Listening... speak clearly to transcribe into your note');
+        const langLabel =
+          voiceLanguageOptions.find((l) => l.code === voiceLang)?.label ||
+          'Auto-Detect (All Languages)';
+        setSpeechNotice(`Listening (${langLabel})... speak clearly to transcribe`);
         marioAudio.playCoin();
       };
 
@@ -176,8 +198,8 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
   }, [notes, onNotesChange]);
 
   const visibleNotes = useMemo(
-    () => filterStudyNotes(notes, worldFilter, searchQuery),
-    [notes, worldFilter, searchQuery]
+    () => filterStudyNotes(notes, worldFilter, searchQuery, categoryFilter),
+    [notes, worldFilter, searchQuery, categoryFilter]
   );
 
   const worldTagOptions = [
@@ -205,6 +227,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
           title: draftTitle,
           content: draftContent,
           worldTag: draftWorldTag,
+          categoryTag: draftCategoryTag,
         })
       );
       setEditingId(null);
@@ -215,6 +238,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
           title: draftTitle,
           content: draftContent,
           worldTag: draftWorldTag,
+          categoryTag: draftCategoryTag,
         })
       );
       marioAudio.playCoin();
@@ -229,6 +253,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
     setDraftTitle(note.title);
     setDraftContent(note.content);
     setDraftWorldTag(note.worldTag);
+    setDraftCategoryTag(note.categoryTag || 'Quick Reference');
     marioAudio.playJump();
   };
 
@@ -260,6 +285,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
         title: tpl.title,
         content: tpl.content,
         worldTag: tpl.worldTag,
+        categoryTag: 'Quick Reference',
       })
     );
     marioAudio.playCoin();
@@ -274,8 +300,10 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
 
   return (
     <>
-      {/* Persistent Floating Study Notes Trigger — Accessible across mobile, tablet, and desktop */}
-      {activeTab !== 'vault' && activeTab !== 'quiz' && (
+      {/* Docked Right-Edge Study Notes Tab — Visible on Necessary Study Tabs Only, Zero Overlap */}
+      {['modules', 'citations', 'holidays', 'wages_matrix', 'flashcards', 'calculator'].includes(
+        activeTab
+      ) && (
         <button
           type="button"
           onClick={() => {
@@ -284,11 +312,11 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
           }}
           data-testid="study-notes-trigger"
           aria-label={`Open Study Notes Drawer (${notes.length} saved notes)`}
-          title="Open Study Notes Drawer — Jot down labor law notes across tabs"
-          className="flex fixed right-3 bottom-[132px] [@media(max-height:500px)]:bottom-[96px] sm:bottom-auto sm:right-0 sm:top-1/2 sm:-translate-y-1/2 z-30 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 sm:border-r-0 border-black rounded-2xl sm:rounded-r-none sm:rounded-l-2xl px-2.5 py-2 sm:px-2 sm:py-3 shadow-[0_3px_0_#000] sm:shadow-[-3px_3px_0_#000] flex-row sm:flex-col items-center gap-1.5 cursor-pointer transition-colors select-none print:hidden"
+          title="Open Study Notes Drawer — Jot down labor law notes"
+          className="hidden md:flex fixed right-0 top-[44%] -translate-y-1/2 z-30 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-r-0 border-black rounded-l-2xl rounded-r-none px-2 py-3 shadow-[-3px_3px_0_#000] flex-col items-center gap-1.5 cursor-pointer transition-colors select-none print:hidden"
         >
           <NotebookPen className="w-4 h-4 text-slate-950 shrink-0" />
-          <span className="text-[10px] sm:text-[9px] font-black font-mario uppercase tracking-tighter leading-none sm:[writing-mode:vertical-rl] sm:rotate-180">
+          <span className="text-[9px] font-black font-mario uppercase tracking-tighter leading-none [writing-mode:vertical-rl] rotate-180">
             NOTES
           </span>
           <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-black inline-flex items-center justify-center border border-black leading-none tabular-nums">
@@ -344,36 +372,51 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                 className="bg-slate-900 rounded-2xl p-3.5 border-2 border-slate-700 space-y-2.5"
               >
                 <div className="space-y-2 min-w-0">
-                  <div className="flex items-center justify-between gap-2 min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
                     <span className="text-[10px] font-black uppercase text-amber-400 font-mario truncate">
                       {editingId ? 'EDIT STUDY NOTE' : 'NEW STUDY NOTE'}
                     </span>
-                    <button
-                      type="button"
-                      data-testid="voice-memo-btn"
-                      onClick={handleToggleVoiceMemo}
-                      title={isListening ? 'Stop voice recording' : 'Dictate note using Voice Memo'}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
-                        isListening
-                          ? 'bg-red-500/20 border-red-500 text-red-300 animate-pulse'
-                          : 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-slate-300'
-                      }`}
-                    >
-                      {isListening ? (
-                        <>
-                          <MicOff className="w-3.5 h-3.5 text-red-400 animate-bounce shrink-0" />
-                          <span className="text-[10px] uppercase font-mono font-bold">Stop Voice</span>
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                          <span className="text-[10px] uppercase font-mono font-bold">Voice Memo</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <select
+                        aria-label="Voice Note Dictation Language"
+                        data-testid="voice-memo-lang-select"
+                        value={voiceLang}
+                        onChange={(e) => setVoiceLang(e.target.value)}
+                        className="bg-slate-800 text-slate-200 text-[11px] font-bold px-2 py-1 rounded-lg border border-slate-600 focus:outline-none focus:border-amber-400 cursor-pointer max-w-[150px] truncate"
+                      >
+                        {voiceLanguageOptions.map((opt) => (
+                          <option key={opt.code || 'auto'} value={opt.code}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        data-testid="voice-memo-btn"
+                        onClick={handleToggleVoiceMemo}
+                        title={isListening ? 'Stop voice recording' : 'Dictate note using Voice Memo (All Languages)'}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                          isListening
+                            ? 'bg-red-500/20 border-red-500 text-red-300 animate-pulse'
+                            : 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-slate-300'
+                        }`}
+                      >
+                        {isListening ? (
+                          <>
+                            <MicOff className="w-3.5 h-3.5 text-red-400 animate-bounce shrink-0" />
+                            <span className="text-[10px] uppercase font-mono font-bold">Stop Voice</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span className="text-[10px] uppercase font-mono font-bold">Voice Memo</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="w-full min-w-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full min-w-0">
                     <select
                       aria-label="Note World Category"
                       data-testid="study-notes-world-select"
@@ -384,6 +427,22 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                       {worldTagOptions.map((opt) => (
                         <option key={opt.id} value={opt.id}>
                           {opt.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      aria-label="Note Study Tag"
+                      data-testid="study-notes-category-tag-select"
+                      value={draftCategoryTag}
+                      onChange={(e) =>
+                        setDraftCategoryTag(e.target.value as StudyNoteCategoryTag)
+                      }
+                      className="w-full min-w-0 max-w-full truncate bg-slate-800 text-emerald-300 text-xs font-bold px-3 py-2 rounded-xl border border-slate-600 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    >
+                      {STUDY_NOTE_CATEGORY_TAGS.map((tag) => (
+                        <option key={tag} value={tag}>
+                          Tag: {tag}
                         </option>
                       ))}
                     </select>
@@ -468,33 +527,64 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
               </div>
 
               {/* Filter & Search Bar */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-700 min-w-0">
-                <div className="relative flex-1 min-w-0">
-                  <Search className="w-3.5 h-3.5 text-amber-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filter saved notes..."
-                    aria-label="Search Study Notes"
-                    className="w-full min-w-0 bg-slate-900 text-white placeholder-slate-500 text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400"
-                  />
+              <div className="space-y-2 pt-2 border-t border-slate-700 min-w-0">
+                <div className="flex flex-col sm:flex-row gap-2 min-w-0">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="w-3.5 h-3.5 text-amber-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Filter saved notes..."
+                      aria-label="Search Study Notes"
+                      className="w-full min-w-0 bg-slate-900 text-white placeholder-slate-500 text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <select
+                    aria-label="Filter Notes by World"
+                    value={worldFilter}
+                    onChange={(e) => setWorldFilter(e.target.value)}
+                    className="w-full sm:w-44 min-w-0 max-w-full truncate bg-slate-900 text-slate-200 text-xs font-bold px-2.5 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 cursor-pointer"
+                  >
+                    <option value="all">All Worlds</option>
+                    {worldTagOptions
+                      .filter((o) => o.id !== 'all')
+                      .map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label}
+                        </option>
+                      ))}
+                  </select>
                 </div>
-                <select
-                  aria-label="Filter Notes by World"
-                  value={worldFilter}
-                  onChange={(e) => setWorldFilter(e.target.value)}
-                  className="w-full sm:w-44 min-w-0 max-w-full truncate bg-slate-900 text-slate-200 text-xs font-bold px-2.5 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 cursor-pointer"
+
+                {/* Category Tag Filter Buttons */}
+                <div
+                  role="group"
+                  aria-label="Filter Notes by Study Tag"
+                  className="flex flex-wrap items-center gap-1.5"
                 >
-                  <option value="all">All Worlds</option>
-                  {worldTagOptions
-                    .filter((o) => o.id !== 'all')
-                    .map((opt) => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </option>
-                    ))}
-                </select>
+                  {(['all', ...STUDY_NOTE_CATEGORY_TAGS] as const).map((cat) => {
+                    const active = categoryFilter === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        data-testid={`notes-filter-tag-${cat.replace(/\s+/g, '-').toLowerCase()}`}
+                        onClick={() => {
+                          setCategoryFilter(cat);
+                          marioAudio.playClick();
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border cursor-pointer transition-colors ${
+                          active
+                            ? 'bg-amber-400 text-slate-950 border-black font-black'
+                            : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+                        }`}
+                      >
+                        {cat === 'all' ? 'All Tags' : cat}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Notes List */}
@@ -521,14 +611,19 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-[10px] font-black text-amber-300 uppercase">
+                          <div className="flex items-center gap-1.5 flex-wrap mb-1 text-[11px] text-slate-300 font-bold">
+                            <span className="text-amber-300">
                               {getWorldBadgeLabel(note.worldTag)}
                             </span>
+                            <span aria-hidden="true">·</span>
+                            <span className="text-emerald-300">
+                              {note.categoryTag || 'Quick Reference'}
+                            </span>
                             {note.pinned && (
-                              <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 text-[9px] font-black font-mario">
-                                PINNED
-                              </span>
+                              <>
+                                <span aria-hidden="true">·</span>
+                                <span className="text-amber-200 font-black">Pinned</span>
+                              </>
                             )}
                           </div>
                           <h3 className="font-black text-sm text-white font-display break-words">

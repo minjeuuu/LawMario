@@ -62,11 +62,23 @@ export const GROUP_MEMBERS: readonly string[] = [
 
 export const STUDY_NOTES_STORAGE_KEY = 'mario_labor_study_notes_v1';
 
+export type StudyNoteCategoryTag =
+  | 'Bar Exam Review'
+  | 'Quick Reference'
+  | 'Complex Concept';
+
+export const STUDY_NOTE_CATEGORY_TAGS: readonly StudyNoteCategoryTag[] = [
+  'Bar Exam Review',
+  'Quick Reference',
+  'Complex Concept',
+] as const;
+
 export interface StudyNoteItem {
   id: string;
   title: string;
   content: string;
   worldTag: string; // e.g., 'all', 'world1'..'world5', 'holidays', 'wages_matrix'
+  categoryTag?: StudyNoteCategoryTag;
   pinned: boolean;
   updatedAt: string;
 }
@@ -108,7 +120,12 @@ export function saveStudyNotes(
 
 export function createStudyNote(
   notes: StudyNoteItem[],
-  input: { title?: string; content: string; worldTag?: string },
+  input: {
+    title?: string;
+    content: string;
+    worldTag?: string;
+    categoryTag?: StudyNoteCategoryTag;
+  },
   nowIso: string = new Date().toISOString()
 ): StudyNoteItem[] {
   const trimmedContent = input.content.trim();
@@ -119,6 +136,7 @@ export function createStudyNote(
     title: trimmedTitle,
     content: trimmedContent,
     worldTag: input.worldTag || 'all',
+    categoryTag: input.categoryTag || 'Quick Reference',
     pinned: false,
     updatedAt: nowIso,
   };
@@ -128,7 +146,9 @@ export function createStudyNote(
 export function updateStudyNote(
   notes: StudyNoteItem[],
   id: string,
-  patch: Partial<Pick<StudyNoteItem, 'title' | 'content' | 'worldTag' | 'pinned'>>,
+  patch: Partial<
+    Pick<StudyNoteItem, 'title' | 'content' | 'worldTag' | 'categoryTag' | 'pinned'>
+  >,
   nowIso: string = new Date().toISOString()
 ): StudyNoteItem[] {
   const updated = notes.map((n) => {
@@ -161,7 +181,8 @@ export function deleteStudyNote(
 export function filterStudyNotes(
   notes: StudyNoteItem[],
   worldFilter: string,
-  query: string
+  query: string,
+  categoryFilter: string = 'all'
 ): StudyNoteItem[] {
   const q = query.trim().toLowerCase();
   return sortStudyNotes(
@@ -169,11 +190,16 @@ export function filterStudyNotes(
       const worldMatches =
         worldFilter === 'all' || n.worldTag === worldFilter;
       if (!worldMatches) return false;
+      const effectiveCategory = n.categoryTag || 'Quick Reference';
+      const categoryMatches =
+        categoryFilter === 'all' || effectiveCategory === categoryFilter;
+      if (!categoryMatches) return false;
       if (!q) return true;
       return (
         n.title.toLowerCase().includes(q) ||
         n.content.toLowerCase().includes(q) ||
-        n.worldTag.toLowerCase().includes(q)
+        n.worldTag.toLowerCase().includes(q) ||
+        effectiveCategory.toLowerCase().includes(q)
       );
     })
   );
@@ -523,7 +549,15 @@ export interface PrintGuideFormatOptions {
     | 'warm_charter'
     | 'retro_mario_mono'
     | 'playfair_royal'
-    | 'space_grotesk';
+    | 'space_grotesk'
+    | 'libre_baskerville'
+    | 'cormorant_chancery'
+    | 'crimson_juris'
+    | 'source_serif_codal'
+    | 'dm_sans_clean'
+    | 'outfit_geometric'
+    | 'bricolage_editorial'
+    | 'ibm_plex_docket';
   colorAccent:
     | 'executive_navy'
     | 'ink_saver_bw'
@@ -536,7 +570,19 @@ export interface PrintGuideFormatOptions {
     | 'yoshi_jade_lime'
     | 'teal_tribunal'
     | 'terracotta_codal'
-    | 'bowser_obsidian_gold';
+    | 'bowser_obsidian_gold'
+    | 'peach_blossom_rose'
+    | 'luigi_mansion_jade'
+    | 'rosalina_cosmic_ice'
+    | 'golden_crown_ivory'
+    | 'sakura_editorial'
+    | 'midnight_espresso'
+    | 'arctic_glacier'
+    | 'solarized_amber'
+    | 'mint_dole_ledger'
+    | 'sunset_coral'
+    | 'indigo_jurisprudence'
+    | 'wario_royal_gold';
   pageBreakPerWorld: boolean;
   pageBreakPerModule: boolean;
   paperSize?: 'letter' | 'legal' | 'a4';

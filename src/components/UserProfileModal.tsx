@@ -49,6 +49,10 @@ import {
   buildMonthlyStudyCalendar,
   MonthlyCalendarDayCell,
 } from '../utils/profileAchievements';
+import {
+  ActiveDailyQuizStreakSnapshot,
+  CompletedTopicsSparklineSeries,
+} from '../utils/round8Features';
 import { marioAudio } from '../utils/audio';
 import {
   ResponsiveContainer,
@@ -81,6 +85,11 @@ interface UserProfileModalProps {
   onToggleNeedsImprovementWorld?: (worldId: string) => void;
   onStartQuickStudy?: () => void;
   onOpenLeaderboard?: () => void;
+  dailyBossQuizStreak?: ActiveDailyQuizStreakSnapshot;
+  completedTopicsSparkline?: CompletedTopicsSparklineSeries;
+  onOpenBossBattleLog?: () => void;
+  bossBattleLogCount?: number;
+  onLaunchWeaknessDrill?: () => void;
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -103,6 +112,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onToggleNeedsImprovementWorld,
   onStartQuickStudy,
   onOpenLeaderboard,
+  dailyBossQuizStreak,
+  completedTopicsSparkline,
+  onOpenBossBattleLog,
+  bossBattleLogCount = 0,
+  onLaunchWeaknessDrill,
 }) => {
   const [filterTab, setFilterTab] = useState<'all' | 'unlocked' | 'locked'>('all');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -518,8 +532,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               </div>
             )}
 
-            {/* 6 Live Stat Readouts */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-2">
+            {/* 7 Live Stat Readouts (Including Daily Login Streak + Daily Boss Quiz Streak) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 pt-2">
               <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800">
                 <span className="text-[10px] font-bold uppercase text-slate-400 block">
                   Study Time
@@ -571,12 +585,30 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
               <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800">
                 <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                  Daily Streak
+                  Login Streak
                 </span>
                 <span className="text-base sm:text-lg font-black text-orange-300 tabular-nums mt-0.5 block">
                   {loginStreak} {loginStreak === 1 ? 'Day' : 'Days'}
                 </span>
-                <span className="text-[11px] text-slate-400">Active Streak</span>
+                <span className="text-[11px] text-slate-400">Daily Login</span>
+              </div>
+
+              <div
+                data-testid="profile-daily-quiz-streak-card"
+                className="bg-slate-950/90 rounded-xl p-3 border border-rose-500/50"
+              >
+                <span className="text-[10px] font-bold uppercase text-rose-300 block">
+                  Quiz Streak
+                </span>
+                <span className="text-base sm:text-lg font-black text-rose-300 tabular-nums mt-0.5 block">
+                  {dailyBossQuizStreak?.activeStreak ?? 0}{' '}
+                  {(dailyBossQuizStreak?.activeStreak ?? 0) === 1 ? 'Day' : 'Days'}
+                </span>
+                <span className="text-[11px] text-slate-400 block truncate">
+                  {dailyBossQuizStreak?.completedToday
+                    ? 'Done Today!'
+                    : `Next: +${dailyBossQuizStreak?.nextStreakBonusCoins ?? 15}c`}
+                </span>
               </div>
 
               <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800">
@@ -592,6 +624,87 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* 7-Day Completed Topics Mini Sparkline Trend Card */}
+            {completedTopicsSparkline && (
+              <div
+                data-testid="completed-topics-sparkline-card"
+                className="bg-slate-950/90 rounded-xl p-3.5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              >
+                <div className="space-y-1 min-w-0">
+                  <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
+                    7-DAY COMPLETED TOPICS TREND
+                  </span>
+                  <div className="flex items-baseline gap-2 flex-wrap tabular-nums">
+                    <span className="text-lg sm:text-xl font-black text-white">
+                      {completedTopicsSparkline.latestCount} / {totalTopicsCount} Topics
+                    </span>
+                    <span
+                      className={`text-xs font-extrabold ${
+                        completedTopicsSparkline.delta7d > 0
+                          ? 'text-emerald-400'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      {completedTopicsSparkline.delta7d > 0
+                        ? `+${completedTopicsSparkline.delta7d} in last 7 days`
+                        : 'Steady over last 7 days'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono tabular-nums flex-wrap">
+                    {completedTopicsSparkline.points.map((pt) => (
+                      <span
+                        key={pt.dateKey}
+                        className={pt.isToday ? 'text-amber-300 font-bold' : ''}
+                      >
+                        {pt.dayLabel}:{pt.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-full sm:w-64 shrink-0 bg-slate-900/90 rounded-lg p-2 border border-slate-800">
+                  <svg
+                    viewBox={`0 0 ${completedTopicsSparkline.svgWidth} ${completedTopicsSparkline.svgHeight}`}
+                    role="img"
+                    aria-label="7-day completed topics sparkline chart"
+                    className="w-full h-16"
+                  >
+                    <defs>
+                      <linearGradient id="completedSparkArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    {completedTopicsSparkline.areaPath && (
+                      <path
+                        d={completedTopicsSparkline.areaPath}
+                        fill="url(#completedSparkArea)"
+                      />
+                    )}
+                    <polyline
+                      fill="none"
+                      stroke="#34d399"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      points={completedTopicsSparkline.polylinePoints}
+                    />
+                    {completedTopicsSparkline.points.map((pt) => (
+                      <circle
+                        key={pt.dateKey}
+                        cx={pt.svgX}
+                        cy={pt.svgY}
+                        r={pt.isToday ? 4 : 2.75}
+                        fill={pt.isToday ? '#fbbf24' : '#34d399'}
+                        stroke="#0f172a"
+                        strokeWidth="1.2"
+                      />
+                    ))}
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 1.25: 'Need Improvement' Focus Areas & 5-Min Quick Study Mode */}
@@ -614,20 +727,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </div>
               </div>
 
-              {onStartQuickStudy && (
-                <button
-                  type="button"
-                  data-testid="profile-launch-quick-study-btn"
-                  onClick={() => {
-                    onClose();
-                    onStartQuickStudy();
-                  }}
-                  className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-                >
-                  <Zap className="w-4 h-4 shrink-0" />
-                  <span>Quick Study Mode (5-Min Deck)</span>
-                </button>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {onLaunchWeaknessDrill && (
+                  <button
+                    type="button"
+                    data-testid="profile-launch-weakness-drill-btn"
+                    onClick={() => {
+                      onClose();
+                      onLaunchWeaknessDrill();
+                    }}
+                    className="min-h-[44px] px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-black text-xs border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <Flame className="w-4 h-4 shrink-0" />
+                    <span>Targeted Weakness Drill</span>
+                  </button>
+                )}
+
+                {onStartQuickStudy && (
+                  <button
+                    type="button"
+                    data-testid="profile-launch-quick-study-btn"
+                    onClick={() => {
+                      onClose();
+                      onStartQuickStudy();
+                    }}
+                    className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <Zap className="w-4 h-4 shrink-0" />
+                    <span>Quick Study Mode (5-Min Deck)</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
@@ -878,7 +1008,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-300">
                 <span className="bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 text-amber-300 font-mono">
                   Total Runs: {stats.quizzesCompleted}
                 </span>
@@ -887,6 +1017,20 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     {stats.perfectAnyQuizzes} Perfect
                   </span>
+                )}
+                {onOpenBossBattleLog && (
+                  <button
+                    type="button"
+                    data-testid="profile-open-boss-log-btn"
+                    onClick={() => {
+                      onOpenBossBattleLog();
+                      marioAudio.playCoin();
+                    }}
+                    className="min-h-[34px] px-3 py-1 rounded-xl bg-red-950 hover:bg-red-900 border border-red-600 text-amber-300 font-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Boss Battle Log ({bossBattleLogCount})</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -1547,6 +1691,122 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <p className="text-xs text-slate-300 font-semibold">
                 Complete every module within a World to earn its official Labor Law title &amp; bonus Gold Coins.
               </p>
+            </div>
+
+            {/* 6-World Mastery Bar Chart (0%–100% Completion Per World) */}
+            <div
+              data-testid="profile-world-mastery-bar-chart"
+              className="bg-slate-950/90 rounded-2xl p-4 border border-slate-800 space-y-2.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-black uppercase text-amber-300 font-mario">
+                  WORLD MASTERY BAR CHART (WORLDS 1–6)
+                </span>
+                <span className="text-xs font-bold text-slate-400 tabular-nums">
+                  Overall Completion: {overallProgressPercent}% ({completedTopicsCount}/{totalTopicsCount})
+                </span>
+              </div>
+              <div className="w-full overflow-x-auto">
+                <svg
+                  viewBox="0 0 560 168"
+                  role="img"
+                  aria-label="Bar chart showing completion percentage for each of the 6 Labor Law worlds"
+                  className="w-full h-40 min-w-[300px]"
+                >
+                  {[0, 50, 100].map((pct) => {
+                    const gy = 132 - (pct / 100) * 96;
+                    return (
+                      <g key={pct}>
+                        <line
+                          x1={38}
+                          y1={gy}
+                          x2={546}
+                          y2={gy}
+                          stroke="#334155"
+                          strokeDasharray={pct === 0 ? undefined : '4 4'}
+                          strokeWidth="1"
+                        />
+                        <text
+                          x={32}
+                          y={gy + 4}
+                          textAnchor="end"
+                          fill="#94a3b8"
+                          fontSize="10"
+                          fontWeight="700"
+                        >
+                          {pct}%
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {worldMasteryBadges.map((wBadge, idx) => {
+                    const pct = Math.max(0, Math.min(100, wBadge.progressPercent));
+                    const slotW = 82;
+                    const barW = 46;
+                    const x = 52 + idx * slotW;
+                    const barH = Math.max(pct > 0 ? 4 : 0, Math.round((pct / 100) * 96));
+                    const y = 132 - barH;
+                    const fill =
+                      pct >= 100 ? '#fbbf24' : pct >= 50 ? '#34d399' : '#38bdf8';
+
+                    return (
+                      <g key={wBadge.worldId}>
+                        <rect
+                          x={x}
+                          y={36}
+                          width={barW}
+                          height={96}
+                          rx={6}
+                          fill="#0f172a"
+                          stroke="#1e293b"
+                          strokeWidth="1"
+                        />
+                        {barH > 0 && (
+                          <rect
+                            x={x}
+                            y={y}
+                            width={barW}
+                            height={barH}
+                            rx={6}
+                            fill={fill}
+                          />
+                        )}
+                        <text
+                          x={x + barW / 2}
+                          y={Math.max(28, y - 5)}
+                          textAnchor="middle"
+                          fill="#f8fafc"
+                          fontSize="11"
+                          fontWeight="800"
+                        >
+                          {pct}%
+                        </text>
+                        <text
+                          x={x + barW / 2}
+                          y={149}
+                          textAnchor="middle"
+                          fill="#e2e8f0"
+                          fontSize="11"
+                          fontWeight="800"
+                        >
+                          W{wBadge.worldNumber}
+                        </text>
+                        <text
+                          x={x + barW / 2}
+                          y={162}
+                          textAnchor="middle"
+                          fill="#94a3b8"
+                          fontSize="9.5"
+                          fontWeight="600"
+                        >
+                          {wBadge.completedCount}/{wBadge.totalCount}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

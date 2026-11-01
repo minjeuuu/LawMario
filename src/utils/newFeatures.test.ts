@@ -192,8 +192,8 @@ test('Game & Quiz session decks deal 100% unique non-repeating questions across 
     );
   }
 
-  // 2. Labor Kart 40-question non-repeating deck
-  assert.equal(KART_QUESTION_BANK.length, 40);
+  // 2. Labor Kart expanded non-repeating deck (>= 40 questions)
+  assert.ok(KART_QUESTION_BANK.length >= 40, 'Kart question bank has at least 40 unique questions');
   const seenKartIds = new Set<string>();
   for (let i = 0; i < KART_QUESTION_BANK.length; i++) {
     const q = drawKartQuestion();

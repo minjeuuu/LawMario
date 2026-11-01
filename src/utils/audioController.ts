@@ -333,6 +333,7 @@ export interface AudioSettings {
   musicVolume: number; // 0.0 to 1.0 (Music volume)
   ambianceEnabled: boolean; // Background atmospheric soundscape toggle
   ambianceVolume: number; // 0.0 to 1.0 (Ambiance volume)
+  studyAmbience?: 'off' | 'forest' | 'underwater' | 'castle'; // Dedicated Study Ambience soundscape
   tabSfx: TabSfxType;
   cardSfx: CardSfxType;
   quizSfx: QuizSfxType;
@@ -350,6 +351,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   musicVolume: 0.42,
   ambianceEnabled: false,
   ambianceVolume: 0.28,
+  studyAmbience: 'off',
   tabSfx: 'pipe',
   cardSfx: 'coin',
   quizSfx: 'fanfare',
@@ -1237,13 +1239,54 @@ export class AudioController {
       this.startBgm();
     }
 
-    if (!this.settings.enabled || !this.settings.ambianceEnabled) {
-      this.stopAmbiance();
-    } else if (this.settings.enabled && this.settings.ambianceEnabled) {
-      this.startAmbiance(this.activeAmbianceTheme);
-    }
+    this.syncStudyAmbience();
 
     this.notifyListeners();
+  }
+
+  public toggleMute(): boolean {
+    const nextEnabled = !this.settings.enabled;
+    this.updateSettings({ enabled: nextEnabled });
+    return nextEnabled;
+  }
+
+  public setStudyAmbience(
+    preset: 'off' | 'forest' | 'underwater' | 'castle',
+    playChime: boolean = false
+  ) {
+    this.updateSettings({
+      studyAmbience: preset,
+      ambianceEnabled: preset !== 'off' ? true : false,
+    });
+    if (playChime && preset !== 'off' && this.settings.enabled) {
+      this.playClick();
+    }
+  }
+
+  public isStudyAmbiencePausedByBgm(): boolean {
+    const preset = this.settings.studyAmbience || 'off';
+    const wantsAmbience = preset !== 'off' || Boolean(this.settings.ambianceEnabled);
+    return Boolean(this.settings.enabled && wantsAmbience && this.isMusicPlaying());
+  }
+
+  public syncStudyAmbience() {
+    if (!this.settings.enabled) {
+      this.stopAmbiance();
+      return;
+    }
+    // Pause ambience automatically whenever the main Mario BGM is playing
+    if (this.isBgmPlaying && this.settings.musicEnabled) {
+      this.stopAmbiance();
+      return;
+    }
+    const preset = this.settings.studyAmbience || 'off';
+    if (preset !== 'off') {
+      this.startAmbiance(preset);
+    } else if (this.settings.ambianceEnabled) {
+      this.startAmbiance(this.activeAmbianceTheme || 'overworld');
+    } else {
+      this.stopAmbiance();
+    }
   }
 
   public getActivePackProfile(): SoundPackSynthProfile {
@@ -1454,22 +1497,105 @@ export class AudioController {
     }
   }
 
-  // Atmospheric Background Ambiance tied to MarioTheme
+  // Atmospheric Background Ambiance tied to MarioTheme or Study Ambience Soundscape
   public startAmbiance(theme: string = 'overworld') {
-    if (!this.settings.enabled || !this.settings.ambianceEnabled) return;
+    const studyPreset = this.settings.studyAmbience || 'off';
+    if (!this.settings.enabled || (!this.settings.ambianceEnabled && studyPreset === 'off')) {
+      return;
+    }
+    if (this.isBgmPlaying && this.settings.musicEnabled) {
+      this.stopAmbiance();
+      return;
+    }
     this.stopAmbiance();
     this.initCtx();
     if (!this.ctx) return;
-    this.activeAmbianceTheme = theme;
+    const effectiveTheme = studyPreset !== 'off' ? studyPreset : theme;
+    this.activeAmbianceTheme = effectiveTheme;
 
     try {
       const ambGain = this.ctx.createGain();
-      const vol = Math.max(0.01, (this.settings.ambianceVolume ?? 0.28) * 0.2);
+      const vol = Math.max(0.01, (this.settings.ambianceVolume ?? 0.28) * 0.22);
       ambGain.gain.setValueAtTime(vol, this.ctx.currentTime);
       ambGain.connect(this.ctx.destination);
       this.ambianceGainNode = ambGain;
 
-      if (theme.includes('underground') || theme.includes('pro_study_slate')) {
+      if (effectiveTheme === 'underwater') {
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const filt = this.ctx.createBiquadFilter();
+        osc1.type = 'sine';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(82.41, this.ctx.currentTime);
+        osc2.frequency.setValueAtTime(123.47, this.ctx.currentTime);
+        filt.type = 'lowpass';
+        filt.frequency.setValueAtTime(195, this.ctx.currentTime);
+        osc1.connect(filt);
+        osc2.connect(filt);
+        filt.connect(ambGain);
+        osc1.start();
+        osc2.start();
+        this.ambianceActiveNodes.push(osc1, osc2, filt);
+
+        const bubble = () => {
+          if (!this.ctx || !this.ambianceGainNode) return;
+          try {
+            const t = this.ctx.currentTime;
+            const bOsc = this.ctx.createOscillator();
+            const bGain = this.ctx.createGain();
+            const base = 360 + Math.random() * 240;
+            bOsc.type = 'sine';
+            bOsc.frequency.setValueAtTime(base, t);
+            bOsc.frequency.exponentialRampToValueAtTime(base * 2.1, t + 0.16);
+            bGain.gain.setValueAtTime(0.18, t);
+            bGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            bOsc.connect(bGain);
+            bGain.connect(ambGain);
+            bOsc.start(t);
+            bOsc.stop(t + 0.22);
+          } catch {}
+        };
+        this.ambianceIntervalId = window.setInterval(bubble, 2100);
+      } else if (effectiveTheme === 'forest') {
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const filt = this.ctx.createBiquadFilter();
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+        osc1.frequency.setValueAtTime(196.0, this.ctx.currentTime);
+        osc2.frequency.setValueAtTime(293.66, this.ctx.currentTime);
+        filt.type = 'lowpass';
+        filt.frequency.setValueAtTime(380, this.ctx.currentTime);
+        osc1.connect(filt);
+        osc2.connect(filt);
+        filt.connect(ambGain);
+        osc1.start();
+        osc2.start();
+        this.ambianceActiveNodes.push(osc1, osc2, filt);
+
+        const birdChirp = () => {
+          if (!this.ctx || !this.ambianceGainNode) return;
+          try {
+            const t = this.ctx.currentTime;
+            const c = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            const f1 = 1046.5 + Math.random() * 260;
+            c.type = 'sine';
+            c.frequency.setValueAtTime(f1, t);
+            c.frequency.exponentialRampToValueAtTime(f1 * 1.25, t + 0.09);
+            g.gain.setValueAtTime(0.11, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+            c.connect(g);
+            g.connect(ambGain);
+            c.start(t);
+            c.stop(t + 0.25);
+          } catch {}
+        };
+        this.ambianceIntervalId = window.setInterval(birdChirp, 2900);
+      } else if (
+        effectiveTheme.includes('underground') ||
+        effectiveTheme.includes('pro_study_slate')
+      ) {
         const osc = this.ctx.createOscillator();
         const filt = this.ctx.createBiquadFilter();
         osc.type = 'sine';
@@ -1500,7 +1626,7 @@ export class AudioController {
           } catch {}
         };
         this.ambianceIntervalId = window.setInterval(drip, 2400);
-      } else if (theme.includes('castle') || theme.includes('bowser_lava')) {
+      } else if (effectiveTheme.includes('castle') || effectiveTheme.includes('bowser_lava')) {
         const osc = this.ctx.createOscillator();
         const osc2 = this.ctx.createOscillator();
         osc.type = 'triangle';
@@ -1534,7 +1660,11 @@ export class AudioController {
           } catch {}
         };
         this.ambianceIntervalId = window.setInterval(crackle, 1600);
-      } else if (theme.includes('galaxy') || theme.includes('neon_synth') || theme.includes('aurora')) {
+      } else if (
+        effectiveTheme.includes('galaxy') ||
+        effectiveTheme.includes('neon_synth') ||
+        effectiveTheme.includes('aurora')
+      ) {
         const osc1 = this.ctx.createOscillator();
         const osc2 = this.ctx.createOscillator();
         osc1.type = 'sine';
@@ -1995,13 +2125,16 @@ export class AudioController {
       }
     };
 
+    this.stopAmbiance();
     playLoop();
     if (typeof window !== 'undefined') {
       this.bgmInterval = window.setInterval(playLoop, baseSeq.loopMs);
     }
+    this.notifyListeners();
   }
 
   public stopBgm() {
+    const wasPlaying = this.isBgmPlaying;
     this.isBgmPlaying = false;
     if (this.bgmAudioEl) {
       try {
@@ -2013,6 +2146,10 @@ export class AudioController {
     if (this.bgmInterval !== null) {
       clearInterval(this.bgmInterval);
       this.bgmInterval = null;
+    }
+    if (wasPlaying) {
+      this.syncStudyAmbience();
+      this.notifyListeners();
     }
   }
 

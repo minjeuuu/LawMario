@@ -439,7 +439,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
               <button
                 type="button"
                 onClick={() => handleVerdict(true)}
-                className="min-h-[52px] px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
               >
                 <ShieldCheck className="w-5 h-5 shrink-0" />
                 <span>SHIELD: LAWFUL PAYROLL [A]</span>
@@ -447,7 +447,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
               <button
                 type="button"
                 onClick={() => handleVerdict(false)}
-                className="min-h-[52px] px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
               >
                 <Hammer className="w-5 h-5 shrink-0" />
                 <span>SMASH: ILLEGAL VIOLATION [D]</span>
@@ -1200,7 +1200,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
               <button
                 type="button"
                 onClick={() => inspectCrate(true)}
-                className="min-h-[52px] px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
               >
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
                 <span>CERTIFY COMPLIANT</span>
@@ -1208,7 +1208,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
               <button
                 type="button"
                 onClick={() => inspectCrate(false)}
-                className="min-h-[52px] px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
               >
                 <XCircle className="w-5 h-5 shrink-0" />
                 <span>BUST DOLE VIOLATION</span>

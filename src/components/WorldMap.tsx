@@ -73,6 +73,12 @@ interface WorldMapProps {
   needsImprovementCount?: number;
   onEarnCoins?: (amount: number) => void;
   superStarActive?: boolean;
+  recentlyViewedTopics?: {
+    id: string;
+    title: string;
+    badge: string;
+    worldId: string;
+  }[];
 }
 
 interface MapNode {
@@ -237,6 +243,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   needsImprovementCount = 0,
   onEarnCoins,
   superStarActive = false,
+  recentlyViewedTopics = [],
 }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string>(
     MAP_NODES.some((n) => n.id === activeWorld) ? activeWorld : 'world1'
@@ -522,6 +529,62 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             })}
           </div>
         </div>
+
+        {/* 1.5 Recently Viewed Topics Strip (Last 5 Accessed Modules) */}
+        <section
+          data-testid="map-recently-viewed-section"
+          aria-label="Recently Viewed Topics"
+          className="mb-4 bg-slate-900/95 text-white rounded-2xl border-4 border-slate-950 p-3.5 sm:p-4 shadow-[4px_4px_0_#000] space-y-2.5"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-[10px] font-black uppercase text-amber-400 font-mario shrink-0">
+                RECENTLY VIEWED
+              </span>
+              <span className="text-slate-500" aria-hidden="true">
+                ·
+              </span>
+              <span className="text-xs font-bold text-slate-300 truncate">
+                Last {Math.min(5, recentlyViewedTopics.length)} accessed labor law topics
+              </span>
+            </div>
+            <span className="text-[11px] font-mono font-bold text-slate-400 tabular-nums">
+              {recentlyViewedTopics.length}/5 Recent
+            </span>
+          </div>
+
+          {recentlyViewedTopics.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+              {recentlyViewedTopics.slice(0, 5).map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  data-testid={`recently-viewed-topic-${item.id}`}
+                  onClick={() => {
+                    if (onSelectTopic) {
+                      onSelectTopic(item.worldId, item.id);
+                    } else {
+                      onSelectWorld(item.worldId);
+                    }
+                  }}
+                  className="min-h-[54px] text-left bg-slate-950 hover:bg-slate-800 border-2 border-slate-700 hover:border-amber-400 rounded-xl px-3 py-2 transition-colors cursor-pointer flex flex-col justify-between gap-1 min-w-0"
+                >
+                  <div className="flex items-center justify-between gap-1.5 text-[10px] font-mono font-bold text-amber-300 min-w-0">
+                    <span className="truncate">{item.badge}</span>
+                    <span className="text-slate-500 shrink-0">#{idx + 1}</span>
+                  </div>
+                  <span className="text-xs font-extrabold text-white truncate block">
+                    {item.title}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 font-medium">
+              Open any module card or use Quick Jump to pin your last 5 accessed topics here for instant 1-click re-selection.
+            </p>
+          )}
+        </section>
 
         {/* 2. Quick Study Widget: 5-Minute Curated Flashcard Deck + Topic Warp */}
         <div

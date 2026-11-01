@@ -170,12 +170,12 @@ test('getAutoScrollMobilePosition coordinates mobile layout so scroller never co
   // When Pomodoro overlay is active on mobile, AutoScroll sits safely above both bottom nav and overlay
   const overlayActive = getAutoScrollMobilePosition({ active: true, hasNotice: false, isExpanded: false });
   assert.equal(overlayActive.hidden, false);
-  assert.equal(overlayActive.bottomClass, 'bottom-[11rem]');
+  assert.equal(overlayActive.bottomClass, 'bottom-[13rem]');
 
   // When Pomodoro overlay has stage clear / break notice, AutoScroll sits above the taller card
   const overlayNotice = getAutoScrollMobilePosition({ active: true, hasNotice: true, isExpanded: false });
   assert.equal(overlayNotice.hidden, false);
-  assert.equal(overlayNotice.bottomClass, 'bottom-[18rem]');
+  assert.equal(overlayNotice.bottomClass, 'bottom-[19rem]');
 
   // When Pomodoro overlay is inactive, AutoScroll rests cleanly above the fixed mobile bottom nav bar
   const inactive = getAutoScrollMobilePosition({ active: false, hasNotice: false, isExpanded: false });

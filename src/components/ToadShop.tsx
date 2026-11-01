@@ -6,7 +6,9 @@ import {
   SoundPackId,
   StudyCompanionId,
   CardFrameId,
+  AppStudyFontId,
 } from '../types/laborLaw';
+import { APP_STUDY_FONTS } from '../utils/round8Features';
 import { HERO_ROSTER } from '../data/heroesData';
 import {
   MarioCoinIcon,
@@ -75,6 +77,9 @@ interface ToadShopProps {
   onEquipCardFrame?: (id: CardFrameId) => void;
   onBoostStreak?: (days: number) => void;
   onOpenLeaderboard?: () => void;
+  appStudyFont?: AppStudyFontId;
+  onSelectAppStudyFont?: (font: AppStudyFontId) => void;
+  onOpenCertificatePreview?: () => void;
 }
 
 export const POWERUP_ITEMS: ShopItem[] = [
@@ -364,6 +369,86 @@ export const THEME_ITEMS: ShopItem[] = [
     description: 'Magical emerald northern polar lights shimmering across deep alpine starlight.',
     previewColor: '#052328',
   },
+  {
+    id: 'theme_peach_castle',
+    name: "Peach's Blossom Castle",
+    category: 'theme',
+    themeId: 'peach_castle',
+    price: 0,
+    badge: 'Free Skin',
+    description: 'Soft rose-blossom castle clouds with sunlit royal gold courtyard warmth.',
+    previewColor: '#fbcfe8',
+  },
+  {
+    id: 'theme_yoshi_island',
+    name: "Yoshi's Pastel Island",
+    category: 'theme',
+    themeId: 'yoshi_island',
+    price: 0,
+    badge: 'Free Skin',
+    description: 'Cheerful spring-meadow mint and lemon-sunburst storybook skies.',
+    previewColor: '#6ee7b7',
+  },
+  {
+    id: 'theme_rosalina_comet',
+    name: 'Rosalina Comet Observatory',
+    category: 'theme',
+    themeId: 'rosalina_comet',
+    price: 0,
+    badge: 'Free Skin',
+    description: 'Serene celestial teal-midnight observatory with golden starlight dust.',
+    previewColor: '#0f2537',
+  },
+  {
+    id: 'theme_royal_parchment',
+    name: 'Pro Study: Royal Parchment',
+    category: 'theme',
+    themeId: 'royal_parchment',
+    price: 0,
+    badge: 'Pro Study · Free',
+    description: 'Warm ivory codal parchment with crisp ink contrast and zero background distractions.',
+    previewColor: '#faf5e8',
+  },
+  {
+    id: 'theme_sakura_garden',
+    name: 'Pro Study: Sakura Editorial',
+    category: 'theme',
+    themeId: 'sakura_garden',
+    price: 30,
+    badge: 'Pro Study',
+    description: 'Ultra-gentle blossom-paper reading canvas with calm plum-slate contrast.',
+    previewColor: '#fdf2f8',
+  },
+  {
+    id: 'theme_luigi_mansion',
+    name: "Luigi's Emerald Manor",
+    category: 'theme',
+    themeId: 'luigi_mansion',
+    price: 35,
+    badge: 'Arcade',
+    description: 'Deep spectral jade manor glow with crisp emerald lantern highlights.',
+    previewColor: '#063729',
+  },
+  {
+    id: 'theme_arctic_ice_world',
+    name: 'Sherbet Arctic Ice World',
+    category: 'theme',
+    themeId: 'arctic_ice_world',
+    price: 40,
+    badge: 'Arcade',
+    description: 'Crisp glacier-blue crystal skies inspired by Ice Flower winter stages.',
+    previewColor: '#bae6fd',
+  },
+  {
+    id: 'theme_espresso_tribunal',
+    name: 'Pro Study: Espresso Tribunal',
+    category: 'theme',
+    themeId: 'espresso_tribunal',
+    price: 45,
+    badge: 'Pro Study',
+    description: 'Warm dark-roast mahogany study chamber engineered for late-night reading.',
+    previewColor: '#1c1410',
+  },
 ];
 
 export const AVATAR_ITEMS: ShopItem[] = HERO_ROSTER.map((hero) => ({
@@ -640,6 +725,9 @@ export const ToadShop: React.FC<ToadShopProps> = ({
   onEquipCardFrame,
   onBoostStreak,
   onOpenLeaderboard,
+  appStudyFont = 'jakarta',
+  onSelectAppStudyFont,
+  onOpenCertificatePreview,
 }) => {
   const [activeCategory, setActiveCategory] = useState<
     | 'powerups'
@@ -760,6 +848,10 @@ export const ToadShop: React.FC<ToadShopProps> = ({
   const [unlockedItemIds, setUnlockedItemIds] = useState<string[]>(() => {
     const defaults = [
       'theme_overworld',
+      'theme_peach_castle',
+      'theme_yoshi_island',
+      'theme_rosalina_comet',
+      'theme_royal_parchment',
       'avatar_mario',
       'avatar_luigi',
       'avatar_peach',
@@ -1088,9 +1180,10 @@ export const ToadShop: React.FC<ToadShopProps> = ({
               <MarioCharacterAvatar character={equippedAvatar} className="w-10 h-10" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-black text-amber-300 font-black rounded-lg text-[10px] uppercase font-mario leading-none">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-black text-amber-300 font-black rounded-lg text-[9.5px] sm:text-[10px] uppercase font-mario leading-relaxed max-w-full">
                 <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                <span>TOAD&apos;S SHOP &amp; GRAND COIN BAZAAR</span>
+                <span className="sm:hidden">TOAD&apos;S COIN BAZAAR</span>
+                <span className="hidden sm:inline">TOAD&apos;S SHOP &amp; GRAND COIN BAZAAR</span>
               </div>
               <h1 className="text-xl sm:text-3xl font-black text-white font-display tracking-tight mt-1 break-words">
                 POWER-UPS, SHORTCUT MAPS, 34 HEROES &amp; VAULT GEAR
@@ -1612,9 +1705,61 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         </div>
       )}
 
-      {/* Themes Grid (Includes Pro Study Theme Pack) */}
+      {/* Themes & Fonts Grid (Includes 21 App Skins + 8 Free App Study Fonts) */}
       {activeCategory === 'themes' && (
         <div className="space-y-4">
+          {/* App-Wide Study Font Picker (8 Free Typography Families) */}
+          <div
+            data-testid="shop-app-font-studio"
+            className="bg-white rounded-2xl border-4 border-slate-950 p-4 sm:p-5 shadow-[4px_4px_0_#000] space-y-3"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-black uppercase text-indigo-700 font-mario block">
+                  APP-WIDE TYPOGRAPHY STUDIO · 8 READING FONTS (FREE)
+                </span>
+                <h3 className="text-base sm:text-lg font-black text-slate-950 font-display">
+                  Choose Your Study &amp; Module Reading Font
+                </h3>
+              </div>
+              <span className="text-xs font-bold text-slate-600">
+                Active:{' '}
+                <strong className="text-slate-950">
+                  {APP_STUDY_FONTS.find((f) => f.id === appStudyFont)?.label || 'Jakarta Clean'}
+                </strong>
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {APP_STUDY_FONTS.map((fontOpt) => {
+                const isSelected = appStudyFont === fontOpt.id;
+                return (
+                  <button
+                    key={fontOpt.id}
+                    type="button"
+                    data-testid={`shop-app-font-${fontOpt.id}`}
+                    onClick={() => {
+                      marioAudio.playClick();
+                      onSelectAppStudyFont?.(fontOpt.id as AppStudyFontId);
+                    }}
+                    className={`min-h-[54px] p-2.5 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between ${fontOpt.cssClass} ${
+                      isSelected
+                        ? 'bg-amber-300 border-slate-950 text-slate-950 shadow-[0_2px_0_#000]'
+                        : 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 w-full">
+                      <span className="text-xs font-black truncate">{fontOpt.label}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3] shrink-0" />}
+                    </div>
+                    <span className="text-[11px] font-medium opacity-80 truncate block">
+                      Aa Bb · Art. 87 OT (+25%)
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Pro Study Theme Pack Banner & Filter */}
           <div
             data-testid="pro-study-theme-banner"
@@ -1627,24 +1772,43 @@ export const ToadShop: React.FC<ToadShopProps> = ({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap text-xs">
                   <span className="font-black uppercase text-amber-300 font-mario">
-                    PRO STUDY THEME PACK
+                    21 APP SKINS &amp; PRO STUDY PACK
                   </span>
                   <span aria-hidden="true" className="text-slate-500">·</span>
                   <span className="text-emerald-300 font-bold">
-                    Minimalist High-Contrast Skins &amp; Zero-Glare Typography
+                    5 Free Skins Ready Immediately + Minimalist Eye-Care Reading Surfaces
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-slate-300 leading-relaxed max-w-2xl">
-                  Designed for marathon Bar Exam reading: replaces pixel background patterns and heavy arcade shadows with clean anti-glare surfaces, crisp hairline borders, and 1.74x relaxed editorial line spacing.
+                  Switch effortlessly between vibrant Mushroom Kingdom worlds and minimalist anti-glare study skins with relaxed 1.74x editorial line spacing.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-700 max-w-full overflow-x-auto no-scrollbar w-full sm:w-auto shrink-0">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-700 max-w-full w-full sm:w-auto shrink-0">
               {[
-                { id: 'all' as const, label: 'All Skins (13)' },
-                { id: 'pro_study' as const, label: 'Pro Study Pack (3)' },
-                { id: 'arcade' as const, label: 'Mario Arcade (10)' },
+                { id: 'all' as const, label: `All Skins (${THEME_ITEMS.length})` },
+                {
+                  id: 'pro_study' as const,
+                  label: `Pro Study (${
+                    THEME_ITEMS.filter((i) =>
+                      ['pro_study_paper', 'pro_study_slate', 'pro_study_sage', 'royal_parchment', 'sakura_garden', 'espresso_tribunal'].includes(
+                        i.themeId || ''
+                      )
+                    ).length
+                  })`,
+                },
+                {
+                  id: 'arcade' as const,
+                  label: `Mario Worlds (${
+                    THEME_ITEMS.filter(
+                      (i) =>
+                        !['pro_study_paper', 'pro_study_slate', 'pro_study_sage', 'royal_parchment', 'sakura_garden', 'espresso_tribunal'].includes(
+                          i.themeId || ''
+                        )
+                    ).length
+                  })`,
+                },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1667,16 +1831,37 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
             {THEME_ITEMS.filter((item) => {
-              const isProStudy = item.themeId?.startsWith('pro_study_');
+              const isProStudy = [
+                'pro_study_paper',
+                'pro_study_slate',
+                'pro_study_sage',
+                'royal_parchment',
+                'sakura_garden',
+                'espresso_tribunal',
+              ].includes(item.themeId || '');
               if (themePackFilter === 'pro_study') return isProStudy;
               if (themePackFilter === 'arcade') return !isProStudy;
               return true;
             }).map((item) => {
               const isUnlocked = unlockedItemIds.includes(item.id) || item.price === 0;
               const isEquipped = activeTheme === item.themeId;
-              const isProStudy = Boolean(item.themeId?.startsWith('pro_study_'));
-              const isLightPreview =
-                item.themeId === 'pro_study_paper' || item.themeId === 'pro_study_sage';
+              const isProStudy = [
+                'pro_study_paper',
+                'pro_study_slate',
+                'pro_study_sage',
+                'royal_parchment',
+                'sakura_garden',
+                'espresso_tribunal',
+              ].includes(item.themeId || '');
+              const isLightPreview = [
+                'pro_study_paper',
+                'pro_study_sage',
+                'peach_castle',
+                'yoshi_island',
+                'royal_parchment',
+                'sakura_garden',
+                'arctic_ice_world',
+              ].includes(item.themeId || '');
 
               return (
                 <div
@@ -2286,21 +2471,51 @@ export const ToadShop: React.FC<ToadShopProps> = ({
               </div>
 
               {!isCertUnlocked ? (
-                <button
-                  type="button"
-                  onClick={() => handleBuyItem(CERTIFICATE_ITEM)}
-                  disabled={coins < CERTIFICATE_ITEM.price}
-                  className="min-h-[44px] px-5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                >
-                  <MarioCoinIcon className="w-4 h-4 shrink-0" />
-                  <span>Unlock for 50 Coins</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {onOpenCertificatePreview && (
+                    <button
+                      type="button"
+                      data-testid="shop-preview-certificate-studio-btn"
+                      onClick={() => {
+                        marioAudio.playClick();
+                        onOpenCertificatePreview();
+                      }}
+                      className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    >
+                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <span>Preview in Print Studio (24 Themes)</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleBuyItem(CERTIFICATE_ITEM)}
+                    disabled={coins < CERTIFICATE_ITEM.price}
+                    className="min-h-[44px] px-5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                    <span>Unlock for 50 Coins</span>
+                  </button>
+                </div>
               ) : (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-950 border border-emerald-400 font-black text-xs rounded-xl">
                     <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                     <span>Certificate Unlocked</span>
                   </span>
+                  {onOpenCertificatePreview && (
+                    <button
+                      type="button"
+                      data-testid="shop-preview-certificate-studio-btn"
+                      onClick={() => {
+                        marioAudio.playClick();
+                        onOpenCertificatePreview();
+                      }}
+                      className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    >
+                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <span>Customize in Print Studio</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     data-testid="print-certificate-btn"

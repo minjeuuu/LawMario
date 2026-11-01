@@ -600,10 +600,10 @@ export const Game2D: React.FC<Game2DProps> = ({ equippedAvatar = 'mario', onEarn
           <span className="font-black truncate">{latestFact}</span>
         </div>
 
-        {/* Canvas Viewport (Fixed minimum height ensuring full playability and prominent Start button on mobile) */}
+        {/* Canvas Viewport (Matched 2:1 aspect height on mobile so controls stay in thumb zone with zero clipping) */}
         <div
           data-testid="game2d-viewport"
-          className="relative rounded-2xl border-4 border-slate-950 overflow-hidden bg-slate-950 shadow-2xl w-full max-w-full h-[360px] sm:h-[420px] md:h-[460px] flex items-center justify-center arcade-viewport-scaled"
+          className="relative rounded-2xl border-4 border-slate-950 overflow-hidden bg-slate-950 shadow-2xl w-full max-w-full h-[225px] min-[400px]:h-[250px] sm:h-[400px] md:h-[460px] flex items-center justify-center arcade-viewport-scaled"
         >
           <canvas
             ref={canvasRef}
@@ -613,100 +613,96 @@ export const Game2D: React.FC<Game2DProps> = ({ equippedAvatar = 'mario', onEarn
           />
 
           {gameState === 'start' && (
-            <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center text-center p-4 sm:p-6 space-y-3.5 overflow-y-auto text-white">
-              <span className="font-mario text-amber-400 text-xs tracking-wider">
-                STAGE 1-1 • VARIABLE JUMP ARCADE ENGINE
+            <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center text-center p-2.5 sm:p-6 space-y-1.5 sm:space-y-3.5 overflow-y-auto text-white">
+              <span className="font-mario text-amber-400 text-[10px] sm:text-xs tracking-wider">
+                STAGE 1-1 • VARIABLE JUMP ARCADE
               </span>
-              <h3 className="text-2xl sm:text-4xl font-black font-display text-white">
+              <h3 className="text-lg sm:text-4xl font-black font-display text-white leading-tight">
                 SUPER MARIO LEGAL RUN
               </h3>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-md font-semibold leading-relaxed">
-                Tap Jump for quick low hops or hold Jump for full high-arc leaps! Hit [?] blocks from underneath to unlock World 1–6 Labor Law doctrines and coins!
+              <p className="text-[11px] sm:text-sm text-slate-300 max-w-md font-semibold leading-snug line-clamp-2 sm:line-clamp-none">
+                Tap Jump for quick low hops or hold Jump for full high-arc leaps! Hit [?] blocks for World 1–6 Labor Law doctrines!
               </p>
               <button
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="min-h-[52px] flex items-center gap-2.5 px-8 py-3.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_5px_0_#000] text-sm sm:text-base cursor-pointer font-mario whitespace-nowrap z-30"
+                className="min-h-[44px] sm:min-h-[52px] flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-xs sm:text-base cursor-pointer font-mario whitespace-nowrap z-30 shrink-0"
               >
-                <Play className="w-5 h-5 fill-current" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" />
                 <span>START RUN</span>
               </button>
             </div>
           )}
 
           {gameState === 'gameover' && (
-            <div className="absolute inset-0 z-20 bg-red-950/95 flex flex-col items-center justify-center text-center p-4 sm:p-6 space-y-4 overflow-y-auto text-white">
-              <span className="font-mario text-amber-400 text-lg">GAME OVER</span>
-              <p className="text-sm text-slate-200 font-bold tabular-nums">
+            <div className="absolute inset-0 z-20 bg-red-950/95 flex flex-col items-center justify-center text-center p-3 sm:p-6 space-y-2.5 sm:space-y-4 overflow-y-auto text-white">
+              <span className="font-mario text-amber-400 text-base sm:text-lg">GAME OVER</span>
+              <p className="text-xs sm:text-sm text-slate-200 font-bold tabular-nums">
                 Final Score: {score} · Coins: {coins}
               </p>
               <button
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="min-h-[50px] flex items-center gap-2 px-6 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap"
+                className="min-h-[44px] sm:min-h-[50px] flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap shrink-0"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 shrink-0" />
                 <span>TRY AGAIN</span>
               </button>
             </div>
           )}
 
           {gameState === 'victory' && (
-            <div className="absolute inset-0 bg-emerald-950/92 flex flex-col items-center justify-center text-center p-6 space-y-4 text-white">
-              <span className="font-mario text-amber-300 text-xl">COURSE CLEARED!</span>
-              <div className="bg-amber-400 text-slate-950 p-4 rounded-2xl border-3 border-black max-w-md space-y-1">
-                <span className="font-black text-base sm:text-lg block">SUPER JURIS DOCTOR RANK!</span>
-                <p className="text-xs sm:text-sm font-bold tabular-nums">
-                  You cleared the course with {score} points! +20 Bonus Coins earned!
+            <div className="absolute inset-0 z-20 bg-emerald-950/92 flex flex-col items-center justify-center text-center p-3 sm:p-6 space-y-2 sm:space-y-4 overflow-y-auto text-white">
+              <span className="font-mario text-amber-300 text-base sm:text-xl">COURSE CLEARED!</span>
+              <div className="bg-amber-400 text-slate-950 p-2.5 sm:p-4 rounded-2xl border-3 border-black max-w-md space-y-0.5 sm:space-y-1">
+                <span className="font-black text-xs sm:text-lg block">SUPER JURIS DOCTOR RANK!</span>
+                <p className="text-[11px] sm:text-sm font-bold tabular-nums">
+                  Cleared with {score} points! +20 Bonus Coins earned!
                 </p>
               </div>
               <button
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="min-h-[48px] flex items-center gap-2 px-6 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap"
+                className="min-h-[44px] sm:min-h-[48px] flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap shrink-0"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 shrink-0" />
                 <span>PLAY AGAIN</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* Touch-Friendly Mobile & Virtual Controls (>= 48px tap targets) */}
-        <div className="flex items-center justify-between gap-3 pt-1">
+        {/* Touch-Friendly Mobile & Virtual Controls (>= 48px tap targets, touch-none) */}
+        <div className="flex items-center justify-between gap-2 sm:gap-3 pt-1">
           <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label="Move Left"
-              onMouseDown={() => (keysRef.current.left = true)}
-              onMouseUp={() => (keysRef.current.left = false)}
-              onMouseLeave={() => (keysRef.current.left = false)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 keysRef.current.left = true;
               }}
-              onTouchEnd={() => (keysRef.current.left = false)}
-              onTouchCancel={() => (keysRef.current.left = false)}
-              className="min-h-[48px] min-w-[52px] p-3 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black flex items-center justify-center cursor-pointer"
+              onPointerUp={() => (keysRef.current.left = false)}
+              onPointerLeave={() => (keysRef.current.left = false)}
+              onPointerCancel={() => (keysRef.current.left = false)}
+              className="min-h-[48px] min-w-[52px] p-3 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black flex items-center justify-center cursor-pointer touch-none select-none"
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
             <button
               type="button"
               aria-label="Move Right"
-              onMouseDown={() => (keysRef.current.right = true)}
-              onMouseUp={() => (keysRef.current.right = false)}
-              onMouseLeave={() => (keysRef.current.right = false)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 keysRef.current.right = true;
               }}
-              onTouchEnd={() => (keysRef.current.right = false)}
-              onTouchCancel={() => (keysRef.current.right = false)}
-              className="min-h-[48px] min-w-[52px] p-3 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black flex items-center justify-center cursor-pointer"
+              onPointerUp={() => (keysRef.current.right = false)}
+              onPointerLeave={() => (keysRef.current.right = false)}
+              onPointerCancel={() => (keysRef.current.right = false)}
+              className="min-h-[48px] min-w-[52px] p-3 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black flex items-center justify-center cursor-pointer touch-none select-none"
             >
               <ArrowRight className="w-6 h-6" />
             </button>
@@ -719,22 +715,17 @@ export const Game2D: React.FC<Game2DProps> = ({ equippedAvatar = 'mario', onEarn
           <button
             type="button"
             aria-label="Jump (Hold for High Jump)"
-            onMouseDown={() => {
-              keysRef.current.jumpJustPressed = true;
-              keysRef.current.jumpHeld = true;
-            }}
-            onMouseUp={() => (keysRef.current.jumpHeld = false)}
-            onMouseLeave={() => (keysRef.current.jumpHeld = false)}
-            onTouchStart={(e) => {
+            onPointerDown={(e) => {
               e.preventDefault();
               keysRef.current.jumpJustPressed = true;
               keysRef.current.jumpHeld = true;
             }}
-            onTouchEnd={() => (keysRef.current.jumpHeld = false)}
-            onTouchCancel={() => (keysRef.current.jumpHeld = false)}
-            className="min-h-[48px] px-6 py-3 bg-amber-400 active:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 flex items-center gap-1.5 cursor-pointer font-mario text-xs whitespace-nowrap"
+            onPointerUp={() => (keysRef.current.jumpHeld = false)}
+            onPointerLeave={() => (keysRef.current.jumpHeld = false)}
+            onPointerCancel={() => (keysRef.current.jumpHeld = false)}
+            className="min-h-[48px] px-5 sm:px-6 py-3 bg-amber-400 active:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 flex items-center gap-1.5 cursor-pointer font-mario text-xs whitespace-nowrap touch-none select-none"
           >
-            <ArrowUp className="w-5 h-5 stroke-[3]" />
+            <ArrowUp className="w-5 h-5 stroke-[3] shrink-0" />
             <span>HOLD JUMP</span>
           </button>
         </div>

@@ -25,7 +25,25 @@ export type MarioTheme =
   | 'aurora'
   | 'pro_study_paper'
   | 'pro_study_slate'
-  | 'pro_study_sage';
+  | 'pro_study_sage'
+  | 'peach_castle'
+  | 'yoshi_island'
+  | 'rosalina_comet'
+  | 'royal_parchment'
+  | 'luigi_mansion'
+  | 'sakura_garden'
+  | 'arctic_ice_world'
+  | 'espresso_tribunal';
+
+export type AppStudyFontId =
+  | 'jakarta'
+  | 'editorial_serif'
+  | 'lexend'
+  | 'outfit'
+  | 'crimson'
+  | 'dm_sans'
+  | 'bricolage'
+  | 'jetbrains_mono';
 
 export type MarioAvatar =
   | 'mario'

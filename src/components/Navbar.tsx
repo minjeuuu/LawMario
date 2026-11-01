@@ -32,16 +32,28 @@ import {
   Scale,
   MoreHorizontal,
   FileDown,
+  Headphones,
 } from 'lucide-react';
 import { MarioCoinIcon, MarioCharacterAvatar, MarioStarIcon } from './MarioIcons';
 import { marioAudio, AudioSettings, SOUND_PACK_DEFINITIONS } from '../utils/audio';
 import { AudioSettingsModal } from './AudioSettingsModal';
-import { ComplexityMode, MarioAvatar, StudyDifficulty } from '../types/laborLaw';
+import {
+  ComplexityMode,
+  MarioAvatar,
+  MarioTheme,
+  StudyDifficulty,
+  AppStudyFontId,
+} from '../types/laborLaw';
 import { StudyTimer } from './StudyTimer';
 import { LoginStreakCounter } from './LoginStreakCounter';
 import { PWAInstallButton } from './PWAInstallButton';
 import { MARIO_SOUNDSCAPES, MarioSoundscapeId } from '../utils/engagementFeatures';
 import { ColorMode } from '../utils/profileAchievements';
+import {
+  STUDY_AMBIENCE_OPTIONS,
+  StudyAmbiencePreset,
+  APP_STUDY_FONTS,
+} from '../utils/round8Features';
 
 interface NavbarProps {
   activeTab: string;
@@ -86,9 +98,22 @@ interface NavbarProps {
   shortcutMapActive?: boolean;
   onOpenLegalCitationsModal?: () => void;
   onOpenQuickGlossary?: () => void;
+  onOpenStatuteLookup?: () => void;
   zenReadingMode?: boolean;
   onToggleZenReadingMode?: () => void;
+  activeTheme?: MarioTheme;
+  onSelectTheme?: (theme: MarioTheme) => void;
+  appStudyFont?: AppStudyFontId;
+  onSelectAppStudyFont?: (font: AppStudyFontId) => void;
 }
+
+const QUICK_FREE_SKINS: Array<{ id: MarioTheme; label: string }> = [
+  { id: 'overworld', label: 'Overworld Sky' },
+  { id: 'peach_castle', label: 'Peach Blossom' },
+  { id: 'yoshi_island', label: 'Yoshi Island' },
+  { id: 'rosalina_comet', label: 'Rosalina Comet' },
+  { id: 'royal_parchment', label: 'Royal Parchment' },
+];
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
@@ -128,8 +153,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   shortcutMapActive = false,
   onOpenLegalCitationsModal,
   onOpenQuickGlossary,
+  onOpenStatuteLookup,
   zenReadingMode = false,
   onToggleZenReadingMode,
+  activeTheme = 'overworld',
+  onSelectTheme,
+  appStudyFont = 'jakarta',
+  onSelectAppStudyFont,
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showQuickAudioSliders, setShowQuickAudioSliders] = useState(false);
@@ -191,30 +221,39 @@ export const Navbar: React.FC<NavbarProps> = ({
     marioAudio.setSoundscape(id, true);
   };
 
-  const navCategories = [
+  const navCategories: Array<{
+    label: string;
+    items: Array<{
+      id: string;
+      label: string;
+      shortLabel: string;
+      icon: React.ReactNode;
+      badge?: string;
+    }>;
+  }> = [
     {
       label: 'Study',
       items: [
-        { id: 'map', label: 'World Map', icon: <Map className="w-4 h-4 text-amber-300 shrink-0" /> },
-        { id: 'modules', label: 'Modules', icon: <BookOpen className="w-4 h-4 text-red-300 shrink-0" /> },
-        { id: 'citations', label: 'Citations', icon: <Scale className="w-4 h-4 text-emerald-300 shrink-0" />, badge: 'Verbatim' },
-        { id: 'holidays', label: 'Holidays', icon: <Calendar className="w-4 h-4 text-rose-300 shrink-0" />, badge: '12+' },
-        { id: 'wages_matrix', label: '17 Regions', icon: <Grid className="w-4 h-4 text-blue-300 shrink-0" /> },
+        { id: 'map', label: 'World Map', shortLabel: 'Map', icon: <Map className="w-4 h-4 text-amber-300 shrink-0" /> },
+        { id: 'modules', label: 'Modules', shortLabel: 'Modules', icon: <BookOpen className="w-4 h-4 text-red-300 shrink-0" /> },
+        { id: 'citations', label: 'Citations', shortLabel: 'Citations', icon: <Scale className="w-4 h-4 text-emerald-300 shrink-0" />, badge: 'Verbatim' },
+        { id: 'holidays', label: 'Holidays', shortLabel: 'Holidays', icon: <Calendar className="w-4 h-4 text-rose-300 shrink-0" />, badge: '12+' },
+        { id: 'wages_matrix', label: '17 Regions', shortLabel: 'Wages', icon: <Grid className="w-4 h-4 text-blue-300 shrink-0" /> },
       ],
     },
     {
       label: 'Practice & Quizzes',
       items: [
-        { id: 'flashcards', label: 'Flashcards', icon: <HelpCircle className="w-4 h-4 text-yellow-300 shrink-0" /> },
-        { id: 'quiz', label: 'Quest & Boss', icon: <Trophy className="w-4 h-4 text-amber-300 shrink-0" /> },
+        { id: 'flashcards', label: 'Flashcards', shortLabel: 'Cards', icon: <HelpCircle className="w-4 h-4 text-yellow-300 shrink-0" /> },
+        { id: 'quiz', label: 'Quest & Boss', shortLabel: 'Quizzes', icon: <Trophy className="w-4 h-4 text-amber-300 shrink-0" /> },
       ],
     },
     {
       label: 'Games & Tools',
       items: [
-        { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '22' },
-        { id: 'calculator', label: 'Calculator', icon: <Calculator className="w-4 h-4 text-cyan-300 shrink-0" /> },
-        { id: 'shop', label: "Toad's Shop", icon: <ShoppingBag className="w-4 h-4 text-pink-300 shrink-0" /> },
+        { id: 'vault', label: 'Arcade', shortLabel: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '28' },
+        { id: 'calculator', label: 'Calculator', shortLabel: 'Pay Calc', icon: <Calculator className="w-4 h-4 text-cyan-300 shrink-0" /> },
+        { id: 'shop', label: "Toad's Shop", shortLabel: 'Shop', icon: <ShoppingBag className="w-4 h-4 text-pink-300 shrink-0" /> },
       ],
     },
   ];
@@ -222,6 +261,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const audioActive = audioState.enabled;
   const musicActive = audioState.musicEnabled && audioActive;
   const toadifyActive = Boolean(audioState.toadifyEnabled && audioState.enabled);
+  const activeAmbience = (audioState.studyAmbience || 'off') as StudyAmbiencePreset;
+  const ambiencePausedByBgm = marioAudio.isStudyAmbiencePausedByBgm();
   const activeSoundscapeMeta =
     MARIO_SOUNDSCAPES.find((s) => s.id === audioState.soundscape) || MARIO_SOUNDSCAPES[0];
 
@@ -229,12 +270,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header
         data-testid="main-navbar"
-        className="bg-[#1e293b] border-b-4 border-slate-950 shadow-[0_4px_0_rgba(0,0,0,0.5)] text-white select-none w-full max-w-full overflow-x-visible print:hidden relative z-40"
+        className="bg-[#1e293b] border-b-4 border-slate-950 shadow-[0_4px_0_rgba(0,0,0,0.5)] text-white select-none w-full max-w-full overflow-x-clip print:hidden relative z-40"
       >
-        {/* Top Status & Power-Up HUD Bar — Zero-Overlap, Zero-Scroll, Zero-Crop */}
+        {/* Top Status & Power-Up HUD Bar — Dedicated Power-Up Space, Zero-Overlap, Zero-Scroll, Zero-Crop */}
         {!zenMode && (
-          <div className="bg-[#0f172a] border-b border-slate-800 px-1.5 min-[380px]:px-2 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-2 text-xs font-semibold w-full max-w-full">
-            {/* Zone 1: Hero Logo & Profile Button (The Logo IS the Profile Button) */}
+          <div
+            data-testid="navbar-top-status-row"
+            className="bg-[#0f172a] border-b border-slate-800 px-1.5 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-2 text-xs font-semibold w-full max-w-full min-w-0"
+          >
+            {/* Zone 1: Hero Logo & Profile Button (Compact on <400px so Power-Ups always fit with zero crop) */}
             <button
               type="button"
               onClick={() => {
@@ -244,66 +288,86 @@ export const Navbar: React.FC<NavbarProps> = ({
               data-testid="navbar-profile-btn"
               aria-label={`Open Hero Profile (${unlockedAchievementsCount} of ${totalAchievementsCount} badges)`}
               title="Your Hero Profile & Milestone Achievements (Click to view badges & customize)"
-              className="relative z-20 flex items-center gap-1 sm:gap-2 shrink-0 group hover:opacity-95 cursor-pointer bg-slate-900/90 hover:bg-slate-800/90 px-1 min-[380px]:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl border border-amber-400/60 shadow-[0_1px_0_#000] active:translate-y-0.5 transition-all"
+              className="relative z-20 flex items-center gap-1 sm:gap-2 shrink-0 group hover:opacity-95 cursor-pointer bg-slate-900/90 hover:bg-slate-800/90 px-1 min-[400px]:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl border border-amber-400/60 shadow-[0_1px_0_#000] active:translate-y-0.5 transition-all"
             >
               <div
                 data-testid="navbar-avatar-profile-btn"
-                className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 border-2 border-black inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                className="w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-lg bg-amber-400 border-2 border-black inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
               >
                 <MarioCharacterAvatar character={equippedAvatar} className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="flex flex-col text-left leading-none min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="font-mario text-[8.5px] sm:text-[10px] tracking-tight uppercase text-amber-300 whitespace-nowrap">
+                <div className="hidden min-[400px]:flex items-center gap-1">
+                  <span className="font-display sm:font-mario font-black text-[10px] sm:text-[10px] tracking-tight uppercase text-amber-300 whitespace-nowrap">
                     <span className="sm:hidden">MARIO</span>
                     <span className="hidden sm:inline">MARIO LAW</span>
                   </span>
-                  <span className="hidden md:inline-block px-1 py-0.2 rounded bg-amber-400/20 text-amber-300 text-[8px] font-bold border border-amber-400/40">
+                  <span className="hidden lg:inline-block px-1 py-0.2 rounded bg-amber-400/20 text-amber-300 text-[8px] font-bold border border-amber-400/40">
                     PROFILE
                   </span>
                 </div>
-                <span className="text-[8px] sm:text-[9px] font-bold text-slate-300 flex items-center gap-0.5 sm:gap-1 mt-0.5">
+                <span className="text-[9px] font-bold text-slate-300 flex items-center gap-0.5 sm:gap-1 min-[400px]:mt-0.5">
                   <Award className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                  <span className="font-mono text-amber-200">{unlockedAchievementsCount}/{totalAchievementsCount}</span>
-                  <span className="hidden sm:inline text-slate-400 font-semibold">Badges</span>
+                  <span className="font-mono text-amber-200 tabular-nums">
+                    {unlockedAchievementsCount}/{totalAchievementsCount}
+                  </span>
+                  <span className="hidden md:inline text-slate-400 font-semibold">Badges</span>
                 </span>
               </div>
             </button>
 
-            {/* Zone 2: Priority Power-Ups (2X Multiplier, Map), Wallet, Streak, Pomodoro, Theme, Audio & Tools */}
-            <div className="flex items-center gap-0.5 min-[380px]:gap-1 sm:gap-1.5 shrink-0 flex-nowrap">
-              {/* 1. Super Star 2X Coin Multiplier Power-Up — Dedicated Uncropped Slot */}
-              {superStarRemainingLabel && (
-                <button
-                  type="button"
-                  onClick={handleCoinClick}
-                  data-testid="navbar-super-star-badge"
-                  aria-label={`Super Star 2x Coin Multiplier Active, ${superStarRemainingLabel} remaining`}
-                  title={`Super Star 2x Coin Multiplier Active (${superStarRemainingLabel} left) — Click to view Toad's Shop`}
-                  className="h-7 px-1 min-[380px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-gradient-to-r from-amber-300 via-emerald-300 to-amber-300 hover:brightness-105 text-slate-950 font-black rounded-lg border-2 border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0 animate-pulse"
-                >
-                  <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="font-mario text-[8.5px] sm:text-[9.5px]">2X</span>
-                  <span className="hidden md:inline font-mono font-bold text-[10px]">
-                    · {superStarRemainingLabel}
-                  </span>
-                </button>
-              )}
+            {/* Zone 2: Reserved Power-Ups (2X Multiplier & Map), Wallet, Streak, Pomodoro, Theme, Mute, Audio & Tools */}
+            <div className="flex items-center gap-0.5 min-[400px]:gap-1 sm:gap-1.5 shrink-0 flex-nowrap min-w-0">
+              {/* Dedicated Power-Ups Slot (Uncropped on all viewports from 360px phones to 1440px desktop) */}
+              <div
+                data-testid="navbar-powerups-slot"
+                className="inline-flex items-center gap-0.5 sm:gap-1 shrink-0"
+              >
+                {superStarRemainingLabel ? (
+                  <button
+                    type="button"
+                    onClick={handleCoinClick}
+                    data-testid="navbar-super-star-badge"
+                    aria-label={`Super Star 2x Coin Multiplier Active, ${superStarRemainingLabel} remaining`}
+                    title={`Super Star 2x Coin Multiplier Active (${superStarRemainingLabel} left) — Click to view Toad's Shop`}
+                    className="h-7 px-1 min-[400px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-gradient-to-r from-amber-300 via-emerald-300 to-amber-300 hover:brightness-105 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0"
+                  >
+                    <MarioStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    <span className="font-mono sm:font-mario font-black text-[10px] sm:text-[9.5px]">
+                      2X
+                    </span>
+                    <span className="hidden md:inline font-mono font-bold text-[10px]">
+                      · {superStarRemainingLabel}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleCoinClick}
+                    data-testid="navbar-powerup-slot-launcher"
+                    aria-label="Activate 2X Coin Power-Up in Toad's Shop"
+                    title="2X Power-Up Slot Ready — Click to activate Super Star (2x Coins) in Toad's Shop!"
+                    className="hidden sm:inline-flex h-7 px-1.5 lg:px-2 items-center justify-center gap-1 bg-slate-900/90 hover:bg-slate-800 text-amber-300/90 hover:text-amber-200 font-bold rounded-lg border border-dashed border-amber-400/50 cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
+                  >
+                    <MarioStarIcon className="w-3 h-3 shrink-0 opacity-85" />
+                    <span className="font-mono font-black text-[10px]">2X</span>
+                  </button>
+                )}
 
-              {/* 2. Shortcut Map Power-Up */}
-              {shortcutMapActive && (
-                <button
-                  type="button"
-                  onClick={handleCoinClick}
-                  data-testid="navbar-shortcut-map-badge"
-                  aria-label="Toad's Bar Exam Shortcut Map Power-Up Active"
-                  title="Toad's Bar Exam Shortcut Map Active — Click to manage in Toad's Shop"
-                  className="hidden md:inline-flex h-7 px-1.5 items-center justify-center gap-1 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
-                >
-                  <Map className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden 2xl:inline font-bold">Map</span>
-                </button>
-              )}
+                {shortcutMapActive && (
+                  <button
+                    type="button"
+                    onClick={handleCoinClick}
+                    data-testid="navbar-shortcut-map-badge"
+                    aria-label="Toad's Bar Exam Shortcut Map Power-Up Active"
+                    title="Toad's Bar Exam Shortcut Map Active — Click to manage in Toad's Shop"
+                    className="inline-flex h-7 w-6 sm:w-auto sm:px-1.5 items-center justify-center gap-1 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
+                  >
+                    <Map className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    <span className="hidden xl:inline font-bold">Map</span>
+                  </button>
+                )}
+              </div>
 
               {/* 3. Coin Counter / Toad's Shop Shortcut */}
               <button
@@ -312,10 +376,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 aria-label={`Coins: ${coins}. Open Toad's Shop`}
                 title="Open Toad's Shop to spend coins!"
                 data-testid="navbar-coin-counter"
-                className="h-7 px-1 min-[380px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] active:translate-y-0.5 cursor-pointer text-xs leading-none whitespace-nowrap tabular-nums shrink-0"
+                className="h-7 px-1 min-[400px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] active:translate-y-0.5 cursor-pointer text-xs leading-none whitespace-nowrap tabular-nums shrink-0"
               >
                 <MarioCoinIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                <span className="text-[9.5px] sm:text-xs font-mario">
+                <span className="font-mono sm:font-mario font-black text-[10.5px] sm:text-xs tracking-tight">
                   x{coins.toString().padStart(2, '0')}
                 </span>
               </button>
@@ -348,7 +412,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'Dark Mode Active — Click for Sunny Day Light Mode'
                     : 'Light Mode Active — Click for Late-Night Dark Mode'
                 }
-                className={`inline-flex h-7 w-7 sm:w-auto sm:px-2 items-center justify-center gap-1 rounded-lg border font-black text-[11px] leading-none whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_1px_0_#000] ${
+                className={`inline-flex h-7 w-6.5 sm:w-auto sm:px-2 items-center justify-center gap-1 rounded-lg border font-black text-[11px] leading-none whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_1px_0_#000] ${
                   colorMode === 'dark'
                     ? 'bg-indigo-600 hover:bg-indigo-500 text-amber-200 border-indigo-400'
                     : 'bg-amber-300 hover:bg-amber-200 text-slate-950 border-amber-500'
@@ -359,9 +423,57 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ) : (
                   <Sun className="w-3.5 h-3.5 fill-amber-500 text-amber-700 shrink-0" />
                 )}
-                <span className="hidden md:inline font-bold text-[10px]">
+                <span className="hidden lg:inline font-bold text-[10px]">
                   {colorMode === 'dark' ? 'Dark' : 'Light'}
                 </span>
+              </button>
+
+              {/* 6b. Global Audio Mute Indicator & [M] Shortcut Toggle */}
+              <button
+                type="button"
+                data-testid="global-mute-toggle-btn"
+                onClick={() => {
+                  const nextEnabled = marioAudio.toggleMute();
+                  if (nextEnabled) {
+                    marioAudio.playCoin();
+                  }
+                }}
+                aria-pressed={!audioActive}
+                aria-label={
+                  audioActive
+                    ? 'Audio Unmuted — Press M or click to mute all audio'
+                    : 'Audio Muted — Press M or click to unmute audio'
+                }
+                title={
+                  audioActive
+                    ? 'Global Audio Active (Shortcut: press M to mute)'
+                    : 'GLOBAL AUDIO MUTED (Shortcut: press M to unmute)'
+                }
+                className={`inline-flex h-7 ${
+                  audioActive ? 'w-6.5 md:w-auto md:px-2' : 'px-1 sm:px-2'
+                } items-center justify-center gap-0.5 sm:gap-1 rounded-lg border font-black text-[10px] leading-none whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_1px_0_#000] ${
+                  audioActive
+                    ? 'bg-slate-800 hover:bg-slate-700 text-emerald-300 border-slate-700'
+                    : 'bg-rose-600 hover:bg-rose-500 text-white border-amber-300'
+                }`}
+              >
+                {audioActive ? (
+                  <>
+                    <Volume2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="hidden md:inline font-mono text-[9.5px]">[M]</span>
+                  </>
+                ) : (
+                  <>
+                    <VolumeX className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white shrink-0" />
+                    <span
+                      data-testid="global-muted-badge"
+                      className="font-mono text-[8.5px] sm:text-[10px] tracking-tight"
+                    >
+                      <span className="sm:hidden">MUTE</span>
+                      <span className="hidden sm:inline">MUTED</span>
+                    </span>
+                  </>
+                )}
               </button>
 
               {/* 7. Dedicated Audio Mixer Popover (Inline on sm+ screens; also in mobile drawer) */}
@@ -563,6 +675,47 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </p>
                     </div>
 
+                    {/* Study Ambience Soundscapes (Auto-Pauses When Mario BGM Plays) */}
+                    <div
+                      className="pt-2 border-t border-slate-800 space-y-1.5"
+                      data-testid="navbar-study-ambience-control"
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold flex items-center gap-1.5 text-slate-200">
+                          <Headphones className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Study Ambience:</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-cyan-300">
+                          {ambiencePausedByBgm ? 'Paused by BGM' : activeAmbience.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {STUDY_AMBIENCE_OPTIONS.map((opt) => {
+                          const isSel = activeAmbience === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              data-testid={`navbar-ambience-${opt.id}`}
+                              onClick={() => marioAudio.setStudyAmbience(opt.id, true)}
+                              className={`min-h-[30px] px-1.5 rounded-lg text-[10px] font-black border cursor-pointer whitespace-nowrap transition-colors ${
+                                isSel
+                                  ? 'bg-cyan-400 text-slate-950 border-black'
+                                  : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-slate-400 leading-snug">
+                        {ambiencePausedByBgm
+                          ? 'Ambience is automatically paused while Mario BGM is playing.'
+                          : 'Gentle background loop; pauses automatically when Mario BGM plays.'}
+                      </p>
+                    </div>
+
                     {/* Legal Citations Quick Toggle */}
                     {setShowLegalCitations && (
                       <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
@@ -730,8 +883,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                           }}
                           className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                         >
-                          <FileDown className="w-3.5 h-3.5 shrink-0" />
-                          <span>1-Page PDF</span>
+                          <Printer className="w-3.5 h-3.5 shrink-0" />
+                          <span>Print</span>
                         </button>
                       )}
 
@@ -748,6 +901,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                         >
                           <FileDown className="w-3.5 h-3.5 shrink-0" />
                           <span>Reviewer PDF</span>
+                        </button>
+                      )}
+
+                      {onOpenStatuteLookup && (
+                        <button
+                          type="button"
+                          data-testid="navbar-statute-lookup-btn"
+                          onClick={() => {
+                            setShowMoreToolsMenu(false);
+                            onOpenStatuteLookup();
+                            marioAudio.playPowerUp();
+                          }}
+                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <Search className="w-3.5 h-3.5 shrink-0" />
+                          <span>Statute Lookup</span>
                         </button>
                       )}
 
@@ -835,6 +1004,66 @@ export const Navbar: React.FC<NavbarProps> = ({
                         </div>
                       </div>
 
+                      {/* Quick App Skin & Reading Font Switchers */}
+                      <div className="grid grid-cols-1 gap-1.5 pt-1">
+                        {onSelectAppStudyFont && (
+                          <div className="flex items-center justify-between gap-2">
+                            <label
+                              htmlFor="tools-app-font-select"
+                              className="text-xs font-bold text-slate-300 shrink-0"
+                            >
+                              Reading Font:
+                            </label>
+                            <select
+                              id="tools-app-font-select"
+                              data-testid="navbar-app-font-select"
+                              value={appStudyFont}
+                              onChange={(e) => {
+                                marioAudio.playClick();
+                                onSelectAppStudyFont(e.target.value as AppStudyFontId);
+                              }}
+                              className="h-7 flex-1 min-w-0 bg-slate-900 border border-slate-700 text-amber-200 text-xs font-bold rounded-lg px-2 cursor-pointer"
+                            >
+                              {APP_STUDY_FONTS.map((f) => (
+                                <option key={f.id} value={f.id}>
+                                  {f.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        {onSelectTheme && (
+                          <div className="flex items-center justify-between gap-2">
+                            <label
+                              htmlFor="tools-app-skin-select"
+                              className="text-xs font-bold text-slate-300 shrink-0"
+                            >
+                              Free Skin:
+                            </label>
+                            <select
+                              id="tools-app-skin-select"
+                              data-testid="navbar-app-skin-select"
+                              value={
+                                QUICK_FREE_SKINS.some((s) => s.id === activeTheme)
+                                  ? activeTheme
+                                  : 'overworld'
+                              }
+                              onChange={(e) => {
+                                marioAudio.playClick();
+                                onSelectTheme(e.target.value as MarioTheme);
+                              }}
+                              className="h-7 flex-1 min-w-0 bg-slate-900 border border-slate-700 text-emerald-200 text-xs font-bold rounded-lg px-2 cursor-pointer"
+                            >
+                              {QUICK_FREE_SKINS.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex items-center justify-between gap-2">
                         {onToggleZenReadingMode && (
                           <button
@@ -877,8 +1106,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Main Navigation Row: Clean Segmented Navigation Buttons */}
-        <div className="px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-2 w-full max-w-full min-w-0">
+        {/* Main Navigation Row: Zero Horizontal Scroll & Zero Crop Across All Viewports */}
+        <div className="px-1.5 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 xl:gap-2 w-full max-w-full min-w-0">
           {/* Zen Restore Button */}
           {zenMode && (
             <button
@@ -894,24 +1123,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Desktop Navigation — Single-Row Uniform h-9 Baseline Alignment with Zero Clipping */}
+          {/* Desktop Navigation — Single-Row Uniform h-9 Alignment, Zero Horizontal Scroll */}
           <nav
             aria-label="Primary Navigation"
-            className="hidden lg:flex items-center gap-1 xl:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar flex-1 min-w-0"
+            data-testid="desktop-primary-nav"
+            className="hidden lg:flex items-center gap-1 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-hidden"
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => handleTabClick(item.id)}
-                className={`h-9 px-2 xl:px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl font-black text-xs border-2 border-black transition-all cursor-pointer leading-none whitespace-nowrap shrink-0 ${
+                className={`h-9 px-2 xl:px-2.5 inline-flex items-center justify-center gap-1 xl:gap-1.5 rounded-xl font-black text-[11px] xl:text-xs border-2 border-black transition-all cursor-pointer leading-none whitespace-nowrap shrink-0 ${
                   activeTab === item.id
                     ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
                 }`}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                <span className="xl:hidden">{item.shortLabel}</span>
+                <span className="hidden xl:inline">{item.label}</span>
                 {item.badge && (
                   <span className="hidden 2xl:inline-block text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-mario font-bold leading-none">
                     {item.badge}
@@ -921,8 +1152,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             ))}
           </nav>
 
-          {/* Mobile & Tablet Non-Duplicate Utility Row (Bottom Bar already covers Map/Modules/Cards/Quiz/Arcade) */}
-          <div className="flex lg:hidden items-center justify-between w-full gap-1 sm:gap-1.5 min-w-0">
+          {/* Mobile & Tablet 5-Column Equal Grid Utility Row (Fits 360px with Zero Overflow & Zero Crop) */}
+          <div
+            data-testid="mobile-utility-nav-row"
+            className="grid grid-cols-5 lg:hidden items-center w-full gap-1 sm:gap-1.5 min-w-0"
+          >
             <button
               type="button"
               aria-expanded={isMobileMenuOpen}
@@ -930,12 +1164,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setIsMobileMenuOpen(!isMobileMenuOpen);
                 marioAudio.playClick();
               }}
-              className="min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[10.5px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
+              className="min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[10px] min-[400px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap"
             >
               <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
-              <span>Menu</span>
+              <span className="truncate">Menu</span>
               <ChevronDown
-                className={`hidden min-[420px]:inline w-3 h-3 text-slate-400 shrink-0 transition-transform ${
+                className={`hidden sm:inline w-3 h-3 text-slate-400 shrink-0 transition-transform ${
                   isMobileMenuOpen ? 'rotate-180' : ''
                 }`}
               />
@@ -951,10 +1185,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 aria-label="Search Philippine Labor Law (Ctrl+K)"
                 title="Search topics, articles, and doctrines (Ctrl+K)"
-                className="min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl border-2 border-amber-400 font-black text-[10.5px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0 shadow-[0_1px_0_#000]"
+                className="min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl border-2 border-amber-400 font-black text-[10px] min-[400px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shadow-[0_1px_0_#000]"
               >
                 <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Search</span>
+                <span className="truncate">Search</span>
               </button>
             )}
 
@@ -966,10 +1200,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onOpenOnePageSummary();
                   marioAudio.playCoin();
                 }}
-                className="min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3 inline-flex items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl border-2 border-black font-black text-[10.5px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
+                className="min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl border-2 border-black font-black text-[10px] min-[400px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap"
               >
-                <FileDown className="w-3.5 h-3.5 shrink-0" />
-                <span>1-Pg PDF</span>
+                <Printer className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Print</span>
               </button>
             )}
 
@@ -977,8 +1211,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               data-testid="navbar-mobile-calculator-btn"
               onClick={() => handleTabClick('calculator')}
+              aria-label="Open Wage, Overtime & 13th Month Pay Calculator"
               title="Open Wage, Overtime & 13th Month Pay Calculator"
-              className={`min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2.5 sm:px-3.5 inline-flex items-center justify-center gap-1 rounded-xl font-black text-[10.5px] sm:text-xs border-2 border-black leading-none whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
+              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 rounded-xl font-black text-[10px] min-[400px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer transition-colors ${
                 activeTab === 'calculator'
                   ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
                   : 'bg-cyan-950/90 text-cyan-100 hover:bg-cyan-900 border-cyan-400/70'
@@ -989,13 +1224,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   activeTab === 'calculator' ? 'text-slate-950' : 'text-cyan-300'
                 }`}
               />
-              <span>Calculator</span>
+              <span className="sm:hidden">Rates</span>
+              <span className="hidden sm:inline truncate">Calculator</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleTabClick('shop')}
-              className={`min-h-[42px] [@media(max-height:500px)]:min-h-[34px] px-2 sm:px-3.5 inline-flex items-center justify-center gap-1 rounded-xl font-black text-[10.5px] sm:text-xs border-2 border-black leading-none whitespace-nowrap shrink-0 cursor-pointer ${
+              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 rounded-xl font-black text-[10px] min-[400px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer ${
                 activeTab === 'shop'
                   ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
                   : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
@@ -1006,12 +1242,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   activeTab === 'shop' ? 'text-slate-950' : 'text-pink-300'
                 }`}
               />
-              <span>Shop</span>
+              <span className="truncate">Shop</span>
             </button>
           </div>
 
           {/* Quick Search Shortcut Clicker (LG+ Desktop) */}
-          <div className="relative hidden lg:flex items-center w-28 xl:w-40 shrink-0">
+          <div className="relative hidden lg:flex items-center w-24 xl:w-40 shrink-0">
             <button
               type="button"
               data-testid="navbar-search-desktop-btn"
@@ -1019,11 +1255,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 if (onOpenGlobalSearch) onOpenGlobalSearch();
                 marioAudio.playClick();
               }}
-              className="h-9 w-full inline-flex items-center justify-between gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold px-2.5 rounded-xl border-2 border-slate-700 text-xs transition-colors cursor-pointer leading-none"
+              className="h-9 w-full inline-flex items-center justify-between gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold px-2 xl:px-2.5 rounded-xl border-2 border-slate-700 text-xs transition-colors cursor-pointer leading-none"
             >
               <div className="flex items-center gap-1.5 min-w-0">
                 <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">Search...</span>
+                <span className="truncate">Search</span>
               </div>
               <kbd className="hidden xl:inline-block px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-300 shrink-0">
                 Ctrl+K
@@ -1183,6 +1419,66 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Dark Mode</span>
                 </button>
               </div>
+
+              {/* Mobile Quick Skin & Study Font Pickers */}
+              {(onSelectAppStudyFont || onSelectTheme) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1.5 border-t border-slate-800">
+                  {onSelectAppStudyFont && (
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="mobile-drawer-font-select"
+                        className="text-[10px] font-bold text-slate-400 block"
+                      >
+                        Reading Font (8 Styles):
+                      </label>
+                      <select
+                        id="mobile-drawer-font-select"
+                        value={appStudyFont}
+                        onChange={(e) => {
+                          marioAudio.playClick();
+                          onSelectAppStudyFont(e.target.value as AppStudyFontId);
+                        }}
+                        className="min-h-[38px] w-full bg-slate-900 border border-slate-700 text-amber-200 text-xs font-bold rounded-xl px-2.5"
+                      >
+                        {APP_STUDY_FONTS.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {onSelectTheme && (
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="mobile-drawer-skin-select"
+                        className="text-[10px] font-bold text-slate-400 block"
+                      >
+                        Quick App Skin:
+                      </label>
+                      <select
+                        id="mobile-drawer-skin-select"
+                        value={
+                          QUICK_FREE_SKINS.some((s) => s.id === activeTheme)
+                            ? activeTheme
+                            : 'overworld'
+                        }
+                        onChange={(e) => {
+                          marioAudio.playClick();
+                          onSelectTheme(e.target.value as MarioTheme);
+                        }}
+                        className="min-h-[38px] w-full bg-slate-900 border border-slate-700 text-emerald-200 text-xs font-bold rounded-xl px-2.5"
+                      >
+                        {QUICK_FREE_SKINS.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Ambient Mario Soundscape Switcher in Mobile Drawer */}
@@ -1330,6 +1626,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Music className="w-3 h-3 shrink-0" />
                 <span>{marioAudio.getActiveTrackLabel()}</span>
               </p>
+
+              {/* Mobile Study Ambience Selector */}
+              <div className="pt-2 border-t border-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase text-cyan-300 font-mario">
+                  <span>STUDY AMBIENCE</span>
+                  <span>{ambiencePausedByBgm ? 'PAUSED BY BGM' : activeAmbience.toUpperCase()}</span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {STUDY_AMBIENCE_OPTIONS.map((opt) => (
+                    <button
+                      key={`mob-amb-${opt.id}`}
+                      type="button"
+                      onClick={() => marioAudio.setStudyAmbience(opt.id, true)}
+                      className={`min-h-[34px] px-1.5 rounded-lg text-[10px] font-black border cursor-pointer whitespace-nowrap ${
+                        activeAmbience === opt.id
+                          ? 'bg-cyan-400 text-slate-950 border-black'
+                          : 'bg-slate-900 text-slate-300 border-slate-700'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Global Difficulty Segmented Selector inside Mobile Drawer */}
@@ -1427,8 +1747,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }}
                       className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer whitespace-nowrap"
                     >
-                      <FileDown className="w-3.5 h-3.5 shrink-0" />
-                      <span>1-Page PDF</span>
+                      <Printer className="w-3.5 h-3.5 shrink-0" />
+                      <span>Print</span>
                     </button>
                   )}
                   {onOpenPrintGuide && (
@@ -1443,6 +1763,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <FileDown className="w-3.5 h-3.5 shrink-0" />
                       <span>Reviewer PDF</span>
+                    </button>
+                  )}
+                  {onOpenStatuteLookup && (
+                    <button
+                      type="button"
+                      data-testid="mobile-statute-lookup-btn"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenStatuteLookup();
+                        marioAudio.playPowerUp();
+                      }}
+                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-sky-400 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer whitespace-nowrap"
+                    >
+                      <Search className="w-3.5 h-3.5 shrink-0" />
+                      <span>Statute Lookup</span>
                     </button>
                   )}
                   {onOpenLegalCitationsModal && (

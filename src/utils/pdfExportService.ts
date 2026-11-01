@@ -23,7 +23,19 @@ export type PdfColorThemeId =
   | 'yoshi_jade_lime'
   | 'teal_tribunal'
   | 'terracotta_codal'
-  | 'bowser_obsidian_gold';
+  | 'bowser_obsidian_gold'
+  | 'peach_blossom_rose'
+  | 'luigi_mansion_jade'
+  | 'rosalina_cosmic_ice'
+  | 'golden_crown_ivory'
+  | 'sakura_editorial'
+  | 'midnight_espresso'
+  | 'arctic_glacier'
+  | 'solarized_amber'
+  | 'mint_dole_ledger'
+  | 'sunset_coral'
+  | 'indigo_jurisprudence'
+  | 'wario_royal_gold';
 
 export type PdfFontStyleId =
   | 'editorial_serif'
@@ -37,7 +49,15 @@ export type PdfFontStyleId =
   | 'retro_mario_mono'
   | 'dyslexic_sans'
   | 'playfair_royal'
-  | 'space_grotesk';
+  | 'space_grotesk'
+  | 'libre_baskerville'
+  | 'cormorant_chancery'
+  | 'crimson_juris'
+  | 'source_serif_codal'
+  | 'dm_sans_clean'
+  | 'outfit_geometric'
+  | 'bricolage_editorial'
+  | 'ibm_plex_docket';
 
 type RgbTuple = [number, number, number];
 
@@ -73,9 +93,15 @@ export function resolvePdfThemeAndFont(
     fontStyle === 'playfair_royal' ||
     fontStyle === 'academic_times' ||
     fontStyle === 'formal_georgia' ||
-    fontStyle === 'warm_charter'
+    fontStyle === 'warm_charter' ||
+    fontStyle === 'libre_baskerville' ||
+    fontStyle === 'cormorant_chancery' ||
+    fontStyle === 'crimson_juris' ||
+    fontStyle === 'source_serif_codal'
       ? 'times'
-      : fontStyle === 'classic_monospace' || fontStyle === 'retro_mario_mono'
+      : fontStyle === 'classic_monospace' ||
+        fontStyle === 'retro_mario_mono' ||
+        fontStyle === 'ibm_plex_docket'
       ? 'courier'
       : 'helvetica';
 
@@ -330,6 +356,282 @@ export function resolvePdfThemeAndFont(
         borderMuted: [161, 161, 170],
         bodyText: [24, 24, 27],
         mutedText: [82, 82, 91],
+        formulaText: [161, 98, 7],
+        isInkSaver: false,
+      };
+    case 'peach_blossom_rose':
+      return {
+        id: 'peach_blossom_rose',
+        fontFamily,
+        pageBg: [255, 250, 252],
+        primary: [157, 23, 77],
+        primaryText: [255, 255, 255],
+        kickerText: [251, 207, 232],
+        accent: [219, 39, 119],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [190, 24, 93],
+        badgeFill: [252, 231, 243],
+        badgeBorder: [219, 39, 119],
+        badgeText: [131, 24, 67],
+        zebraFill: [253, 242, 248],
+        cardTintFill: [255, 245, 250],
+        borderStrong: [157, 23, 77],
+        borderMuted: [249, 168, 212],
+        bodyText: [36, 15, 26],
+        mutedText: [112, 60, 84],
+        formulaText: [157, 23, 77],
+        isInkSaver: false,
+      };
+    case 'luigi_mansion_jade':
+      return {
+        id: 'luigi_mansion_jade',
+        fontFamily,
+        pageBg: [248, 255, 249],
+        primary: [21, 128, 61],
+        primaryText: [255, 255, 255],
+        kickerText: [220, 252, 231],
+        accent: [22, 163, 74],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [5, 150, 105],
+        badgeFill: [220, 252, 231],
+        badgeBorder: [21, 128, 61],
+        badgeText: [20, 83, 45],
+        zebraFill: [240, 253, 244],
+        cardTintFill: [236, 253, 245],
+        borderStrong: [21, 128, 61],
+        borderMuted: [134, 239, 172],
+        bodyText: [15, 36, 23],
+        mutedText: [52, 92, 66],
+        formulaText: [21, 128, 61],
+        isInkSaver: false,
+      };
+    case 'rosalina_cosmic_ice':
+      return {
+        id: 'rosalina_cosmic_ice',
+        fontFamily,
+        pageBg: [246, 253, 255],
+        primary: [14, 116, 144],
+        primaryText: [255, 255, 255],
+        kickerText: [207, 250, 254],
+        accent: [8, 145, 178],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [2, 132, 199],
+        badgeFill: [207, 250, 254],
+        badgeBorder: [14, 116, 144],
+        badgeText: [22, 78, 99],
+        zebraFill: [236, 254, 255],
+        cardTintFill: [240, 249, 255],
+        borderStrong: [14, 116, 144],
+        borderMuted: [103, 232, 249],
+        bodyText: [15, 32, 43],
+        mutedText: [56, 90, 108],
+        formulaText: [14, 116, 144],
+        isInkSaver: false,
+      };
+    case 'golden_crown_ivory':
+      return {
+        id: 'golden_crown_ivory',
+        fontFamily,
+        pageBg: [255, 254, 247],
+        primary: [133, 77, 14],
+        primaryText: [255, 255, 255],
+        kickerText: [254, 240, 138],
+        accent: [161, 98, 7],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [180, 83, 9],
+        badgeFill: [254, 249, 195],
+        badgeBorder: [161, 98, 7],
+        badgeText: [113, 63, 18],
+        zebraFill: [254, 252, 232],
+        cardTintFill: [255, 251, 235],
+        borderStrong: [133, 77, 14],
+        borderMuted: [253, 224, 71],
+        bodyText: [40, 28, 12],
+        mutedText: [105, 82, 42],
+        formulaText: [133, 77, 14],
+        isInkSaver: false,
+      };
+    case 'sakura_editorial':
+      return {
+        id: 'sakura_editorial',
+        fontFamily,
+        pageBg: [255, 248, 249],
+        primary: [190, 18, 60],
+        primaryText: [255, 255, 255],
+        kickerText: [254, 205, 211],
+        accent: [225, 29, 72],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [159, 18, 57],
+        badgeFill: [255, 228, 230],
+        badgeBorder: [190, 18, 60],
+        badgeText: [136, 19, 55],
+        zebraFill: [255, 241, 242],
+        cardTintFill: [255, 245, 246],
+        borderStrong: [190, 18, 60],
+        borderMuted: [253, 164, 175],
+        bodyText: [38, 16, 22],
+        mutedText: [110, 62, 74],
+        formulaText: [190, 18, 60],
+        isInkSaver: false,
+      };
+    case 'midnight_espresso':
+      return {
+        id: 'midnight_espresso',
+        fontFamily,
+        pageBg: [250, 250, 249],
+        primary: [41, 37, 36],
+        primaryText: [254, 243, 199],
+        kickerText: [253, 230, 138],
+        accent: [87, 83, 78],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [120, 53, 15],
+        badgeFill: [245, 245, 244],
+        badgeBorder: [68, 64, 60],
+        badgeText: [28, 25, 23],
+        zebraFill: [245, 245, 244],
+        cardTintFill: [250, 248, 245],
+        borderStrong: [41, 37, 36],
+        borderMuted: [168, 162, 158],
+        bodyText: [28, 25, 23],
+        mutedText: [87, 83, 78],
+        formulaText: [68, 64, 60],
+        isInkSaver: false,
+      };
+    case 'arctic_glacier':
+      return {
+        id: 'arctic_glacier',
+        fontFamily,
+        pageBg: [248, 252, 255],
+        primary: [3, 105, 161],
+        primaryText: [255, 255, 255],
+        kickerText: [186, 230, 253],
+        accent: [2, 132, 199],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [14, 116, 144],
+        badgeFill: [224, 242, 254],
+        badgeBorder: [3, 105, 161],
+        badgeText: [12, 74, 110],
+        zebraFill: [240, 249, 255],
+        cardTintFill: [245, 251, 255],
+        borderStrong: [3, 105, 161],
+        borderMuted: [125, 211, 252],
+        bodyText: [12, 34, 52],
+        mutedText: [56, 89, 115],
+        formulaText: [3, 105, 161],
+        isInkSaver: false,
+      };
+    case 'solarized_amber':
+      return {
+        id: 'solarized_amber',
+        fontFamily,
+        pageBg: [253, 246, 227],
+        primary: [7, 54, 66],
+        primaryText: [253, 246, 227],
+        kickerText: [251, 191, 36],
+        accent: [181, 137, 0],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [203, 75, 22],
+        badgeFill: [238, 232, 213],
+        badgeBorder: [181, 137, 0],
+        badgeText: [7, 54, 66],
+        zebraFill: [238, 232, 213],
+        cardTintFill: [250, 242, 220],
+        borderStrong: [7, 54, 66],
+        borderMuted: [147, 161, 161],
+        bodyText: [7, 54, 66],
+        mutedText: [88, 110, 117],
+        formulaText: [181, 137, 0],
+        isInkSaver: false,
+      };
+    case 'mint_dole_ledger':
+      return {
+        id: 'mint_dole_ledger',
+        fontFamily,
+        pageBg: [246, 254, 249],
+        primary: [4, 120, 87],
+        primaryText: [255, 255, 255],
+        kickerText: [167, 243, 208],
+        accent: [16, 185, 129],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [13, 148, 136],
+        badgeFill: [209, 250, 229],
+        badgeBorder: [4, 120, 87],
+        badgeText: [6, 78, 59],
+        zebraFill: [236, 253, 245],
+        cardTintFill: [240, 253, 244],
+        borderStrong: [4, 120, 87],
+        borderMuted: [110, 231, 183],
+        bodyText: [14, 38, 30],
+        mutedText: [52, 95, 80],
+        formulaText: [4, 120, 87],
+        isInkSaver: false,
+      };
+    case 'sunset_coral':
+      return {
+        id: 'sunset_coral',
+        fontFamily,
+        pageBg: [255, 250, 248],
+        primary: [225, 29, 72],
+        primaryText: [255, 255, 255],
+        kickerText: [254, 215, 170],
+        accent: [234, 88, 12],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [190, 18, 60],
+        badgeFill: [255, 237, 213],
+        badgeBorder: [225, 29, 72],
+        badgeText: [159, 18, 57],
+        zebraFill: [255, 244, 238],
+        cardTintFill: [255, 247, 237],
+        borderStrong: [225, 29, 72],
+        borderMuted: [253, 164, 175],
+        bodyText: [38, 18, 22],
+        mutedText: [112, 64, 68],
+        formulaText: [194, 65, 12],
+        isInkSaver: false,
+      };
+    case 'indigo_jurisprudence':
+      return {
+        id: 'indigo_jurisprudence',
+        fontFamily,
+        pageBg: [249, 249, 255],
+        primary: [49, 46, 129],
+        primaryText: [255, 255, 255],
+        kickerText: [199, 210, 254],
+        accent: [67, 56, 202],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [99, 102, 241],
+        badgeFill: [224, 231, 255],
+        badgeBorder: [55, 48, 163],
+        badgeText: [30, 27, 75],
+        zebraFill: [238, 242, 255],
+        cardTintFill: [245, 247, 255],
+        borderStrong: [49, 46, 129],
+        borderMuted: [165, 180, 252],
+        bodyText: [22, 20, 56],
+        mutedText: [68, 66, 118],
+        formulaText: [55, 48, 163],
+        isInkSaver: false,
+      };
+    case 'wario_royal_gold':
+      return {
+        id: 'wario_royal_gold',
+        fontFamily,
+        pageBg: [255, 254, 249],
+        primary: [76, 29, 149],
+        primaryText: [253, 224, 71],
+        kickerText: [254, 240, 138],
+        accent: [202, 138, 4],
+        accentTextOnFill: [255, 255, 255],
+        secondaryAccent: [109, 40, 217],
+        badgeFill: [254, 249, 195],
+        badgeBorder: [91, 33, 182],
+        badgeText: [76, 29, 149],
+        zebraFill: [250, 245, 255],
+        cardTintFill: [254, 252, 232],
+        borderStrong: [76, 29, 149],
+        borderMuted: [196, 181, 253],
+        bodyText: [30, 16, 52],
+        mutedText: [88, 62, 124],
         formulaText: [161, 98, 7],
         isInkSaver: false,
       };
@@ -1537,6 +1839,8 @@ export interface ScoreCardPdfParams {
   totalAchievementsCount: number;
   quizRunsCompleted: number;
   studyDurationFormatted: string;
+  colorAccent?: string;
+  fontStyle?: string;
   worldBreakdown: {
     worldNumber: number;
     shortTitle: string;
@@ -1546,9 +1850,21 @@ export interface ScoreCardPdfParams {
   }[];
 }
 
+export function countPdfPagesFromBytes(bytes: Uint8Array): number {
+  if (!bytes || bytes.length === 0) return 1;
+  let ascii = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const sub = bytes.subarray(i, Math.min(bytes.length, i + chunkSize));
+    ascii += String.fromCharCode(...sub);
+  }
+  const matches = ascii.match(/\/Type\s*\/Page\b/g);
+  return matches && matches.length > 0 ? matches.length : 1;
+}
+
 /**
  * Builds a single-page A4 Landscape Hero Score Card PDF (297mm x 210mm)
- * for direct download from ExportProgressModal.
+ * for direct download from ExportProgressModal and PrintStudyGuideModal.
  */
 export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uint8Array {
   const doc = new jsPDF({
@@ -1565,7 +1881,162 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
     Math.round((params.completedCount / Math.max(1, params.totalTopics)) * 100)
   );
 
-  // Deep slate canvas
+  const useCustomTheme = Boolean(params.colorAccent || params.fontStyle);
+  const theme = resolvePdfThemeAndFont(
+    params.colorAccent || 'executive_navy',
+    params.fontStyle || 'modern_sans'
+  );
+  const ff = useCustomTheme ? theme.fontFamily : 'helvetica';
+
+  if (useCustomTheme) {
+    // Theme-tinted A4 Landscape Dossier Canvas
+    doc.setFillColor(...theme.pageBg);
+    doc.rect(0, 0, W, H, 'F');
+
+    doc.setDrawColor(...theme.accent);
+    doc.setLineWidth(1.8);
+    doc.rect(9.5, 9.5, W - 19, H - 19);
+
+    doc.setDrawColor(...theme.primary);
+    doc.setLineWidth(0.55);
+    doc.rect(12, 12, W - 24, H - 24);
+
+    // Header Banner
+    if (theme.isInkSaver) {
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(...theme.borderStrong);
+      doc.setLineWidth(0.5);
+      doc.rect(16, 15.5, W - 32, 30, 'FD');
+    } else {
+      doc.setFillColor(...theme.primary);
+      doc.rect(16, 15.5, W - 32, 30, 'F');
+    }
+
+    doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(8.5);
+    doc.text('SUPER MARIO LABOR ADVENTURE  -  OFFICIAL HERO SCORE CARD & DOSSIER', 21, 22.5);
+
+    doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(20);
+    const clampedPlayer =
+      doc.splitTextToSize(
+        sanitizePdfText(params.playerName || 'Labor Scholar Hero'),
+        W - 120
+      )[0] || 'Labor Scholar Hero';
+    doc.text(clampedPlayer, 21, 33);
+
+    doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
+    doc.setFont(ff, 'normal');
+    doc.setFontSize(10);
+    doc.text(
+      sanitizePdfText(`${params.heroRank}  |  Equipped Hero: ${params.heroName}`),
+      21,
+      40.8
+    );
+
+    // Overall Mastery Badge on Top Right
+    doc.setFillColor(...theme.badgeFill);
+    doc.setDrawColor(...theme.badgeBorder);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(W - 84, 18, 64, 25, 2.5, 2.5, 'FD');
+    doc.setTextColor(...theme.badgeText);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(18);
+    doc.text(`${pct}%`, W - 52, 29.5, { align: 'center' });
+    doc.setTextColor(...theme.bodyText);
+    doc.setFontSize(7.5);
+    doc.text(
+      `${params.completedCount} / ${params.totalTopics} Modules Mastered`,
+      W - 52,
+      37.5,
+      { align: 'center' }
+    );
+
+    // 5 Stat Tiles Row
+    const stats = [
+      { label: 'STUDY TIME', val: sanitizePdfText(params.studyDurationFormatted) },
+      { label: 'GOLD COINS', val: `x${params.coins}` },
+      { label: 'DAILY STREAK', val: `${params.loginStreak} Days` },
+      {
+        label: 'BADGES EARNED',
+        val: `${params.unlockedAchievementsCount}/${params.totalAchievementsCount}`,
+      },
+      { label: 'QUIZ RUNS', val: `${params.quizRunsCompleted} Cleared` },
+    ];
+    const tileGap = 4;
+    const tileW = (W - 32 - tileGap * 4) / 5;
+    stats.forEach((st, idx) => {
+      const tx = 16 + idx * (tileW + tileGap);
+      doc.setFillColor(...theme.zebraFill);
+      doc.setDrawColor(...theme.borderStrong);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(tx, 51, tileW, 23, 2, 2, 'FD');
+      doc.setTextColor(...theme.mutedText);
+      doc.setFont(ff, 'bold');
+      doc.setFontSize(7.2);
+      doc.text(st.label, tx + 3.5, 58.5);
+      doc.setTextColor(...theme.formulaText);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(12.5);
+      doc.text(st.val, tx + 3.5, 68.5);
+    });
+
+    // Six-World Breakdown Grid
+    doc.setTextColor(...theme.primary);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(9.5);
+    doc.text('SIX-WORLD LABOR STANDARDS MASTERY BREAKDOWN', 16, 84.5);
+
+    const wColW = (W - 32 - 6) / 2;
+    const wRowH = 24;
+    params.worldBreakdown.forEach((wb, idx) => {
+      const c = idx % 2;
+      const r = Math.floor(idx / 2);
+      const bx = 16 + c * (wColW + 6);
+      const by = 89.5 + r * (wRowH + 4);
+
+      doc.setFillColor(...theme.cardTintFill);
+      doc.setDrawColor(...theme.borderMuted);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(bx, by, wColW, wRowH, 2.5, 2.5, 'FD');
+
+      doc.setTextColor(...theme.bodyText);
+      doc.setFont(ff, 'bold');
+      doc.setFontSize(9.8);
+      doc.text(sanitizePdfText(`World ${wb.worldNumber}: ${wb.shortTitle}`), bx + 4, by + 8.5);
+
+      doc.setTextColor(...theme.badgeText);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(9.2);
+      doc.text(`${wb.percent}% (${wb.completed}/${wb.total})`, bx + wColW - 4, by + 8.5, {
+        align: 'right',
+      });
+
+      doc.setFillColor(226, 232, 240);
+      doc.roundedRect(bx + 4, by + 13.5, wColW - 8, 5, 1.5, 1.5, 'F');
+      if (wb.percent > 0) {
+        doc.setFillColor(...(wb.percent === 100 ? theme.accent : theme.primary));
+        const fillW = Math.max(4, ((wColW - 8) * wb.percent) / 100);
+        doc.roundedRect(bx + 4, by + 13.5, fillW, 5, 1.5, 1.5, 'F');
+      }
+    });
+
+    doc.setTextColor(...theme.mutedText);
+    doc.setFont(ff, 'normal');
+    doc.setFontSize(7.8);
+    doc.text(
+      'Super Mario Labor Adventure  -  Philippine Labor Standards Guide  |  Created by Matthew (Main Creator)',
+      W / 2,
+      H - 15.5,
+      { align: 'center' }
+    );
+
+    return docToUint8Array(doc);
+  }
+
+  // Default Dark Hero Dossier Theme
   doc.setFillColor(15, 23, 42);
   doc.rect(0, 0, W, H, 'F');
 

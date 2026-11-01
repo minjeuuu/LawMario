@@ -748,10 +748,14 @@ export const LaborKart: React.FC<LaborKartProps> = ({ equippedAvatar, onEarnCoin
           </div>
         )}
 
-        {/* Canvas Viewport (Fixed minimum height ensuring full playability and prominent Start button on mobile) */}
+        {/* Canvas Viewport (Compact racing aspect on mobile; expands when Item Box Trivia is open) */}
         <div
           data-testid="laborkart-viewport"
-          className="relative mt-4 rounded-2xl border-4 border-slate-950 overflow-hidden bg-slate-950 shadow-2xl w-full max-w-full h-[380px] sm:h-[440px] md:h-[480px] flex items-center justify-center arcade-viewport-scaled"
+          className={`relative mt-3 sm:mt-4 rounded-2xl border-4 border-slate-950 overflow-hidden bg-slate-950 shadow-2xl w-full max-w-full flex items-center justify-center arcade-viewport-scaled ${
+            gameState === 'question'
+              ? 'min-h-[390px] sm:h-[440px] md:h-[480px]'
+              : 'h-[235px] min-[400px]:h-[265px] sm:h-[420px] md:h-[480px]'
+          }`}
         >
           <canvas
             ref={canvasRef}
@@ -761,31 +765,31 @@ export const LaborKart: React.FC<LaborKartProps> = ({ equippedAvatar, onEarnCoin
           />
 
           {gameState === 'menu' && (
-            <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center text-center p-4 sm:p-6 space-y-3.5 overflow-y-auto text-white">
-              <span className="font-mario text-amber-400 text-xs tracking-wider">
+            <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center text-center p-2.5 sm:p-6 space-y-1.5 sm:space-y-3.5 overflow-y-auto text-white">
+              <span className="font-mario text-amber-400 text-[10px] sm:text-xs tracking-wider">
                 ARCADE DRIFT &amp; MINI-TURBO EDITION
               </span>
-              <h3 className="text-2xl sm:text-4xl font-black font-display text-white">
+              <h3 className="text-xl sm:text-4xl font-black font-display text-white leading-tight">
                 LABOR KART GP
               </h3>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-md font-semibold leading-relaxed">
-                Hold Shift / E (or DRIFT button) while steering into corners to hop, slide, and charge Blue, Orange, and Purple Mini-Turbo sparks! Release Drift to rocket ahead!
+              <p className="text-[11px] sm:text-sm text-slate-300 max-w-md font-semibold leading-snug line-clamp-2 sm:line-clamp-none">
+                Hold Shift / E (or DRIFT button) while steering into corners to hop, slide, and charge Blue, Orange, and Purple Mini-Turbo sparks!
               </p>
               <button
                 type="button"
                 data-start="true"
                 onClick={handleStartRace}
-                className="min-h-[52px] flex items-center gap-2.5 px-8 py-3.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_5px_0_#000] text-sm sm:text-base cursor-pointer font-mario whitespace-nowrap z-30"
+                className="min-h-[44px] sm:min-h-[52px] flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-xs sm:text-base cursor-pointer font-mario whitespace-nowrap z-30 shrink-0"
               >
-                <Play className="w-5 h-5 fill-current" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" />
                 <span>START RACE</span>
               </button>
             </div>
           )}
 
           {gameState === 'question' && activeQuestion && (
-            <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-start sm:justify-center p-3 sm:p-5 text-white z-30 overflow-y-auto">
-              <div className="bg-slate-900 border-4 border-amber-400 rounded-3xl p-3.5 sm:p-6 max-w-lg w-full space-y-3 shadow-2xl my-auto">
+            <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-start sm:justify-center p-2.5 sm:p-5 text-white z-30 overflow-y-auto">
+              <div className="bg-slate-900 border-4 border-amber-400 rounded-2xl sm:rounded-3xl p-3 sm:p-6 max-w-lg w-full space-y-2.5 sm:space-y-3 shadow-2xl my-auto">
                 <div className="flex items-center justify-between border-b-2 border-slate-700 pb-2">
                   <span className="text-amber-400 font-mario text-xs sm:text-sm">
                     [ ? ] ITEM BOX CHALLENGE
@@ -889,63 +893,59 @@ export const LaborKart: React.FC<LaborKartProps> = ({ equippedAvatar, onEarnCoin
           )}
 
           {gameState === 'victory' && (
-            <div className="absolute inset-0 bg-emerald-950/92 flex flex-col items-center justify-center text-center p-6 space-y-4 text-white">
-              <Trophy className="w-14 h-14 text-amber-300" />
-              <h3 className="text-2xl sm:text-4xl font-black font-display text-white">
+            <div className="absolute inset-0 z-20 bg-emerald-950/92 flex flex-col items-center justify-center text-center p-3 sm:p-6 space-y-2 sm:space-y-4 overflow-y-auto text-white">
+              <Trophy className="w-10 h-10 sm:w-14 sm:h-14 text-amber-300 shrink-0" />
+              <h3 className="text-lg sm:text-4xl font-black font-display text-white leading-tight">
                 1ST PLACE GRAND PRIX CHAMPION!
               </h3>
-              <p className="text-xs sm:text-sm text-slate-200 font-bold max-w-md">
+              <p className="text-[11px] sm:text-sm text-slate-200 font-bold max-w-md">
                 You carved every drift corner and mastered the Labor Law item boxes! +50 Mario Coins earned!
               </p>
               <button
                 type="button"
                 data-start="true"
                 onClick={handleStartRace}
-                className="min-h-[48px] flex items-center gap-2 px-6 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap"
+                className="min-h-[44px] sm:min-h-[48px] flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap shrink-0"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 shrink-0" />
                 <span>RACE AGAIN</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* Touch-Friendly Mobile & Virtual Drift Controls (>= 44px tap targets) */}
+        {/* Touch-Friendly Mobile & Virtual Drift Controls (>= 46px tap targets, fits 360px cleanly) */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
-              onMouseDown={() => (keysRef.current.left = true)}
-              onMouseUp={() => (keysRef.current.left = false)}
-              onMouseLeave={() => (keysRef.current.left = false)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 keysRef.current.left = true;
               }}
-              onTouchEnd={() => (keysRef.current.left = false)}
-              onTouchCancel={() => (keysRef.current.left = false)}
+              onPointerUp={() => (keysRef.current.left = false)}
+              onPointerLeave={() => (keysRef.current.left = false)}
+              onPointerCancel={() => (keysRef.current.left = false)}
               aria-label="Steer Left"
-              className="min-h-[46px] px-3.5 py-2.5 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black font-mario text-[10px] sm:text-xs whitespace-nowrap cursor-pointer inline-flex items-center gap-1"
+              className="min-h-[46px] px-3 sm:px-3.5 py-2.5 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black font-mario text-[10px] sm:text-xs whitespace-nowrap cursor-pointer inline-flex items-center gap-1 touch-none select-none"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
               <span>LEFT</span>
             </button>
             <button
               type="button"
-              onMouseDown={() => (keysRef.current.right = true)}
-              onMouseUp={() => (keysRef.current.right = false)}
-              onMouseLeave={() => (keysRef.current.right = false)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 keysRef.current.right = true;
               }}
-              onTouchEnd={() => (keysRef.current.right = false)}
-              onTouchCancel={() => (keysRef.current.right = false)}
+              onPointerUp={() => (keysRef.current.right = false)}
+              onPointerLeave={() => (keysRef.current.right = false)}
+              onPointerCancel={() => (keysRef.current.right = false)}
               aria-label="Steer Right"
-              className="min-h-[46px] px-3.5 py-2.5 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black font-mario text-[10px] sm:text-xs whitespace-nowrap cursor-pointer inline-flex items-center gap-1"
+              className="min-h-[46px] px-3 sm:px-3.5 py-2.5 bg-slate-800 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 font-black font-mario text-[10px] sm:text-xs whitespace-nowrap cursor-pointer inline-flex items-center gap-1 touch-none select-none"
             >
               <span>RIGHT</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 shrink-0" />
             </button>
           </div>
 
@@ -953,50 +953,46 @@ export const LaborKart: React.FC<LaborKartProps> = ({ equippedAvatar, onEarnCoin
             WASD/Arrows Steer &amp; Gas · Hold Shift/E = Hop &amp; Drift Spark · Space = Item
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {inventoryItem && (
               <button
                 type="button"
                 onClick={useInventoryItem}
                 aria-label={`Use ${inventoryItem}`}
-                className="min-h-[46px] px-3.5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 font-mario text-[10px] cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5"
+                className="min-h-[46px] px-2.5 sm:px-3.5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 font-mario text-[10px] cursor-pointer whitespace-nowrap inline-flex items-center gap-1 touch-none select-none"
               >
-                <Zap className="w-3.5 h-3.5 fill-slate-950" />
+                <Zap className="w-3.5 h-3.5 fill-slate-950 shrink-0" />
                 <span>{inventoryItem.toUpperCase()}</span>
               </button>
             )}
 
             <button
               type="button"
-              onMouseDown={() => (keysRef.current.driftHeld = true)}
-              onMouseUp={() => (keysRef.current.driftHeld = false)}
-              onMouseLeave={() => (keysRef.current.driftHeld = false)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 keysRef.current.driftHeld = true;
               }}
-              onTouchEnd={() => (keysRef.current.driftHeld = false)}
-              onTouchCancel={() => (keysRef.current.driftHeld = false)}
+              onPointerUp={() => (keysRef.current.driftHeld = false)}
+              onPointerLeave={() => (keysRef.current.driftHeld = false)}
+              onPointerCancel={() => (keysRef.current.driftHeld = false)}
               aria-label="Hold to Drift and Charge Mini-Turbo"
-              className="min-h-[46px] px-4 py-2.5 bg-sky-400 hover:bg-sky-300 active:bg-fuchsia-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 font-mario text-[10px] sm:text-xs cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5"
+              className="min-h-[46px] px-3 sm:px-4 py-2.5 bg-sky-400 hover:bg-sky-300 active:bg-fuchsia-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 font-mario text-[10px] sm:text-xs cursor-pointer whitespace-nowrap inline-flex items-center gap-1 touch-none select-none"
             >
-              <Zap className="w-3.5 h-3.5 fill-slate-950" />
-              <span>DRIFT TURBO</span>
+              <Zap className="w-3.5 h-3.5 fill-slate-950 shrink-0" />
+              <span>DRIFT</span>
             </button>
 
             <button
               type="button"
-              onMouseDown={() => (keysRef.current.accel = true)}
-              onMouseUp={() => (keysRef.current.accel = false)}
-              onMouseLeave={() => (keysRef.current.accel = false)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 keysRef.current.accel = true;
               }}
-              onTouchEnd={() => (keysRef.current.accel = false)}
-              onTouchCancel={() => (keysRef.current.accel = false)}
+              onPointerUp={() => (keysRef.current.accel = false)}
+              onPointerLeave={() => (keysRef.current.accel = false)}
+              onPointerCancel={() => (keysRef.current.accel = false)}
               aria-label="Accelerate"
-              className="min-h-[46px] px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 font-mario text-[10px] sm:text-xs cursor-pointer whitespace-nowrap"
+              className="min-h-[46px] px-3.5 sm:px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 font-mario text-[10px] sm:text-xs cursor-pointer whitespace-nowrap touch-none select-none"
             >
               GAS ▲
             </button>

@@ -666,35 +666,35 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
       className="bg-slate-900 text-white rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden select-none"
     >
       {/* Top World-Matched Arcade Perimeter Bar */}
-      <div className="bg-slate-950 px-4 py-3 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500 border-2 border-black flex items-center justify-center shrink-0">
-            <MarioCharacterAvatar character={equippedAvatar} className="w-6 h-6" />
+      <div className="bg-slate-950 px-2.5 sm:px-4 py-2 sm:py-3 border-b-2 border-slate-800 flex items-center justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500 border-2 border-black flex items-center justify-center shrink-0">
+            <MarioCharacterAvatar character={equippedAvatar} className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0">
-            <span className="text-[10px] font-black uppercase text-emerald-400 font-mario block truncate">
-              KOOPA SHELL STATUTORY BREAKER
+            <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-400 font-mario block truncate leading-tight">
+              KOOPA BREAKER
             </span>
-            <span className="text-xs font-bold text-slate-300 block truncate">
-              Pilot: {hero.name} · Smash [?] Blocks for Labor Multipliers
+            <span className="text-[11px] sm:text-xs font-bold text-slate-300 block truncate leading-tight">
+              {hero.shortName || hero.name} · Smash [?] Blocks
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-5 font-mono tabular-nums">
+        <div className="flex items-center gap-2 sm:gap-5 font-mono tabular-nums shrink-0">
           <div className="text-right">
-            <span className="text-[9px] font-bold uppercase text-slate-400 block">SCORE</span>
-            <span className="text-base sm:text-lg font-black text-amber-300">{hudScore}</span>
+            <span className="text-[8px] sm:text-[9px] font-bold uppercase text-slate-400 block leading-none">SCORE</span>
+            <span className="text-sm sm:text-lg font-black text-amber-300 leading-tight">{hudScore}</span>
           </div>
-          <div className="text-right">
-            <span className="text-[9px] font-bold uppercase text-slate-400 block">BLOCKS</span>
-            <span className="text-base sm:text-lg font-black text-emerald-300">{hudBricksLeft}</span>
+          <div className="hidden min-[400px]:block text-right">
+            <span className="text-[8px] sm:text-[9px] font-bold uppercase text-slate-400 block leading-none">BLOCKS</span>
+            <span className="text-sm sm:text-lg font-black text-emerald-300 leading-tight">{hudBricksLeft}</span>
           </div>
-          <div className="flex items-center gap-1" aria-label={`Lives remaining: ${hudLives}`}>
+          <div className="flex items-center gap-0.5 sm:gap-1" aria-label={`Lives remaining: ${hudLives}`}>
             {[0, 1, 2].map((idx) => (
               <Heart
                 key={idx}
-                className={`w-5 h-5 ${
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${
                   idx < hudLives ? 'text-rose-500 fill-rose-500' : 'text-slate-700'
                 }`}
               />
@@ -710,7 +710,7 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
                 setShellState('paused');
                 syncBodyGameState('paused');
               }}
-              className="min-h-[40px] min-w-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center cursor-pointer"
+              className="min-h-[38px] min-w-[38px] sm:min-h-[40px] sm:min-w-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center cursor-pointer"
             >
               <Pause className="w-4 h-4 text-amber-300" />
             </button>
@@ -719,54 +719,52 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
       </div>
 
       {/* Live Doctrine Banner */}
-      <div className="bg-amber-950/50 border-b border-amber-500/30 px-4 py-2 text-xs sm:text-sm font-bold text-amber-200 flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-        <span className="leading-snug">{activeBanner}</span>
+      <div className="bg-amber-950/50 border-b border-amber-500/30 px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-sm font-bold text-amber-200 flex items-center gap-1.5 sm:gap-2">
+        <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+        <span className="leading-snug line-clamp-2 sm:line-clamp-none">{activeBanner}</span>
       </div>
 
       {/* Canvas Stage */}
-      <div className="relative bg-slate-950 arcade-viewport-scaled">
+      <div className="relative bg-slate-950 min-h-[245px] sm:min-h-0 flex items-center justify-center">
         <canvas
           ref={canvasRef}
           width={760}
           height={440}
-          onMouseMove={(e) => handleCanvasPointer(e.clientX)}
-          onTouchMove={(e) => {
-            if (e.touches[0]) handleCanvasPointer(e.touches[0].clientX);
-          }}
-          onClick={() => {
+          onPointerMove={(e) => handleCanvasPointer(e.clientX)}
+          onPointerDown={(e) => {
+            handleCanvasPointer(e.clientX);
             if (shellState === 'playing' && !simRef.current.shellLaunched) {
               simRef.current.shellLaunched = true;
               marioAudio.playJump();
             }
           }}
-          className="w-full h-auto block cursor-crosshair touch-none"
+          className="w-full h-auto block cursor-crosshair touch-none select-none"
         />
 
         {/* Title Overlay */}
         {shellState === 'title' && (
-          <div className="absolute inset-0 bg-slate-950/88 flex flex-col items-center justify-center p-6 text-center">
-            <svg viewBox="0 0 64 64" className="w-16 h-16 mb-3" aria-hidden="true">
+          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-3 sm:p-6 text-center overflow-y-auto">
+            <svg viewBox="0 0 64 64" className="w-11 h-11 sm:w-16 sm:h-16 mb-2 sm:mb-3 shrink-0" aria-hidden="true">
               <circle cx="32" cy="32" r="26" fill="#16a34a" stroke="#020617" strokeWidth="4" />
               <path d="M14 32 H50 M32 10 V54" stroke="#dcfce7" strokeWidth="4" />
               <circle cx="24" cy="22" r="6" fill="#86efac" />
             </svg>
-            <h2 className="text-xl sm:text-3xl font-black font-display text-amber-300 tracking-tight">
+            <h2 className="text-base sm:text-3xl font-black font-display text-amber-300 tracking-tight leading-tight">
               KOOPA SHELL STATUTORY BREAKER
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mt-1.5 mb-5">
+            <p className="text-[11px] sm:text-sm text-slate-300 max-w-md mt-1 mb-2.5 sm:mb-5 line-clamp-2 sm:line-clamp-none">
               Rebound the Koopa Troopa Shell across 24 Labor Standards blocks! Gold [?] blocks grant Wide-Paddle Mushrooms and +3 Coins.
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-sm font-mario inline-flex items-center gap-2 cursor-pointer active:translate-y-0.5"
+              className="min-h-[44px] sm:min-h-[48px] px-5 sm:px-7 py-2.5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-xs sm:text-sm font-mario inline-flex items-center gap-2 cursor-pointer active:translate-y-0.5 shrink-0"
             >
-              <Play className="w-4 h-4 fill-current" />
+              <Play className="w-4 h-4 fill-current shrink-0" />
               <span>START GAME</span>
             </button>
-            <p className="text-[11px] font-mono text-slate-400 mt-4">
+            <p className="hidden sm:block text-[11px] font-mono text-slate-400 mt-3">
               Drag / Touch · A-D or Left-Right Move · Space Launch · P Pause
             </p>
           </div>
@@ -774,24 +772,24 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
 
         {/* Paused Modal */}
         {shellState === 'paused' && (
-          <div className="absolute inset-0 bg-slate-950/88 flex items-center justify-center p-5">
-            <div className="bg-slate-900 border-3 border-amber-400 rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
-              <h3 className="text-lg font-black font-mario text-amber-300">GAME PAUSED</h3>
-              <div className="flex flex-col gap-2.5">
+          <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+            <div className="bg-slate-900 border-3 border-amber-400 rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 shadow-2xl">
+              <h3 className="text-sm sm:text-lg font-black font-mario text-amber-300">GAME PAUSED</h3>
+              <div className="flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setShellState('playing');
                     syncBodyGameState('playing');
                   }}
-                  className="min-h-[44px] px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-2 border-black cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-2 border-black cursor-pointer text-xs sm:text-sm"
                 >
                   Resume Game
                 </button>
                 <button
                   type="button"
                   onClick={startGame}
-                  className="min-h-[44px] px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black cursor-pointer text-xs sm:text-sm"
                 >
                   Restart Stage
                 </button>
@@ -802,37 +800,37 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
 
         {/* Victory / Game Over Modal */}
         {(shellState === 'victory' || shellState === 'gameover') && snapshot && (
-          <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-5">
-            <div className="bg-slate-900 border-4 border-amber-400 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black mx-auto flex items-center justify-center text-slate-950">
+          <div className="absolute inset-0 bg-slate-950/92 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+            <div className="bg-slate-900 border-3 sm:border-4 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 max-w-md w-full text-center space-y-2.5 sm:space-y-4 shadow-2xl">
+              <div className="hidden sm:flex w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black mx-auto items-center justify-center text-slate-950">
                 <Trophy className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-black font-display text-white">
+              <h3 className="text-sm sm:text-xl font-black font-display text-white leading-tight">
                 {shellState === 'victory' ? 'STAGE CLEAR! ALL BLOCKS SMASHED!' : 'SHELL LOST IN BOWSER PIT'}
               </h3>
-              <div className="grid grid-cols-3 gap-2 font-mono tabular-nums">
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">SCORE</span>
-                  <span className="text-base font-black text-amber-300">{snapshot.score}</span>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 font-mono tabular-nums">
+                <div className="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 block">SCORE</span>
+                  <span className="text-sm sm:text-base font-black text-amber-300">{snapshot.score}</span>
                 </div>
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">BLOCKS</span>
-                  <span className="text-base font-black text-emerald-300">
+                <div className="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 block">BLOCKS</span>
+                  <span className="text-sm sm:text-base font-black text-emerald-300">
                     {snapshot.cleared}/{snapshot.total}
                   </span>
                 </div>
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">COINS</span>
-                  <span className="text-base font-black text-yellow-300">+{snapshot.coinsEarned}</span>
+                <div className="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 block">COINS</span>
+                  <span className="text-sm sm:text-base font-black text-yellow-300">+{snapshot.coinsEarned}</span>
                 </div>
               </div>
               <button
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="min-h-[48px] w-full px-5 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-xs cursor-pointer inline-flex items-center justify-center gap-2"
+                className="min-h-[44px] sm:min-h-[48px] w-full px-4 sm:px-5 py-2.5 sm:py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-[11px] sm:text-xs cursor-pointer inline-flex items-center justify-center gap-2"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 shrink-0" />
                 <span>PLAY AGAIN</span>
               </button>
             </div>
@@ -841,17 +839,18 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
       </div>
 
       {/* Mobile Ergonomic Touch Dock (>=44px buttons) */}
-      <div className="p-3 bg-slate-950 border-t-2 border-slate-800 grid grid-cols-3 gap-2.5">
+      <div className="p-2.5 sm:p-3 bg-slate-950 border-t-2 border-slate-800 grid grid-cols-3 gap-2 sm:gap-2.5">
         <button
           type="button"
           onPointerDown={() => simRef.current.keys.add('left')}
           onPointerUp={() => simRef.current.keys.delete('left')}
           onPointerLeave={() => simRef.current.keys.delete('left')}
           onPointerCancel={() => simRef.current.keys.delete('left')}
-          className="min-h-[46px] bg-slate-800 active:bg-amber-400 active:text-slate-950 text-white font-black rounded-xl border-2 border-slate-700 flex items-center justify-center gap-1.5 text-xs cursor-pointer"
+          className="min-h-[46px] px-2 bg-slate-800 active:bg-amber-400 active:text-slate-950 text-white font-black rounded-xl border-2 border-slate-700 flex items-center justify-center gap-1 text-[11px] sm:text-xs cursor-pointer touch-none select-none"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>MOVE LEFT</span>
+          <ArrowLeft className="w-4 h-4 shrink-0" />
+          <span className="sm:hidden">LEFT</span>
+          <span className="hidden sm:inline">MOVE LEFT</span>
         </button>
         <button
           type="button"
@@ -863,9 +862,10 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
               marioAudio.playJump();
             }
           }}
-          className="min-h-[46px] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-2 border-black flex items-center justify-center gap-1.5 text-xs cursor-pointer"
+          className="min-h-[46px] px-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-2 border-black flex items-center justify-center gap-1 text-[11px] sm:text-xs cursor-pointer select-none"
         >
-          <span>LAUNCH SHELL</span>
+          <span className="sm:hidden">LAUNCH</span>
+          <span className="hidden sm:inline">LAUNCH SHELL</span>
         </button>
         <button
           type="button"
@@ -873,10 +873,11 @@ export const KoopaBrickBreakerGame: React.FC<NewVaultGameProps> = ({
           onPointerUp={() => simRef.current.keys.delete('right')}
           onPointerLeave={() => simRef.current.keys.delete('right')}
           onPointerCancel={() => simRef.current.keys.delete('right')}
-          className="min-h-[46px] bg-slate-800 active:bg-amber-400 active:text-slate-950 text-white font-black rounded-xl border-2 border-slate-700 flex items-center justify-center gap-1.5 text-xs cursor-pointer"
+          className="min-h-[46px] px-2 bg-slate-800 active:bg-amber-400 active:text-slate-950 text-white font-black rounded-xl border-2 border-slate-700 flex items-center justify-center gap-1 text-[11px] sm:text-xs cursor-pointer touch-none select-none"
         >
-          <span>MOVE RIGHT</span>
-          <ArrowRight className="w-4 h-4" />
+          <span className="sm:hidden">RIGHT</span>
+          <span className="hidden sm:inline">MOVE RIGHT</span>
+          <ArrowRight className="w-4 h-4 shrink-0" />
         </button>
       </div>
     </div>
@@ -1329,31 +1330,31 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       className="bg-slate-900 text-white rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden select-none"
     >
       {/* Header */}
-      <div className="bg-slate-950 px-4 py-3 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-lime-400 border-2 border-black flex items-center justify-center shrink-0">
-            <Crosshair className="w-5 h-5 text-slate-950" />
+      <div className="bg-slate-950 px-2.5 sm:px-4 py-2 sm:py-3 border-b-2 border-slate-800 flex items-center justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-lime-400 border-2 border-black flex items-center justify-center shrink-0">
+            <Crosshair className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950" />
           </div>
-          <div>
-            <span className="text-[10px] font-black uppercase text-lime-400 font-mario block">
-              YOSHI’S STATUTORY EGG TOSS
+          <div className="min-w-0">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase text-lime-400 font-mario block truncate leading-tight">
+              YOSHI EGG TOSS
             </span>
-            <span className="text-xs font-bold text-slate-300 block">
-              Hero: {hero.name} · Wave {Math.min(roundIdx + 1, rounds.length)} of {rounds.length}
+            <span className="text-[11px] sm:text-xs font-bold text-slate-300 block truncate leading-tight">
+              Wave {Math.min(roundIdx + 1, rounds.length)}/{rounds.length} · {hero.shortName || hero.name}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 font-mono tabular-nums">
+        <div className="flex items-center gap-2.5 sm:gap-4 font-mono tabular-nums shrink-0">
           <div className="text-right">
-            <span className="text-[9px] text-slate-400 uppercase block">SCORE</span>
-            <span className="text-base sm:text-lg font-black text-amber-300">{score}</span>
+            <span className="text-[8px] sm:text-[9px] text-slate-400 uppercase block leading-none">SCORE</span>
+            <span className="text-sm sm:text-lg font-black text-amber-300 leading-tight">{score}</span>
           </div>
-          <div className="flex items-center gap-1" aria-label={`Eggs left: ${lives}`}>
+          <div className="flex items-center gap-0.5 sm:gap-1" aria-label={`Eggs left: ${lives}`}>
             {[0, 1, 2].map((i) => (
               <Heart
                 key={i}
-                className={`w-5 h-5 ${i < lives ? 'text-rose-500 fill-rose-500' : 'text-slate-700'}`}
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${i < lives ? 'text-rose-500 fill-rose-500' : 'text-slate-700'}`}
               />
             ))}
           </div>
@@ -1361,74 +1362,76 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       </div>
 
       {/* Live Payroll Scenario Prompt */}
-      <div className="bg-slate-800/95 px-4 py-3 border-b-2 border-slate-950 space-y-1">
-        <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
+      <div className="bg-slate-800/95 px-2.5 sm:px-4 py-2 sm:py-3 border-b-2 border-slate-950 space-y-0.5 sm:space-y-1">
+        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-300 block leading-tight">
           TARGET LABOR STANDARDS RULE:
         </span>
-        <p className="text-sm sm:text-base font-extrabold text-white leading-snug">
+        <p className="text-xs sm:text-base font-extrabold text-white leading-snug">
           {currentRound?.prompt}
         </p>
-        <p className="text-xs font-semibold text-emerald-300">{feedback}</p>
+        <p className="text-[11px] sm:text-xs font-semibold text-emerald-300 leading-snug line-clamp-1 sm:line-clamp-none">
+          {feedback}
+        </p>
       </div>
 
       {/* Canvas Viewport */}
-      <div className="relative arcade-viewport-scaled bg-sky-600">
+      <div className="relative bg-sky-600 min-h-[235px] sm:min-h-0 flex items-center justify-center">
         <canvas
           ref={canvasRef}
           width={760}
           height={420}
-          onMouseMove={(e) => handleCanvasAim(e.clientX, e.clientY, false)}
-          onClick={(e) => handleCanvasAim(e.clientX, e.clientY, true)}
-          className="w-full h-auto block cursor-crosshair touch-none"
+          onPointerMove={(e) => handleCanvasAim(e.clientX, e.clientY, false)}
+          onPointerDown={(e) => handleCanvasAim(e.clientX, e.clientY, true)}
+          className="w-full h-auto block cursor-crosshair touch-none select-none"
         />
 
         {shellState === 'title' && (
-          <div className="absolute inset-0 bg-slate-950/88 flex flex-col items-center justify-center p-6 text-center">
-            <h2 className="text-xl sm:text-3xl font-black font-display text-lime-300">
+          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-3 sm:p-6 text-center overflow-y-auto">
+            <h2 className="text-base sm:text-3xl font-black font-display text-lime-300 leading-tight">
               YOSHI’S STATUTORY EGG TOSS
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mt-2 mb-5">
-              Click any sky cloud directly, use Quick-Cloud Lock &amp; Throw, or adjust Yoshi’s angle across 8 non-repeating statutory waves!
+            <p className="text-[11px] sm:text-sm text-slate-300 max-w-md mt-1.5 mb-3 sm:mb-5 line-clamp-2 sm:line-clamp-none">
+              Tap any sky cloud directly, use Quick-Cloud Lock &amp; Throw below, or adjust Yoshi’s angle across 8 non-repeating statutory waves!
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 bg-lime-400 hover:bg-lime-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-sm font-mario inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[44px] sm:min-h-[48px] px-5 sm:px-7 py-2.5 sm:py-3 bg-lime-400 hover:bg-lime-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-xs sm:text-sm font-mario inline-flex items-center gap-2 cursor-pointer shrink-0"
             >
-              <Play className="w-4 h-4 fill-current" />
+              <Play className="w-4 h-4 fill-current shrink-0" />
               <span>START GAME</span>
             </button>
           </div>
         )}
 
         {(shellState === 'victory' || shellState === 'gameover') && snapshot && (
-          <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-5">
-            <div className="bg-slate-900 border-4 border-lime-400 rounded-3xl p-6 max-w-md w-full text-center space-y-4">
-              <h3 className="text-xl font-black font-display text-white">
+          <div className="absolute inset-0 bg-slate-950/92 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+            <div className="bg-slate-900 border-3 sm:border-4 border-lime-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 max-w-md w-full text-center space-y-2.5 sm:space-y-4">
+              <h3 className="text-sm sm:text-xl font-black font-display text-white leading-tight">
                 {shellState === 'victory' ? 'YOSHI ISLAND AUDIT COMPLETE!' : 'OUT OF YOSHI EGGS!'}
               </h3>
-              <div className="grid grid-cols-3 gap-2 font-mono tabular-nums">
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">SCORE</span>
-                  <span className="text-base font-black text-amber-300">{snapshot.score}</span>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 font-mono tabular-nums">
+                <div className="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 block">SCORE</span>
+                  <span className="text-sm sm:text-base font-black text-amber-300">{snapshot.score}</span>
                 </div>
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">WAVES</span>
-                  <span className="text-base font-black text-lime-300">
+                <div className="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 block">WAVES</span>
+                  <span className="text-sm sm:text-base font-black text-lime-300">
                     {snapshot.cleared}/{snapshot.total}
                   </span>
                 </div>
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">COINS</span>
-                  <span className="text-base font-black text-yellow-300">+{snapshot.coinsEarned}</span>
+                <div className="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 block">COINS</span>
+                  <span className="text-sm sm:text-base font-black text-yellow-300">+{snapshot.coinsEarned}</span>
                 </div>
               </div>
               <button
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="min-h-[48px] w-full px-5 py-3 bg-lime-400 hover:bg-lime-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-xs cursor-pointer"
+                className="min-h-[44px] sm:min-h-[48px] w-full px-4 sm:px-5 py-2.5 sm:py-3 bg-lime-400 hover:bg-lime-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-[11px] sm:text-xs cursor-pointer"
               >
                 PLAY AGAIN (NEW QUESTIONS)
               </button>
@@ -1438,7 +1441,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
       </div>
 
       {/* Quick-Cloud Lock & Throw Buttons + Precision Angle Slider */}
-      <div className="p-3.5 bg-slate-950 border-t-2 border-slate-800 space-y-3">
+      <div className="p-3 sm:p-3.5 bg-slate-950 border-t-2 border-slate-800 space-y-2.5 sm:space-y-3">
         {currentRound && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {currentRound.options.map((optLabel, slotIdx) => {
@@ -1449,7 +1452,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
                   type="button"
                   data-testid={`yoshi-cloud-btn-${slotIdx}`}
                   onClick={() => lockAndThrowAtSlot(slotIdx)}
-                  className={`min-h-[42px] px-2.5 py-1.5 rounded-xl font-black text-xs border-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-0 ${
+                  className={`min-h-[44px] px-2.5 py-1.5 rounded-xl font-black text-xs border-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-0 ${
                     isLocked
                       ? 'bg-lime-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
                       : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700'
@@ -1463,7 +1466,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <label
               htmlFor="yoshi-aim-slider"
@@ -1478,13 +1481,13 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
               max={YOSHI_MAX_AIM_DEG}
               value={aimDeg}
               onChange={(e) => adjustAngle(Number(e.target.value))}
-              className="w-full accent-lime-400 cursor-pointer"
+              className="w-full accent-lime-400 cursor-pointer min-h-[36px]"
             />
           </div>
           <button
             type="button"
             onClick={() => (shellState === 'title' ? startGame() : fireEggWithAngle())}
-            className="min-h-[46px] px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0"
+            className="min-h-[46px] px-5 sm:px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0"
           >
             FIRE YOSHI EGG
           </button>

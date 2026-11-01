@@ -31,6 +31,9 @@ import { AppWalkthroughModal } from './components/AppWalkthroughModal';
 import { CoinLeaderboardModal } from './components/CoinLeaderboardModal';
 import { LegalCitationsModal, CitationsView } from './components/LegalCitationsModal';
 import { QuickGlossaryModal } from './components/QuickGlossaryModal';
+import { StatuteLookupModal } from './components/StatuteLookupModal';
+import { BossBattleLogModal } from './components/BossBattleLogModal';
+import { ModulesStudySprint } from './components/ModulesStudySprint';
 import { DailyStudyGoalRing } from './components/DailyStudyGoalRing';
 import { CoinConfetti } from './components/CoinConfetti';
 import {
@@ -89,6 +92,7 @@ import {
   StudyDifficulty,
   StudyCompanionId,
   CardFrameId,
+  AppStudyFontId,
 } from './types/laborLaw';
 import {
   ArrowRight,
@@ -124,6 +128,8 @@ import {
   Bookmark,
   Presentation,
   ArrowUpDown,
+  Scale,
+  Bell,
 } from 'lucide-react';
 import {
   sortModuleTopics,
@@ -132,6 +138,33 @@ import {
   getFriendlyDifficultyLabel,
   getTopicQuickCheck,
 } from './utils/moduleSorting';
+import {
+  loadDailyBossQuizStreak,
+  saveDailyBossQuizStreak,
+  getActiveDailyBossQuizStreak,
+  recordBossQuizCompletionForDailyStreak,
+  shouldTriggerGlobalMuteShortcut,
+  loadRecentlyViewedTopicIds,
+  saveRecentlyViewedTopicIds,
+  recordRecentlyViewedTopic,
+  loadCompletedTopicsHistory,
+  saveCompletedTopicsHistory,
+  syncCompletedTopicsDailyHistory,
+  buildCompletedTopicsSparklineSeries,
+  TOPIC_ACCESS_SEEDED_KEY,
+  loadTopicLastAccessedMap,
+  saveTopicLastAccessedMap,
+  initializeTopicAccessMapWithRetentionSeed,
+  recordTopicAccessTimestamp,
+  recordMultipleTopicsAccessTimestamp,
+  getOverdueReviewTopics,
+  BossBattleLogEntry,
+  loadBossBattleLog,
+  saveBossBattleLog,
+  recordBossBattleLogEntry,
+  APP_STUDY_FONTS,
+  APP_STUDY_FONT_STORAGE_KEY,
+} from './utils/round8Features';
 
 const TOAD_PRO_TIPS = [
   {
@@ -201,7 +234,7 @@ export default function App() {
 
   // Toad's Pro Tip dialog state
   const [toadTipIndex, setToadTipIndex] = useState<number>(0);
-  const [showToadTip, setShowToadTip] = useState<boolean>(true);
+  const [showToadTip, setShowToadTip] = useState<boolean>(false);
   const [toadTipTimerPaused, setToadTipTimerPaused] = useState<boolean>(false);
   const [toadTipCopied, setToadTipCopied] = useState<boolean>(false);
   const [toadTipShareSuccess, setToadTipShareSuccess] = useState<boolean>(false);
@@ -256,10 +289,9 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [showToadTip, toadTipIndex, toadTipTimerPaused, activeTab]);
 
-  // When returning to dashboard, show Toad's Pro Tip and shuffle next tip
+  // Advance Toad's Pro Tip index when returning to dashboard without forcing an arrival popup
   useEffect(() => {
     if (activeTab === 'map') {
-      setShowToadTip(true);
       setToadTipIndex((prev) => (prev + 1) % TOAD_PRO_TIPS.length);
     }
   }, [activeTab]);
@@ -279,8 +311,18 @@ export default function App() {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
   const [isLegalCitationsOpen, setIsLegalCitationsOpen] = useState<boolean>(false);
   const [isQuickGlossaryOpen, setIsQuickGlossaryOpen] = useState<boolean>(false);
+  const [isStatuteLookupOpen, setIsStatuteLookupOpen] = useState<boolean>(false);
+  const [isBossBattleLogOpen, setIsBossBattleLogOpen] = useState<boolean>(false);
   const [showCoinConfetti, setShowCoinConfetti] = useState<boolean>(false);
   const [quickStudyLaunchId, setQuickStudyLaunchId] = useState<number>(0);
+  const [overdueFlashcardLaunchId, setOverdueFlashcardLaunchId] = useState<number>(0);
+  const [overdueFlashcardSnapshotIds, setOverdueFlashcardSnapshotIds] = useState<string[]>([]);
+  const [reviewBannerDismissed, setReviewBannerDismissed] = useState<boolean>(false);
+  const [dailyQuizStreakToast, setDailyQuizStreakToast] = useState<string | null>(null);
+  const [quizExternalLaunch, setQuizExternalLaunch] = useState<{
+    mode: 'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss';
+    nonce: number;
+  } | null>(null);
   const [isWalkthroughOpen, setIsWalkthroughOpen] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return shouldAutoOpenWalkthrough(window.location.search, window.localStorage);
@@ -403,19 +445,38 @@ export default function App() {
     bonusCoins: number;
   }>({ worldId: null, bonusCoins: 0 });
 
-  // Global Ctrl+K / Cmd+K shortcut listener
+  // Global Ctrl+K / Cmd+K search shortcut & Global 'M' key mute/unmute shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         setIsGlobalSearchOpen((prev) => !prev);
+        return;
+      }
+
+      const targetEl = e.target as HTMLElement | null;
+      if (
+        shouldTriggerGlobalMuteShortcut({
+          key: e.key,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          altKey: e.altKey,
+          repeat: e.repeat,
+          defaultPrevented: e.defaultPrevented,
+          targetTagName: targetEl?.tagName || null,
+          targetIsContentEditable: Boolean(targetEl?.isContentEditable),
+        })
+      ) {
+        e.preventDefault();
+        const nextEnabled = marioAudio.toggleMute();
+        setSoundEnabled(nextEnabled);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Unlocked Themes & Avatars
+  // Unlocked Themes, Reading Fonts & Avatars
   const [activeTheme, setActiveTheme] = useState<MarioTheme>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -427,6 +488,38 @@ export default function App() {
     }
     return 'overworld';
   });
+
+  const handleSelectActiveTheme = (nextTheme: MarioTheme) => {
+    setActiveTheme(nextTheme);
+    try {
+      localStorage.setItem('mario_active_theme', nextTheme);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const [appStudyFont, setAppStudyFont] = useState<AppStudyFontId>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(APP_STUDY_FONT_STORAGE_KEY) as AppStudyFontId | null;
+        if (saved && APP_STUDY_FONTS.some((f) => f.id === saved)) {
+          return saved;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return 'jakarta';
+  });
+
+  const handleSelectAppStudyFont = (nextFont: AppStudyFontId) => {
+    setAppStudyFont(nextFont);
+    try {
+      localStorage.setItem(APP_STUDY_FONT_STORAGE_KEY, nextFont);
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   const [equippedAvatar, setEquippedAvatar] = useState<MarioAvatar>(() => {
     if (typeof window !== 'undefined') {
@@ -729,7 +822,153 @@ export default function App() {
     return [];
   });
 
+  // Valid Topic IDs lookup set
+  const validTopicIdSet = useMemo(
+    () => new Set(ALL_LAW_TOPICS.map((t) => t.id)),
+    []
+  );
+
+  // Recently Viewed Topics (Last 5 Accessed Topics on Dashboard Map)
+  const [recentlyViewedTopicIds, setRecentlyViewedTopicIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const stored = loadRecentlyViewedTopicIds(window.localStorage, validTopicIdSet);
+    if (stored.length > 0) return stored;
+    const fallbackLast = localStorage.getItem('mario_last_studied_topic');
+    if (fallbackLast && validTopicIdSet.has(fallbackLast)) {
+      return [fallbackLast];
+    }
+    return ALL_LAW_TOPICS[0] ? [ALL_LAW_TOPICS[0].id] : [];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveRecentlyViewedTopicIds(recentlyViewedTopicIds, window.localStorage);
+    }
+  }, [recentlyViewedTopicIds]);
+
+  const recentlyViewedTopics = useMemo(
+    () =>
+      recentlyViewedTopicIds
+        .map((id) => ALL_LAW_TOPICS.find((t) => t.id === id))
+        .filter((t): t is (typeof ALL_LAW_TOPICS)[number] => Boolean(t))
+        .slice(0, 5)
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          badge: t.badge,
+          worldId: t.worldId,
+        })),
+    [recentlyViewedTopicIds]
+  );
+
+  // Per-Topic Last Accessed Map & >14 Days 'Review Required' Spaced Retention
+  const [topicLastAccessedMap, setTopicLastAccessedMap] = useState<Record<string, number>>(() => {
+    if (typeof window === 'undefined') return {};
+    const existing = loadTopicLastAccessedMap(window.localStorage);
+    const alreadySeeded = localStorage.getItem(TOPIC_ACCESS_SEEDED_KEY) === 'true';
+    const init = initializeTopicAccessMapWithRetentionSeed({
+      existingMap: existing,
+      completedTopicIds,
+      allTopicIds: ALL_LAW_TOPICS.map((t) => t.id),
+      alreadySeeded,
+    });
+    if (init.didSeed) {
+      try {
+        localStorage.setItem(TOPIC_ACCESS_SEEDED_KEY, 'true');
+        saveTopicLastAccessedMap(init.map, window.localStorage);
+      } catch {
+        // ignore
+      }
+    }
+    return init.map;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveTopicLastAccessedMap(topicLastAccessedMap, window.localStorage);
+    }
+  }, [topicLastAccessedMap]);
+
+  const overdueReviewTopics = useMemo(
+    () =>
+      getOverdueReviewTopics({
+        lastAccessedMap: topicLastAccessedMap,
+        allTopics: ALL_LAW_TOPICS,
+      }),
+    [topicLastAccessedMap]
+  );
+
+  // 7-Day Completed Topics History & Mini Sparkline Series
+  const [completedTopicsHistory, setCompletedTopicsHistory] = useState<Record<string, number>>(
+    () => (typeof window !== 'undefined' ? loadCompletedTopicsHistory(window.localStorage) : {})
+  );
+
+  useEffect(() => {
+    setCompletedTopicsHistory((prev) => {
+      const next = syncCompletedTopicsDailyHistory(prev, completedTopicIds.length);
+      if (typeof window !== 'undefined') {
+        saveCompletedTopicsHistory(next, window.localStorage);
+      }
+      return next;
+    });
+  }, [completedTopicIds.length]);
+
+  const completedTopicsSparkline = useMemo(
+    () =>
+      buildCompletedTopicsSparklineSeries({
+        history: completedTopicsHistory,
+        currentCompletedCount: completedTopicIds.length,
+        totalTopicsCount: ALL_LAW_TOPICS.length,
+      }),
+    [completedTopicsHistory, completedTopicIds.length]
+  );
+
+  // Daily Boss Quiz Streak & Bar Master Boss Battle Log
+  const [dailyBossQuizStreakState, setDailyBossQuizStreakState] = useState(() =>
+    typeof window !== 'undefined'
+      ? loadDailyBossQuizStreak(window.localStorage)
+      : loadDailyBossQuizStreak(null)
+  );
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveDailyBossQuizStreak(dailyBossQuizStreakState, window.localStorage);
+    }
+  }, [dailyBossQuizStreakState]);
+
+  const dailyBossQuizStreakSnapshot = useMemo(
+    () => getActiveDailyBossQuizStreak(dailyBossQuizStreakState),
+    [dailyBossQuizStreakState]
+  );
+
+  const [bossBattleLog, setBossBattleLog] = useState<BossBattleLogEntry[]>(() =>
+    typeof window !== 'undefined' ? loadBossBattleLog(window.localStorage) : []
+  );
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveBossBattleLog(bossBattleLog, window.localStorage);
+    }
+  }, [bossBattleLog]);
+
+  const recordTopicEngagement = (topicId: string) => {
+    if (!topicId) return;
+    setLastStudiedTopicId(topicId);
+    setRecentlyViewedTopicIds((prev) =>
+      recordRecentlyViewedTopic(prev, topicId, validTopicIdSet)
+    );
+    setTopicLastAccessedMap((prev) => recordTopicAccessTimestamp(prev, topicId));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('mario_last_studied_topic', topicId);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   const handleToggleTopicComplete = (topicId: string) => {
+    recordTopicEngagement(topicId);
     const isNowDone = !completedTopicIds.includes(topicId);
     let next: string[];
 
@@ -827,6 +1066,68 @@ export default function App() {
       default:
         return <MarioMushroomIcon className={className} />;
     }
+  };
+
+  // Small pixel-art world achievement badge rendered at the top of each World Selector button
+  const renderPixelWorldBadge = (
+    badgeKey: string,
+    completedInWorld: number,
+    totalInWorld: number
+  ) => {
+    const isMastered = totalInWorld > 0 && completedInWorld >= totalInWorld;
+    const isStarted = completedInWorld > 0 && !isMastered;
+    const label = isMastered
+      ? 'MASTERED'
+      : isStarted
+      ? `${completedInWorld}/${totalInWorld}`
+      : `0/${totalInWorld}`;
+
+    return (
+      <span
+        data-testid={`world-selector-pixel-badge-${badgeKey}`}
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-mono font-black leading-none mb-1 ${
+          isMastered
+            ? 'bg-emerald-950 text-amber-300 border-amber-400'
+            : isStarted
+            ? 'bg-slate-950 text-emerald-300 border-emerald-500/70'
+            : 'bg-slate-950/90 text-slate-400 border-slate-700'
+        }`}
+      >
+        <svg
+          viewBox="0 0 8 8"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+          className="w-3 h-3 shrink-0"
+        >
+          {isMastered ? (
+            <>
+              <rect x="0" y="2" width="1" height="4" fill="#fbbf24" />
+              <rect x="7" y="2" width="1" height="4" fill="#fbbf24" />
+              <rect x="2" y="1" width="1" height="5" fill="#fbbf24" />
+              <rect x="5" y="1" width="1" height="5" fill="#fbbf24" />
+              <rect x="3" y="0" width="2" height="6" fill="#fde047" />
+              <rect x="1" y="4" width="6" height="2" fill="#f59e0b" />
+              <rect x="1" y="6" width="6" height="1" fill="#92400e" />
+            </>
+          ) : isStarted ? (
+            <>
+              <rect x="2" y="0" width="4" height="1" fill="#34d399" />
+              <rect x="1" y="1" width="6" height="4" fill="#10b981" />
+              <rect x="2" y="2" width="2" height="2" fill="#a7f3d0" />
+              <rect x="2" y="5" width="4" height="2" fill="#059669" />
+              <rect x="3" y="7" width="2" height="1" fill="#047857" />
+            </>
+          ) : (
+            <>
+              <rect x="1" y="1" width="6" height="6" fill="#334155" />
+              <rect x="2" y="2" width="4" height="4" fill="#475569" />
+              <rect x="3" y="3" width="2" height="2" fill="#94a3b8" />
+            </>
+          )}
+        </svg>
+        <span className="tabular-nums">{label}</span>
+      </span>
+    );
   };
 
   // Filter and sort topics based on active world, difficulty tag, status, search query, and sort option
@@ -942,14 +1243,7 @@ export default function App() {
   }, [lastStudiedTopicId]);
 
   const handleRecordAccessedTopic = (topicId: string) => {
-    setLastStudiedTopicId(topicId);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('mario_last_studied_topic', topicId);
-      } catch {
-        // ignore
-      }
-    }
+    recordTopicEngagement(topicId);
   };
 
   const triggerWarpTransition = (action: () => void) => {
@@ -1033,6 +1327,54 @@ export default function App() {
     setActiveTab('flashcards');
     setQuickStudyLaunchId((n) => n + 1);
     marioAudio.playPowerUp();
+  };
+
+  const handleStartOverdueFlashcardReview = () => {
+    const ids = overdueReviewTopics.map((item) => item.topicId);
+    if (ids.length > 0) {
+      setOverdueFlashcardSnapshotIds(ids);
+      setTopicLastAccessedMap((prev) => recordMultipleTopicsAccessTimestamp(prev, ids));
+    }
+    setReviewBannerDismissed(false);
+    setActiveTab('flashcards');
+    setOverdueFlashcardLaunchId((n) => n + 1);
+    marioAudio.playPowerUp();
+  };
+
+  const handleLaunchWeaknessDrill = () => {
+    setActiveTab('quiz');
+    setQuizExternalLaunch((prev) => ({
+      mode: 'flashback',
+      nonce: (prev?.nonce || 0) + 1,
+    }));
+    marioAudio.playPowerUp();
+  };
+
+  const handleBossQuizCompleted = () => {
+    const res = recordBossQuizCompletionForDailyStreak(dailyBossQuizStreakState);
+    setDailyBossQuizStreakState(res.nextState);
+    if (res.bonusCoinsAwarded > 0) {
+      handleEarnCoins(res.bonusCoinsAwarded);
+      setDailyQuizStreakToast(
+        `Daily Quiz Streak: ${res.activeStreak} ${
+          res.activeStreak === 1 ? 'Day' : 'Days'
+        }! +${res.bonusCoinsAwarded} Bonus Coins!`
+      );
+      window.setTimeout(() => {
+        setDailyQuizStreakToast(null);
+      }, 5000);
+    }
+  };
+
+  const handleRecordBossBattleLog = (input: {
+    modeLabel: string;
+    score: number;
+    totalQuestions: number;
+    timeTakenSeconds: number;
+    incorrectTopics: string[];
+    victory?: boolean;
+  }) => {
+    setBossBattleLog((prev) => recordBossBattleLogEntry(prev, input));
   };
 
   const handleToggleNeedsImprovementTopic = (topicId: string) => {
@@ -1181,9 +1523,14 @@ export default function App() {
   // Font styling class
   const bodyTextClass =
     fontSize === 'xlarge' ? 'text-xl' : fontSize === 'large' ? 'text-lg' : 'text-base';
+  const appStudyFontClass =
+    APP_STUDY_FONTS.find((f) => f.id === appStudyFont)?.cssClass || 'app-study-font-jakarta';
 
   return (
-    <div className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-16 antialiased theme-${activeTheme} w-full max-w-full`}>
+    <div
+      data-study-font={appStudyFont}
+      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-16 antialiased theme-${activeTheme} ${appStudyFontClass} w-full max-w-full overflow-x-clip`}
+    >
       {/* Main Navigation Container — Safe Top Padding so UI is never cropped on mobile */}
       <div className="sticky top-0 z-40 w-full bg-[#0f172a] safe-top-nav">
         <Navbar
@@ -1226,6 +1573,7 @@ export default function App() {
           onOpenOnePageSummary={() => openPrintStudio('summary')}
           onOpenLegalCitationsModal={() => setIsLegalCitationsOpen(true)}
           onOpenQuickGlossary={() => setIsQuickGlossaryOpen(true)}
+          onOpenStatuteLookup={() => setIsStatuteLookupOpen(true)}
           showLegalCitations={showLegalCitations}
           setShowLegalCitations={handleSetShowLegalCitations}
           onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
@@ -1236,11 +1584,76 @@ export default function App() {
           shortcutMapActive={shortcutMapActive}
           zenReadingMode={zenReadingMode}
           onToggleZenReadingMode={handleToggleZenReadingMode}
+          activeTheme={activeTheme}
+          onSelectTheme={handleSelectActiveTheme}
+          appStudyFont={appStudyFont}
+          onSelectAppStudyFont={handleSelectAppStudyFont}
         />
       </div>
 
       {/* Main Container with Mobile Bottom Nav Padding */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8 pb-24 lg:pb-8 overflow-x-hidden">
+        {/* 'Review Required' (>14 Days Unaccessed) Spaced-Repetition Notification Banner */}
+        {(activeTab === 'map' || activeTab === 'modules') &&
+          overdueReviewTopics.length > 0 &&
+          !reviewBannerDismissed && (
+            <section
+              data-testid="review-required-notification-banner"
+              aria-label="Review Required Notification"
+              className="mb-5 bg-slate-900 text-white rounded-2xl border-3 border-amber-400 p-3.5 sm:p-4 shadow-[4px_4px_0_#000] flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full max-w-full overflow-hidden print:hidden"
+            >
+              <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex items-center gap-2 flex-wrap text-xs font-bold">
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario">
+                      REVIEW REQUIRED · 14+ DAYS UNACCESSED
+                    </span>
+                    <span className="text-slate-500" aria-hidden="true">
+                      ·
+                    </span>
+                    <span className="text-emerald-300 tabular-nums">
+                      {overdueReviewTopics.length}{' '}
+                      {overdueReviewTopics.length === 1 ? 'topic needs' : 'topics need'} refresh
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm font-bold text-slate-100 truncate">
+                    {overdueReviewTopics
+                      .slice(0, 2)
+                      .map((item) => `${item.title} (${item.daysSinceAccess}d ago)`)
+                      .join(' · ')}
+                    {overdueReviewTopics.length > 2
+                      ? ` · +${overdueReviewTopics.length - 2} more`
+                      : ''}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                <button
+                  type="button"
+                  data-testid="start-overdue-flashcard-review-btn"
+                  onClick={handleStartOverdueFlashcardReview}
+                  className="min-h-[42px] px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <Zap className="w-4 h-4 shrink-0" />
+                  <span>Quick Flashcard Review</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="dismiss-review-required-banner-btn"
+                  onClick={() => setReviewBannerDismissed(true)}
+                  aria-label="Dismiss Review Required notification"
+                  className="min-h-[42px] px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </section>
+          )}
+
         <div key={activeTab} className="mario-view-enter w-full max-w-full min-w-0 space-y-6">
         {/* Tab 0: Super Mario World Overworld Interactive Map */}
         {activeTab === 'map' && (
@@ -1309,6 +1722,7 @@ export default function App() {
             <WorldMap
               onSelectWorld={handleMapWorldSelect}
               onSelectTopic={(worldId, topicId) => {
+                handleRecordAccessedTopic(topicId);
                 setActiveWorld(worldId);
                 setActiveTab('modules');
                 marioAudio.syncModuleAudio(worldId, true);
@@ -1336,6 +1750,7 @@ export default function App() {
               }
               onEarnCoins={handleEarnCoins}
               superStarActive={superStarStatus.isActive}
+              recentlyViewedTopics={recentlyViewedTopics}
             />
 
 
@@ -1416,7 +1831,7 @@ export default function App() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-black text-slate-950 text-sm sm:text-base font-display truncate">Game Vault</h3>
-                    <p className="text-xs font-bold text-slate-600 truncate">22 Arcade Games</p>
+                    <p className="text-xs font-bold text-slate-600 truncate">28 Arcade Games</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-amber-600 shrink-0" />
@@ -1500,6 +1915,20 @@ export default function App() {
                     <span>1-Page A4 PDF</span>
                   </button>
 
+                  {/* Direct Statute Lookup Launcher */}
+                  <button
+                    type="button"
+                    data-testid="modules-statute-lookup-btn"
+                    onClick={() => {
+                      setIsStatuteLookupOpen(true);
+                      marioAudio.playCoin();
+                    }}
+                    className="min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-black bg-sky-400 hover:bg-sky-300 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1.5 transition-all whitespace-nowrap active:translate-y-0.5"
+                  >
+                    <Scale className="w-4 h-4 text-slate-950 shrink-0" />
+                    <span>Statute Lookup</span>
+                  </button>
+
                   {/* Direct Legal Glossary Quick Launcher */}
                   <button
                     type="button"
@@ -1575,7 +2004,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Row 2: Responsive 7-Button World Stage Selector Grid (Zero Overflow / Zero Right Crop) */}
+              {/* Row 2: Responsive 7-Button World Stage Selector Grid with Pixel-Art Completion Badges */}
               <div
                 role="tablist"
                 aria-label="Select Labor Law World Stage"
@@ -1586,19 +2015,26 @@ export default function App() {
                   role="tab"
                   aria-selected={activeWorld === 'all'}
                   onClick={() => handleWorldSelect('all')}
-                  className={`min-h-[54px] p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer min-w-0 ${
+                  className={`min-h-[68px] p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer min-w-0 flex flex-col justify-between ${
                     activeWorld === 'all'
                       ? 'bg-amber-400 text-slate-950 border-black shadow-[0_3px_0_#000] -translate-y-0.5'
                       : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700'
                   }`}
                 >
-                  <span
-                    className={`text-[10px] font-black uppercase block font-mario truncate ${
-                      activeWorld === 'all' ? 'text-slate-800' : 'text-amber-300'
-                    }`}
-                  >
-                    ALL WORLDS
-                  </span>
+                  <div>
+                    {renderPixelWorldBadge(
+                      'all',
+                      completedTopicIds.length,
+                      ALL_LAW_TOPICS.length
+                    )}
+                    <span
+                      className={`text-[10px] font-black uppercase block font-mario truncate ${
+                        activeWorld === 'all' ? 'text-slate-800' : 'text-amber-300'
+                      }`}
+                    >
+                      ALL WORLDS
+                    </span>
+                  </div>
                   <span className="font-black text-xs flex items-center justify-between gap-1 mt-0.5 min-w-0">
                     <span className="truncate">Complete View</span>
                     <MarioStarIcon className="w-4 h-4 shrink-0" />
@@ -1607,6 +2043,10 @@ export default function App() {
 
                 {WORLDS_METADATA.map((w) => {
                   const isActiveW = activeWorld === w.id;
+                  const worldTopicIds = topicsByWorld[w.id] || [];
+                  const doneInWorld = worldTopicIds.filter((id) =>
+                    completedTopicIds.includes(id)
+                  ).length;
                   return (
                     <button
                       key={w.id}
@@ -1614,19 +2054,22 @@ export default function App() {
                       role="tab"
                       aria-selected={isActiveW}
                       onClick={() => handleWorldSelect(w.id)}
-                      className={`min-h-[54px] p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer min-w-0 ${
+                      className={`min-h-[68px] p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer min-w-0 flex flex-col justify-between ${
                         isActiveW
                           ? 'bg-amber-400 text-slate-950 border-black shadow-[0_3px_0_#000] -translate-y-0.5'
                           : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700'
                       }`}
                     >
-                      <span
-                        className={`text-[10px] font-black uppercase block font-mario truncate ${
-                          isActiveW ? 'text-slate-800' : 'text-slate-400'
-                        }`}
-                      >
-                        WORLD {w.worldNumber}
-                      </span>
+                      <div>
+                        {renderPixelWorldBadge(w.id, doneInWorld, worldTopicIds.length)}
+                        <span
+                          className={`text-[10px] font-black uppercase block font-mario truncate ${
+                            isActiveW ? 'text-slate-800' : 'text-slate-400'
+                          }`}
+                        >
+                          WORLD {w.worldNumber}
+                        </span>
+                      </div>
                       <span className="font-black text-xs flex items-center justify-between gap-1 mt-0.5 min-w-0">
                         <span className="truncate">{w.shortTitle}</span>
                         {renderWorldIcon(w.iconType, 'w-4 h-4 shrink-0')}
@@ -1930,11 +2373,20 @@ export default function App() {
               </div>
             </section>
 
+            {/* Focused 25-Minute 'Study Sprint' Pomodoro Timer & Study Ambience Bar */}
+            {moduleViewMode !== 'focus' && (
+              <ModulesStudySprint
+                activeTab={activeTab}
+                onEarnCoins={handleEarnCoins}
+                onOpenStatuteLookup={() => setIsStatuteLookupOpen(true)}
+              />
+            )}
+
             {/* Smooth Slide-In Container on World / Topic Filter Switch */}
             <div
               key={`module-stream-${activeWorld}-${difficultyFilter}-${complexityMode}-${moduleViewMode}-${moduleStatusFilter}-${topicSortBy}`}
               data-testid="module-doctrine-transition"
-              className="space-y-5 animate-module-slide-in"
+              className="space-y-5 animate-module-slide-in w-full max-w-full min-w-0"
             >
               {/* Active World Spotlight Banner */}
               {activeWorld !== 'all' && (
@@ -2274,13 +2726,20 @@ export default function App() {
                         );
                         const focusedTopic = displayedTopics[clampedIdx];
                         return (
-                          <div data-testid="module-focus-reader" className="space-y-4">
-                            <div className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 border-2 border-slate-950 flex flex-wrap items-center justify-between gap-3">
+                          <div
+                            data-testid="module-focus-reader"
+                            className="space-y-4 w-full max-w-full min-w-0 overflow-x-hidden"
+                          >
+                            <div className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 border-2 border-slate-950 flex flex-wrap items-center justify-between gap-3 w-full max-w-full min-w-0 overflow-hidden">
                               <button
                                 type="button"
                                 disabled={clampedIdx === 0}
                                 onClick={() => {
-                                  setFocusTopicIdx((i) => Math.max(0, i - 1));
+                                  const nextIdx = Math.max(0, clampedIdx - 1);
+                                  setFocusTopicIdx(nextIdx);
+                                  if (displayedTopics[nextIdx]) {
+                                    handleRecordAccessedTopic(displayedTopics[nextIdx].id);
+                                  }
                                   marioAudio.playPipe();
                                 }}
                                 className="min-h-[42px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white font-black text-xs border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
@@ -2289,18 +2748,22 @@ export default function App() {
                                 <span>Previous Module</span>
                               </button>
 
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-xs font-black text-amber-300 tabular-nums whitespace-nowrap">
+                              <div className="flex items-center gap-2 min-w-0 max-w-full flex-1 sm:flex-initial justify-center">
+                                <span className="text-xs font-black text-amber-300 tabular-nums whitespace-nowrap shrink-0">
                                   Module {clampedIdx + 1} of {displayedTopics.length}
                                 </span>
                                 <select
                                   aria-label="Select focus module"
                                   value={clampedIdx}
                                   onChange={(e) => {
-                                    setFocusTopicIdx(Number(e.target.value) || 0);
+                                    const nextIdx = Number(e.target.value) || 0;
+                                    setFocusTopicIdx(nextIdx);
+                                    if (displayedTopics[nextIdx]) {
+                                      handleRecordAccessedTopic(displayedTopics[nextIdx].id);
+                                    }
                                     marioAudio.playClick();
                                   }}
-                                  className="min-h-[40px] max-w-[200px] sm:max-w-xs rounded-xl bg-slate-950 border border-slate-700 px-3 text-xs font-bold text-white"
+                                  className="min-h-[40px] min-w-0 w-full max-w-[190px] sm:max-w-xs rounded-xl bg-slate-950 border border-slate-700 px-3 text-xs font-bold text-white truncate"
                                 >
                                   {displayedTopics.map((item, idx) => (
                                     <option key={item.id} value={idx}>
@@ -2314,9 +2777,14 @@ export default function App() {
                                 type="button"
                                 disabled={clampedIdx >= displayedTopics.length - 1}
                                 onClick={() => {
-                                  setFocusTopicIdx((i) =>
-                                    Math.min(displayedTopics.length - 1, i + 1)
+                                  const nextIdx = Math.min(
+                                    displayedTopics.length - 1,
+                                    clampedIdx + 1
                                   );
+                                  setFocusTopicIdx(nextIdx);
+                                  if (displayedTopics[nextIdx]) {
+                                    handleRecordAccessedTopic(displayedTopics[nextIdx].id);
+                                  }
                                   marioAudio.playPipe();
                                 }}
                                 className="min-h-[42px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
@@ -2422,7 +2890,7 @@ export default function App() {
             coins={coins}
             setCoins={setCoins}
             activeTheme={activeTheme}
-            setActiveTheme={setActiveTheme}
+            setActiveTheme={handleSelectActiveTheme}
             equippedAvatar={equippedAvatar}
             setEquippedAvatar={setEquippedAvatar}
             superStarEndsAt={superStarEndsAt}
@@ -2435,6 +2903,9 @@ export default function App() {
             onEquipCardFrame={handleEquipCardFrame}
             onBoostStreak={handleBoostStreak}
             onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
+            appStudyFont={appStudyFont}
+            onSelectAppStudyFont={handleSelectAppStudyFont}
+            onOpenCertificatePreview={() => openPrintStudio('certificate')}
           />
         )}
 
@@ -2463,10 +2934,16 @@ export default function App() {
             onToggleNeedsImprovementTopic={handleToggleNeedsImprovementTopic}
             onOpenProfile={() => setIsProfileOpen(true)}
             quickStudyLaunchId={quickStudyLaunchId}
+            overdueTopicIds={
+              overdueFlashcardSnapshotIds.length > 0
+                ? overdueFlashcardSnapshotIds
+                : overdueReviewTopics.map((item) => item.topicId)
+            }
+            overdueLaunchId={overdueFlashcardLaunchId}
           />
         )}
 
-        {/* Tab 6: Mario Arcade Game Vault (17 Total Games) */}
+        {/* Tab 6: Mario Arcade Game Vault (28 Total Games) */}
         {(activeTab === 'vault' || activeTab === 'game2d' || activeTab === 'game3d') && (
           <GameVault
             equippedAvatar={equippedAvatar}
@@ -2497,6 +2974,11 @@ export default function App() {
             unlockedAchievementsCount={unlockedAchievementsCount}
             needsImprovementTopicIds={profileStats.needsImprovementTopicIds}
             needsImprovementWorlds={profileStats.needsImprovementWorlds}
+            onBossQuizCompleted={handleBossQuizCompleted}
+            onRecordBossBattleLog={handleRecordBossBattleLog}
+            onOpenBossBattleLog={() => setIsBossBattleLogOpen(true)}
+            bossBattleLogCount={bossBattleLog.length}
+            externalLaunchMode={quizExternalLaunch}
           />
         )}
 
@@ -2505,6 +2987,7 @@ export default function App() {
           <div className="bg-[#1e293b] rounded-3xl border-4 border-slate-950 p-4 sm:p-6 text-white shadow-[6px_6px_0_#000]">
             <CitationsView
               onSelectTopic={(worldId, topicId) => {
+                handleRecordAccessedTopic(topicId);
                 setActiveWorld(worldId);
                 setActiveTab('modules');
                 marioAudio.syncModuleAudio(worldId, true);
@@ -2569,6 +3052,30 @@ export default function App() {
         </div>
       )}
 
+      {/* Daily Boss Quiz Streak Bonus Toast */}
+      {dailyQuizStreakToast && (
+        <div
+          role="status"
+          data-testid="daily-quiz-streak-toast"
+          className="fixed top-20 right-3 left-3 sm:left-auto sm:right-6 z-40 sm:max-w-sm bg-slate-950 text-white rounded-2xl border-3 border-rose-500 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Flame className="w-5 h-5 text-amber-400 shrink-0" />
+            <span className="text-xs font-black text-amber-200 truncate">
+              {dailyQuizStreakToast}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDailyQuizStreakToast(null)}
+            aria-label="Dismiss Daily Quiz Streak Notification"
+            className="text-slate-400 hover:text-white cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* User Profile & Milestone Achievements Modal */}
       <UserProfileModal
         isOpen={isProfileOpen}
@@ -2600,6 +3107,14 @@ export default function App() {
           setIsProfileOpen(false);
           setIsLeaderboardOpen(true);
         }}
+        dailyBossQuizStreak={dailyBossQuizStreakSnapshot}
+        completedTopicsSparkline={completedTopicsSparkline}
+        onOpenBossBattleLog={() => {
+          setIsProfileOpen(false);
+          setIsBossBattleLogOpen(true);
+        }}
+        bossBattleLogCount={bossBattleLog.length}
+        onLaunchWeaknessDrill={handleLaunchWeaknessDrill}
       />
 
       {/* Global Coin Leaderboard Modal */}
@@ -2664,6 +3179,9 @@ export default function App() {
         onSelectResult={(tab, targetId) => {
           setActiveTab(tab);
           if (targetId) {
+            if (validTopicIdSet.has(targetId)) {
+              handleRecordAccessedTopic(targetId);
+            }
             setActiveWorld('all');
             setTimeout(() => {
               const el = document.getElementById(`topic-card-${targetId}`);
@@ -2688,6 +3206,13 @@ export default function App() {
         coins={coins}
         studyNotes={studyNotes}
         initialMode={printGuideInitialMode}
+        playerName={profileStats.playerName}
+        equippedAvatar={equippedAvatar}
+        loginStreak={loginStreak}
+        unlockedAchievementsCount={unlockedAchievementsCount}
+        totalAchievementsCount={achievementSync.achievements.length}
+        quizRunsCompleted={profileStats.quizzesCompleted}
+        studiedSeconds={profileStats.studiedSeconds}
       />
 
       {/* World Completion 'Level Up' Celebration Modal */}
@@ -2709,6 +3234,7 @@ export default function App() {
         isOpen={isLegalCitationsOpen}
         onClose={() => setIsLegalCitationsOpen(false)}
         onSelectTopic={(worldId, topicId) => {
+          handleRecordAccessedTopic(topicId);
           setActiveWorld(worldId);
           setActiveTab('modules');
           marioAudio.syncModuleAudio(worldId, true);
@@ -2727,6 +3253,41 @@ export default function App() {
       <QuickGlossaryModal
         isOpen={isQuickGlossaryOpen}
         onClose={() => setIsQuickGlossaryOpen(false)}
+      />
+
+      {/* Labor Code & Special Laws Statute Lookup Modal */}
+      <StatuteLookupModal
+        isOpen={isStatuteLookupOpen}
+        onClose={() => setIsStatuteLookupOpen(false)}
+        onJumpToTopic={(worldId, topicId) => {
+          if (topicId) {
+            handleRecordAccessedTopic(topicId);
+          }
+          setActiveWorld(worldId || 'all');
+          setActiveTab('modules');
+          marioAudio.syncModuleAudio(worldId || 'world1', true);
+          if (topicId) {
+            setTimeout(() => {
+              const el = document.getElementById(`topic-card-${topicId}`);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('ring-4', 'ring-amber-400');
+                setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
+              }
+            }, 150);
+          }
+        }}
+      />
+
+      {/* Bar Master 'Boss Battle Log' Modal (Past 10 Results) */}
+      <BossBattleLogModal
+        isOpen={isBossBattleLogOpen}
+        onClose={() => setIsBossBattleLogOpen(false)}
+        entries={bossBattleLog}
+        onLaunchWeaknessDrill={() => {
+          setIsBossBattleLogOpen(false);
+          handleLaunchWeaknessDrill();
+        }}
       />
 
       {/* Mario Golden Coin Confetti Animation */}
@@ -2902,7 +3463,7 @@ export default function App() {
               }`}
             >
               {tab.icon}
-              <span className="text-[9.5px] sm:text-[10px] font-black uppercase font-mario mt-0.5 [@media(max-height:500px)]:mt-0 leading-tight truncate max-w-full text-center">
+              <span className="text-[10.5px] sm:text-xs font-black tracking-tight font-sans mt-0.5 [@media(max-height:500px)]:mt-0 leading-none whitespace-nowrap text-center">
                 {tab.label}
               </span>
             </button>

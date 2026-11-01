@@ -185,13 +185,13 @@ export const WhackAGoombaGame: React.FC<MiniGameProps> = ({ equippedAvatar, onEa
       )}
 
       {phase === 'playing' && (
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 bg-slate-950 p-4 rounded-2xl border-3 border-black">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-slate-950 p-2.5 sm:p-4 rounded-2xl border-3 border-black">
           {activePipes.map((item, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleWhack(idx)}
-              className={`min-h-[140px] sm:min-h-[155px] h-auto rounded-2xl border-3 border-black p-2 sm:p-2.5 flex flex-col items-center justify-between transition-all cursor-pointer ${
+              className={`min-h-[118px] sm:min-h-[155px] h-auto rounded-2xl border-3 border-black p-1.5 sm:p-2.5 flex flex-col items-center justify-between transition-all cursor-pointer ${
                 item
                   ? item.isIllegal
                     ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-[0_4px_0_#000] -translate-y-1'
@@ -518,7 +518,7 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
               <button
                 type="button"
                 onClick={() => handleInspect(true)}
-                className="h-12 px-5 inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer text-xs sm:text-sm leading-none whitespace-nowrap"
+                className="min-h-[48px] h-auto py-2.5 px-3.5 inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer text-xs sm:text-sm leading-tight whitespace-normal text-center"
               >
                 <ShieldAlert className="w-5 h-5 shrink-0" />
                 <span>BUST GHOST! (Labor-Only / Prohibited)</span>
@@ -526,7 +526,7 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
               <button
                 type="button"
                 onClick={() => handleInspect(false)}
-                className="h-12 px-5 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer text-xs sm:text-sm leading-none whitespace-nowrap"
+                className="min-h-[48px] h-auto py-2.5 px-3.5 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer text-xs sm:text-sm leading-tight whitespace-normal text-center"
               >
                 <ShieldCheck className="w-5 h-5 shrink-0" />
                 <span>CERTIFY VALID (Legitimate D.O. 174)</span>
@@ -703,7 +703,7 @@ export const BowsersBridgeGame: React.FC<MiniGameProps> = ({ equippedAvatar, onE
               type="button"
               disabled={used || isSolved || isLost}
               onClick={() => handleGuess(letter)}
-              className={`h-10 rounded-xl border-2 border-black font-mario text-xs font-black inline-flex items-center justify-center transition-all cursor-pointer ${
+              className={`min-h-[44px] h-11 rounded-xl border-2 border-black font-mario text-xs font-black inline-flex items-center justify-center transition-all cursor-pointer ${
                 used
                   ? hit
                     ? 'bg-emerald-500 text-slate-950'

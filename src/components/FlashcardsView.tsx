@@ -56,6 +56,8 @@ interface FlashcardsViewProps {
   onToggleNeedsImprovementTopic?: (topicId: string) => void;
   onOpenProfile?: () => void;
   quickStudyLaunchId?: number;
+  overdueTopicIds?: string[];
+  overdueLaunchId?: number;
 }
 
 const WEAK_WORLD_OPTIONS: { id: string; label: string }[] = [
@@ -81,6 +83,8 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
   onToggleNeedsImprovementTopic,
   onOpenProfile,
   quickStudyLaunchId = 0,
+  overdueTopicIds = [],
+  overdueLaunchId = 0,
 }) => {
   const [cards, setCards] = useState<Flashcard[]>(FLASHCARDS_DATA);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -344,6 +348,39 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
       startQuickStudySprint();
     }
   }, [quickStudyLaunchId]);
+
+  useEffect(() => {
+    if (overdueLaunchId > 0) {
+      const curated = buildQuickStudyCuratedDeck({
+        allCards: FLASHCARDS_DATA,
+        needsImprovementTopicIds:
+          overdueTopicIds.length > 0
+            ? overdueTopicIds
+            : profileStats?.needsImprovementTopicIds || [],
+        needsImprovementWorlds: profileStats?.needsImprovementWorlds || [],
+        completedTopicIds,
+        masteredCardIds: Array.from(masteredIds),
+        allTopics: ALL_LAW_TOPICS.map((t) => ({
+          id: t.id,
+          worldId: t.worldId,
+          title: t.title,
+          subtitle: t.badge,
+        })),
+        deckSize: 12,
+      });
+      setQuickStudyDeck(curated.cards);
+      setQuickStudySourceLabel('Spaced Retention Review (>14 Days Unaccessed)');
+      setQuickStudySecondsLeft(QUICK_STUDY_DURATION_SECONDS);
+      setIsQuickStudyPaused(false);
+      setQuickStudyFinished(false);
+      setQuickStudyReviewedCount(0);
+      setIsQuickStudyMode(true);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      setSelectedMcqIdx(null);
+      marioAudio.playPowerUp();
+    }
+  }, [overdueLaunchId]);
 
   useEffect(() => {
     if (!isQuickStudyMode || isQuickStudyPaused || quickStudyFinished) return;

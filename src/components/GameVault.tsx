@@ -32,6 +32,14 @@ import {
   KamekDeadlineSpellbookGame,
 } from './BonusVaultGames';
 import {
+  YoshiOvertimeExpressGame,
+  LuigiNightShiftPoltergustGame,
+  RosalinaWageObservatoryGame,
+  PeachRoyalLeaveDispatchGame,
+  WarioDeductionVaultGame,
+  ToadsworthRetirementTribunalGame,
+} from './MasterVaultGames';
+import {
   MarioCharacterAvatar,
   MarioMushroomIcon,
   MarioQuestionBlockIcon,
@@ -61,6 +69,15 @@ import {
   Factory,
   Wand2,
   ListOrdered,
+  Clock,
+  Moon,
+  Stamp,
+  Vault,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Shuffle,
 } from 'lucide-react';
 import { GameDoctrinesModal } from './GameDoctrinesModal';
 
@@ -98,7 +115,13 @@ export type VaultGameId =
   | 'hammer_blitz'
   | 'toadette_relay'
   | 'shy_conveyor'
-  | 'kamek_duel';
+  | 'kamek_duel'
+  | 'yoshi_overtime'
+  | 'luigi_nightshift'
+  | 'rosalina_observatory'
+  | 'peach_dispatch'
+  | 'wario_vault'
+  | 'toadsworth_tribunal';
 
 export const GameVault: React.FC<GameVaultProps> = ({
   equippedAvatar,
@@ -111,6 +134,9 @@ export const GameVault: React.FC<GameVaultProps> = ({
   const [activeGame, setActiveGame] = useState<VaultGameId>('courtroom');
   const [showHeroPicker, setShowHeroPicker] = useState(false);
   const [showDoctrineModal, setShowDoctrineModal] = useState(false);
+  const [compactVaultHeader, setCompactVaultHeader] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
 
   const heroMeta = getHeroMeta(equippedAvatar);
 
@@ -315,78 +341,207 @@ export const GameVault: React.FC<GameVaultProps> = ({
       badge: 'SPELL DUEL',
       icon: <Wand2 className="w-6 h-6 text-indigo-600" />,
     },
+    {
+      id: 'yoshi_overtime',
+      title: "Yoshi's Overtime Express",
+      genre: 'World 1 OT & Undertime Rail',
+      desc: 'Dispatch rapid overtime multipliers (125%, 169%, 260%) and block prohibited Art. 88 undertime offsets!',
+      badge: 'ART. 87–88',
+      icon: <Clock className="w-6 h-6 text-lime-600" />,
+    },
+    {
+      id: 'luigi_nightshift',
+      title: "Luigi's Night Shift Poltergust",
+      genre: 'Graveyard 10PM–6AM Audit',
+      desc: 'Sweep graveyard shift scenarios! Compute stacked +10% NSD rates and spot the <=5 worker retail exemption!',
+      badge: 'ART. 86 NSD',
+      icon: <Moon className="w-6 h-6 text-emerald-600" />,
+    },
+    {
+      id: 'rosalina_observatory',
+      title: "Rosalina's Wage Observatory",
+      genre: 'Regional Wage & Distortion',
+      desc: 'Calibrate RTWPB wage orders, apply the Pineda distortion formula, and distinguish facilities from supplements!',
+      badge: 'ART. 97–124',
+      icon: <Sparkles className="w-6 h-6 text-sky-600" />,
+    },
+    {
+      id: 'peach_dispatch',
+      title: "Peach's Royal Leave Dispatch",
+      genre: 'Special Statutory Leaves',
+      desc: 'Grant exact paid days for 105-Day Maternity, 7-Day Paternity, Solo Parent, VAWC, and Magna Carta for Women!',
+      badge: 'SPECIAL LEAVES',
+      icon: <Stamp className="w-6 h-6 text-pink-600" />,
+    },
+    {
+      id: 'wario_vault',
+      title: "Wario's Deduction Vault",
+      genre: 'Wage Protection Tribunal',
+      desc: 'Audit Wario’s payroll ledger! Approve lawful check-offs and block illegal loss deductions exceeding 20% weekly wage!',
+      badge: 'ART. 113–116',
+      icon: <Vault className="w-6 h-6 text-amber-600" />,
+    },
+    {
+      id: 'toadsworth_tribunal',
+      title: "Toadsworth's Retirement Tribunal",
+      genre: 'R.A. 7641 & Separation Pay',
+      desc: 'Adjudicate 22.5-day retirement pay, underground miner ages (50–60), and authorized cause separation multipliers!',
+      badge: 'ART. 298–302',
+      icon: <Scale className="w-6 h-6 text-purple-600" />,
+    },
   ];
 
+  const activeGameIndex = Math.max(0, games.findIndex((gm) => gm.id === activeGame));
+  const activeGameMeta = games[activeGameIndex] || games[0];
+
+  const handleStepGame = (delta: number) => {
+    const nextIdx = (activeGameIndex + delta + games.length) % games.length;
+    setActiveGame(games[nextIdx].id);
+    marioAudio.playPipe();
+  };
+
+  const handleRandomGame = () => {
+    if (games.length <= 1) return;
+    let nextIdx = Math.floor(Math.random() * games.length);
+    if (nextIdx === activeGameIndex) {
+      nextIdx = (nextIdx + 1) % games.length;
+    }
+    setActiveGame(games[nextIdx].id);
+    marioAudio.playPowerUp();
+  };
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Game Vault Hero Banner */}
-      <div className="bg-[#1e293b] text-white rounded-3xl p-4 sm:p-7 mario-card border-4 border-slate-950 shadow-[6px_6px_0_#000]">
-        <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 bg-amber-400 rounded-2xl border-3 border-black flex items-center justify-center shadow-[0_3px_0_#000] shrink-0">
-              <Gamepad2 className="w-7 h-7 text-slate-950" />
-            </div>
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-red-600 text-white font-black rounded-lg border border-black text-[10px] uppercase font-mario mb-1">
-                <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
-                <span>{games.length} PLAYABLE ARCADE GAMES • {HERO_ROSTER.length} HEROES</span>
+    <div className="space-y-2 sm:space-y-5 max-w-6xl mx-auto w-full min-w-0 overflow-x-hidden">
+      {/* Game Vault Hero Banner (Single-row compact bar by default on phones so game fits screen immediately) */}
+      <div className="bg-[#1e293b] text-white rounded-2xl sm:rounded-3xl p-2 sm:p-6 mario-card border-3 sm:border-4 border-slate-950 shadow-[4px_4px_0_#000] sm:shadow-[5px_5px_0_#000]">
+        {compactVaultHeader ? (
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center shrink-0">
+                <MarioCharacterAvatar character={equippedAvatar} className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h1 className="text-xl sm:text-3xl font-black text-white font-display tracking-tight">
-                MARIO LABOR LAW GAME VAULT
-              </h1>
-              <p className="text-xs sm:text-sm font-bold text-slate-300 max-w-xl">
-                Play {games.length} interactive games covering Worlds 1–6, spend or multiply coins in Toad&apos;s Treasury, and equip any of the {HERO_ROSTER.length} Mushroom Kingdom heroes!
-              </p>
-            </div>
-          </div>
-
-          {/* Equipped Hero Quick Switcher & Read Doctrines Button */}
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full xl:w-auto shrink-0">
-            <button
-              type="button"
-              data-testid="open-game-doctrines-btn"
-              onClick={() => {
-                setShowDoctrineModal(true);
-                marioAudio.playPowerUp();
-              }}
-              className="min-h-[44px] px-4 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl border-2 border-black text-xs cursor-pointer shadow-[0_3px_0_#000] font-mario active:translate-y-0.5"
-            >
-              <BookOpen className="w-4 h-4 text-slate-950 shrink-0" />
-              <span>READ DOCTRINES &amp; Q&amp;A</span>
-            </button>
-
-            <div className="flex items-center justify-between sm:justify-start gap-2.5 bg-slate-900 border-2 border-amber-400 rounded-2xl p-2.5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-10 h-10 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center shrink-0">
-                  <MarioCharacterAvatar character={equippedAvatar} className="w-7 h-7" />
-                </div>
-                <div className="pr-1 min-w-0">
-                  <span className="text-[9px] font-black font-mario text-amber-400 uppercase block">
-                    ACTIVE HERO
-                  </span>
-                  <span className="text-xs font-black font-display text-white block truncate">
-                    {heroMeta.name}
-                  </span>
-                </div>
+              <div className="min-w-0">
+                <span className="text-[8.5px] sm:text-[9px] font-black uppercase text-amber-400 font-mario block truncate leading-tight">
+                  {games.length} GAMES
+                </span>
+                <span className="text-[11px] sm:text-xs font-black font-display text-white block truncate leading-tight">
+                  {heroMeta.shortName || heroMeta.name}
+                </span>
               </div>
+            </div>
+
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              <button
+                type="button"
+                data-testid="open-game-doctrines-btn"
+                onClick={() => {
+                  setShowDoctrineModal(true);
+                  marioAudio.playPowerUp();
+                }}
+                className="min-h-[38px] sm:min-h-[40px] px-2 sm:px-2.5 inline-flex items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-2 border-black text-[10.5px] sm:text-[11px] cursor-pointer whitespace-nowrap"
+              >
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="sm:hidden">Rules</span>
+                <span className="hidden sm:inline">Doctrines</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setShowHeroPicker((v) => !v);
                   marioAudio.playJump();
                 }}
-                className="min-h-[40px] px-3.5 inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
+                className="min-h-[38px] sm:min-h-[40px] px-2 sm:px-2.5 inline-flex items-center justify-center gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-[10.5px] sm:text-[11px] cursor-pointer whitespace-nowrap"
               >
                 <Users className="w-3.5 h-3.5 shrink-0" />
-                <span>{showHeroPicker ? 'Close' : `${HERO_ROSTER.length} Heroes`}</span>
+                <span>{showHeroPicker ? 'Close' : 'Heroes'}</span>
+              </button>
+              <button
+                type="button"
+                aria-label="Expand Arcade Banner"
+                onClick={() => setCompactVaultHeader(false)}
+                className="min-h-[38px] sm:min-h-[40px] px-1.5 sm:px-2 inline-flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-600 cursor-pointer"
+              >
+                <ChevronDown className="w-4 h-4" />
               </button>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-12 h-12 bg-amber-400 rounded-2xl border-3 border-black flex items-center justify-center shadow-[0_3px_0_#000] shrink-0">
+                <Gamepad2 className="w-7 h-7 text-slate-950" />
+              </div>
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-600 text-white font-black rounded-lg border border-black text-[10px] uppercase font-mario leading-relaxed mb-1">
+                  <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
+                  <span>{games.length} PLAYABLE ARCADE GAMES • {HERO_ROSTER.length} HEROES</span>
+                </div>
+                <h1 className="text-xl sm:text-3xl font-black text-white font-display tracking-tight">
+                  MARIO LABOR LAW GAME VAULT
+                </h1>
+                <p className="text-xs sm:text-sm font-bold text-slate-300 max-w-xl">
+                  Play {games.length} interactive games covering Worlds 1–6, spend or multiply coins in Toad&apos;s Treasury, and equip any of the {HERO_ROSTER.length} Mushroom Kingdom heroes!
+                </p>
+              </div>
+            </div>
+
+            {/* Equipped Hero Quick Switcher & Read Doctrines Button */}
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full xl:w-auto shrink-0">
+              <button
+                type="button"
+                data-testid="open-game-doctrines-btn"
+                onClick={() => {
+                  setShowDoctrineModal(true);
+                  marioAudio.playPowerUp();
+                }}
+                className="min-h-[44px] px-4 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl border-2 border-black text-xs cursor-pointer shadow-[0_3px_0_#000] font-mario active:translate-y-0.5"
+              >
+                <BookOpen className="w-4 h-4 text-slate-950 shrink-0" />
+                <span>READ DOCTRINES &amp; Q&amp;A</span>
+              </button>
+
+              <div className="flex items-center justify-between sm:justify-start gap-2.5 bg-slate-900 border-2 border-amber-400 rounded-2xl p-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center shrink-0">
+                    <MarioCharacterAvatar character={equippedAvatar} className="w-7 h-7" />
+                  </div>
+                  <div className="pr-1 min-w-0">
+                    <span className="text-[9px] font-black font-mario text-amber-400 uppercase block">
+                      ACTIVE HERO
+                    </span>
+                    <span className="text-xs font-black font-display text-white block truncate">
+                      {heroMeta.name}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowHeroPicker((v) => !v);
+                    marioAudio.playJump();
+                  }}
+                  className="min-h-[40px] px-3.5 inline-flex items-center justify-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-xs cursor-pointer leading-none whitespace-nowrap shrink-0"
+                >
+                  <Users className="w-3.5 h-3.5 shrink-0" />
+                  <span>{showHeroPicker ? 'Close' : `${HERO_ROSTER.length} Heroes`}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Compact Arcade Banner"
+                  title="Compact Header"
+                  onClick={() => setCompactVaultHeader(true)}
+                  className="min-h-[40px] px-2 inline-flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-600 cursor-pointer shrink-0"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Instant 34-Hero Picker Drawer */}
         {showHeroPicker && (
-          <div className="mt-4 pt-4 border-t-2 border-slate-700 grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-2 max-h-[300px] overflow-y-auto pr-1">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t-2 border-slate-700 grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-2 max-h-[280px] overflow-y-auto pr-1">
             {HERO_ROSTER.map((h) => {
               const active = equippedAvatar === h.id;
               return (
@@ -402,7 +557,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
                     }
                     marioAudio.playCoin();
                   }}
-                  className={`min-h-[64px] p-1.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer ${
+                  className={`min-h-[60px] p-1.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer ${
                     active
                       ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
                       : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
@@ -417,54 +572,83 @@ export const GameVault: React.FC<GameVaultProps> = ({
         )}
       </div>
 
-      {/* Quick 22-Game Selector Strip Above Stage (Zero Scrolling Required to Switch Games) */}
+      {/* Compact Top Dropdown Game Chooser + Prev / Next / Random Switcher */}
       <div
         data-testid="vault-quick-switcher"
-        className="bg-[#0f172a] border-2 border-slate-800 rounded-2xl p-3 space-y-2"
+        className="bg-[#0f172a] border-2 border-slate-800 rounded-2xl p-2 sm:p-4 space-y-1.5 sm:space-y-2.5 w-full max-w-full min-w-0"
       >
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
-            QUICK SWITCH ALL {games.length} GAMES
-          </span>
-          <span className="text-xs font-bold text-slate-300">
-            Now Playing:{' '}
-            <strong className="text-emerald-300">
-              {games.find((gm) => gm.id === activeGame)?.title}
-            </strong>
-          </span>
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <label
+            htmlFor="arcade-game-chooser-select"
+            className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mario tracking-wide shrink-0"
+          >
+            GAME {activeGameIndex + 1}/{games.length}
+          </label>
+          <div className="text-[11px] sm:text-xs font-bold text-slate-300 truncate min-w-0">
+            {activeGameMeta.genre} · <span className="text-emerald-300">{activeGameMeta.badge}</span>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {games.map((gm, idx) => {
-            const isSel = activeGame === gm.id;
-            return (
-              <button
-                key={`quick-${gm.id}`}
-                type="button"
-                data-testid={`quick-select-game-${gm.id}`}
-                onClick={() => {
-                  setActiveGame(gm.id);
-                  marioAudio.playPipe();
-                }}
-                className={`min-h-[36px] px-2.5 py-1 rounded-xl text-xs font-black border transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 max-w-full ${
-                  isSel
-                    ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
-                    : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
-                }`}
-              >
-                <span className="text-[10px] font-mono opacity-75 tabular-nums shrink-0">
-                  {idx + 1}.
-                </span>
-                <span className="truncate">{gm.title}</span>
-              </button>
-            );
-          })}
+
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-1.5 sm:gap-2 w-full min-w-0">
+          <div className="flex-1 min-w-0">
+            <select
+              id="arcade-game-chooser-select"
+              data-testid="arcade-game-chooser-dropdown"
+              aria-label="Choose Arcade Game"
+              value={activeGame}
+              onChange={(e) => {
+                setActiveGame(e.target.value as VaultGameId);
+                marioAudio.playPipe();
+              }}
+              className="w-full min-h-[42px] sm:min-h-[44px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm border-2 border-amber-400 shadow-[0_2px_0_#000] cursor-pointer focus:outline-hidden"
+            >
+              {games.map((gm, idx) => (
+                <option key={`opt-${gm.id}`} value={gm.id}>
+                  {String(idx + 1).padStart(2, '0')}. {gm.title} — {gm.genre} [{gm.badge}]
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-3 md:flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              data-testid="arcade-prev-game-btn"
+              onClick={() => handleStepGame(-1)}
+              aria-label="Previous Arcade Game"
+              className="min-h-[40px] sm:min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-black text-xs border-2 border-black inline-flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <ChevronLeft className="w-4 h-4 text-amber-300 shrink-0" />
+              <span>Prev</span>
+            </button>
+            <button
+              type="button"
+              data-testid="arcade-next-game-btn"
+              onClick={() => handleStepGame(1)}
+              aria-label="Next Arcade Game"
+              className="min-h-[40px] sm:min-h-[44px] px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-black text-xs border-2 border-black inline-flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4 text-amber-300 shrink-0" />
+            </button>
+            <button
+              type="button"
+              data-testid="arcade-random-game-btn"
+              onClick={handleRandomGame}
+              aria-label="Pick Random Arcade Game"
+              className="min-h-[40px] sm:min-h-[44px] px-2.5 sm:px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <Shuffle className="w-3.5 h-3.5 shrink-0" />
+              <span>Random</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Active Game Surface First on Mobile for Immediate Thumb Reach, Followed by Full Game Shelf */}
       <div
         id="active-vault-game-stage"
-        className="select-none"
+        className="relative z-10 select-none w-full max-w-full min-w-0"
         onContextMenu={(e) => e.preventDefault()}
       >
         {activeGame === 'courtroom' && (
@@ -564,9 +748,51 @@ export const GameVault: React.FC<GameVaultProps> = ({
             onEarnCoins={handleEarnCoins}
           />
         )}
+        {activeGame === 'yoshi_overtime' && (
+          <YoshiOvertimeExpressGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'luigi_nightshift' && (
+          <LuigiNightShiftPoltergustGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'rosalina_observatory' && (
+          <RosalinaWageObservatoryGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'peach_dispatch' && (
+          <PeachRoyalLeaveDispatchGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'wario_vault' && (
+          <WarioDeductionVaultGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'toadsworth_tribunal' && (
+          <ToadsworthRetirementTribunalGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
       </div>
 
-      {/* 22-Game Selection Shelf */}
+      {/* 28-Game Selection Shelf */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {games.map((g) => {
           const isSelected = activeGame === g.id;

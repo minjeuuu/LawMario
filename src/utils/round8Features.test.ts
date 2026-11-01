@@ -12,8 +12,24 @@ import {
   buildCompletedTopicsSparklineSeries,
   PRINT_COLOR_THEMES,
   PRINT_FONT_STYLES,
+  APP_STUDY_FONTS,
+  computeA4PreviewStageMetrics,
+  initializeTopicAccessMapWithRetentionSeed,
+  recordTopicAccessTimestamp,
+  getOverdueReviewTopics,
+  recordBossBattleLogEntry,
+  evaluateStudySprintCompletion,
+  shouldPlayStudyAmbience,
+  lookupStatutesByQuery,
 } from './round8Features';
-import { QuizQuestion } from '../types/laborLaw';
+import { createStudyNote, filterStudyNotes } from './engagementFeatures';
+import {
+  resolvePdfThemeAndFont,
+  buildScoreCardLandscapePdfBytes,
+  countPdfPagesFromBytes,
+} from './pdfExportService';
+import { LawTopic } from '../types/laborLaw';
+import { QuizQuestion } from '../data/quizQuestionsData';
 
 describe('Daily Boss Quiz Streak tracking', () => {
   it('starts a 1-day streak with starter bonus coins on first boss quiz completion', () => {
@@ -107,7 +123,7 @@ describe('Targeted Weakness Drill deck builder', () => {
     },
   ];
 
-  const sampleTopics = [
+  const sampleTopics: Pick<LawTopic, 'id' | 'title' | 'badge' | 'worldId'>[] = [
     {
       id: 'm1-ot',
       title: 'Overtime Work & Art. 87',
@@ -214,8 +230,203 @@ describe('Global mute shortcut, Recently Viewed, Sparkline & Print catalogs', ()
     assert.ok(series.polylinePoints.length > 10);
   });
 
-  it('exposes 12 distinct Print Studio themes and 12 distinct font styles', () => {
-    assert.equal(PRINT_COLOR_THEMES.length, 12);
-    assert.equal(PRINT_FONT_STYLES.length, 12);
+  it('exposes 24 distinct Print Studio themes, 20 distinct Print font styles, and 8 App Reading Fonts', () => {
+    assert.equal(PRINT_COLOR_THEMES.length, 24);
+    assert.equal(PRINT_FONT_STYLES.length, 20);
+    assert.equal(APP_STUDY_FONTS.length, 8);
+
+    const uniqueThemeIds = new Set(PRINT_COLOR_THEMES.map((t) => t.id));
+    const uniqueFontIds = new Set(PRINT_FONT_STYLES.map((f) => f.id));
+    assert.equal(uniqueThemeIds.size, 24);
+    assert.equal(uniqueFontIds.size, 20);
+
+    for (const theme of PRINT_COLOR_THEMES) {
+      for (const font of PRINT_FONT_STYLES) {
+        const resolved = resolvePdfThemeAndFont(theme.id, font.id);
+        assert.equal(resolved.id, theme.id);
+        assert.ok(['helvetica', 'times', 'courier'].includes(resolved.fontFamily));
+      }
+    }
+  });
+
+  it('scales Portrait (794px) and Landscape (1122px) A4 previews proportionally with zero horizontal overflow on 360px phones', () => {
+    const mobilePortraitA4 = computeA4PreviewStageMetrics({
+      containerWidthPx: 332,
+      isLandscape: false,
+      zoomPreset: 'fit',
+    });
+    assert.equal(mobilePortraitA4.logicalWidthPx, 794);
+    assert.ok(mobilePortraitA4.scaledWidthPx <= 332);
+    assert.ok(mobilePortraitA4.effectiveScale > 0.35 && mobilePortraitA4.effectiveScale < 0.5);
+
+    const mobileLandscapeCert = computeA4PreviewStageMetrics({
+      containerWidthPx: 332,
+      isLandscape: true,
+      zoomPreset: 'fit',
+    });
+    assert.equal(mobileLandscapeCert.logicalWidthPx, 1122);
+    assert.equal(mobileLandscapeCert.logicalMinHeightPx, 794);
+    assert.ok(mobileLandscapeCert.scaledWidthPx <= 332);
+
+    const desktopWholeCertFit = computeA4PreviewStageMetrics({
+      containerWidthPx: 1200,
+      containerHeightPx: 620,
+      fitWholePageVertically: true,
+      isLandscape: true,
+      zoomPreset: 'fit',
+    });
+    assert.ok(desktopWholeCertFit.effectiveScale < 0.8);
+    assert.ok(Math.round(desktopWholeCertFit.logicalMinHeightPx * desktopWholeCertFit.effectiveScale) <= 620);
+
+    const desktopZoom125 = computeA4PreviewStageMetrics({
+      containerWidthPx: 1200,
+      isLandscape: false,
+      zoomPreset: '125',
+    });
+    assert.equal(desktopZoom125.effectiveScale, 1.25);
+    assert.equal(desktopZoom125.scaledWidthPx, Math.round(794 * 1.25));
+  });
+
+  it('builds a valid single-page A4 Landscape Hero Score Card PDF with custom theme and font', () => {
+    const pdfBytes = buildScoreCardLandscapePdfBytes({
+      playerName: 'Alex Scholar',
+      heroName: 'Rosalina',
+      heroRank: 'Star Master',
+      completedCount: 18,
+      totalTopics: 28,
+      coins: 450,
+      loginStreak: 7,
+      unlockedAchievementsCount: 10,
+      totalAchievementsCount: 16,
+      quizRunsCompleted: 5,
+      studyDurationFormatted: '2h 15m',
+      colorAccent: 'sakura_editorial',
+      fontStyle: 'cormorant_chancery',
+      worldBreakdown: [
+        { worldNumber: 1, shortTitle: 'Hours of Work', completed: 4, total: 5, percent: 80 },
+        { worldNumber: 2, shortTitle: 'Leaves & Pay', completed: 3, total: 4, percent: 75 },
+        { worldNumber: 3, shortTitle: 'Wages', completed: 3, total: 5, percent: 60 },
+        { worldNumber: 4, shortTitle: 'Special Groups', completed: 3, total: 5, percent: 60 },
+        { worldNumber: 5, shortTitle: 'Harassment', completed: 2, total: 4, percent: 50 },
+        { worldNumber: 6, shortTitle: 'Social Welfare', completed: 3, total: 5, percent: 60 },
+      ],
+    });
+    assert.ok(pdfBytes.byteLength > 1000);
+    assert.equal(countPdfPagesFromBytes(pdfBytes), 1);
   });
 });
+
+describe('Review Required (>14 days), Boss Battle Log, Study Sprint, Statute Lookup & Notes Tags', () => {
+  it('flags topics unaccessed for over 14 days and clears them once accessed', () => {
+    const nowMs = new Date(2026, 10, 1, 12, 0, 0).getTime();
+    const topics = [
+      { id: 'm1-coverage', title: 'Coverage & Exclusions', badge: 'Art. 82', worldId: 'world1' },
+      { id: 'm2-holiday-pay', title: 'Holiday Pay', badge: 'Art. 94', worldId: 'world2' },
+    ];
+
+    const seeded = initializeTopicAccessMapWithRetentionSeed({
+      existingMap: {},
+      completedTopicIds: ['m1-coverage'],
+      allTopicIds: topics.map((t) => t.id),
+      alreadySeeded: true,
+      nowMs,
+    });
+    assert.equal(seeded.didSeed, true);
+
+    const overdueBefore = getOverdueReviewTopics({
+      lastAccessedMap: seeded.map,
+      allTopics: topics,
+      nowMs,
+    });
+    assert.equal(overdueBefore.length, 1);
+    assert.equal(overdueBefore[0].topicId, 'm1-coverage');
+    assert.ok(overdueBefore[0].daysSinceAccess > 14);
+
+    const refreshedMap = recordTopicAccessTimestamp(seeded.map, 'm1-coverage', nowMs);
+    const overdueAfter = getOverdueReviewTopics({
+      lastAccessedMap: refreshedMap,
+      allTopics: topics,
+      nowMs,
+    });
+    assert.equal(overdueAfter.length, 0);
+  });
+
+  it('records up to 10 Bar Master Boss Battle Log entries with accuracy and missed topics', () => {
+    let log = [] as ReturnType<typeof recordBossBattleLogEntry>;
+    for (let i = 1; i <= 12; i++) {
+      log = recordBossBattleLogEntry(log, {
+        modeLabel: `Boss Run #${i}`,
+        score: 8,
+        totalQuestions: 10,
+        timeTakenSeconds: 125,
+        incorrectTopics: ['Art. 87 Overtime', 'Art. 87 Overtime', 'R.A. 11210'],
+      });
+    }
+    assert.equal(log.length, 10);
+    assert.equal(log[0].modeLabel, 'Boss Run #12');
+    assert.equal(log[0].accuracyPercent, 80);
+    assert.deepEqual(log[0].incorrectTopics, ['Art. 87 Overtime', 'R.A. 11210']);
+  });
+
+  it('awards +60 coins for an unbroken 25-minute Study Sprint and +20 if tabs were switched', () => {
+    const unbroken = evaluateStudySprintCompletion({
+      completedFull25Minutes: true,
+      switchedTabsDuringSprint: false,
+    });
+    assert.equal(unbroken.totalCoins, 60);
+    assert.equal(unbroken.unbrokenFocus, true);
+
+    const broken = evaluateStudySprintCompletion({
+      completedFull25Minutes: true,
+      switchedTabsDuringSprint: true,
+    });
+    assert.equal(broken.totalCoins, 20);
+    assert.equal(broken.unbrokenFocus, false);
+  });
+
+  it('pauses Study Ambience automatically whenever Mario BGM is playing or audio is muted', () => {
+    assert.equal(
+      shouldPlayStudyAmbience({ audioEnabled: true, ambiencePreset: 'forest', bgmPlaying: false }),
+      true
+    );
+    assert.equal(
+      shouldPlayStudyAmbience({ audioEnabled: true, ambiencePreset: 'forest', bgmPlaying: true }),
+      false
+    );
+    assert.equal(
+      shouldPlayStudyAmbience({ audioEnabled: false, ambiencePreset: 'castle', bgmPlaying: false }),
+      false
+    );
+  });
+
+  it('looks up Labor Code articles and R.A. numbers with statutory text, doctrines, and tips', () => {
+    const art87 = lookupStatutesByQuery('Art. 87');
+    assert.ok(art87.length >= 1);
+    assert.equal(art87[0].articleNumber, '87');
+    assert.ok(art87[0].supremeCourtDoctrines.length >= 1);
+    assert.ok(art87[0].interpretationTips.length >= 1);
+
+    const ra11210 = lookupStatutesByQuery('11210');
+    assert.equal(ra11210[0].articleNumber, 'RA 11210');
+  });
+
+  it('creates and filters study notes by categoryTag', () => {
+    let notes = createStudyNote([], {
+      title: 'Twin Notice Rule',
+      content: '5 calendar days to explain under Mamac doctrine',
+      worldTag: 'world5',
+      categoryTag: 'Bar Exam Review',
+    });
+    notes = createStudyNote(notes, {
+      title: 'Pineda Formula',
+      content: 'Min Wage / Actual Salary x Prescribed Increase',
+      worldTag: 'world3',
+      categoryTag: 'Complex Concept',
+    });
+
+    assert.equal(filterStudyNotes(notes, 'all', '', 'Bar Exam Review').length, 1);
+    assert.equal(filterStudyNotes(notes, 'all', '', 'Complex Concept').length, 1);
+    assert.equal(filterStudyNotes(notes, 'all', '', 'Quick Reference').length, 0);
+  });
+});
+

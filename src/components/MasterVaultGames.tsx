@@ -757,7 +757,11 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
   const [pickedOption, setPickedOption] = useState<number | null>(null);
 
   const startRun = useCallback(() => {
-    const fresh = drawUniqueFromDeck(bank, Math.min(deckCount, bank.length));
+    const fresh = drawUniqueFromDeck(
+      `master_vault_${gameTitle}`,
+      bank,
+      Math.min(deckCount, bank.length)
+    );
     setDeck(fresh);
     setCurrentIdx(0);
     setHearts(3);
@@ -766,7 +770,7 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
     setPickedOption(null);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
-  }, [bank, deckCount]);
+  }, [bank, deckCount, gameTitle]);
 
   const currentItem = deck[currentIdx];
 
@@ -879,7 +883,7 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
             <button
               type="button"
               onClick={startRun}
-              className={`min-h-[48px] px-7 py-2.5 rounded-2xl border-3 border-black shadow-[0_4px_0_#000] font-black text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer ${accentButtonClass}`}
+              className={`min-h-[48px] max-w-full px-5 sm:px-7 py-2.5 rounded-2xl border-3 border-black shadow-[0_4px_0_#000] font-black text-xs sm:text-base leading-tight text-center inline-flex items-center justify-center gap-2 cursor-pointer ${accentButtonClass}`}
             >
               <Play className="w-5 h-5 fill-current shrink-0" />
               <span>Start {gameTitle}</span>

@@ -134,6 +134,9 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   const chunkIndexRef = useRef<number>(0);
   const isCancelledRef = useRef<boolean>(false);
 
+  const [isNarratingSummary, setIsNarratingSummary] = useState(false);
+  const cardBodyRef = useRef<HTMLDivElement | null>(null);
+
   const stopAllSpeech = () => {
     isCancelledRef.current = true;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -141,9 +144,96 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     }
     setIsSpeaking(false);
     setIsPaused(false);
+    setIsNarratingSummary(false);
     activeChunksRef.current = [];
     chunkIndexRef.current = 0;
   };
+
+  const handleToggleSummarySpeech = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      return;
+    }
+    if (isNarratingSummary) {
+      stopAllSpeech();
+      marioAudio.playClick();
+      return;
+    }
+    stopAllSpeech();
+    isCancelledRef.current = false;
+    const summaryNarration =
+      complexityMode === 'beginner'
+        ? topic.beginnerSummary || topic.summary
+        : topic.summary;
+    const cleanSummary = `${topic.title}. ${topic.badge}. ${cleanRuleText(summaryNarration)}`;
+    const utterance = new SpeechSynthesisUtterance(cleanSummary);
+    utterance.rate = 0.98;
+    utterance.pitch = 1.0;
+    try {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const preferred =
+          voices.find((v) => v.lang.startsWith('en') && /natural|google|microsoft/i.test(v.name)) ||
+          voices.find((v) => v.lang.startsWith('en')) ||
+          voices[0];
+        if (preferred) utterance.voice = preferred;
+      }
+    } catch {
+      // ignore voice lookup fallback
+    }
+    utterance.onend = () => {
+      setIsNarratingSummary(false);
+    };
+    utterance.onerror = () => {
+      setIsNarratingSummary(false);
+    };
+    utteranceRef.current = utterance;
+    setIsNarratingSummary(true);
+    marioAudio.playCoin();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Mario level-progression scroll reveal for Topic Card sections
+  useEffect(() => {
+    if (!isExpanded) return;
+    const container = cardBodyRef.current;
+    if (!container) return;
+
+    const targets = Array.from(
+      container.querySelectorAll<HTMLElement>('.mario-reveal-section')
+    );
+    if (targets.length === 0) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      targets.forEach((el) => el.classList.add('mario-reveal-visible'));
+      return;
+    }
+
+    const viewportH = typeof window !== 'undefined' ? window.innerHeight : 900;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('mario-reveal-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -24px 0px' }
+    );
+
+    targets.forEach((el, idx) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < viewportH * 0.95) {
+        window.setTimeout(() => {
+          el.classList.add('mario-reveal-visible');
+        }, Math.min(idx * 55, 220));
+      } else {
+        observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [isExpanded, studyLens, viewTab, topic.id]);
 
   useEffect(() => {
     return () => {
@@ -672,7 +762,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   return (
     <article
       id={`topic-card-${topic.id}`}
-      className={`mario-card rounded-3xl transition-all duration-200 overflow-hidden bg-white dark:bg-slate-900 ${
+      className={`mario-card w-full max-w-full min-w-0 rounded-3xl transition-all duration-200 overflow-x-hidden overflow-y-visible bg-white dark:bg-slate-900 ${
         isCompleted
           ? 'border-emerald-600 ring-2 ring-emerald-400'
           : frameClass || 'border-slate-900 dark:border-slate-700'
@@ -736,12 +826,37 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
         {/* Touch-friendly >=44px Action Buttons Toolbar */}
         <div className="flex items-center gap-2 flex-wrap min-w-0 max-w-full">
+          {/* Mini Read Aloud Summary Button */}
+          <button
+            type="button"
+            data-testid={`topic-read-aloud-${topic.id}`}
+            aria-pressed={isNarratingSummary}
+            onClick={handleToggleSummarySpeech}
+            title={
+              isNarratingSummary
+                ? 'Stop summary narration'
+                : 'Read Aloud topic summary in clear voice'
+            }
+            className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-xl font-black text-xs border-2 cursor-pointer transition-all whitespace-nowrap leading-none ${
+              isNarratingSummary
+                ? 'bg-emerald-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+            }`}
+          >
+            {isNarratingSummary ? (
+              <Square className="w-3.5 h-3.5 fill-current shrink-0" />
+            ) : (
+              <Volume2 className="w-3.5 h-3.5 shrink-0" />
+            )}
+            <span>{isNarratingSummary ? 'Stop Read' : 'Read Aloud'}</span>
+          </button>
+
           <div className="relative min-h-[44px] inline-flex items-center bg-slate-800 rounded-xl border-2 border-slate-700 px-1">
             <button
               type="button"
               onClick={handleToggleSpeech}
-              title={isSpeaking ? (isPaused ? 'Resume reading' : 'Pause reading') : 'Read aloud'}
-              className={`min-h-[38px] inline-flex items-center justify-center gap-1.5 px-3 rounded-lg text-xs font-black font-mario cursor-pointer transition-colors leading-none ${
+              title={isSpeaking ? (isPaused ? 'Resume full reading' : 'Pause full reading') : 'Narrate full module'}
+              className={`min-h-[38px] inline-flex items-center justify-center gap-1.5 px-2.5 rounded-lg text-xs font-black font-mario cursor-pointer transition-colors leading-none ${
                 isSpeaking
                   ? 'bg-amber-400 text-slate-950'
                   : 'text-slate-200 hover:text-white hover:bg-slate-700'
@@ -754,9 +869,9 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                   <Pause className="w-3.5 h-3.5 fill-current shrink-0" />
                 )
               ) : (
-                <Volume2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <Play className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               )}
-              <span>AUDIO</span>
+              <span>FULL</span>
             </button>
 
             {isSpeaking && (
@@ -775,7 +890,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               type="button"
               onClick={() => setShowSpeedControls(!showSpeedControls)}
               title="Adjust playback speed"
-              className="min-h-[38px] inline-flex items-center justify-center px-2.5 text-[11px] font-mono font-bold text-amber-300 hover:bg-slate-700 rounded cursor-pointer border-l border-slate-700 tabular-nums"
+              className="min-h-[38px] inline-flex items-center justify-center px-2 text-[11px] font-mono font-bold text-amber-300 hover:bg-slate-700 rounded cursor-pointer border-l border-slate-700 tabular-nums"
             >
               {playbackSpeed}x
             </button>
@@ -820,17 +935,18 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           {onToggleNeedsImprovement && (
             <button
               type="button"
-              data-testid={`toggle-need-improvement-${topic.id}`}
+              data-testid={`topic-flag-for-drill-${topic.id}`}
+              aria-pressed={needsImprovement}
               onClick={onToggleNeedsImprovement}
-              title="Flag topic as Need Improvement for 5-Minute Quick Study Mode"
+              title="Toggle 'Needs Improvement' status for Targeted Weakness Drill & Quick Study"
               className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-xl font-black text-xs border-2 cursor-pointer transition-all whitespace-nowrap leading-none ${
                 needsImprovement
                   ? 'bg-rose-500 text-white border-black shadow-[0_2px_0_#000]'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                  : 'bg-slate-800 hover:bg-slate-700 text-rose-300 border-slate-700'
               }`}
             >
-              <Flag className="w-3.5 h-3.5 shrink-0" />
-              <span>{needsImprovement ? 'Need Improvement' : 'Flag Review'}</span>
+              <Flag className={`w-3.5 h-3.5 shrink-0 ${needsImprovement ? 'fill-current' : ''}`} />
+              <span>{needsImprovement ? 'Flagged for Drill' : 'Flag for Drill'}</span>
             </button>
           )}
 
@@ -913,7 +1029,10 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
       {/* Card Body */}
       {isExpanded && (
-        <div className="p-4 sm:p-6 md:p-8 space-y-6 bg-[#fcfbf7] dark:bg-slate-900/95">
+        <div
+          ref={cardBodyRef}
+          className="p-4 sm:p-6 md:p-8 space-y-6 bg-[#fcfbf7] dark:bg-slate-900/95 w-full max-w-full min-w-0 overflow-x-hidden"
+        >
           {/* Interactive Study Lens Switcher (4 Ways to Study Any Module) */}
           <div
             data-testid={`topic-study-lens-bar-${topic.id}`}
@@ -1208,7 +1327,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           )}
           {/* Summary Callout */}
           {complexityMode === 'beginner' ? (
-            <div className="bg-emerald-50 dark:bg-emerald-950/60 border-3 border-emerald-500 dark:border-emerald-600 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2">
+            <div className="mario-reveal-section bg-emerald-50 dark:bg-emerald-950/60 border-3 border-emerald-500 dark:border-emerald-600 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2">
               <div className="flex items-center gap-2">
                 <MarioMushroomIcon className="w-5 h-5 flex-shrink-0" />
                 <span className="text-xs font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-300 font-mario">
@@ -1224,7 +1343,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               </div>
             </div>
           ) : (
-            <div className="bg-amber-50/90 dark:bg-amber-950/50 border-3 border-amber-400/90 dark:border-amber-600 rounded-2xl p-4 sm:p-5 shadow-sm flex items-start gap-3">
+            <div className="mario-reveal-section bg-amber-50/90 dark:bg-amber-950/50 border-3 border-amber-400/90 dark:border-amber-600 rounded-2xl p-4 sm:p-5 shadow-sm flex items-start gap-3">
               <MarioStarIcon className="w-6 h-6 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <span className="text-[11px] font-black uppercase text-amber-800 dark:text-amber-300 font-mario block">
@@ -1239,7 +1358,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
           {/* Core Labor Doctrines Highlight Strip */}
           {topic.keyDoctrines && topic.keyDoctrines.length > 0 && (
-            <section className="bg-slate-100 dark:bg-slate-800/85 border-3 border-slate-900 dark:border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm space-y-3">
+            <section className="mario-reveal-section bg-slate-100 dark:bg-slate-800/85 border-3 border-slate-900 dark:border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm space-y-3">
               <div className="flex items-center gap-2 text-slate-950 dark:text-amber-300 font-black text-base sm:text-lg">
                 <Mario1UpIcon className="w-5 h-5 flex-shrink-0" />
                 <h4 className="font-display">CORE LABOR DOCTRINES &amp; STATUTORY PRECEPTS</h4>
@@ -1266,7 +1385,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           {topic.verbatimProvision && (
             <div
               data-testid={`verbatim-provision-section-${topic.id}`}
-              className="bg-slate-950 border-3 border-amber-400 rounded-2xl p-4 sm:p-5 text-white space-y-3 shadow-md"
+              className="mario-reveal-section bg-slate-950 border-3 border-amber-400 rounded-2xl p-4 sm:p-5 text-white space-y-3 shadow-md"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800 pb-2.5">
                 <div className="flex items-center gap-2.5">
@@ -1732,7 +1851,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
           {/* Statutory Rules & Implementing Provisions Grid */}
           {showRuleCards && (
-            <section className="space-y-4">
+            <section className="mario-reveal-section space-y-4">
               <div className="flex items-center gap-2">
                 <MarioFireFlowerIcon className="w-5 h-5 flex-shrink-0" />
                 <h4 className="text-base sm:text-lg font-black text-slate-950 dark:text-white font-display uppercase tracking-wide">
@@ -1747,7 +1866,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                   return (
                     <div
                       key={rIdx}
-                      className={`bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-slate-800 dark:hover:border-amber-400/70 transition-colors space-y-3.5 flex flex-col justify-between h-full ${
+                      className={`mario-reveal-section bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-slate-800 dark:hover:border-amber-400/70 transition-colors space-y-3.5 flex flex-col justify-between h-full ${
                         rule.tableData ? 'lg:col-span-2' : ''
                       }`}
                     >
@@ -1818,7 +1937,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
           {/* Power-Up Box: Critical Statutory Checkpoints */}
           {(topic.barTips || topic.keyTips) && (
-            <div className="mario-question-block rounded-2xl p-4 sm:p-6 text-slate-950 font-bold space-y-3 shadow-md">
+            <div className="mario-reveal-section mario-question-block rounded-2xl p-4 sm:p-6 text-slate-950 font-bold space-y-3 shadow-md">
               <div className="flex items-center gap-2">
                 <MarioStarIcon className="w-6 h-6 flex-shrink-0" />
                 <span className="font-black text-base sm:text-lg uppercase tracking-wide text-red-950 font-display">
@@ -1846,7 +1965,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           {/* Interactive Micro-Quiz: Quick Knowledge Check (+3 Coins) */}
           <section
             data-testid={`topic-quick-check-${topic.id}`}
-            className="rounded-2xl border-2 border-slate-900 bg-slate-900 text-white p-4 sm:p-5 space-y-3.5 shadow-[4px_4px_0_#000]"
+            className="mario-reveal-section rounded-2xl border-2 border-slate-900 bg-slate-900 text-white p-4 sm:p-5 space-y-3.5 shadow-[4px_4px_0_#000]"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">

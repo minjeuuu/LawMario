@@ -799,32 +799,43 @@ export const Game3D: React.FC<Game3DProps> = ({ equippedAvatar = 'mario', onEarn
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-900 px-3.5 py-2 rounded-xl border-2 border-slate-700 tabular-nums">
-            <div className="flex items-center gap-1.5 font-mario text-xs text-amber-300">
-              <MarioCoinIcon className="w-4 h-4 shrink-0" />
-              <span>x{coins.toString().padStart(2, '0')}</span>
-            </div>
-            <div className="font-mario text-xs text-white">
-              SCORE: <span className="text-emerald-400">{score.toString().padStart(5, '0')}</span>
+          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2.5 bg-slate-900 px-3 py-2 rounded-xl border-2 border-slate-700 w-full sm:w-auto tabular-nums">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 font-mario text-xs text-amber-300">
+                <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                <span>x{coins.toString().padStart(2, '0')}</span>
+              </div>
+              <div className="font-mario text-xs text-white">
+                SCORE: <span className="text-emerald-400">{score.toString().padStart(5, '0')}</span>
+              </div>
             </div>
             <span className="hidden md:inline-block text-[10px] font-bold text-cyan-300 border-l border-slate-700 pl-2.5">
               {collisionNotice}
             </span>
+            <button
+              type="button"
+              aria-label="Restart 3D Island"
+              onClick={startGame}
+              className="min-h-[36px] px-2.5 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] rounded-lg border border-slate-600 cursor-pointer leading-none whitespace-nowrap"
+            >
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+              <span>Reset</span>
+            </button>
           </div>
         </div>
 
-        {/* 3D Viewport Frame (Fixed minimum height ensuring full playability and prominent Start button on mobile) */}
+        {/* 3D Viewport Frame (Responsive height so 3D arena + D-pad fit together on phones) */}
         <div
           data-testid="game3d-viewport"
-          className="relative rounded-2xl border-4 border-slate-950 overflow-hidden bg-slate-950 shadow-2xl w-full max-w-full h-[380px] sm:h-[440px] md:h-[480px] flex items-center justify-center arcade-viewport-scaled"
+          className="relative rounded-2xl border-4 border-slate-950 overflow-hidden bg-slate-950 shadow-2xl w-full max-w-full h-[240px] min-[400px]:h-[270px] sm:h-[420px] md:h-[480px] flex items-center justify-center arcade-viewport-scaled"
         >
           <div ref={mountRef} className="w-full h-full block object-contain arcade-canvas-scaled" />
 
           {/* Start Screen Overlay — Zero backdrop-blur over WebGL */}
           {gameState === 'start' && (
-            <div className="absolute inset-0 z-20 bg-slate-950/85 flex flex-col items-center justify-center text-center p-4 sm:p-6 space-y-4 overflow-y-auto text-white">
+            <div className="absolute inset-0 z-20 bg-slate-950/85 flex flex-col items-center justify-center text-center p-3 sm:p-6 space-y-2.5 sm:space-y-4 overflow-y-auto text-white">
               <div>
-                <svg viewBox="0 0 320 64" className="w-64 sm:w-80 h-auto mx-auto" aria-hidden="true">
+                <svg viewBox="0 0 320 64" className="w-56 sm:w-80 h-auto mx-auto" aria-hidden="true">
                   <rect x="8" y="8" width="304" height="48" rx="12" fill="#f59e0b" stroke="#0f172a" strokeWidth="4" />
                   <circle cx="24" cy="20" r="3" fill="#78350f" />
                   <circle cx="296" cy="20" r="3" fill="#78350f" />
@@ -848,13 +859,13 @@ export const Game3D: React.FC<Game3DProps> = ({ equippedAvatar = 'mario', onEarn
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="min-h-[52px] px-8 inline-flex items-center justify-center gap-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_5px_0_#000] text-sm sm:text-base cursor-pointer font-mario leading-none whitespace-nowrap z-30"
+                className="min-h-[44px] sm:min-h-[52px] px-6 sm:px-8 inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-xs sm:text-base cursor-pointer font-mario leading-none whitespace-nowrap z-30 shrink-0"
               >
-                <Play className="w-5 h-5 fill-current shrink-0" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" />
                 <span>START 3D GAME</span>
               </button>
 
-              <p className="text-xs font-bold text-amber-200 tracking-wide max-w-sm">
+              <p className="text-[11px] sm:text-xs font-bold text-amber-200 tracking-wide max-w-sm">
                 WASD / Arrows Move · Space Jump · Collect All {TOTAL_ISLAND_COINS} Coins &amp; Bonk [?] Blocks
               </p>
             </div>
@@ -862,28 +873,28 @@ export const Game3D: React.FC<Game3DProps> = ({ equippedAvatar = 'mario', onEarn
 
           {/* Island Cleared Modal */}
           {gameState === 'victory' && (
-            <div className="absolute inset-0 bg-slate-950/88 flex flex-col items-center justify-center text-center p-6 space-y-4 text-white">
-              <div className="w-16 h-16 rounded-2xl bg-amber-400 border-3 border-black flex items-center justify-center text-slate-950 shadow-[0_4px_0_#000]">
-                <Trophy className="w-9 h-9" />
+            <div className="absolute inset-0 z-20 bg-slate-950/88 flex flex-col items-center justify-center text-center p-3 sm:p-6 space-y-2.5 sm:space-y-4 overflow-y-auto text-white">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-amber-400 border-3 border-black flex items-center justify-center text-slate-950 shadow-[0_4px_0_#000] shrink-0">
+                <Trophy className="w-7 h-7 sm:w-9 sm:h-9" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black font-display text-amber-300">
+              <h3 className="text-lg sm:text-3xl font-black font-display text-amber-300">
                 3D ISLAND MASTERED!
               </h3>
-              <div className="grid grid-cols-2 gap-3 w-full max-w-xs tabular-nums">
-                <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-3">
-                  <span className="text-[10px] font-mario text-slate-400 block">FINAL SCORE</span>
-                  <span className="text-lg font-black text-emerald-400">{score}</span>
+              <div className="grid grid-cols-2 gap-2.5 w-full max-w-xs tabular-nums">
+                <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-2 sm:p-3">
+                  <span className="text-[9px] sm:text-[10px] font-mario text-slate-400 block">FINAL SCORE</span>
+                  <span className="text-base sm:text-lg font-black text-emerald-400">{score}</span>
                 </div>
-                <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-3">
-                  <span className="text-[10px] font-mario text-slate-400 block">COINS</span>
-                  <span className="text-lg font-black text-amber-300">{coins}</span>
+                <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-2 sm:p-3">
+                  <span className="text-[9px] sm:text-[10px] font-mario text-slate-400 block">COINS</span>
+                  <span className="text-base sm:text-lg font-black text-amber-300">{coins}</span>
                 </div>
               </div>
               <button
                 type="button"
                 data-start="true"
                 onClick={startGame}
-                className="h-11 px-7 inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs leading-none whitespace-nowrap"
+                className="min-h-[44px] px-6 inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs leading-none whitespace-nowrap shrink-0"
               >
                 <RotateCcw className="w-4 h-4 shrink-0" />
                 <span>PLAY AGAIN</span>
@@ -892,54 +903,62 @@ export const Game3D: React.FC<Game3DProps> = ({ equippedAvatar = 'mario', onEarn
           )}
         </div>
 
-        {/* On-Screen Virtual Controls — Uniform h-11 Single-Row Baseline */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <div className="inline-flex items-center gap-1.5">
+        {/* On-Screen Virtual Controls — Fits 360px phones on 1 ergonomic thumb row */}
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <div className="inline-flex items-center gap-1 sm:gap-1.5">
             <button
               type="button"
               aria-label="Move Left"
-              onMouseDown={() => (keysRef.current.left = true)}
-              onMouseUp={() => (keysRef.current.left = false)}
-              onMouseLeave={() => (keysRef.current.left = false)}
-              onTouchStart={() => (keysRef.current.left = true)}
-              onTouchEnd={() => (keysRef.current.left = false)}
-              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                keysRef.current.left = true;
+              }}
+              onPointerUp={() => (keysRef.current.left = false)}
+              onPointerLeave={() => (keysRef.current.left = false)}
+              onPointerCancel={() => (keysRef.current.left = false)}
+              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0 touch-none select-none"
             >
               <ArrowLeft className="w-5 h-5 shrink-0" />
             </button>
             <button
               type="button"
               aria-label="Move Forward"
-              onMouseDown={() => (keysRef.current.forward = true)}
-              onMouseUp={() => (keysRef.current.forward = false)}
-              onMouseLeave={() => (keysRef.current.forward = false)}
-              onTouchStart={() => (keysRef.current.forward = true)}
-              onTouchEnd={() => (keysRef.current.forward = false)}
-              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                keysRef.current.forward = true;
+              }}
+              onPointerUp={() => (keysRef.current.forward = false)}
+              onPointerLeave={() => (keysRef.current.forward = false)}
+              onPointerCancel={() => (keysRef.current.forward = false)}
+              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0 touch-none select-none"
             >
               <ArrowUp className="w-5 h-5 shrink-0" />
             </button>
             <button
               type="button"
               aria-label="Move Backward"
-              onMouseDown={() => (keysRef.current.backward = true)}
-              onMouseUp={() => (keysRef.current.backward = false)}
-              onMouseLeave={() => (keysRef.current.backward = false)}
-              onTouchStart={() => (keysRef.current.backward = true)}
-              onTouchEnd={() => (keysRef.current.backward = false)}
-              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                keysRef.current.backward = true;
+              }}
+              onPointerUp={() => (keysRef.current.backward = false)}
+              onPointerLeave={() => (keysRef.current.backward = false)}
+              onPointerCancel={() => (keysRef.current.backward = false)}
+              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0 touch-none select-none"
             >
               <ArrowDown className="w-5 h-5 shrink-0" />
             </button>
             <button
               type="button"
               aria-label="Move Right"
-              onMouseDown={() => (keysRef.current.right = true)}
-              onMouseUp={() => (keysRef.current.right = false)}
-              onMouseLeave={() => (keysRef.current.right = false)}
-              onTouchStart={() => (keysRef.current.right = true)}
-              onTouchEnd={() => (keysRef.current.right = false)}
-              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                keysRef.current.right = true;
+              }}
+              onPointerUp={() => (keysRef.current.right = false)}
+              onPointerLeave={() => (keysRef.current.right = false)}
+              onPointerCancel={() => (keysRef.current.right = false)}
+              className="h-11 w-11 bg-slate-800 hover:bg-slate-700 active:bg-amber-400 active:text-black rounded-xl border-2 border-slate-600 inline-flex items-center justify-center cursor-pointer shrink-0 touch-none select-none"
             >
               <ArrowRight className="w-5 h-5 shrink-0" />
             </button>
@@ -949,46 +968,27 @@ export const Game3D: React.FC<Game3DProps> = ({ equippedAvatar = 'mario', onEarn
             Solid AABB Collisions: Jump onto stepping stones, warp pipes, and floating [?] blocks!
           </div>
 
-          <div className="inline-flex items-center gap-2.5">
-            <button
-              type="button"
-              aria-label="Restart 3D Island"
-              onClick={startGame}
-              className="h-11 px-4 inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border-2 border-slate-600 cursor-pointer leading-none whitespace-nowrap"
-            >
-              <RotateCcw className="w-4 h-4 shrink-0" />
-              <span>Reset Island</span>
-            </button>
-
-            <button
-              type="button"
-              aria-label="Jump (Hold for High Jump)"
-              onMouseDown={() => {
-                keysRef.current.jumpQueued = true;
-                keysRef.current.jumpHeld = true;
-              }}
-              onMouseUp={() => {
-                keysRef.current.jumpHeld = false;
-              }}
-              onMouseLeave={() => {
-                keysRef.current.jumpHeld = false;
-              }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                keysRef.current.jumpQueued = true;
-                keysRef.current.jumpHeld = true;
-              }}
-              onTouchEnd={() => {
-                keysRef.current.jumpHeld = false;
-              }}
-              onTouchCancel={() => {
-                keysRef.current.jumpHeld = false;
-              }}
-              className="h-11 px-7 inline-flex items-center justify-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 cursor-pointer font-mario text-xs leading-none whitespace-nowrap"
-            >
-              HOLD JUMP
-            </button>
-          </div>
+          <button
+            type="button"
+            aria-label="Jump (Hold for High Jump)"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              keysRef.current.jumpQueued = true;
+              keysRef.current.jumpHeld = true;
+            }}
+            onPointerUp={() => {
+              keysRef.current.jumpHeld = false;
+            }}
+            onPointerLeave={() => {
+              keysRef.current.jumpHeld = false;
+            }}
+            onPointerCancel={() => {
+              keysRef.current.jumpHeld = false;
+            }}
+            className="min-h-[46px] px-4 sm:px-7 inline-flex items-center justify-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 cursor-pointer font-mario text-[11px] sm:text-xs leading-none whitespace-nowrap touch-none select-none shrink-0"
+          >
+            JUMP ▲
+          </button>
         </div>
       </div>
     </div>
