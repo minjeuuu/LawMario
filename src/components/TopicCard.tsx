@@ -34,6 +34,8 @@ import {
   EyeOff,
   ListChecks,
   Bookmark,
+  Zap,
+  Pin,
 } from 'lucide-react';
 import {
   MarioMushroomIcon,
@@ -53,6 +55,19 @@ import {
 import { QuickGlossaryModal } from './QuickGlossaryModal';
 import { extractClozeSegments } from '../utils/studyModes';
 import { getTopicQuickCheck } from '../utils/moduleSorting';
+import { TopicCompletionCircle } from './TopicStudyModals';
+import {
+  TopicMasteredSectionsMap,
+  loadTopicMasteredSectionsMap,
+  saveTopicMasteredSectionsMap,
+  toggleTopicSectionMastered,
+  computeTopicSectionProgress,
+  PinnedRuleBookmark,
+  makeRuleItemBookmarkId,
+  loadPinnedRuleBookmarks,
+  savePinnedRuleBookmarks,
+  togglePinnedRuleBookmark,
+} from '../utils/round9Features';
 
 interface TopicCardProps {
   topic: LawTopic;
@@ -71,6 +86,12 @@ interface TopicCardProps {
   onEarnCoins?: (amount: number) => void;
   isBookmarked?: boolean;
   onToggleBookmark?: () => void;
+  masteredSectionsMap?: TopicMasteredSectionsMap;
+  onToggleSectionMastered?: (topicId: string, sectionKey: string) => void;
+  pinnedRuleIds?: Set<string>;
+  onTogglePinRuleItem?: (candidate: Omit<PinnedRuleBookmark, 'pinnedAt'>) => void;
+  onOpenTopicFlashcardMode?: (topic: LawTopic) => void;
+  onOpenTopicQuickQuiz?: (topic: LawTopic) => void;
 }
 
 export const TopicCard: React.FC<TopicCardProps> = ({
@@ -90,8 +111,158 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   onEarnCoins,
   isBookmarked = false,
   onToggleBookmark,
+  masteredSectionsMap,
+  onToggleSectionMastered,
+  pinnedRuleIds,
+  onTogglePinRuleItem,
+  onOpenTopicFlashcardMode,
+  onOpenTopicQuickQuiz,
 }) => {
   const [isExpanded, setIsExpanded] = useState(() => !compactView);
+  const [localMasteredMap, setLocalMasteredMap] = useState<TopicMasteredSectionsMap>(() =>
+    loadTopicMasteredSectionsMap(typeof window !== 'undefined' ? window.localStorage : null)
+  );
+  const [localPinnedBookmarks, setLocalPinnedBookmarks] = useState<PinnedRuleBookmark[]>(() =>
+    loadPinnedRuleBookmarks(typeof window !== 'undefined' ? window.localStorage : null)
+  );
+
+  const effectiveMasteredMap = masteredSectionsMap ?? localMasteredMap;
+  const sectionProgress = useMemo(
+    () => computeTopicSectionProgress(topic, effectiveMasteredMap, isCompleted),
+    [topic, effectiveMasteredMap, isCompleted]
+  );
+  const masteredKeySet = useMemo(
+    () => new Set(sectionProgress.masteredKeys),
+    [sectionProgress.masteredKeys]
+  );
+  const localPinnedIdSet = useMemo(
+    () => new Set(localPinnedBookmarks.map((b) => b.id)),
+    [localPinnedBookmarks]
+  );
+
+  const handleSectionMasteryClick = (sectionKey: string) => {
+    if (onToggleSectionMastered) {
+      onToggleSectionMastered(topic.id, sectionKey);
+      return;
+    }
+    const { nextMap, isNowMastered } = toggleTopicSectionMastered(
+      localMasteredMap,
+      topic.id,
+      sectionKey
+    );
+    setLocalMasteredMap(nextMap);
+    saveTopicMasteredSectionsMap(
+      nextMap,
+      typeof window !== 'undefined' ? window.localStorage : null
+    );
+    if (isNowMastered) {
+      marioAudio.playCoin();
+    } else {
+      marioAudio.playClick();
+    }
+  };
+
+  const renderSectionMasteryToggle = (
+    sectionKey: string,
+    sectionLabel: string,
+    onLightBlock = false
+  ) => {
+    const isSecMastered = masteredKeySet.has(sectionKey);
+    return (
+      <button
+        type="button"
+        data-testid={`master-section-${topic.id}-${sectionKey}`}
+        aria-pressed={isSecMastered}
+        aria-label={`${isSecMastered ? 'Unmark' : 'Mark'} ${sectionLabel} as mastered`}
+        onClick={() => handleSectionMasteryClick(sectionKey)}
+        className={`min-h-[34px] px-2.5 py-1 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap shrink-0 leading-none ${
+          isSecMastered
+            ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_2px_0_#000]'
+            : onLightBlock
+            ? 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-black'
+            : 'bg-slate-900/90 hover:bg-slate-800 text-amber-300 border-slate-700'
+        }`}
+      >
+        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+        <span>{isSecMastered ? 'Section Mastered' : 'Master Section'}</span>
+      </button>
+    );
+  };
+
+  const handlePinRuleItemClick = (
+    ruleIdx: number,
+    itemIdx: number,
+    ruleHeading: string,
+    item: FormattedModuleItem
+  ) => {
+    const bookmarkId = makeRuleItemBookmarkId(topic.id, ruleIdx, itemIdx);
+    const rawText = cleanRuleText(
+      `${item.title ? `${item.title}: ` : ''}${item.body || ''}`
+    )
+      .trim()
+      .slice(0, 240);
+    if (!rawText) return;
+    const candidate: Omit<PinnedRuleBookmark, 'pinnedAt'> = {
+      id: bookmarkId,
+      topicId: topic.id,
+      topicTitle: topic.title,
+      topicBadge: topic.badge,
+      worldId: topic.worldId,
+      ruleHeading: ruleHeading || topic.title,
+      itemText: rawText,
+    };
+    if (onTogglePinRuleItem) {
+      onTogglePinRuleItem(candidate);
+      return;
+    }
+    const { nextItems, pinned } = togglePinnedRuleBookmark(localPinnedBookmarks, candidate);
+    setLocalPinnedBookmarks(nextItems);
+    savePinnedRuleBookmarks(
+      nextItems,
+      typeof window !== 'undefined' ? window.localStorage : null
+    );
+    if (pinned) {
+      marioAudio.playCoin();
+    } else {
+      marioAudio.playClick();
+    }
+  };
+
+  const renderRulePinButton = (
+    ruleIdx: number | undefined,
+    itemIdx: number,
+    ruleHeading: string | undefined,
+    item: FormattedModuleItem
+  ) => {
+    if (ruleIdx === undefined || item.kind === 'group_header') return null;
+    const bookmarkId = makeRuleItemBookmarkId(topic.id, ruleIdx, itemIdx);
+    const isPinned = pinnedRuleIds
+      ? pinnedRuleIds.has(bookmarkId)
+      : localPinnedIdSet.has(bookmarkId);
+    return (
+      <button
+        type="button"
+        data-testid={`pin-rule-item-${bookmarkId}`}
+        aria-pressed={isPinned}
+        title={
+          isPinned
+            ? 'Unpin from World Map Quick Review'
+            : 'Bookmark this rule item to World Map Quick Review'
+        }
+        onClick={() =>
+          handlePinRuleItemClick(ruleIdx, itemIdx, ruleHeading || topic.title, item)
+        }
+        className={`min-h-[26px] px-2 py-0.5 rounded-lg border text-[10px] font-black inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 leading-none ${
+          isPinned
+            ? 'bg-amber-400 text-slate-950 border-black shadow-[0_1px_0_#000]'
+            : 'bg-slate-200/80 dark:bg-slate-700/80 hover:bg-amber-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600'
+        }`}
+      >
+        <Pin className={`w-3 h-3 shrink-0 ${isPinned ? 'fill-current' : ''}`} />
+        <span>{isPinned ? 'Pinned' : 'Pin'}</span>
+      </button>
+    );
+  };
   const [studyLens, setStudyLens] = useState<'full' | 'summary' | 'cloze' | 'checklist'>('full');
   const isSummaryMode = studyLens === 'summary';
   const [revealedClozeKeys, setRevealedClozeKeys] = useState<Record<string, boolean>>({});
@@ -554,7 +725,12 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     );
   };
 
-  const renderFormattedItem = (item: FormattedModuleItem, idx: number) => {
+  const renderFormattedItem = (
+    item: FormattedModuleItem,
+    idx: number,
+    ruleIdx?: number,
+    ruleHeading?: string
+  ) => {
     // 1. Section / Group Header (Unnumbered!)
     if (item.kind === 'group_header') {
       return (
@@ -570,6 +746,8 @@ export const TopicCard: React.FC<TopicCardProps> = ({
       );
     }
 
+    const pinBtn = renderRulePinButton(ruleIdx, idx, ruleHeading, item);
+
     // 2. Definition Card (NEVER numbered!)
     if (item.kind === 'definition') {
       return (
@@ -577,16 +755,19 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           key={idx}
           className="p-3.5 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/60 border-2 border-indigo-300 dark:border-indigo-700 space-y-1.5"
         >
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider font-mario leading-none">
-              <BookOpen className="w-3 h-3 shrink-0" />
-              <span>{item.badgeLabel || 'DEFINITION'}</span>
-            </span>
-            {item.title && (
-              <span className="font-black text-indigo-950 dark:text-indigo-200 text-sm sm:text-base font-display">
-                {renderInteractiveText(item.title)}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider font-mario leading-none">
+                <BookOpen className="w-3 h-3 shrink-0" />
+                <span>{item.badgeLabel || 'DEFINITION'}</span>
               </span>
-            )}
+              {item.title && (
+                <span className="font-black text-indigo-950 dark:text-indigo-200 text-sm sm:text-base font-display">
+                  {renderInteractiveText(item.title)}
+                </span>
+              )}
+            </div>
+            {pinBtn}
           </div>
           {item.body && (
             <p className={`${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold`}>
@@ -634,20 +815,23 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           key={idx}
           className={`p-3 rounded-xl border-2 space-y-1.5 ${toneStyles.wrap}`}
         >
-          <div className="flex items-center gap-2 flex-wrap">
-            {item.tone !== 'concept' && (
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mario leading-none ${toneStyles.badge}`}
-              >
-                {toneStyles.icon}
-                <span>{item.badgeLabel}</span>
-              </span>
-            )}
-            {item.title && (
-              <span className={`font-black text-sm sm:text-base font-display ${toneStyles.title}`}>
-                {renderInteractiveText(item.title)}
-              </span>
-            )}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              {item.tone !== 'concept' && (
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mario leading-none ${toneStyles.badge}`}
+                >
+                  {toneStyles.icon}
+                  <span>{item.badgeLabel}</span>
+                </span>
+              )}
+              {item.title && (
+                <span className={`font-black text-sm sm:text-base font-display ${toneStyles.title}`}>
+                  {renderInteractiveText(item.title)}
+                </span>
+              )}
+            </div>
+            {pinBtn}
           </div>
           {item.body && (
             <p className={`${bodyTextClass} text-slate-800 dark:text-slate-100 font-semibold`}>
@@ -666,18 +850,21 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           key={idx}
           className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs"
         >
-          <div className="flex items-start gap-2.5">
-            <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
-              {String(item.number ?? 1).padStart(2, '0')}
-            </span>
-            <div className={`${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1`}>
-              {item.title && (
-                <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
-                  {renderInteractiveText(item.title)}:
-                </span>
-              )}
-              <span>{renderInteractiveText(item.body)}</span>
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-start gap-2.5 flex-1 min-w-0">
+              <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
+                {String(item.number ?? 1).padStart(2, '0')}
+              </span>
+              <div className={`${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1`}>
+                {item.title && (
+                  <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
+                    {renderInteractiveText(item.title)}:
+                  </span>
+                )}
+                <span>{renderInteractiveText(item.body)}</span>
+              </div>
             </div>
+            {pinBtn}
           </div>
           {item.subClauses && <div className="pl-8">{renderSubClauses(item.subClauses)}</div>}
         </div>
@@ -690,16 +877,19 @@ export const TopicCard: React.FC<TopicCardProps> = ({
         key={idx}
         className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs"
       >
-        <div className="flex items-start gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
-          <div className={`${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1`}>
-            {item.title && (
-              <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
-                {renderInteractiveText(item.title)}:
-              </span>
-            )}
-            <span>{renderInteractiveText(item.body)}</span>
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="flex items-start gap-2.5 flex-1 min-w-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
+            <div className={`${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1`}>
+              {item.title && (
+                <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
+                  {renderInteractiveText(item.title)}:
+                </span>
+              )}
+              <span>{renderInteractiveText(item.body)}</span>
+            </div>
           </div>
+          {pinBtn}
         </div>
         {item.subClauses && <div className="pl-5">{renderSubClauses(item.subClauses)}</div>}
       </div>
@@ -768,13 +958,66 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           : frameClass || 'border-slate-900 dark:border-slate-700'
       }`}
     >
-      {/* Perfectly Aligned Header Banner */}
-      <header className="bg-slate-900 text-white p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b-4 border-slate-950 max-w-full min-w-0">
-        <div className="flex items-center gap-3.5 min-w-0 max-w-full">
-          <div className="w-11 h-11 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center flex-shrink-0 shadow-[0_2px_0_#000]">
-            <MarioQuestionBlockIcon className="w-6 h-6 text-slate-950" />
+      {/* Perfectly Aligned Header Banner with Visual Sub-Section Experience Bar & Completion Circle */}
+      <header className="bg-slate-900 text-white border-b-4 border-slate-950 max-w-full min-w-0">
+        {/* Visual 'Experience Bar' at the Top of Topic Card Header */}
+        <div
+          data-testid={`topic-xp-bar-${topic.id}`}
+          className="bg-slate-950/90 border-b border-slate-800 px-4 sm:px-5 py-2 space-y-1"
+        >
+          <div className="flex items-center justify-between gap-2 text-[11px] font-bold tabular-nums">
+            <span className="text-amber-300 font-display tracking-wide flex items-center gap-1.5 min-w-0 truncate">
+              <MarioStarIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="truncate">
+                MODULE XP · {sectionProgress.completedSections}/{sectionProgress.totalSections}{' '}
+                Sub-Sections Mastered
+              </span>
+            </span>
+            <span className="text-slate-300 shrink-0">
+              <strong className="text-emerald-300">{sectionProgress.percent}%</strong>
+              <span className="hidden sm:inline text-slate-400">
+                {' '}
+                ·{' '}
+                {sectionProgress.remainingSections === 0
+                  ? 'Module Complete!'
+                  : `${sectionProgress.remainingSections} section${
+                      sectionProgress.remainingSections === 1 ? '' : 's'
+                    } left`}
+              </span>
+            </span>
           </div>
-          <div className="min-w-0 flex-1">
+          <div
+            role="progressbar"
+            aria-label={`Experience progress for ${topic.title}`}
+            aria-valuenow={sectionProgress.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="w-full h-2.5 bg-slate-900 rounded-full border border-slate-700 overflow-hidden p-0.5"
+          >
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                sectionProgress.percent >= 100
+                  ? 'bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300'
+                  : 'bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400'
+              }`}
+              style={{ width: `${Math.max(sectionProgress.percent > 0 ? 6 : 0, sectionProgress.percent)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 max-w-full min-w-0">
+          <div className="flex items-center gap-3 min-w-0 max-w-full">
+            <div className="w-11 h-11 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center flex-shrink-0 shadow-[0_2px_0_#000]">
+              <MarioQuestionBlockIcon className="w-6 h-6 text-slate-950" />
+            </div>
+            <TopicCompletionCircle
+              completedSections={sectionProgress.completedSections}
+              totalSections={sectionProgress.totalSections}
+              percent={sectionProgress.percent}
+              isTopicCompleted={isCompleted}
+              onClick={() => onToggleComplete?.()}
+            />
+            <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap text-xs max-w-full">
               {showLegalCitations ? (
                 <span className="font-black uppercase font-mario text-amber-300 tracking-wider">
@@ -966,6 +1209,38 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             </button>
           )}
 
+          {onOpenTopicFlashcardMode && (
+            <button
+              type="button"
+              data-testid={`topic-flashcard-mode-btn-${topic.id}`}
+              onClick={() => {
+                onOpenTopicFlashcardMode(topic);
+                marioAudio.playPowerUp();
+              }}
+              title="Launch dedicated Flashcard Deck for this Law Topic"
+              className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white border-2 border-black text-xs font-black cursor-pointer whitespace-nowrap leading-none shadow-[0_2px_0_#000] transition-transform active:translate-y-0.5"
+            >
+              <Layers className="w-3.5 h-3.5 shrink-0 text-amber-300" />
+              <span>Flashcard Mode</span>
+            </button>
+          )}
+
+          {onOpenTopicQuickQuiz && (
+            <button
+              type="button"
+              data-testid={`topic-quick-quiz-btn-${topic.id}`}
+              onClick={() => {
+                onOpenTopicQuickQuiz(topic);
+                marioAudio.playCoin();
+              }}
+              title="Take a 3-Question Mini-Quiz on this Law Topic"
+              className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 border-2 border-black text-xs font-black cursor-pointer whitespace-nowrap leading-none shadow-[0_2px_0_#000] transition-transform active:translate-y-0.5"
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <span>Quick Quiz (3Q)</span>
+            </button>
+          )}
+
           <button
             type="button"
             data-testid={`glossary-btn-${topic.id}`}
@@ -1024,6 +1299,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               <ChevronDown className="w-4 h-4 stroke-[3] shrink-0" />
             )}
           </button>
+          </div>
         </div>
       </header>
 
@@ -1359,9 +1635,12 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           {/* Core Labor Doctrines Highlight Strip */}
           {topic.keyDoctrines && topic.keyDoctrines.length > 0 && (
             <section className="mario-reveal-section bg-slate-100 dark:bg-slate-800/85 border-3 border-slate-900 dark:border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm space-y-3">
-              <div className="flex items-center gap-2 text-slate-950 dark:text-amber-300 font-black text-base sm:text-lg">
-                <Mario1UpIcon className="w-5 h-5 flex-shrink-0" />
-                <h4 className="font-display">CORE LABOR DOCTRINES &amp; STATUTORY PRECEPTS</h4>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-slate-950 dark:text-amber-300 font-black text-base sm:text-lg">
+                  <Mario1UpIcon className="w-5 h-5 flex-shrink-0" />
+                  <h4 className="font-display">CORE LABOR DOCTRINES &amp; STATUTORY PRECEPTS</h4>
+                </div>
+                {renderSectionMasteryToggle('doctrines', 'Core Doctrines')}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {topic.keyDoctrines.map((doc, idx) => (
@@ -1871,11 +2150,14 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                       }`}
                     >
                       <div className="space-y-3">
-                        <div className="flex items-center gap-2.5 pb-2.5 border-b-2 border-slate-200 dark:border-slate-800">
-                          <div className="w-3.5 h-3.5 bg-red-600 border border-black rounded-xs flex-shrink-0" />
-                          <h5 className={`${headingTextClass} text-red-700 dark:text-amber-300 font-display tracking-tight leading-snug`}>
-                            {renderInteractiveText(rule.heading)}
-                          </h5>
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b-2 border-slate-200 dark:border-slate-800">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-3.5 h-3.5 bg-red-600 border border-black rounded-xs flex-shrink-0" />
+                            <h5 className={`${headingTextClass} text-red-700 dark:text-amber-300 font-display tracking-tight leading-snug`}>
+                              {renderInteractiveText(rule.heading)}
+                            </h5>
+                          </div>
+                          {renderSectionMasteryToggle(`rule_${rIdx}`, rule.heading)}
                         </div>
 
                         {rule.description && (
@@ -1886,7 +2168,9 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
                         {formattedItems.length > 0 && (
                           <div className="space-y-2.5">
-                            {formattedItems.map((item, iIdx) => renderFormattedItem(item, iIdx))}
+                            {formattedItems.map((item, iIdx) =>
+                              renderFormattedItem(item, iIdx, rIdx, rule.heading)
+                            )}
                           </div>
                         )}
 
@@ -1919,7 +2203,12 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                                   </h6>
                                   <div className="space-y-2">
                                     {formattedSubItems.map((subItem, siIdx) =>
-                                      renderFormattedItem(subItem, siIdx)
+                                      renderFormattedItem(
+                                        subItem,
+                                        1000 + sIdx * 50 + siIdx,
+                                        rIdx,
+                                        `${rule.heading} — ${sub.title}`
+                                      )
                                     )}
                                   </div>
                                 </div>
@@ -1935,14 +2224,67 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             </section>
           )}
 
+          {/* Statutory Exceptions & Exclusions Section */}
+          {topic.exceptions && topic.exceptions.length > 0 && (
+            <section
+              data-testid={`topic-exceptions-${topic.id}`}
+              className="mario-reveal-section bg-rose-50/90 dark:bg-rose-950/35 border-3 border-rose-800 dark:border-rose-700 rounded-2xl p-4 sm:p-6 shadow-sm space-y-3"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-rose-950 dark:text-rose-200 font-black text-base sm:text-lg">
+                  <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                  <h4 className="font-display">STATUTORY EXCEPTIONS &amp; EXCLUSIONS</h4>
+                </div>
+                {renderSectionMasteryToggle('exceptions', 'Statutory Exceptions')}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {topic.exceptions.map((exc, eIdx) => (
+                  <div
+                    key={eIdx}
+                    className="flex flex-col gap-2 bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-rose-200 dark:border-rose-800/70 shadow-2xs h-full"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-600 text-white text-xs font-black mt-0.5 shrink-0">
+                        !
+                      </span>
+                      <span className={`${bodyTextClass} text-slate-900 dark:text-slate-100 font-extrabold`}>
+                        {renderInteractiveText(cleanRuleText(exc.generalRule))}
+                      </span>
+                    </div>
+                    {exc.exceptions && exc.exceptions.length > 0 && (
+                      <ul className="pl-7 space-y-1 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold list-disc">
+                        {exc.exceptions.map((subExc, sIdx) => (
+                          <li key={sIdx}>{renderInteractiveText(cleanRuleText(subExc))}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {exc.exceptionToException && exc.exceptionToException.length > 0 && (
+                      <div className="ml-7 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-xs font-bold text-amber-900 dark:text-amber-200 space-y-1">
+                        <span className="uppercase text-[10px] font-black tracking-wide block">
+                          Exception to Exception:
+                        </span>
+                        {exc.exceptionToException.map((counterExc, cIdx) => (
+                          <p key={cIdx}>{renderInteractiveText(cleanRuleText(counterExc))}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Power-Up Box: Critical Statutory Checkpoints */}
           {(topic.barTips || topic.keyTips) && (
             <div className="mario-reveal-section mario-question-block rounded-2xl p-4 sm:p-6 text-slate-950 font-bold space-y-3 shadow-md">
-              <div className="flex items-center gap-2">
-                <MarioStarIcon className="w-6 h-6 flex-shrink-0" />
-                <span className="font-black text-base sm:text-lg uppercase tracking-wide text-red-950 font-display">
-                  POWER-UP: KEY STATUTORY CHECKPOINTS &amp; PRACTICAL DISTINCTIONS
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <MarioStarIcon className="w-6 h-6 flex-shrink-0" />
+                  <span className="font-black text-base sm:text-lg uppercase tracking-wide text-red-950 font-display">
+                    POWER-UP: KEY STATUTORY CHECKPOINTS &amp; PRACTICAL DISTINCTIONS
+                  </span>
+                </div>
+                {renderSectionMasteryToggle('bar_tips', 'Bar Exam Tips', true)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {(topic.keyTips || topic.barTips || []).map((tip, tIdx) => (

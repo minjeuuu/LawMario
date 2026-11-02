@@ -81,9 +81,18 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
       setIsOpen(true);
       marioAudio.playPipe();
     };
+    const handleExternalUpdate = () => {
+      const refreshed = loadStudyNotes(window.localStorage);
+      setNotes(refreshed);
+      onNotesChange?.(refreshed);
+    };
     window.addEventListener('mario-open-study-notes', handleOpenNotes);
-    return () => window.removeEventListener('mario-open-study-notes', handleOpenNotes);
-  }, []);
+    window.addEventListener('mario-study-notes-updated', handleExternalUpdate);
+    return () => {
+      window.removeEventListener('mario-open-study-notes', handleOpenNotes);
+      window.removeEventListener('mario-study-notes-updated', handleExternalUpdate);
+    };
+  }, [onNotesChange]);
 
   const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
@@ -300,30 +309,26 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
 
   return (
     <>
-      {/* Docked Right-Edge Study Notes Tab — Visible on Necessary Study Tabs Only, Zero Overlap */}
-      {['modules', 'citations', 'holidays', 'wages_matrix', 'flashcards', 'calculator'].includes(
-        activeTab
-      ) && (
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen(true);
-            marioAudio.playPipe();
-          }}
-          data-testid="study-notes-trigger"
-          aria-label={`Open Study Notes Drawer (${notes.length} saved notes)`}
-          title="Open Study Notes Drawer — Jot down labor law notes"
-          className="hidden md:flex fixed right-0 top-[44%] -translate-y-1/2 z-30 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-r-0 border-black rounded-l-2xl rounded-r-none px-2 py-3 shadow-[-3px_3px_0_#000] flex-col items-center gap-1.5 cursor-pointer transition-colors select-none print:hidden"
-        >
-          <NotebookPen className="w-4 h-4 text-slate-950 shrink-0" />
-          <span className="text-[9px] font-black font-mario uppercase tracking-tighter leading-none [writing-mode:vertical-rl] rotate-180">
-            NOTES
-          </span>
-          <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-black inline-flex items-center justify-center border border-black leading-none tabular-nums">
-            {notes.length}
-          </span>
-        </button>
-      )}
+      {/* Docked Right-Edge Study Notes Tab — Anchored Upper-Middle on Mobile to Clear Timer & Scroller */}
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen(true);
+          marioAudio.playPipe();
+        }}
+        data-testid="study-notes-trigger"
+        aria-label={`Open Study Notes Drawer (${notes.length} saved notes)`}
+        title="Open Study Notes Drawer — Jot down labor law notes"
+        className="flex fixed right-0 top-[168px] bottom-auto sm:top-[46%] sm:-translate-y-1/2 z-30 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-r-0 border-black rounded-l-2xl rounded-r-none px-1.5 py-2 sm:px-2 sm:py-3 shadow-[-3px_3px_0_#000] flex-col items-center gap-1 sm:gap-1.5 cursor-pointer transition-colors select-none print:hidden"
+      >
+        <NotebookPen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 shrink-0" />
+        <span className="text-[8.5px] sm:text-[9px] font-black font-mario uppercase tracking-tighter leading-none [writing-mode:vertical-rl] rotate-180">
+          NOTES
+        </span>
+        <span className="min-w-[18px] sm:min-w-[20px] h-4.5 sm:h-5 px-1 rounded-full bg-red-600 text-white text-[9.5px] sm:text-[10px] font-black inline-flex items-center justify-center border border-black leading-none tabular-nums">
+          {notes.length}
+        </span>
+      </button>
 
       {/* Slide-Over Right Drawer */}
       {isOpen && (

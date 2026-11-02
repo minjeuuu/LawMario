@@ -41,7 +41,19 @@ import {
   Flame,
   X,
 } from 'lucide-react';
-import { MarioStarIcon, MarioCoinIcon } from './MarioIcons';
+import {
+  MarioStarIcon,
+  MarioCoinIcon,
+  MarioMushroomIcon,
+  MarioFireFlowerIcon,
+} from './MarioIcons';
+import {
+  FlashcardMasteryTier,
+  FlashcardMasteryMap,
+  FLASHCARD_MASTERY_META,
+  loadFlashcardMasteryTiers,
+  saveFlashcardMasteryTiers,
+} from '../utils/round9Features';
 
 interface FlashcardsViewProps {
   fontSize: 'normal' | 'large' | 'xlarge';
@@ -93,8 +105,48 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
     mapActiveWorldToFlashcardWorldNum(activeWorld)
   );
   const [masteredIds, setMasteredIds] = useState<Set<string>>(new Set());
+  const [masteryTiers, setMasteryTiers] = useState<FlashcardMasteryMap>(() =>
+    loadFlashcardMasteryTiers(typeof window !== 'undefined' ? window.localStorage : null)
+  );
+  const [tierFilter, setTierFilter] = useState<'all' | FlashcardMasteryTier>('all');
   const [isDeckShuffled, setIsDeckShuffled] = useState(false);
   const [justShuffled, setJustShuffled] = useState(false);
+
+  const getCardMasteryTier = (cardId: string): FlashcardMasteryTier => {
+    if (masteryTiers[cardId]) return masteryTiers[cardId];
+    return masteredIds.has(cardId) ? 'mastered' : 'learning';
+  };
+
+  const handleSetCardMasteryTier = (
+    cardId: string,
+    tier: FlashcardMasteryTier,
+    e?: React.MouseEvent
+  ) => {
+    e?.stopPropagation();
+    const prevTier = getCardMasteryTier(cardId);
+    const nextMap: FlashcardMasteryMap = {
+      ...masteryTiers,
+      [cardId]: tier,
+    };
+    setMasteryTiers(nextMap);
+    saveFlashcardMasteryTiers(
+      nextMap,
+      typeof window !== 'undefined' ? window.localStorage : null
+    );
+    if (tier === 'mastered') {
+      if (!masteredIds.has(cardId)) {
+        setMasteredIds((prev) => new Set(prev).add(cardId));
+        if (prevTier !== 'mastered') {
+          onEarnCoin();
+        }
+      }
+      marioAudio.playPowerUp();
+    } else if (tier === 'reviewing') {
+      marioAudio.playCoin();
+    } else {
+      marioAudio.playClick();
+    }
+  };
 
   // Exam Prep Multiple-Choice state per card
   const [selectedMcqIdx, setSelectedMcqIdx] = useState<number | null>(null);
@@ -415,10 +467,31 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
     marioAudio.playPipe();
   };
 
-  const standardFilteredCards = useMemo(
+  const baseStandardCards = useMemo(
     () => filterFlashcardsForDifficulty(cards, studyDifficulty, selectedWorld, isDeckShuffled),
     [cards, studyDifficulty, selectedWorld, isDeckShuffled]
   );
+
+  const tierCounts = useMemo(() => {
+    let learning = 0;
+    let reviewing = 0;
+    let mastered = 0;
+    for (const c of baseStandardCards) {
+      const t = masteryTiers[c.id] || (masteredIds.has(c.id) ? 'mastered' : 'learning');
+      if (t === 'mastered') mastered += 1;
+      else if (t === 'reviewing') reviewing += 1;
+      else learning += 1;
+    }
+    return { learning, reviewing, mastered };
+  }, [baseStandardCards, masteryTiers, masteredIds]);
+
+  const standardFilteredCards = useMemo(() => {
+    if (tierFilter === 'all') return baseStandardCards;
+    return baseStandardCards.filter((c) => {
+      const t = masteryTiers[c.id] || (masteredIds.has(c.id) ? 'mastered' : 'learning');
+      return t === tierFilter;
+    });
+  }, [baseStandardCards, tierFilter, masteryTiers, masteredIds]);
 
   const filteredCards = isQuickStudyMode ? quickStudyDeck : standardFilteredCards;
 
@@ -1556,23 +1629,36 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
               isFlipped ? 'bg-white' : 'mario-box'
             }`}
           >
-            {/* Top Metadata Bar */}
+            {/* Top Metadata & Mario Power-Up Mastery Tier Bar */}
             <div className="flex items-center justify-between border-b-2 border-slate-900/20 pb-3 gap-2 flex-wrap text-xs font-bold text-slate-900">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-black text-slate-950">{activeCard.world}</span>
                 <span aria-hidden="true">·</span>
                 <span className="text-slate-700">{activeCard.difficulty}</span>
+                <span aria-hidden="true">·</span>
+                {(() => {
+                  const activeTier = getCardMasteryTier(activeCard.id);
+                  const meta = FLASHCARD_MASTERY_META[activeTier];
+                  return (
+                    <span
+                      data-testid="flashcard-active-mastery-badge"
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[10px] font-black leading-none ${meta.badgeClass}`}
+                    >
+                      {activeTier === 'learning' && <MarioMushroomIcon className="w-3 h-3 shrink-0" />}
+                      {activeTier === 'reviewing' && <MarioFireFlowerIcon className="w-3 h-3 shrink-0" />}
+                      {activeTier === 'mastered' && <MarioStarIcon className="w-3 h-3 shrink-0" />}
+                      <span>
+                        {meta.powerupName}: {meta.label}
+                      </span>
+                    </span>
+                  );
+                })()}
               </div>
 
               <div className="flex items-center gap-2 font-black text-xs text-slate-900 tabular-nums">
                 <span className="font-mario text-[10px]">
                   Card {currentIndex + 1}/{filteredCards.length}
                 </span>
-                {masteredIds.has(activeCard.id) && (
-                  <span className="text-emerald-800 inline-flex items-center gap-1 font-bold text-xs">
-                    <CheckCircle className="w-3.5 h-3.5 shrink-0" /> Mastered
-                  </span>
-                )}
               </div>
             </div>
 
@@ -1690,25 +1776,77 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
               )}
             </div>
 
-            {/* Bottom Bar: Quick Hint */}
-            <div className="flex items-center justify-between border-t-2 border-slate-900/20 pt-3 text-xs font-bold text-slate-800 gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleFlip();
-                }}
-                className="min-h-[44px] inline-flex items-center gap-1 text-slate-900 font-black cursor-pointer hover:underline"
+            {/* Bottom Bar: Power-Up Mastery Tier Selector + Flip Hint */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-col sm:flex-row sm:items-center justify-between border-t-2 border-slate-900/20 pt-3 text-xs font-bold text-slate-800 gap-2.5"
+            >
+              <div
+                data-testid="flashcard-mastery-tier-selector"
+                className="flex items-center gap-1.5 flex-wrap"
               >
-                <RotateCw className="w-3.5 h-3.5 shrink-0" />
-                <span>{isFlipped ? 'Flip back to prompt' : 'Flip card'}</span>
-              </button>
-              <span className="inline-flex items-center gap-1 text-amber-900 font-black">
-                <MarioCoinIcon className="w-3.5 h-3.5 shrink-0" />
-                <span>
-                  {studyDifficulty === 'exam_prep' ? '+2c Correct MCQ · +1c Mastered' : '+1 Coin on Mastery'}
+                <span className="text-[10px] font-black uppercase font-mario text-slate-800 mr-0.5">
+                  Tier:
                 </span>
-              </span>
+                {(
+                  [
+                    {
+                      id: 'learning' as const,
+                      label: 'Learning',
+                      icon: <MarioMushroomIcon className="w-3.5 h-3.5 shrink-0" />,
+                    },
+                    {
+                      id: 'reviewing' as const,
+                      label: 'Reviewing',
+                      icon: <MarioFireFlowerIcon className="w-3.5 h-3.5 shrink-0" />,
+                    },
+                    {
+                      id: 'mastered' as const,
+                      label: 'Mastered',
+                      icon: <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />,
+                    },
+                  ]
+                ).map((opt) => {
+                  const isActiveTier = getCardMasteryTier(activeCard.id) === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      data-testid={`set-flashcard-tier-${opt.id}`}
+                      aria-pressed={isActiveTier}
+                      onClick={(e) => handleSetCardMasteryTier(activeCard.id, opt.id, e)}
+                      className={`min-h-[34px] px-2.5 py-1 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap leading-none ${
+                        isActiveTier
+                          ? 'bg-slate-950 text-amber-300 border-black shadow-[0_2px_0_#000]'
+                          : 'bg-white/90 hover:bg-white text-slate-800 border-slate-800/40'
+                      }`}
+                    >
+                      {opt.icon}
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFlip();
+                  }}
+                  className="min-h-[36px] inline-flex items-center gap-1 text-slate-900 font-black cursor-pointer hover:underline"
+                >
+                  <RotateCw className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isFlipped ? 'Flip back' : 'Flip card'}</span>
+                </button>
+                <span className="inline-flex items-center gap-1 text-amber-900 font-black">
+                  <MarioCoinIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span>
+                    {studyDifficulty === 'exam_prep' ? '+2c MCQ · +1c Star' : '+1c Star'}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import { getHeroMeta } from '../data/heroesData';
 import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import { marioAudio } from '../utils/audio';
 import { CheckCircle2, RotateCcw, Trophy } from 'lucide-react';
+import { WorldGoalRing } from './TopicStudyModals';
 
 interface StageProgressBarProps {
   completedCount: number;
@@ -41,6 +42,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
         shortTitle: w.shortTitle,
         done,
         total: topics.length,
+        percent: topics.length > 0 ? Math.round((done / topics.length) * 100) : 0,
         isCleared: topics.length > 0 && done >= topics.length,
       };
     });
@@ -185,8 +187,11 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                   : 'bg-slate-900/70 border-slate-700 text-slate-300'
               }`}
             >
-              <span className="truncate">
-                W{wb.worldNumber}: {wb.shortTitle}
+              <span className="flex items-center gap-1.5 min-w-0">
+                <WorldGoalRing percent={wb.percent} size={22} strokeWidth={2.8} showLabel={false} />
+                <span className="truncate">
+                  W{wb.worldNumber}: {wb.shortTitle}
+                </span>
               </span>
               <span className="font-mono text-[10px] font-black shrink-0 tabular-nums flex items-center gap-0.5">
                 {wb.isCleared && <MarioFlagIcon className="w-3 h-3 shrink-0" />}

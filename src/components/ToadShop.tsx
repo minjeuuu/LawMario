@@ -31,9 +31,43 @@ import {
   applyPrintPageRule,
   clearPrintPageRule,
 } from '../utils/printHelper';
-import { downloadCertificateLandscapePdf } from '../utils/pdfExportService';
+import {
+  downloadCertificateLandscapePdf,
+  downloadMasterDiplomaPdf,
+} from '../utils/pdfExportService';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  ToadSpecialEventsState,
+  LuxuryEquippedState,
+  LuxuryAvatarFrameId,
+  LuxuryMushroomAuraId,
+  LuxuryCartridgeBadgeId,
+  LUXURY_CARTRIDGE_LABELS,
+  loadToadSpecialEventsState,
+  saveToadSpecialEventsState,
+  loadLuxuryEquippedState,
+  saveLuxuryEquippedState,
+} from '../utils/round9Features';
+import {
+  ROUND10_ALL_NEW_SHOP_ITEMS,
+  LAW_CHAMBERS_UPGRADE_ITEMS,
+  ARCADE_AND_QUIZ_CONSUMABLE_ITEMS,
+  CLICK_AND_CONFETTI_FX_ITEMS,
+  RELICS_AND_NAMEPLATES_ITEMS,
+  EXTENDED_COMPANIONS_AND_FRAMES_ITEMS,
+  COIN_UTILITY_DESTINATIONS,
+  TOAD_LUCKY_WHEEL_WEDGES,
+  resolveLuckyWheelSpin,
+  computeLawChambersPrestige,
+  loadRound10VaultState,
+  saveRound10VaultState,
+  MASTER_DIPLOMA_TRANSCRIPT_PILLARS,
+  DocumentOrientation,
+  Round10ShopCatalogItem,
+  Round10VaultState,
+} from '../utils/round10Features';
 import {
   ShoppingBag,
   Palette,
@@ -56,6 +90,18 @@ import {
   Trophy,
   Frame,
   Heart,
+  Gem,
+  Flame,
+  Shield,
+  Unlock,
+  Compass,
+  Search,
+  Landmark,
+  Gift,
+  Wand2,
+  Award,
+  Layers,
+  ArrowUpRight,
 } from 'lucide-react';
 
 interface ToadShopProps {
@@ -80,6 +126,11 @@ interface ToadShopProps {
   appStudyFont?: AppStudyFontId;
   onSelectAppStudyFont?: (font: AppStudyFontId) => void;
   onOpenCertificatePreview?: () => void;
+  specialEventsState?: ToadSpecialEventsState;
+  onUpdateSpecialEventsState?: (next: ToadSpecialEventsState) => void;
+  luxuryEquipped?: LuxuryEquippedState;
+  onUpdateLuxuryEquipped?: (next: LuxuryEquippedState) => void;
+  onNavigateTab?: (tabId: string) => void;
 }
 
 export const POWERUP_ITEMS: ShopItem[] = [
@@ -695,6 +746,213 @@ export const SOUNDPACK_ITEMS: ShopItem[] = [
     description: 'Majestic symphonic brass fanfares, warm orchestral string harmonics, and timpani flourishes for grand Bar review study.',
     badge: 'Symphony Era',
   },
+  {
+    id: 'sound_underwater_ambient',
+    name: 'Dire Dire Docks Coral Reef',
+    category: 'soundpack',
+    soundPackId: 'sound_underwater_ambient',
+    price: 75,
+    description: 'Dreamy electric-piano coral chords and gentle sub-aquatic bell progressions for calm statutory memorization.',
+    badge: 'N64 Aquatic',
+  },
+  {
+    id: 'sound_peach_royal',
+    name: 'Peach Castle Harpsichord',
+    category: 'soundpack',
+    soundPackId: 'sound_peach_royal',
+    price: 80,
+    description: 'Regal plucked harpsichord cadences and chamber flute counter-melodies worthy of Supreme Court jurisprudence.',
+    badge: 'Royal Court',
+  },
+  {
+    id: 'sound_yoshi_tropical',
+    name: 'Yoshi Island Marimba Breeze',
+    category: 'soundpack',
+    soundPackId: 'sound_yoshi_tropical',
+    price: 85,
+    description: 'Sunny wooden marimba arpeggios, island basslines, and cheerful syncopated melodies that prevent study burnout.',
+    badge: 'Island Groove',
+  },
+  {
+    id: 'sound_ghost_organ',
+    name: 'Luigi Mansion Pipe Organ',
+    category: 'soundpack',
+    soundPackId: 'sound_ghost_organ',
+    price: 90,
+    description: 'Playful gothic pipe-organ harmonies and mysterious pizzicato steps for late-night Bar exam case crunching.',
+    badge: 'Mansion Mystery',
+  },
+  {
+    id: 'sound_dk_jungle',
+    name: 'DK Country Jungle Groove',
+    category: 'soundpack',
+    soundPackId: 'sound_dk_jungle',
+    price: 95,
+    description: 'Warm sub-bass grooves layered with atmospheric rainforest flute echoes and crisp rhythmic momentum.',
+    badge: 'Jungle Rhythm',
+  },
+  {
+    id: 'sound_rainbow_synthwave',
+    name: 'Rainbow Road Turbo Synth',
+    category: 'soundpack',
+    soundPackId: 'sound_rainbow_synthwave',
+    price: 110,
+    description: 'Soaring analog lead synths and euphoric championship chord progressions for high-speed review sprints.',
+    badge: 'Star Cup',
+  },
+  {
+    id: 'sound_paper_acoustic',
+    name: 'Paper Kingdom Cozy Acoustic',
+    category: 'soundpack',
+    soundPackId: 'sound_paper_acoustic',
+    price: 115,
+    description: 'Intimate music-box celesta and warm acoustic pluck textures tailored for long reading sessions.',
+    badge: 'Storybook',
+  },
+  {
+    id: 'sound_starlight_jazz',
+    name: 'New Donk Starlight Jazz',
+    category: 'soundpack',
+    soundPackId: 'sound_starlight_jazz',
+    price: 125,
+    description: 'Upbeat walking basslines, velvet jazz seventh chords, and crisp brass stabs from Metro Kingdom.',
+    badge: 'Metro Brass',
+  },
+];
+
+export const SPECIAL_EVENT_ITEMS = [
+  {
+    id: 'event_double_xp_1h',
+    name: '1-Hour Double XP & Coin Rush',
+    badge: 'Limited Event · 60m',
+    price: 180,
+    description:
+      'Toad’s Grand Festival Pass! Doubles ALL Gold Coin & XP rewards across Modules, Study Sprints, Flashcards, and Boss Battles for 60 full minutes.',
+    effectLabel: '2x Coin & XP Multiplier for 60 Minutes',
+  },
+  {
+    id: 'event_unlock_all_30m',
+    name: '30-Minute All-Worlds Master Key',
+    badge: 'Stage Pass · 30m',
+    price: 140,
+    description:
+      'Temporarily unlocks every locked Overworld Stage across Worlds 1–6 for 30 minutes so you can preview advanced Bar Exam modules ahead of schedule.',
+    effectLabel: 'Unlocks All Locked World Map Stages for 30m',
+  },
+  {
+    id: 'event_boss_skip_token',
+    name: 'One-Time Boss Battle Skip Decree',
+    badge: 'Royal Writ · 1 Use',
+    price: 220,
+    description:
+      'Grants 1 Royal Writ of Certiorari token allowing an instant victorious bypass of any Bowser Boss Battle (+100 Coins & 5m Invincible Study Mode!).',
+    effectLabel: '+1 One-Time Boss Battle Skip Token',
+  },
+  {
+    id: 'event_grand_starlight_frenzy',
+    name: 'Grand Starlight Frenzy Bundle',
+    badge: 'Mega Event · Bundle',
+    price: 260,
+    description:
+      'Combines a 90-Minute Double Coin Rush + 30-Minute All-Worlds Master Key + 1 Boss Battle Skip Token in one celebratory Toad’s Bazaar package!',
+    effectLabel: '90m 2x Coins + 30m Unlock-All + 1 Boss Skip',
+  },
+] as const;
+
+export interface LuxuryShopGood {
+  id: string;
+  name: string;
+  badge: string;
+  price: number;
+  slot: 'frame' | 'aura' | 'cartridge';
+  frameId?: LuxuryAvatarFrameId;
+  auraId?: LuxuryMushroomAuraId;
+  cartridgeId?: LuxuryCartridgeBadgeId;
+  description: string;
+}
+
+export const LUXURY_GOODS_ITEMS: LuxuryShopGood[] = [
+  {
+    id: 'lux_frame_gold_filigree',
+    name: '24K Gold-Plated Filigree Frame',
+    badge: 'Avatar Frame · Gold',
+    price: 160,
+    slot: 'frame',
+    frameId: 'lux_frame_gold_filigree',
+    description: 'gleaming 24-karat Mushroom Kingdom filigree border around your Hero Avatar in Profile & Chambers.',
+  },
+  {
+    id: 'lux_frame_grand_star_platinum',
+    name: 'Grand Star Platinum Bezel',
+    badge: 'Avatar Frame · Platinum',
+    price: 280,
+    slot: 'frame',
+    frameId: 'lux_frame_grand_star_platinum',
+    description: 'Celestial Rosalina observatory platinum bezel with diamond-cut cyan highlights.',
+  },
+  {
+    id: 'lux_frame_sovereign_ruby',
+    name: 'Sovereign Ruby Crown Frame',
+    badge: 'Avatar Frame · Sovereign',
+    price: 420,
+    slot: 'frame',
+    frameId: 'lux_frame_sovereign_ruby',
+    description: 'Supreme Justice crimson-and-gold sovereign portrait frame reserved for elite Bar scholars.',
+  },
+  {
+    id: 'lux_aura_golden_truffle',
+    name: 'Rare Golden Truffle Aura',
+    badge: 'Mushroom Aura · Rare',
+    price: 150,
+    slot: 'aura',
+    auraId: 'lux_aura_golden_truffle',
+    description: 'Surrounds your Hero Avatar with a warm golden-emerald truffle halo.',
+  },
+  {
+    id: 'lux_aura_cosmic_nebula',
+    name: 'Cosmic Starbit Nebula Aura',
+    badge: 'Mushroom Aura · Mythic',
+    price: 320,
+    slot: 'aura',
+    auraId: 'lux_aura_cosmic_nebula',
+    description: 'Radiates an iridescent Star Road nebula shimmer behind your Hero portrait.',
+  },
+  {
+    id: 'lux_aura_royal_crown_glow',
+    name: 'Royal Peach Sunburst Aura',
+    badge: 'Mushroom Aura · Imperial',
+    price: 450,
+    slot: 'aura',
+    auraId: 'lux_aura_royal_crown_glow',
+    description: 'Blazing royal rose-and-gold sunburst aura celebrating top-tier Labor Code mastery.',
+  },
+  {
+    id: 'lux_cart_nes_1985_gold',
+    name: '1985 Championship Gold Cartridge',
+    badge: 'Leaderboard Cart · 1985',
+    price: 190,
+    slot: 'cartridge',
+    cartridgeId: 'lux_cart_nes_1985_gold',
+    description: 'Displays the iconic 1985 Nintendo World Championship Gold Cart badge beside your name on Leaderboards!',
+  },
+  {
+    id: 'lux_cart_famicom_ruby',
+    name: 'Famicom Crimson Collector Cart',
+    badge: 'Leaderboard Cart · Collector',
+    price: 340,
+    slot: 'cartridge',
+    cartridgeId: 'lux_cart_famicom_ruby',
+    description: 'Displays a rare Tokyo Famicom Crimson Collector Cartridge emblem next to your Leaderboard rank!',
+  },
+  {
+    id: 'lux_cart_star_road_holo',
+    name: 'Star Road Holographic Cartridge',
+    badge: 'Leaderboard Cart · 500c Apex',
+    price: 500,
+    slot: 'cartridge',
+    cartridgeId: 'lux_cart_star_road_holo',
+    description: 'The ultimate 500-Coin status symbol: a holographic Star Road cartridge displayed on Coin & Quiz Leaderboards!',
+  },
 ];
 
 export const CERTIFICATE_ITEM: ShopItem = {
@@ -728,9 +986,22 @@ export const ToadShop: React.FC<ToadShopProps> = ({
   appStudyFont = 'jakarta',
   onSelectAppStudyFont,
   onOpenCertificatePreview,
+  specialEventsState,
+  onUpdateSpecialEventsState,
+  luxuryEquipped,
+  onUpdateLuxuryEquipped,
+  onNavigateTab,
 }) => {
   const [activeCategory, setActiveCategory] = useState<
     | 'powerups'
+    | 'law_chambers'
+    | 'arcade_quiz_boosts'
+    | 'lucky_wheel'
+    | 'click_confetti_fx'
+    | 'relics_badges'
+    | 'extended_gear'
+    | 'special_events'
+    | 'luxury'
     | 'avatars'
     | 'companions'
     | 'themes'
@@ -741,15 +1012,34 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     | 'certificate'
   >('powerups');
 
+  const [diplomaOrientation, setDiplomaOrientation] =
+    useState<DocumentOrientation>('landscape');
+  const [showCoinGuide, setShowCoinGuide] = useState<boolean>(true);
+  const [shopSearchQuery, setShopSearchQuery] = useState<string>('');
+  const [r10State, setR10State] = useState<Round10VaultState>(() =>
+    loadRound10VaultState()
+  );
+  const [isSpinningWheel, setIsSpinningWheel] = useState<boolean>(false);
+  const [wheelRotationDeg, setWheelRotationDeg] = useState<number>(0);
+  const [wheelWinBanner, setWheelWinBanner] = useState<string | null>(null);
+
+  const persistRound10State = (next: Round10VaultState) => {
+    setR10State(next);
+    saveRound10VaultState(next);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mario-round10-vault-updated'));
+    }
+  };
+
   useEffect(() => {
     if (activeCategory === 'certificate') {
-      applyPrintPageRule('landscape', '6mm');
+      applyPrintPageRule(diplomaOrientation, '6mm');
       return () => {
         clearPrintPageRule();
       };
     }
     return undefined;
-  }, [activeCategory]);
+  }, [activeCategory, diplomaOrientation]);
   const [selectedFaction, setSelectedFaction] = useState<string>('All');
   const [mysteryResult, setMysteryResult] = useState<string | null>(null);
   const [isRollingMystery, setIsRollingMystery] = useState<boolean>(false);
@@ -895,6 +1185,47 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     setTimeout(() => setRestoreMessage(null), 4500);
   };
 
+  const [coinRainBurstId, setCoinRainBurstId] = useState<number>(0);
+
+  const [localSpecialEvents, setLocalSpecialEvents] = useState<ToadSpecialEventsState>(() =>
+    typeof window !== 'undefined'
+      ? loadToadSpecialEventsState(window.localStorage)
+      : { invincibleEndsAt: 0, doubleXpEndsAt: 0, unlockAllModulesEndsAt: 0, bossSkipTokens: 0 }
+  );
+  const effectiveSpecialEvents = specialEventsState || localSpecialEvents;
+
+  const updateSpecialEvents = (next: ToadSpecialEventsState) => {
+    setLocalSpecialEvents(next);
+    if (typeof window !== 'undefined') {
+      saveToadSpecialEventsState(next, window.localStorage);
+    }
+    onUpdateSpecialEventsState?.(next);
+  };
+
+  const [localLuxuryEquipped, setLocalLuxuryEquipped] = useState<LuxuryEquippedState>(() =>
+    typeof window !== 'undefined'
+      ? loadLuxuryEquippedState(window.localStorage)
+      : { avatarFrame: 'lux_frame_none', mushroomAura: 'lux_aura_none', cartridgeBadge: 'lux_cart_none' }
+  );
+  const effectiveLuxury = luxuryEquipped || localLuxuryEquipped;
+
+  const updateLuxury = (next: LuxuryEquippedState) => {
+    setLocalLuxuryEquipped(next);
+    if (typeof window !== 'undefined') {
+      saveLuxuryEquippedState(next, window.localStorage);
+    }
+    onUpdateLuxuryEquipped?.(next);
+  };
+
+  const triggerCoinRainIfHighRoller = (spentCoins: number) => {
+    if (spentCoins >= 100) {
+      setCoinRainBurstId(Date.now());
+      window.setTimeout(() => {
+        setCoinRainBurstId((prev) => (Date.now() - prev >= 2300 ? 0 : prev));
+      }, 2400);
+    }
+  };
+
   const triggerConfetti = () => {
     try {
       confetti({
@@ -908,6 +1239,79 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     }
   };
 
+  const handleBuySpecialEvent = (eventItem: (typeof SPECIAL_EVENT_ITEMS)[number]) => {
+    if (coins < eventItem.price) {
+      marioAudio.playStomp();
+      return;
+    }
+    setCoins((prev) => prev - eventItem.price);
+    triggerConfetti();
+    triggerCoinRainIfHighRoller(eventItem.price);
+    marioAudio.playStarTheme();
+
+    const now = Date.now();
+    const next = { ...effectiveSpecialEvents };
+    if (eventItem.id === 'event_double_xp_1h') {
+      next.doubleXpEndsAt = Math.max(now, next.doubleXpEndsAt) + 60 * 60 * 1000;
+      setPowerupNotice('1-Hour Double XP & Coin Rush Activated! All rewards are 2x for 60 minutes!');
+    } else if (eventItem.id === 'event_unlock_all_30m') {
+      next.unlockAllModulesEndsAt = Math.max(now, next.unlockAllModulesEndsAt) + 30 * 60 * 1000;
+      setPowerupNotice('30-Minute All-Worlds Master Key Active! Every locked World Map stage is now open!');
+    } else if (eventItem.id === 'event_boss_skip_token') {
+      next.bossSkipTokens = (next.bossSkipTokens || 0) + 1;
+      setPowerupNotice('Royal Writ Acquired! +1 One-Time Boss Battle Skip Token ready in Bowser Boss Quest!');
+    } else if (eventItem.id === 'event_grand_starlight_frenzy') {
+      next.doubleXpEndsAt = Math.max(now, next.doubleXpEndsAt) + 90 * 60 * 1000;
+      next.unlockAllModulesEndsAt = Math.max(now, next.unlockAllModulesEndsAt) + 30 * 60 * 1000;
+      next.bossSkipTokens = (next.bossSkipTokens || 0) + 1;
+      setPowerupNotice('Grand Starlight Frenzy Activated! 90m 2x Coins + 30m Unlock-All + 1 Boss Skip Token!');
+    }
+    updateSpecialEvents(next);
+    setTimeout(() => setPowerupNotice(null), 4500);
+  };
+
+  const handleEquipLuxuryGood = (good: LuxuryShopGood) => {
+    marioAudio.playLevelUp();
+    if (good.slot === 'frame' && good.frameId) {
+      updateLuxury({
+        ...effectiveLuxury,
+        avatarFrame: effectiveLuxury.avatarFrame === good.frameId ? 'lux_frame_none' : good.frameId,
+      });
+    } else if (good.slot === 'aura' && good.auraId) {
+      updateLuxury({
+        ...effectiveLuxury,
+        mushroomAura: effectiveLuxury.mushroomAura === good.auraId ? 'lux_aura_none' : good.auraId,
+      });
+    } else if (good.slot === 'cartridge' && good.cartridgeId) {
+      updateLuxury({
+        ...effectiveLuxury,
+        cartridgeBadge: effectiveLuxury.cartridgeBadge === good.cartridgeId ? 'lux_cart_none' : good.cartridgeId,
+      });
+    }
+  };
+
+  const handleBuyLuxuryGood = (good: LuxuryShopGood) => {
+    if (coins < good.price) {
+      marioAudio.playStomp();
+      return;
+    }
+    setCoins((prev) => prev - good.price);
+    triggerConfetti();
+    triggerCoinRainIfHighRoller(good.price);
+    marioAudio.playStarTheme();
+
+    const updated = Array.from(new Set([...unlockedItemIds, good.id]));
+    setUnlockedItemIds(updated);
+    try {
+      localStorage.setItem('mario_unlocked_items', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    handleEquipLuxuryGood(good);
+    setPowerupNotice(`Luxury Vault Unlocked & Equipped: ${good.name}!`);
+    setTimeout(() => setPowerupNotice(null), 4200);
+  };
+
   const handleBuyPowerUpOrMap = (item: ShopItem) => {
     if (coins < item.price) {
       marioAudio.playStomp();
@@ -916,6 +1320,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
     setCoins((prev) => prev - item.price);
     triggerConfetti();
+    triggerCoinRainIfHighRoller(item.price);
 
     if (item.id === 'powerup_super_star' || item.id === 'powerup_mega_star_30m') {
       const mins = item.durationMinutes || 10;
@@ -1010,6 +1415,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     setCoins(nextCoins);
     marioAudio.playPowerUp();
     triggerConfetti();
+    triggerCoinRainIfHighRoller(item.price);
 
     const updated = Array.from(new Set([...unlockedItemIds, item.id]));
     setUnlockedItemIds(updated);
@@ -1079,6 +1485,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     }
 
     setCoins((prev) => prev - cost);
+    triggerCoinRainIfHighRoller(cost);
     setIsRollingMystery(true);
     setMysteryResult(null);
     marioAudio.playCoin();
@@ -1169,6 +1576,282 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
   const isCertUnlocked = unlockedItemIds.includes(CERTIFICATE_ITEM.id);
   const isShortcutMapUnlocked = unlockedItemIds.includes('map_shortcut_bar');
+  const chambersPrestige = computeLawChambersPrestige(r10State.unlockedIds);
+
+  const totalShopCatalogCount =
+    POWERUP_ITEMS.length +
+    SPECIAL_EVENT_ITEMS.length +
+    LUXURY_GOODS_ITEMS.length +
+    SOUNDPACK_ITEMS.length +
+    THEME_ITEMS.length +
+    AVATAR_ITEMS.length +
+    COMPANION_ITEMS.length +
+    CARD_FRAME_ITEMS.length +
+    PERK_ITEMS.length +
+    PRESTIGE_ITEMS.length +
+    ROUND10_ALL_NEW_SHOP_ITEMS.length +
+    4; // 3 Mystery Chests + Master Diploma
+
+  const handleEquipRound10Item = (item: Round10ShopCatalogItem) => {
+    marioAudio.playJump();
+    if (item.subType === 'click_fx') {
+      persistRound10State({
+        ...r10State,
+        equippedClickFx: item.id,
+      });
+      setPowerupNotice(`Equipped Click Spark FX: ${item.name}!`);
+      setTimeout(() => setPowerupNotice(null), 3200);
+    } else if (item.subType === 'confetti_fx') {
+      persistRound10State({
+        ...r10State,
+        equippedConfettiFx: item.id,
+      });
+      setPowerupNotice(`Equipped Celebration Confetti: ${item.name}!`);
+      setTimeout(() => setPowerupNotice(null), 3200);
+    } else if (item.subType === 'hud_nameplate') {
+      const nextPlate =
+        r10State.equippedNameplate === item.name ? '' : item.name;
+      persistRound10State({
+        ...r10State,
+        equippedNameplate: nextPlate,
+      });
+      if (nextPlate) {
+        handleEquipTitle(item.name);
+      }
+      setPowerupNotice(
+        nextPlate
+          ? `Equipped HUD Nameplate: ${item.name}!`
+          : `Unequipped HUD Nameplate`
+      );
+      setTimeout(() => setPowerupNotice(null), 3200);
+    }
+  };
+
+  const handleBuyRound10Item = (item: Round10ShopCatalogItem) => {
+    if (coins < item.price) {
+      marioAudio.playStomp();
+      return;
+    }
+    setCoins((prev) => prev - item.price);
+    triggerConfetti();
+    triggerCoinRainIfHighRoller(item.price);
+    marioAudio.playPowerUp();
+
+    if (item.isConsumable && item.consumableKey) {
+      const qty = item.packQuantity || 1;
+      const nextInv = {
+        ...r10State.inventory,
+        [item.consumableKey]: (r10State.inventory[item.consumableKey] || 0) + qty,
+      };
+      persistRound10State({
+        ...r10State,
+        inventory: nextInv,
+      });
+      setPowerupNotice(
+        `Added +${qty} token(s) from "${item.name}" to your Quest & Arcade Backpack!`
+      );
+      setTimeout(() => setPowerupNotice(null), 4000);
+      return;
+    }
+
+    const nextUnlocked = Array.from(new Set([...r10State.unlockedIds, item.id]));
+    const nextState: Round10VaultState = {
+      ...r10State,
+      unlockedIds: nextUnlocked,
+      equippedClickFx:
+        item.subType === 'click_fx' ? item.id : r10State.equippedClickFx,
+      equippedConfettiFx:
+        item.subType === 'confetti_fx' ? item.id : r10State.equippedConfettiFx,
+      equippedNameplate:
+        item.subType === 'hud_nameplate'
+          ? item.name
+          : r10State.equippedNameplate,
+    };
+    persistRound10State(nextState);
+    if (item.subType === 'hud_nameplate') {
+      handleEquipTitle(item.name);
+    }
+    setPowerupNotice(`Unlocked: ${item.name}!`);
+    setTimeout(() => setPowerupNotice(null), 3800);
+  };
+
+  const handleSpinLuckyWheel = (highRoller: boolean) => {
+    const spinCost = highRoller ? 75 : 25;
+    if (coins < spinCost || isSpinningWheel) {
+      marioAudio.playStomp();
+      return;
+    }
+    setCoins((prev) => prev - spinCost);
+    setIsSpinningWheel(true);
+    setWheelWinBanner(null);
+    marioAudio.playCoin();
+
+    const outcome = resolveLuckyWheelSpin(Math.random(), highRoller);
+    const sliceAngle = 360 / TOAD_LUCKY_WHEEL_WEDGES.length;
+    const targetRotation =
+      wheelRotationDeg + 1080 + (360 - outcome.wedgeIndex * sliceAngle);
+    setWheelRotationDeg(targetRotation);
+
+    window.setTimeout(() => {
+      const latest = loadRound10VaultState();
+      const nextInv = { ...latest.inventory };
+      let summaryMsg = '';
+
+      if (outcome.prize.rewardType === 'coins') {
+        setCoins((prev) => prev + outcome.effectiveAmount);
+        summaryMsg = `LUCKY STAR WIN! You landed on +${outcome.effectiveAmount} Gold Coins!`;
+        marioAudio.playStarTheme();
+      } else if (outcome.prize.rewardType === 'superStarMins') {
+        onActivateSuperStar?.(outcome.effectiveAmount);
+        summaryMsg = `SUPER STAR JACKPOT! +${outcome.effectiveAmount} Minutes of 2x Coin Multiplier Activated!`;
+        marioAudio.playStarTheme();
+      } else {
+        const key = outcome.prize.rewardType;
+        nextInv[key] = (nextInv[key] || 0) + outcome.effectiveAmount;
+        summaryMsg = `PRIZE UNLOCKED! +${outcome.effectiveAmount} ${outcome.prize.label.replace(/^\+\d+\s*/, '')} added to your Backpack!`;
+        marioAudio.playPowerUp();
+      }
+
+      persistRound10State({
+        ...latest,
+        wheelSpinsCount: (latest.wheelSpinsCount || 0) + 1,
+        inventory: nextInv,
+      });
+      setWheelWinBanner(summaryMsg);
+      setIsSpinningWheel(false);
+      triggerConfetti();
+    }, 900);
+  };
+
+  const handleCoinDestinationJump = (
+    targetType: 'app_tab' | 'shop_category',
+    targetValue: string
+  ) => {
+    marioAudio.playPipe();
+    if (targetType === 'app_tab') {
+      if (onNavigateTab) {
+        onNavigateTab(targetValue);
+        onClose?.();
+      }
+      return;
+    }
+    setShopSearchQuery('');
+    setActiveCategory(targetValue as typeof activeCategory);
+  };
+
+  const normalizedSearch = shopSearchQuery.trim().toLowerCase();
+  const matchingRound10Items = normalizedSearch
+    ? ROUND10_ALL_NEW_SHOP_ITEMS.filter(
+        (it) =>
+          it.name.toLowerCase().includes(normalizedSearch) ||
+          it.description.toLowerCase().includes(normalizedSearch) ||
+          it.badge.toLowerCase().includes(normalizedSearch) ||
+          it.effectSummary.toLowerCase().includes(normalizedSearch)
+      )
+    : [];
+
+  const renderRound10CatalogGrid = (items: Round10ShopCatalogItem[]) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      {items.map((item) => {
+        const isOwned = !item.isConsumable && r10State.unlockedIds.includes(item.id);
+        const isEquipped =
+          (item.subType === 'click_fx' && r10State.equippedClickFx === item.id) ||
+          (item.subType === 'confetti_fx' &&
+            r10State.equippedConfettiFx === item.id) ||
+          (item.subType === 'hud_nameplate' &&
+            r10State.equippedNameplate === item.name);
+        const tokenCount =
+          item.isConsumable && item.consumableKey
+            ? r10State.inventory[item.consumableKey] || 0
+            : 0;
+
+        return (
+          <div
+            key={item.id}
+            data-testid={`r10-shop-card-${item.id}`}
+            className={`rounded-2xl border-3 border-slate-950 p-4 flex flex-col justify-between gap-3 shadow-[3px_3px_0_#000] transition-transform ${
+              isEquipped
+                ? 'bg-amber-50 ring-2 ring-amber-400'
+                : isOwned
+                ? 'bg-emerald-50/75'
+                : 'bg-white'
+            } text-slate-950`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900 text-amber-300 text-[10px] font-black uppercase font-mario">
+                  {item.fxColorHex && (
+                    <span
+                      className="w-2.5 h-2.5 rounded-full border border-white/60 inline-block"
+                      style={{ backgroundColor: item.fxColorHex }}
+                    />
+                  )}
+                  <span>{item.badge}</span>
+                </span>
+                {item.isConsumable ? (
+                  <span className="px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300 text-[10px] font-black tabular-nums">
+                    Owned: {tokenCount}
+                  </span>
+                ) : isOwned ? (
+                  <span className="px-2 py-0.5 rounded-lg bg-emerald-200 text-emerald-950 border border-emerald-500 text-[10px] font-black">
+                    UNLOCKED
+                  </span>
+                ) : null}
+              </div>
+
+              <h3 className="text-sm sm:text-base font-black text-slate-950 font-display leading-snug">
+                {item.name}
+              </h3>
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                {item.description}
+              </p>
+              <div className="px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-300 text-[11px] font-extrabold text-slate-800">
+                {item.effectSummary}
+              </div>
+            </div>
+
+            <div className="pt-1">
+              {item.isConsumable || !isOwned ? (
+                <button
+                  type="button"
+                  onClick={() => handleBuyRound10Item(item)}
+                  disabled={coins < item.price}
+                  className="min-h-[44px] w-full rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center justify-center gap-1.5 cursor-pointer tabular-nums"
+                >
+                  <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                  <span>
+                    {item.isConsumable
+                      ? `Buy Pack · ${item.price} Coins`
+                      : `Unlock · ${item.price} Coins`}
+                  </span>
+                </button>
+              ) : item.subType === 'click_fx' ||
+                item.subType === 'confetti_fx' ||
+                item.subType === 'hud_nameplate' ? (
+                <button
+                  type="button"
+                  onClick={() => handleEquipRound10Item(item)}
+                  className={`min-h-[44px] w-full rounded-xl font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                    isEquipped
+                      ? 'bg-emerald-500 text-slate-950'
+                      : 'bg-slate-900 text-amber-300 hover:bg-slate-800'
+                  }`}
+                >
+                  <Check className="w-4 h-4 shrink-0" />
+                  <span>{isEquipped ? 'Active & Equipped' : 'Equip Now'}</span>
+                </button>
+              ) : (
+                <div className="min-h-[44px] w-full rounded-xl bg-emerald-100 border-2 border-emerald-600 text-emerald-950 font-black text-xs inline-flex items-center justify-center gap-1.5">
+                  <Check className="w-4 h-4 shrink-0 text-emerald-700" />
+                  <span>Active in Collection</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className={`space-y-6 max-w-full min-w-0 ${isModal ? 'max-w-4xl mx-auto' : 'max-w-6xl mx-auto'}`}>
@@ -1295,21 +1978,227 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         </div>
       )}
 
-      {/* Category Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sm:flex-wrap bg-[#1e293b] p-2 rounded-2xl border-3 border-slate-950 shadow-[4px_4px_0_#000]">
+      {/* High-Roller Coin Rain Particle Animation (100+ Coin Spend) */}
+      <AnimatePresence>
+        {coinRainBurstId > 0 && (
+          <motion.div
+            key={coinRainBurstId}
+            data-testid="shop-coin-rain"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pointer-events-none fixed inset-0 z-[120] overflow-hidden"
+          >
+            {Array.from({ length: 22 }).map((_, idx) => {
+              const leftPct = (idx * 4.5 + (idx % 3) * 2) % 96;
+              const delay = (idx % 6) * 0.08;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ y: -60, x: 0, rotate: 0, opacity: 1 }}
+                  animate={{
+                    y: '108vh',
+                    rotate: idx % 2 === 0 ? 360 : -360,
+                    opacity: [1, 1, 0.85, 0],
+                  }}
+                  transition={{ duration: 1.9 + (idx % 4) * 0.2, delay, ease: 'easeIn' }}
+                  style={{ left: `${leftPct}%` }}
+                  className="absolute top-0"
+                >
+                  <MarioCoinIcon className="w-7 h-7 drop-shadow-[0_3px_4px_rgba(0,0,0,0.65)]" />
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* "WHERE CAN I USE MY COINS?" INTERACTIVE DIRECTORY + BAZAAR SEARCH */}
+      <section
+        aria-label="Where Can I Use My Coins Guide"
+        data-testid="where-to-use-coins-panel"
+        className="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-white rounded-3xl border-4 border-slate-950 p-4 sm:p-5 shadow-[5px_5px_0_#000] space-y-4"
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+              <Compass className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sm sm:text-lg font-black text-amber-300 font-display uppercase tracking-tight">
+                  WHERE CAN I USE MY COINS? · {totalShopCatalogCount}+ ITEMS &amp; LIVE GAME BOOSTS
+                </h2>
+                <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-400/60 text-emerald-300 text-[10px] font-black font-mario">
+                  CHAMBERS +{chambersPrestige.bonusCoinPct}% PRESTIGE
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 font-semibold">
+                Your coins now work everywhere: inside live Quest Quizzes (50/50, Hints, Boss Shields), Arcade Games (2x Payouts &amp; Radars), Law Chambers, Lucky Wheel &amp; 17 Shop Vaults!
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="relative flex-1 sm:flex-initial min-w-[210px]">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="search"
+                value={shopSearchQuery}
+                onChange={(e) => setShopSearchQuery(e.target.value)}
+                data-testid="shop-global-search-input"
+                aria-label="Search Toad Shop items"
+                placeholder={`Search ${ROUND10_ALL_NEW_SHOP_ITEMS.length}+ vault items...`}
+                className="min-h-[44px] w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border-2 border-slate-700 focus:border-amber-400 text-xs font-bold text-white placeholder:text-slate-400 outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              data-testid="toggle-where-to-use-coins-btn"
+              onClick={() => {
+                setShowCoinGuide((prev) => !prev);
+                marioAudio.playClick();
+              }}
+              className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border-2 border-slate-600 text-xs font-black cursor-pointer whitespace-nowrap"
+            >
+              {showCoinGuide ? 'Hide Coin Map' : 'Show Where to Use Coins'}
+            </button>
+          </div>
+        </div>
+
+        {/* Live Token Backpack Summary Bar */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-black">
+          <span className="text-amber-300 uppercase font-mario text-[10px]">
+            YOUR CONSUMABLE BACKPACK:
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-rose-200 tabular-nums">
+            50/50 Zappers: {r10State.inventory.quiz5050}
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-sky-200 tabular-nums">
+            Hint Scrolls: {r10State.inventory.quizHint}
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-amber-200 tabular-nums">
+            Boss Shields: {r10State.inventory.quizShield}
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-emerald-200 tabular-nums">
+            Arcade 2x: {r10State.inventory.arcade2x}
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-purple-200 tabular-nums">
+            Arcade Shields: {r10State.inventory.arcadeShield}
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-cyan-200 tabular-nums">
+            Radars: {r10State.inventory.arcadeRadar}
+          </span>
+        </div>
+
+        {showCoinGuide && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+            {COIN_UTILITY_DESTINATIONS.map((dest) => (
+              <div
+                key={dest.id}
+                data-testid={`coin-destination-${dest.id}`}
+                className="rounded-2xl bg-slate-900/95 border-2 border-slate-700/90 hover:border-amber-400/80 p-3.5 flex flex-col justify-between gap-2.5 transition-colors"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario truncate">
+                      {dest.costRangeLabel}
+                    </span>
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-black text-white font-display leading-snug">
+                    {dest.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                    {dest.description}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCoinDestinationJump(dest.targetType, dest.targetValue)
+                  }
+                  className="min-h-[40px] w-full px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>{dest.ctaLabel}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {normalizedSearch && (
+          <div className="pt-3 border-t border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-amber-300 uppercase font-mario">
+                SEARCH RESULTS FOR &ldquo;{shopSearchQuery}&rdquo; ({matchingRound10Items.length} VAULT MATCHES)
+              </span>
+              <button
+                type="button"
+                onClick={() => setShopSearchQuery('')}
+                className="text-xs font-bold text-slate-300 hover:text-white underline cursor-pointer"
+              >
+                Clear Search
+              </button>
+            </div>
+            {matchingRound10Items.length > 0 ? (
+              renderRound10CatalogGrid(matchingRound10Items)
+            ) : (
+              <p className="text-xs text-slate-400 font-semibold">
+                No vault items matched that keyword. Try &ldquo;Narra&rdquo;, &ldquo;50/50&rdquo;, &ldquo;Confetti&rdquo;, &ldquo;Relic&rdquo;, or &ldquo;Yoshi&rdquo;.
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Non-Scrollable Multi-Column Category Navigator Grid (Zero Horizontal Scrollbar) */}
+      <nav
+        aria-label="Toad Shop Categories"
+        data-testid="shop-category-grid"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 bg-[#1e293b] p-2.5 rounded-2xl border-3 border-slate-950 shadow-[4px_4px_0_#000]"
+      >
         {[
-          { id: 'powerups' as const, label: `Power-Ups & Maps (${POWERUP_ITEMS.length})`, icon: Sparkles },
+          { id: 'powerups' as const, label: `Power-Ups (${POWERUP_ITEMS.length})`, icon: Sparkles },
+          {
+            id: 'law_chambers' as const,
+            label: `Law Chambers (${LAW_CHAMBERS_UPGRADE_ITEMS.length})`,
+            icon: Landmark,
+          },
+          {
+            id: 'arcade_quiz_boosts' as const,
+            label: `Boost Packs (${ARCADE_AND_QUIZ_CONSUMABLE_ITEMS.length})`,
+            icon: Layers,
+          },
+          { id: 'lucky_wheel' as const, label: 'Lucky Wheel', icon: Gift },
+          {
+            id: 'click_confetti_fx' as const,
+            label: `Click & FX (${CLICK_AND_CONFETTI_FX_ITEMS.length})`,
+            icon: Wand2,
+          },
+          {
+            id: 'relics_badges' as const,
+            label: `Relics & Plates (${RELICS_AND_NAMEPLATES_ITEMS.length})`,
+            icon: Award,
+          },
+          {
+            id: 'extended_gear' as const,
+            label: `Studio Gear (${EXTENDED_COMPANIONS_AND_FRAMES_ITEMS.length})`,
+            icon: BookOpen,
+          },
+          { id: 'special_events' as const, label: `Special Events (${SPECIAL_EVENT_ITEMS.length})`, icon: Flame },
+          { id: 'luxury' as const, label: `Luxury Goods (${LUXURY_GOODS_ITEMS.length})`, icon: Gem },
+          { id: 'mystery' as const, label: '3-Tier Chests', icon: HelpCircle },
+          { id: 'soundpacks' as const, label: `Sound Packs (${SOUNDPACK_ITEMS.length})`, icon: Volume2 },
+          { id: 'themes' as const, label: `UI Themes (${THEME_ITEMS.length})`, icon: Palette },
           { id: 'avatars' as const, label: `Heroes (${AVATAR_ITEMS.length})`, icon: User },
           {
             id: 'companions' as const,
-            label: `Companions & Frames (${COMPANION_ITEMS.length + CARD_FRAME_ITEMS.length})`,
+            label: `Pets & Frames (${COMPANION_ITEMS.length + CARD_FRAME_ITEMS.length})`,
             icon: Frame,
           },
-          { id: 'themes' as const, label: `UI Themes (${THEME_ITEMS.length})`, icon: Palette },
-          { id: 'perks' as const, label: `Study Boosters (${PERK_ITEMS.length})`, icon: Zap },
-          { id: 'soundpacks' as const, label: `Soundscape Packs (${SOUNDPACK_ITEMS.length})`, icon: Volume2 },
+          { id: 'perks' as const, label: `Study Boosts (${PERK_ITEMS.length})`, icon: Zap },
           { id: 'prestige' as const, label: `Prestige (${PRESTIGE_ITEMS.length})`, icon: Crown },
-          { id: 'mystery' as const, label: '3-Tier Chests', icon: HelpCircle },
           { id: 'certificate' as const, label: 'Master Diploma', icon: FileCheck2 },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -1323,18 +2212,442 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                 marioAudio.playTabSwitch();
               }}
               data-testid={`shop-tab-${tab.id}`}
-              className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`min-h-[44px] w-full inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer text-center leading-tight ${
                 isCurrent
                   ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
-                  : 'bg-slate-800/80 text-slate-200 hover:bg-slate-700 hover:text-white border-2 border-transparent'
+                  : 'bg-slate-800/90 text-slate-200 hover:bg-slate-700 hover:text-white border-2 border-slate-700/70'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              <span>{tab.label}</span>
+              <span className="truncate">{tab.label}</span>
             </button>
           );
         })}
-      </div>
+      </nav>
+
+      {/* ==================== NEW CATEGORY 1: LAW CHAMBERS SANCTUARY ==================== */}
+      {activeCategory === 'law_chambers' && (
+        <div data-testid="shop-law-chambers-panel" className="space-y-4">
+          <div className="bg-gradient-to-br from-amber-950 via-stone-900 to-slate-950 text-white rounded-3xl border-4 border-slate-950 p-5 sm:p-6 shadow-[5px_5px_0_#000] space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[10px] font-black uppercase font-mario">
+                  <Landmark className="w-3.5 h-3.5" />
+                  <span>INTERACTIVE COUNSEL SANCTUARY</span>
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-white font-display">
+                  {chambersPrestige.rankLabel.toUpperCase()} ({chambersPrestige.unlockedCount}/{chambersPrestige.totalCount} FURNISHED)
+                </h2>
+                <p className="text-xs sm:text-sm text-amber-100/90 font-semibold max-w-2xl">
+                  Upgrade your personal Philippine Labor Law Chambers from a starter carrel into a Supreme Court Grand Suite! Every unlocked piece lights up inside your live office diagram below.
+                </p>
+              </div>
+              <div className="px-4 py-3 rounded-2xl bg-black/60 border-2 border-amber-400 text-right shrink-0">
+                <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                  SANCTUARY PRESTIGE BONUS
+                </span>
+                <span className="text-2xl font-black text-white font-display tabular-nums">
+                  +{chambersPrestige.bonusCoinPct}% Prestige
+                </span>
+              </div>
+            </div>
+
+            {/* Live Visual Sanctuary Floorplan Preview */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-2">
+              {LAW_CHAMBERS_UPGRADE_ITEMS.slice(0, 12).map((furn) => {
+                const placed = r10State.unlockedIds.includes(furn.id);
+                return (
+                  <div
+                    key={furn.id}
+                    className={`rounded-xl p-2.5 border-2 text-center transition-all ${
+                      placed
+                        ? 'bg-amber-400/20 border-amber-400 text-amber-200 shadow-xs'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-500'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase font-mario block truncate">
+                      {furn.chambersSlot || furn.badge}
+                    </span>
+                    <span className="text-xs font-extrabold block truncate mt-0.5">
+                      {placed ? furn.name.split(' ').slice(0, 3).join(' ') : 'Empty Slot'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {renderRound10CatalogGrid(LAW_CHAMBERS_UPGRADE_ITEMS)}
+        </div>
+      )}
+
+      {/* ==================== NEW CATEGORY 2: ARCADE & QUIZ CONSUMABLE BOOST PACKS ==================== */}
+      {activeCategory === 'arcade_quiz_boosts' && (
+        <div data-testid="shop-boost-packs-panel" className="space-y-4">
+          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-emerald-950 text-white rounded-3xl border-4 border-slate-950 p-5 shadow-[4px_4px_0_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
+                QUEST LIFELINES &amp; ARCADE POWER-UP BUNDLES (20 PACKS)
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-200 font-semibold mt-1">
+                Stockpile discounted 50/50 Option Zappers, Counsel Toad Statutory Hints, Boss Mistake Shields, and Arcade 2x Payout Tickets—then trigger them directly inside Quest &amp; Arcade!
+              </p>
+            </div>
+            {onNavigateTab && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleCoinDestinationJump('app_tab', 'quiz')}
+                  className="min-h-[44px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black cursor-pointer whitespace-nowrap"
+                >
+                  Go to Quest
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCoinDestinationJump('app_tab', 'vault')}
+                  className="min-h-[44px] px-3.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs border-2 border-black cursor-pointer whitespace-nowrap"
+                >
+                  Go to Arcade
+                </button>
+              </div>
+            )}
+          </div>
+
+          {renderRound10CatalogGrid(ARCADE_AND_QUIZ_CONSUMABLE_ITEMS)}
+        </div>
+      )}
+
+      {/* ==================== NEW CATEGORY 3: TOAD'S LUCKY STAR PRIZE WHEEL ==================== */}
+      {activeCategory === 'lucky_wheel' && (
+        <div data-testid="shop-lucky-wheel-panel" className="bg-gradient-to-b from-purple-950 via-slate-950 to-slate-900 text-white rounded-3xl border-4 border-slate-950 p-5 sm:p-7 shadow-[6px_6px_0_#000] space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/15 pb-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[10px] font-black uppercase font-mario">
+                <Gift className="w-3.5 h-3.5" />
+                <span>TOAD&apos;S CARNIVAL PAVILION · SPINS: {r10State.wheelSpinsCount}</span>
+              </span>
+              <h2 className="text-xl sm:text-3xl font-black text-white font-display mt-1.5">
+                TOAD&apos;S LUCKY STAR PRIZE WHEEL
+              </h2>
+              <p className="text-xs sm:text-sm text-purple-200 font-semibold">
+                Every spin guarantees a prize: Gold Coin Jackpots, 50/50 Zappers, Hint Scrolls, Arcade 2x Tickets, or Instant 2x Super Star Rush!
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+            {/* Animated Conic Wheel Visual */}
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="relative w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center">
+                <div className="absolute -top-3 z-20 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-amber-300 drop-shadow-[0_3px_0_#000]" />
+                <div
+                  style={{
+                    transform: `rotate(${wheelRotationDeg}deg)`,
+                    transition: isSpinningWheel
+                      ? 'transform 0.88s cubic-bezier(0.16, 1, 0.3, 1)'
+                      : 'none',
+                    background:
+                      'conic-gradient(#f59e0b 0deg 45deg, #f43f5e 45deg 90deg, #10b981 90deg 135deg, #1e293b 135deg 180deg, #0ea5e9 180deg 225deg, #9333ea 225deg 270deg, #fb923c 270deg 315deg, #fde047 315deg 360deg)',
+                  }}
+                  className="w-full h-full rounded-full border-8 border-black shadow-[0_6px_0_#000] relative flex items-center justify-center"
+                >
+                  <div className="w-16 h-16 rounded-full bg-slate-950 border-4 border-amber-400 flex items-center justify-center shadow-lg">
+                    <MarioStarIcon className="w-8 h-8" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+                <button
+                  type="button"
+                  data-testid="spin-lucky-wheel-standard-btn"
+                  onClick={() => handleSpinLuckyWheel(false)}
+                  disabled={coins < 25 || isSpinningWheel}
+                  className="min-h-[48px] px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer tabular-nums"
+                >
+                  <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                  <span>{isSpinningWheel ? 'Spinning...' : 'Standard Spin · 25 Coins'}</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="spin-lucky-wheel-highroller-btn"
+                  onClick={() => handleSpinLuckyWheel(true)}
+                  disabled={coins < 75 || isSpinningWheel}
+                  className="min-h-[48px] px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-400 hover:from-rose-400 hover:to-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer tabular-nums"
+                >
+                  <MarioStarIcon className="w-4 h-4 shrink-0" />
+                  <span>3x High-Roller Spin · 75 Coins</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 8-Wedge Prize Legend */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-black uppercase text-amber-300 font-mario">
+                8 GUARANTEED PRIZE WEDGES (TRIPLE PAYOUT ON HIGH-ROLLER!)
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {TOAD_LUCKY_WHEEL_WEDGES.map((w, i) => (
+                  <div
+                    key={w.id}
+                    className={`rounded-xl px-3.5 py-2.5 border-2 border-black font-black text-xs flex items-center justify-between gap-2 ${w.colorClass}`}
+                  >
+                    <span>#{i + 1} · {w.label}</span>
+                  </div>
+                ))}
+              </div>
+              {wheelWinBanner && (
+                <div
+                  role="status"
+                  data-testid="lucky-wheel-result-banner"
+                  className="p-4 rounded-2xl bg-emerald-400 text-slate-950 border-3 border-black font-black text-xs sm:text-sm text-center shadow-[0_3px_0_#000]"
+                >
+                  {wheelWinBanner}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== NEW CATEGORY 4: CLICK SPARKS & CONFETTI FX ==================== */}
+      {activeCategory === 'click_confetti_fx' && (
+        <div data-testid="shop-click-fx-panel" className="space-y-4">
+          <div className="bg-slate-900 text-white rounded-3xl border-3 border-slate-950 p-5 shadow-[4px_4px_0_#000]">
+            <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
+              EQUIPPABLE CLICK SPARKS &amp; VICTORY CONFETTI FX ({CLICK_AND_CONFETTI_FX_ITEMS.length} EFFECTS)
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
+              Customize your interactive pointer sparks across the entire reviewer and upgrade your celebratory confetti bursts!
+            </p>
+          </div>
+          {renderRound10CatalogGrid(CLICK_AND_CONFETTI_FX_ITEMS)}
+        </div>
+      )}
+
+      {/* ==================== NEW CATEGORY 5: STATUTORY RELICS & HUD NAMEPLATES ==================== */}
+      {activeCategory === 'relics_badges' && (
+        <div data-testid="shop-relics-panel" className="space-y-4">
+          <div className="bg-slate-900 text-white rounded-3xl border-3 border-slate-950 p-5 shadow-[4px_4px_0_#000]">
+            <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
+              6-WORLD STATUTORY MUSEUM RELICS &amp; HUD NAMEPLATES ({RELICS_AND_NAMEPLATES_ITEMS.length} COLLECTIBLES)
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
+              Collect iconic artifacts from Philippine Labor Law jurisprudence and equip prestigious Counsel Nameplates on your shop &amp; profile banner!
+            </p>
+          </div>
+          {renderRound10CatalogGrid(RELICS_AND_NAMEPLATES_ITEMS)}
+        </div>
+      )}
+
+      {/* ==================== NEW CATEGORY 6: EXTENDED STUDIO GEAR & COMPANIONS ==================== */}
+      {activeCategory === 'extended_gear' && (
+        <div data-testid="shop-extended-gear-panel" className="space-y-4">
+          <div className="bg-slate-900 text-white rounded-3xl border-3 border-slate-950 p-5 shadow-[4px_4px_0_#000]">
+            <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
+              EXTENDED STUDY MASCOTS, CODAL FOLIOS &amp; STUDIO COLLECTIBLES ({EXTENDED_COMPANIONS_AND_FRAMES_ITEMS.length} ITEMS)
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
+              Expand your study arsenal with rare Mushroom Kingdom paralegal mascots, gilded statutory folios, and collector desk gear!
+            </p>
+          </div>
+          {renderRound10CatalogGrid(EXTENDED_COMPANIONS_AND_FRAMES_ITEMS)}
+        </div>
+      )}
+
+      {/* Toad's Special Events View */}
+      {activeCategory === 'special_events' && (
+        <div data-testid="shop-special-events-panel" className="space-y-4">
+          <div className="bg-gradient-to-r from-rose-950 via-slate-900 to-amber-950 text-white p-4 sm:p-5 rounded-2xl border-3 border-black shadow-[3px_3px_0_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+                <Flame className="w-7 h-7 text-red-600" />
+              </div>
+              <div>
+                <h2 className="font-black text-base sm:text-lg uppercase font-display text-amber-300">
+                  TOAD&apos;S SPECIAL EVENTS &amp; ROYAL DECREES
+                </h2>
+                <p className="text-xs font-semibold text-slate-200 mt-0.5">
+                  High-impact Bar Review event passes! Spend 100+ Coins to trigger the Golden Coin Rain celebration!
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs font-black font-mario">
+              {effectiveSpecialEvents.bossSkipTokens > 0 && (
+                <span className="px-3 py-1.5 rounded-xl bg-rose-500 text-white border-2 border-black">
+                  BOSS SKIPS: {effectiveSpecialEvents.bossSkipTokens}
+                </span>
+              )}
+              {effectiveSpecialEvents.doubleXpEndsAt > Date.now() && (
+                <span className="px-3 py-1.5 rounded-xl bg-amber-400 text-slate-950 border-2 border-black">
+                  2X EVENT ACTIVE
+                </span>
+              )}
+              {effectiveSpecialEvents.unlockAllModulesEndsAt > Date.now() && (
+                <span className="px-3 py-1.5 rounded-xl bg-cyan-300 text-slate-950 border-2 border-black">
+                  ALL WORLDS UNLOCKED
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+            {SPECIAL_EVENT_ITEMS.map((ev) => (
+              <div
+                key={ev.id}
+                data-testid={`shop-item-${ev.id}`}
+                className="bg-white rounded-2xl mario-card border-4 border-slate-950 p-5 flex flex-col justify-between h-full"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-black uppercase px-2.5 py-1 rounded-lg bg-rose-950 text-amber-300 border border-black font-mario">
+                      {ev.badge}
+                    </span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-400">
+                      Coin Rain 100c+
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-100 border-3 border-black flex items-center justify-center shrink-0 shadow-[0_3px_0_#000]">
+                      {ev.id.includes('unlock') ? (
+                        <Unlock className="w-7 h-7 text-cyan-700" />
+                      ) : ev.id.includes('skip') ? (
+                        <Shield className="w-7 h-7 text-rose-700" />
+                      ) : (
+                        <MarioStarIcon className="w-8 h-8" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-950 text-base sm:text-lg font-display leading-snug">
+                        {ev.name}
+                      </h3>
+                      <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">
+                        {ev.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs font-black text-emerald-900 bg-emerald-50 rounded-xl px-3 py-2 border border-emerald-300">
+                    Effect: {ev.effectLabel}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t-2 border-slate-200 mt-4 flex items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-1.5 font-black text-sm text-slate-950 tabular-nums">
+                    <MarioCoinIcon className="w-5 h-5 shrink-0" />
+                    <span>{ev.price} Coins</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleBuySpecialEvent(ev)}
+                    disabled={coins < ev.price}
+                    data-testid={`buy-${ev.id}`}
+                    className="min-h-[44px] inline-flex items-center justify-center px-4 rounded-xl font-black text-xs bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap"
+                  >
+                    Activate Event Pass
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Luxury Goods Boutique View */}
+      {activeCategory === 'luxury' && (
+        <div data-testid="shop-luxury-goods-panel" className="space-y-4">
+          <div className="bg-gradient-to-r from-slate-950 via-amber-950 to-slate-950 text-white p-4 sm:p-5 rounded-2xl border-3 border-amber-400 shadow-[4px_4px_0_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-300 to-yellow-500 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+                <Gem className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="font-black text-base sm:text-lg uppercase font-display text-amber-300">
+                  MUSHROOM KINGDOM LUXURY BOUTIQUE (150c–500c)
+                </h2>
+                <p className="text-xs font-semibold text-slate-200 mt-0.5">
+                  Collectible 24K Gold-Plated Avatar Frames, Rare Mushroom Auras, and Vintage Game Cartridge Leaderboard Badges!
+                </p>
+              </div>
+            </div>
+            {effectiveLuxury.cartridgeBadge !== 'lux_cart_none' && (
+              <span className="px-3 py-1.5 rounded-xl bg-amber-400 text-slate-950 border-2 border-black text-xs font-black font-mario">
+                {LUXURY_CARTRIDGE_LABELS[effectiveLuxury.cartridgeBadge]}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            {LUXURY_GOODS_ITEMS.map((good) => {
+              const isUnlocked = unlockedItemIds.includes(good.id);
+              const isEquipped =
+                (good.slot === 'frame' && effectiveLuxury.avatarFrame === good.frameId) ||
+                (good.slot === 'aura' && effectiveLuxury.mushroomAura === good.auraId) ||
+                (good.slot === 'cartridge' && effectiveLuxury.cartridgeBadge === good.cartridgeId);
+
+              return (
+                <div
+                  key={good.id}
+                  data-testid={`shop-luxury-${good.id}`}
+                  className={`bg-white rounded-2xl mario-card border-4 border-slate-950 p-5 flex flex-col justify-between h-full ${
+                    isEquipped ? 'ring-4 ring-amber-400 bg-amber-50/50' : ''
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-slate-950 text-amber-300 border border-amber-400/60 font-mario">
+                        {good.badge}
+                      </span>
+                      {isEquipped && (
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-200 text-emerald-950 border border-emerald-600">
+                          Equipped
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-black text-slate-950 text-base font-display leading-snug">
+                      {good.name}
+                    </h3>
+                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                      {good.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t-2 border-slate-200 mt-4 flex items-center justify-between gap-2">
+                    <div className="inline-flex items-center gap-1.5 font-black text-sm text-slate-950 tabular-nums">
+                      <MarioCoinIcon className="w-5 h-5 shrink-0" />
+                      <span>{good.price} Coins</span>
+                    </div>
+
+                    {isUnlocked ? (
+                      <button
+                        type="button"
+                        onClick={() => handleEquipLuxuryGood(good)}
+                        data-testid={`equip-${good.id}`}
+                        className={`min-h-[44px] px-4 rounded-xl font-black text-xs border-2 border-black cursor-pointer whitespace-nowrap ${
+                          isEquipped
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+                            : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-[0_2px_0_#000]'
+                        }`}
+                      >
+                        {isEquipped ? 'Equipped (Unequip)' : 'Equip Luxury'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleBuyLuxuryGood(good)}
+                        disabled={coins < good.price}
+                        data-testid={`buy-${good.id}`}
+                        className="min-h-[44px] px-4 rounded-xl font-black text-xs bg-gradient-to-r from-amber-400 to-yellow-300 hover:brightness-105 disabled:opacity-40 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+                      >
+                        Acquire Luxury
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Power-Ups & Shortcut Maps View */}
       {activeCategory === 'powerups' && (
@@ -2387,7 +3700,6 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                 maxWin: '50 Coins',
                 desc: 'Classic Mushroom Kingdom lucky block. Win up to 50 Gold Coins!',
                 accent: 'bg-amber-400 text-slate-950',
-                symbol: '?',
               },
               {
                 tier: 'golden' as const,
@@ -2395,8 +3707,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                 cost: 60,
                 maxWin: '175 Coins + 2x Buff',
                 desc: 'High-yield Golden Block! Up to 175 Gold Coins or a 2-Minute Super Star 2x Rush.',
-                accent: 'bg-yellow-300 text-slate-950',
-                symbol: 'STAR?',
+                accent: 'bg-gradient-to-br from-yellow-200 via-amber-300 to-amber-500 text-slate-950',
               },
               {
                 tier: 'royal' as const,
@@ -2404,12 +3715,12 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                 cost: 150,
                 maxWin: '420 Coin Jackpot!',
                 desc: 'Supreme high-roller chest! Up to 420 Gold Coins or a 3-Minute Super Star Overdrive.',
-                accent: 'bg-gradient-to-br from-rose-500 to-amber-400 text-slate-950',
-                symbol: 'ROYAL',
+                accent: 'bg-gradient-to-br from-rose-500 via-red-600 to-amber-400 text-slate-950',
               },
             ].map((chest) => (
               <div
                 key={chest.tier}
+                data-testid={`mystery-chest-${chest.tier}`}
                 className="bg-slate-950/90 border-3 border-slate-700 rounded-2xl p-5 flex flex-col justify-between text-center space-y-4"
               >
                 <div className="space-y-3">
@@ -2418,13 +3729,84 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   </span>
                   <button
                     type="button"
+                    aria-label={`Open ${chest.title} for ${chest.cost} Coins`}
                     onClick={() => handleRollMysteryBox(chest.tier)}
                     disabled={coins < chest.cost || isRollingMystery}
                     className={`w-24 h-24 mx-auto rounded-3xl ${chest.accent} border-4 border-black flex items-center justify-center shadow-[0_6px_0_#000] active:translate-y-1 disabled:opacity-40 cursor-pointer transition-transform ${
                       isRollingMystery ? 'animate-bounce' : 'hover:scale-105'
                     }`}
                   >
-                    <span className="text-3xl font-black font-mario select-none">{chest.symbol}</span>
+                    {chest.tier === 'classic' && (
+                      <svg
+                        viewBox="0 0 64 64"
+                        aria-hidden="true"
+                        data-testid="chest-icon-classic"
+                        className="w-14 h-14"
+                      >
+                        <rect x="6" y="6" width="52" height="52" rx="10" fill="#f59e0b" stroke="#0f172a" strokeWidth="4" />
+                        <circle cx="14" cy="14" r="3" fill="#78350f" />
+                        <circle cx="50" cy="14" r="3" fill="#78350f" />
+                        <circle cx="14" cy="50" r="3" fill="#78350f" />
+                        <circle cx="50" cy="50" r="3" fill="#78350f" />
+                        <path
+                          d="M24 23c0-5 4-8 9-8s9 3 9 8c0 4-3 6-6 8-2 1-3 2-3 5h-5c0-5 2-7 5-9 2-1 3-2 3-4 0-2-1.5-3.5-3.5-3.5S29 21 29 23h-5zm5.5 19h5v6h-5v-6z"
+                          fill="#fffbeb"
+                          stroke="#0f172a"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    )}
+                    {chest.tier === 'golden' && (
+                      <svg
+                        viewBox="0 0 64 64"
+                        aria-hidden="true"
+                        data-testid="chest-icon-golden"
+                        className="w-14 h-14"
+                      >
+                        <rect x="6" y="6" width="52" height="52" rx="10" fill="#fde047" stroke="#0f172a" strokeWidth="4" />
+                        <rect x="12" y="12" width="40" height="40" rx="6" fill="#facc15" stroke="#ca8a04" strokeWidth="2" />
+                        <polygon
+                          points="32,14 37,25 49,26 40,34 43,46 32,40 21,46 24,34 15,26 27,25"
+                          fill="#fffbeb"
+                          stroke="#0f172a"
+                          strokeWidth="3"
+                          strokeLinejoin="round"
+                        />
+                        <circle cx="29" cy="30" r="2" fill="#0f172a" />
+                        <circle cx="35" cy="30" r="2" fill="#0f172a" />
+                      </svg>
+                    )}
+                    {chest.tier === 'royal' && (
+                      <svg
+                        viewBox="0 0 64 64"
+                        aria-hidden="true"
+                        data-testid="chest-icon-royal"
+                        className="w-14 h-14"
+                      >
+                        <path
+                          d="M10 26h44v26a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V26z"
+                          fill="#991b1b"
+                          stroke="#0f172a"
+                          strokeWidth="4"
+                        />
+                        <path
+                          d="M8 26c0-9 9-14 24-14s24 5 24 14H8z"
+                          fill="#dc2626"
+                          stroke="#0f172a"
+                          strokeWidth="4"
+                        />
+                        <rect x="27" y="21" width="10" height="14" rx="3" fill="#fbbf24" stroke="#0f172a" strokeWidth="3" />
+                        <circle cx="32" cy="28" r="2" fill="#0f172a" />
+                        <path
+                          d="M20 14l4-6 8 5 8-5 4 6"
+                          fill="none"
+                          stroke="#fde047"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </button>
                   <h3 className="text-lg font-black text-white font-display">{chest.title}</h3>
                   <p className="text-xs text-slate-300 font-medium leading-relaxed">{chest.desc}</p>
@@ -2451,175 +3833,320 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         </div>
       )}
 
-      {/* Official Master Diploma / Certificate */}
+      {/* Official Royal Grand Master Juris Diploma (Distinct from Print Studio Executive Certificate) */}
       {activeCategory === 'certificate' && (
         <div className="space-y-6">
           <div className="bg-white rounded-3xl border-4 border-slate-950 p-4 sm:p-6 shadow-[6px_6px_0_#000] text-slate-950 space-y-5 print:border-0 print:shadow-none print:p-0">
-            <div className="print:hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-slate-200 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
-                  <FileCheck2 className="w-7 h-7 text-slate-950" />
+            <div className="print:hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b-2 border-slate-200 pb-4">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-800 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
+                  <Crown className="w-7 h-7 text-amber-300" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black font-display">
-                    OFFICIAL CERTIFICATE OF LABOR MASTERY
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-900 border border-red-300 text-[10px] font-black uppercase font-mario">
+                    ROYAL ACADEMIC SENATE CHARTER · DISTINCT FROM PRINT STUDIO CERTIFICATE
+                  </span>
+                  <h2 className="text-xl font-black font-display mt-0.5">
+                    ROYAL GRAND MASTER JURIS DIPLOMA &amp; 6-WORLD TRANSCRIPT
                   </h2>
                   <p className="text-xs font-bold text-slate-600">
-                    High-Resolution Landscape Diploma covering Worlds 1–6 · Curated by Matthew (Main Creator)
+                    Ornate Crimson-Gold Senate Charter featuring High Academy Coat of Arms, 6-World Statutory Transcript Matrix &amp; Hanging Gold Rosette Seal
                   </p>
                 </div>
               </div>
 
-              {!isCertUnlocked ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  {onOpenCertificatePreview && (
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Landscape OR Portrait Orientation Switcher */}
+                <div
+                  role="group"
+                  aria-label="Master Diploma Orientation"
+                  data-testid="diploma-orientation-toggle"
+                  className="inline-flex items-center rounded-xl bg-slate-100 p-1 border-2 border-black"
+                >
+                  {(['landscape', 'portrait'] as const).map((orient) => (
                     <button
+                      key={orient}
                       type="button"
-                      data-testid="shop-preview-certificate-studio-btn"
+                      data-testid={`diploma-orient-${orient}`}
                       onClick={() => {
+                        setDiplomaOrientation(orient);
                         marioAudio.playClick();
-                        onOpenCertificatePreview();
                       }}
-                      className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      className={`min-h-[36px] px-3 rounded-lg text-xs font-black capitalize transition-all cursor-pointer ${
+                        diplomaOrientation === orient
+                          ? 'bg-red-800 text-amber-200 shadow-xs'
+                          : 'text-slate-700 hover:text-slate-950'
+                      }`}
                     >
-                      <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>Preview in Print Studio (24 Themes)</span>
+                      {orient}
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleBuyItem(CERTIFICATE_ITEM)}
-                    disabled={coins < CERTIFICATE_ITEM.price}
-                    className="min-h-[44px] px-5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                  >
-                    <MarioCoinIcon className="w-4 h-4 shrink-0" />
-                    <span>Unlock for 50 Coins</span>
-                  </button>
+                  ))}
                 </div>
-              ) : (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-950 border border-emerald-400 font-black text-xs rounded-xl">
-                    <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                    <span>Certificate Unlocked</span>
-                  </span>
-                  {onOpenCertificatePreview && (
+
+                {!isCertUnlocked ? (
+                  <>
+                    {onOpenCertificatePreview && (
+                      <button
+                        type="button"
+                        data-testid="shop-preview-certificate-studio-btn"
+                        onClick={() => {
+                          marioAudio.playClick();
+                          onOpenCertificatePreview();
+                        }}
+                        className="min-h-[44px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      >
+                        <Sparkles className="w-4 h-4 shrink-0" />
+                        <span>Executive Certificate (Print Studio)</span>
+                      </button>
+                    )}
                     <button
                       type="button"
-                      data-testid="shop-preview-certificate-studio-btn"
-                      onClick={() => {
-                        marioAudio.playClick();
-                        onOpenCertificatePreview();
-                      }}
-                      className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      data-testid="unlock-master-diploma-btn"
+                      onClick={() => handleBuyItem(CERTIFICATE_ITEM)}
+                      disabled={coins < CERTIFICATE_ITEM.price}
+                      className="min-h-[44px] px-5 rounded-xl bg-red-700 hover:bg-red-600 disabled:opacity-40 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
                     >
-                      <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>Customize in Print Studio</span>
+                      <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                      <span>Unlock Diploma · 50 Coins</span>
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    data-testid="print-certificate-btn"
-                    onClick={() => {
-                      marioAudio.playQuizComplete();
-                      downloadCertificateLandscapePdf({
-                        recipientName: certRecipientName.trim() || 'Mario Bar Candidate',
-                        honors: 'Master of Philippine Labor Standards (Worlds 1-6)',
-                        completedCount: ALL_LAW_TOPICS.length,
-                        totalCount: ALL_LAW_TOPICS.length,
-                      });
-                      setCertPdfDownloaded(true);
-                      window.setTimeout(() => setCertPdfDownloaded(false), 2600);
-                    }}
-                    className="min-h-[44px] px-4 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <FileDown className="w-4 h-4 shrink-0" />
-                    <span>
-                      {certPdfDownloaded
-                        ? 'Certificate PDF Downloaded'
-                        : 'Download Landscape Certificate PDF'}
+                  </>
+                ) : (
+                  <>
+                    <span className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-950 border border-emerald-400 font-black text-xs rounded-xl">
+                      <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                      <span>Charter Unlocked</span>
                     </span>
-                  </button>
-                </div>
-              )}
+                    {onOpenCertificatePreview && (
+                      <button
+                        type="button"
+                        data-testid="shop-preview-certificate-studio-btn"
+                        onClick={() => {
+                          marioAudio.playClick();
+                          onOpenCertificatePreview();
+                        }}
+                        className="min-h-[44px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      >
+                        <Sparkles className="w-4 h-4 shrink-0" />
+                        <span>Compare Executive Certificate</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      data-testid="print-certificate-btn"
+                      onClick={() => {
+                        marioAudio.playQuizComplete();
+                        downloadMasterDiplomaPdf({
+                          recipientName: certRecipientName.trim() || 'Mario Bar Candidate',
+                          honors: 'Grand Master of Philippine Labor Standards · Summa Cum Codal',
+                          completedCount: ALL_LAW_TOPICS.length,
+                          totalCount: ALL_LAW_TOPICS.length,
+                          orientation: diplomaOrientation,
+                        });
+                        setCertPdfDownloaded(true);
+                        window.setTimeout(() => setCertPdfDownloaded(false), 2600);
+                      }}
+                      className="min-h-[44px] px-4 rounded-xl bg-emerald-700 text-white hover:bg-emerald-600 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    >
+                      <FileDown className="w-4 h-4 shrink-0" />
+                      <span>
+                        {certPdfDownloaded
+                          ? 'Master Diploma PDF Saved!'
+                          : `Download ${diplomaOrientation === 'portrait' ? 'Portrait' : 'Landscape'} Diploma PDF`}
+                      </span>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Recipient Customization */}
-            <div className="print:hidden flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-2xl border-2 border-slate-200">
-              <label htmlFor="cert-name" className="text-xs font-black uppercase text-slate-700">
-                Recipient Name on Diploma:
-              </label>
-              <input
-                id="cert-name"
-                type="text"
-                value={certRecipientName}
-                onChange={(e) => setCertRecipientName(e.target.value)}
-                maxLength={40}
-                className="min-h-[44px] px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm text-slate-900 flex-1 min-w-[200px]"
-                placeholder="e.g., Juan Dela Cruz, Bar Candidate"
-              />
+            <div className="print:hidden flex flex-wrap items-center justify-between gap-3 bg-amber-50/70 p-3 rounded-2xl border-2 border-amber-300">
+              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[240px]">
+                <label htmlFor="cert-name" className="text-xs font-black uppercase text-red-950">
+                  Conferral Scholar Name:
+                </label>
+                <input
+                  id="cert-name"
+                  type="text"
+                  value={certRecipientName}
+                  onChange={(e) => setCertRecipientName(e.target.value)}
+                  maxLength={40}
+                  className="min-h-[44px] px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm text-slate-900 flex-1 min-w-[200px]"
+                  placeholder="e.g., Atty. Juan Dela Cruz"
+                />
+              </div>
+              <span className="text-[11px] font-black text-amber-900 uppercase font-mario">
+                Active Sheet: A4 {diplomaOrientation.toUpperCase()} ({diplomaOrientation === 'portrait' ? '210 × 297 mm' : '297 × 210 mm'})
+              </span>
             </div>
 
-            {/* Live Interactive Landscape Diploma Canvas / Card */}
+            {/* Distinct Royal Grand Master Juris Diploma & 6-World Transcript Charter */}
             <div
               id="official-labor-certificate"
               data-testid="toadshop-labor-certificate"
-              className="p-6 sm:p-9 lg:px-12 lg:py-8 bg-gradient-to-br from-amber-50 via-white to-amber-50/50 border-8 border-amber-500 rounded-3xl shadow-inner relative overflow-hidden text-center max-w-5xl mx-auto w-full lg:aspect-[1.414/1] flex flex-col justify-between gap-3"
+              data-orientation={diplomaOrientation}
+              className={`mx-auto w-full bg-[#fefaf0] border-[10px] border-double border-red-900 ring-4 ring-amber-500 rounded-2xl shadow-xl relative overflow-hidden flex flex-col justify-between transition-all ${
+                diplomaOrientation === 'portrait'
+                  ? 'max-w-[760px] p-5 sm:p-8 gap-5 lg:min-h-[1020px]'
+                  : 'max-w-5xl p-5 sm:p-8 lg:px-10 lg:py-7 gap-4'
+              }`}
             >
-              <div className="absolute top-3.5 left-3.5 w-10 h-10 border-t-4 border-l-4 border-amber-600" />
-              <div className="absolute top-3.5 right-3.5 w-10 h-10 border-t-4 border-r-4 border-amber-600" />
-              <div className="absolute bottom-3.5 left-3.5 w-10 h-10 border-b-4 border-l-4 border-amber-600" />
-              <div className="absolute bottom-3.5 right-3.5 w-10 h-10 border-b-4 border-r-4 border-amber-600" />
+              {/* Filigree Corner Medallions */}
+              <div className="absolute top-2.5 left-2.5 w-8 h-8 border-t-4 border-l-4 border-amber-600 pointer-events-none" />
+              <div className="absolute top-2.5 right-2.5 w-8 h-8 border-t-4 border-r-4 border-amber-600 pointer-events-none" />
+              <div className="absolute bottom-2.5 left-2.5 w-8 h-8 border-b-4 border-l-4 border-amber-600 pointer-events-none" />
+              <div className="absolute bottom-2.5 right-2.5 w-8 h-8 border-b-4 border-r-4 border-amber-600 pointer-events-none" />
 
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-center gap-2">
-                  <MarioStarIcon className="w-5 h-5 shrink-0" />
-                  <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-amber-800 font-mario">
-                    MUSHROOM KINGDOM · HIGH ACADEMY OF SOCIAL LEGISLATION
-                  </span>
-                  <MarioStarIcon className="w-5 h-5 shrink-0" />
+              {/* 1. Royal Crimson Academic Senate Header Banner + Coat of Arms */}
+              <div className="bg-gradient-to-r from-red-950 via-red-900 to-red-950 text-amber-100 rounded-xl p-4 sm:px-6 sm:py-4 border-2 border-amber-400 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                <div className="flex items-center gap-3.5">
+                  {/* Inline SVG High Academy Coat of Arms Crest */}
+                  <svg
+                    viewBox="0 0 64 64"
+                    className="w-14 h-14 shrink-0 drop-shadow"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M32 4 L56 14 V32 C56 47 45 56 32 61 C19 56 8 47 8 32 V14 Z"
+                      fill="#7f1d1d"
+                      stroke="#fbbf24"
+                      strokeWidth="3.5"
+                    />
+                    <path
+                      d="M32 11 L49 18 V31 C49 42 41 49 32 53 C23 49 15 42 15 31 V18 Z"
+                      fill="#991b1b"
+                      stroke="#fde68a"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M22 27 H42 M32 18 V42 M23 27 L19 35 H27 Z M41 27 L37 35 H45 Z"
+                      stroke="#fde047"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </svg>
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black tracking-widest uppercase text-amber-300 font-mario block">
+                      ROYAL MUSHROOM ACADEMY · SENATE OF SOCIAL LEGISLATION
+                    </span>
+                    <h1 className="text-xl sm:text-3xl font-black text-white font-serif tracking-tight mt-0.5">
+                      GRAND MASTER JURIS DIPLOMA
+                    </h1>
+                    <p className="text-[11px] sm:text-xs italic text-amber-200 font-serif">
+                      &ldquo;Iustitia Laboris · Salus Populi Suprema Lex · Six-World Statutory Charter&rdquo;
+                    </p>
+                  </div>
                 </div>
+                <div className="px-3 py-1.5 rounded-lg bg-black/40 border border-amber-400/70 text-center shrink-0">
+                  <span className="text-[9px] font-black uppercase text-amber-300 font-mario block">
+                    CHARTER SEAL
+                  </span>
+                  <span className="text-xs font-mono font-black text-white">
+                    MK-JURIS-{ALL_LAW_TOPICS.length}W
+                  </span>
+                </div>
+              </div>
 
-                <h1 className="text-2xl sm:text-4xl font-black font-display text-slate-900 tracking-tight">
-                  CERTIFICATE OF LABOR MASTERY
-                </h1>
-                <p className="text-xs sm:text-sm font-semibold text-slate-600 italic">
-                  This certifies that the esteemed Bar Review Candidate
+              {/* 2. Official Charter Registry Strip */}
+              <div className="bg-amber-100/90 border-y-2 border-amber-600/70 px-3 py-1.5 rounded-lg flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-xs font-mono font-black text-amber-950">
+                <span>CHARTER REGISTRY: #PD442-ROYAL-SENATE</span>
+                <span>TRANSCRIPT STATUS: 6 / 6 WORLDS SEALED</span>
+                <span>
+                  CONFERRED:{' '}
+                  {new Date().toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </span>
+              </div>
+
+              {/* 3. Formal Sovereign Conferral Proclamation */}
+              <div className="text-center space-y-1.5 py-1">
+                <p className="text-xs sm:text-sm font-serif italic text-slate-700">
+                  By Sovereign Authority of the High Academy of Jurisprudence, Be It Known That
+                </p>
+                <div className="text-2xl sm:text-4xl font-black font-serif text-red-900 border-b-2 border-amber-600 pb-1 max-w-xl mx-auto tracking-tight">
+                  {certRecipientName || 'Mario Bar Candidate'}
+                </div>
+                <p className="text-[11px] sm:text-xs font-black uppercase tracking-widest text-amber-900 pt-0.5">
+                  IS HEREBY INVESTED AS GRAND MASTER OF PHILIPPINE LABOR STANDARDS (SUMMA CUM CODAL)
                 </p>
               </div>
 
-              <div className="py-1">
-                <div className="text-2xl sm:text-4xl font-black text-red-600 font-display border-b-2 border-amber-500 pb-1 max-w-xl mx-auto">
-                  {certRecipientName || 'Mario Bar Candidate'}
-                </div>
+              {/* 4. 6-World Statutory Transcript Pillar Matrix (Unique to Master Diploma!) */}
+              <div
+                data-testid="master-diploma-transcript-grid"
+                className={`grid gap-2.5 text-left ${
+                  diplomaOrientation === 'portrait'
+                    ? 'grid-cols-1 sm:grid-cols-2'
+                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                }`}
+              >
+                {MASTER_DIPLOMA_TRANSCRIPT_PILLARS.map((pillar) => (
+                  <div
+                    key={pillar.worldNum}
+                    className="bg-white/95 border-2 border-amber-700/60 rounded-xl p-2.5 shadow-2xs flex flex-col justify-between gap-1"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[9px] font-mono font-black uppercase text-red-900">
+                        WORLD {pillar.worldNum} · {pillar.code}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 border border-emerald-600 text-[8px] font-black text-emerald-900">
+                        {pillar.gradeSeal}
+                      </span>
+                    </div>
+                    <div className="text-xs font-black font-serif text-slate-950">
+                      {pillar.pillarTitle}
+                    </div>
+                    <div className="text-[10px] font-semibold text-slate-600 leading-snug">
+                      {pillar.statutesCovered}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <p className="text-xs sm:text-sm font-medium text-slate-700 max-w-3xl mx-auto leading-relaxed">
-                has with distinction completed all 6 Worlds of the Philippine Labor Standards Memory Aid (Articles 82–155, Book III Labor Code, R.A. 11360 Service Charges, D.O. 174 Contracting, R.A. 10361 Batas Kasambahay, Protective Laws, and Statutory Leaves including R.A. 11210, R.A. 8187, R.A. 8972/11861, R.A. 9710 &amp; R.A. 9262).
-              </p>
-
-              <div className="pt-3 border-t border-amber-300/80 grid grid-cols-3 items-center gap-4">
-                <div className="text-center min-w-0 px-1">
-                  <div className="max-w-[240px] border-b-2 border-black mx-auto mb-1 font-bold text-xs leading-snug">
-                    {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              {/* 5. Three-Signatory Academic Senate Footer + Hanging Crimson-Gold Rosette Seal */}
+              <div
+                className={`pt-3 border-t-2 border-amber-600/60 grid items-end gap-4 text-center ${
+                  diplomaOrientation === 'portrait'
+                    ? 'grid-cols-1 sm:grid-cols-3'
+                    : 'grid-cols-3'
+                }`}
+              >
+                <div className="px-1">
+                  <div className="font-serif italic font-bold text-xs sm:text-sm text-slate-900 border-b-2 border-red-950 pb-0.5 mb-1">
+                    Matthew Cesar Corpuz
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 font-mario block leading-tight">
-                    DATE OF CONFERMENT
+                  <span className="text-[9px] font-black uppercase text-red-900 font-mario block">
+                    CHANCELLOR &amp; LEAD CURATOR
                   </span>
                 </div>
 
-                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-amber-400 border-4 border-black flex flex-col items-center justify-center shadow-[0_4px_0_#000]">
-                  <MarioStarIcon className="w-7 h-7 sm:w-8 sm:h-8" />
-                  <span className="text-[8px] font-black uppercase text-slate-950 font-mario">
-                    GOLD SEAL
-                  </span>
+                {/* Hanging-Ribbon Gold Rosette Seal */}
+                <div className="flex flex-col items-center justify-center">
+                  <div className="relative flex flex-col items-center">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-600 border-4 border-red-950 shadow-md flex flex-col items-center justify-center z-10">
+                      <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-red-950" />
+                      <span className="text-[7px] sm:text-[8px] font-black uppercase text-red-950 font-mario leading-none mt-0.5">
+                        SENATE SEAL
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 -mt-2 z-0">
+                      <div className="w-3.5 h-5 bg-red-800 border border-black -rotate-12" />
+                      <div className="w-3.5 h-5 bg-red-800 border border-black rotate-12" />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-center min-w-0 px-1">
-                  <div className="max-w-[260px] border-b-2 border-black mx-auto mb-1 font-black text-xs leading-snug">
-                    Matthew · Main Creator &amp; Curator
+                <div className="px-1">
+                  <div className="font-serif italic font-bold text-xs sm:text-sm text-slate-900 border-b-2 border-red-950 pb-0.5 mb-1">
+                    High Tribunal of Labor Standards
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 font-mario block leading-tight">
-                    MAIN CREATOR &amp; CURATOR
+                  <span className="text-[9px] font-black uppercase text-red-900 font-mario block">
+                    ACADEMIC SENATE REGISTRAR
                   </span>
                 </div>
               </div>

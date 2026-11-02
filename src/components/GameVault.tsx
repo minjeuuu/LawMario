@@ -40,6 +40,25 @@ import {
   ToadsworthRetirementTribunalGame,
 } from './MasterVaultGames';
 import {
+  CaptainToadMinecartGame,
+  DaisyHolidayDerbyGame,
+  DryBonesCryptGame,
+  PaulineWageConcertGame,
+} from './RoyalVaultGames';
+import {
+  LakituSkybridgeDashGame,
+  DolePayrollStampDeskGame,
+  MushroomUnionTowerDefenseGame,
+  KoopaPinballBumperArenaGame,
+  BarCodalWordHuntGame,
+  LaborCommissionerBalanceSimGame,
+} from './EngagingArcadeGames';
+import {
+  loadRound10VaultState,
+  saveRound10VaultState,
+  Round10VaultState,
+} from '../utils/round10Features';
+import {
   MarioCharacterAvatar,
   MarioMushroomIcon,
   MarioQuestionBlockIcon,
@@ -78,6 +97,10 @@ import {
   ChevronDown,
   ChevronUp,
   Shuffle,
+  Compass,
+  Sun,
+  ShieldAlert,
+  Music,
 } from 'lucide-react';
 import { GameDoctrinesModal } from './GameDoctrinesModal';
 
@@ -94,6 +117,12 @@ interface GameVaultProps {
 }
 
 export type VaultGameId =
+  | 'skybridge_dash'
+  | 'payroll_stamp_desk'
+  | 'union_tower_defense'
+  | 'koopa_pinball'
+  | 'codal_word_hunt'
+  | 'commissioner_sim'
   | 'courtroom'
   | 'pipe_sorter'
   | 'catcher'
@@ -121,7 +150,11 @@ export type VaultGameId =
   | 'rosalina_observatory'
   | 'peach_dispatch'
   | 'wario_vault'
-  | 'toadsworth_tribunal';
+  | 'toadsworth_tribunal'
+  | 'captain_toad_minecart'
+  | 'daisy_holiday_derby'
+  | 'dry_bones_crypt'
+  | 'pauline_wage_concert';
 
 export const GameVault: React.FC<GameVaultProps> = ({
   equippedAvatar,
@@ -131,29 +164,120 @@ export const GameVault: React.FC<GameVaultProps> = ({
   onEarnCoins,
   onQuizCompleted,
 }) => {
-  const [activeGame, setActiveGame] = useState<VaultGameId>('courtroom');
+  const [activeGame, setActiveGame] = useState<VaultGameId>('skybridge_dash');
+  const [genreFilter, setGenreFilter] = useState<
+    'all' | 'non_quiz' | 'action' | 'strategy' | 'quiz_arcade'
+  >('all');
   const [showHeroPicker, setShowHeroPicker] = useState(false);
   const [showDoctrineModal, setShowDoctrineModal] = useState(false);
   const [compactVaultHeader, setCompactVaultHeader] = useState<boolean>(() =>
     typeof window !== 'undefined' ? window.innerWidth < 640 : false
   );
+  const [vaultTokens, setVaultTokens] = useState<Round10VaultState>(() =>
+    loadRound10VaultState()
+  );
+  const [doublePayoutActive, setDoublePayoutActive] = useState(false);
+  const [bonusShieldActive, setBonusShieldActive] = useState(false);
+  const [boostNotice, setBoostNotice] = useState<string | null>(null);
 
   const heroMeta = getHeroMeta(equippedAvatar);
 
-  const handleEarnCoins = (amount: number) => {
-    if (onEarnCoins && amount > 0) {
-      onEarnCoins(amount);
+  const syncSaveTokens = (next: Round10VaultState) => {
+    setVaultTokens(next);
+    saveRound10VaultState(next);
+  };
+
+  const handleActivate2xBoost = () => {
+    if (doublePayoutActive) return;
+    if (vaultTokens.inventory.arcade2x > 0) {
+      syncSaveTokens({
+        ...vaultTokens,
+        inventory: {
+          ...vaultTokens.inventory,
+          arcade2x: vaultTokens.inventory.arcade2x - 1,
+        },
+      });
+      setDoublePayoutActive(true);
+      setBoostNotice('2x Arcade Coin Payout Ticket Activated!');
+      marioAudio.playPowerUp();
+    } else if (coins >= 15) {
+      setCoins((c) => Math.max(0, c - 15));
+      setDoublePayoutActive(true);
+      setBoostNotice('Spent 15 Coins · 2x Arcade Coin Multiplier Active!');
+      marioAudio.playPowerUp();
     } else {
-      setCoins((prev) => Math.max(0, prev + amount));
+      marioAudio.playStomp();
     }
-    if (amount > 0) marioAudio.playCoin();
+  };
+
+  const handleActivateShieldBoost = () => {
+    if (bonusShieldActive) return;
+    if (vaultTokens.inventory.arcadeShield > 0) {
+      syncSaveTokens({
+        ...vaultTokens,
+        inventory: {
+          ...vaultTokens.inventory,
+          arcadeShield: vaultTokens.inventory.arcadeShield - 1,
+        },
+      });
+      setBonusShieldActive(true);
+      setBoostNotice('Bonus Shield & Extra HP Activated!');
+      marioAudio.playPowerUp();
+    } else if (coins >= 15) {
+      setCoins((c) => Math.max(0, c - 15));
+      setBonusShieldActive(true);
+      setBoostNotice('Spent 15 Coins · Bonus Shield & Extra HP Active!');
+      marioAudio.playPowerUp();
+    } else {
+      marioAudio.playStomp();
+    }
+  };
+
+  const handleBuyRadarCharge = () => {
+    if (coins < 10) {
+      marioAudio.playStomp();
+      return;
+    }
+    setCoins((c) => Math.max(0, c - 10));
+    syncSaveTokens({
+      ...vaultTokens,
+      inventory: {
+        ...vaultTokens.inventory,
+        arcadeRadar: vaultTokens.inventory.arcadeRadar + 2,
+      },
+    });
+    setBoostNotice('Spent 10 Coins · Added +2 Inspector Radar Charges!');
+    marioAudio.playCoin();
+  };
+
+  const handleConsumeRadar = () => {
+    if (vaultTokens.inventory.arcadeRadar <= 0) return;
+    syncSaveTokens({
+      ...vaultTokens,
+      inventory: {
+        ...vaultTokens.inventory,
+        arcadeRadar: Math.max(0, vaultTokens.inventory.arcadeRadar - 1),
+      },
+    });
+  };
+
+  const handleEarnCoins = (amount: number) => {
+    const finalAmount = doublePayoutActive ? amount * 2 : amount;
+    if (onEarnCoins && finalAmount > 0) {
+      onEarnCoins(finalAmount);
+    } else {
+      setCoins((prev) => Math.max(0, prev + finalAmount));
+    }
+    if (finalAmount > 0) marioAudio.playCoin();
   };
 
   const handleAdjustCoins = (delta: number) => {
     if (delta > 0 && onEarnCoins) {
-      onEarnCoins(delta);
+      onEarnCoins(doublePayoutActive ? delta * 2 : delta);
     } else {
-      setCoins((prev) => Math.max(0, prev + delta));
+      setCoins((prev) =>
+        Math.max(0, prev + (delta > 0 && doublePayoutActive ? delta * 2 : delta))
+      );
     }
   };
 
@@ -164,7 +288,62 @@ export const GameVault: React.FC<GameVaultProps> = ({
     desc: string;
     badge: string;
     icon: React.ReactNode;
+    group?: 'non_quiz' | 'action' | 'strategy' | 'quiz_arcade';
   }[] = [
+    {
+      id: 'skybridge_dash',
+      title: 'Lakitu Skybridge Dash',
+      genre: 'Canvas2D Action Dodger',
+      desc: 'Jump Spinies, dash through Hex Orbs, and dodge telegraphed Chargers while collecting 15 Golden Statutory Tokens!',
+      badge: 'NEW ACTION',
+      icon: <Cloud className="w-6 h-6 text-sky-500" />,
+      group: 'non_quiz',
+    },
+    {
+      id: 'payroll_stamp_desk',
+      title: 'DOLE Payroll Stamp Desk',
+      genre: 'Papers-Please Audit Sim',
+      desc: 'Inspect real employer payslips against minimum wage, 125% OT & Art. 113 rules — then slam APPROVE or VIOLATION!',
+      badge: 'NEW DESK SIM',
+      icon: <Stamp className="w-6 h-6 text-amber-600" />,
+      group: 'non_quiz',
+    },
+    {
+      id: 'union_tower_defense',
+      title: 'Mushroom Union Tower Defense',
+      genre: '5×7 Tactical Lane Defense',
+      desc: 'Spend Union Gold to deploy OT Turrets, D.O. 174 Barriers & Garnish Beacons against 20 Wage-Shaver waves!',
+      badge: 'NEW DEFENSE',
+      icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
+      group: 'non_quiz',
+    },
+    {
+      id: 'koopa_pinball',
+      title: 'Koopa Shell Pinball Arena',
+      genre: 'Canvas2D Bumper Physics',
+      desc: 'Launch emerald Koopa Shells into 125% OT, 200% Holiday & 22.5d Retirement bumpers with twin arcade flippers!',
+      badge: 'NEW PINBALL',
+      icon: <Disc className="w-6 h-6 text-lime-600" />,
+      group: 'non_quiz',
+    },
+    {
+      id: 'codal_word_hunt',
+      title: 'Bar Codal Word Hunt',
+      genre: '10×10 Puzzle + 4-Tier Hints',
+      desc: 'Search high-contrast letter grids for key Labor Code & Supreme Court doctrines using our 4-Tier Hint magnifier!',
+      badge: 'NEW PUZZLE',
+      icon: <BookOpen className="w-6 h-6 text-indigo-600" />,
+      group: 'non_quiz',
+    },
+    {
+      id: 'commissioner_sim',
+      title: 'Labor Commissioner Balance Sim',
+      genre: '4-Meter Policy Simulator',
+      desc: 'Rule on national workplace crises while balancing Worker Welfare, Compliance, Enterprise Health & Public Trust!',
+      badge: 'NEW STRATEGY',
+      icon: <Scale className="w-6 h-6 text-purple-600" />,
+      group: 'non_quiz',
+    },
     {
       id: 'courtroom',
       title: 'Courtroom Boss Battle',
@@ -388,6 +567,38 @@ export const GameVault: React.FC<GameVaultProps> = ({
       desc: 'Adjudicate 22.5-day retirement pay, underground miner ages (50–60), and authorized cause separation multipliers!',
       badge: 'ART. 298–302',
       icon: <Scale className="w-6 h-6 text-purple-600" />,
+    },
+    {
+      id: 'captain_toad_minecart',
+      title: "Captain Toad's Kasambahay Minecart",
+      genre: 'Special Groups & R.A. 10361',
+      desc: 'Steer Captain Toad’s headlamp cart through Batas Kasambahay rest periods, child labor hours, and PWD 100% minimum wage!',
+      badge: 'R.A. 10361 / 9231',
+      icon: <Compass className="w-6 h-6 text-amber-600" />,
+    },
+    {
+      id: 'daisy_holiday_derby',
+      title: "Daisy's Sarasaland Holiday Derby",
+      genre: 'Holiday & Rest Day Multipliers',
+      desc: 'Sprint through Sarasaland checkpoints! Compute 200% Regular, 300% Double Holiday, and 260% Rest Day holiday rates!',
+      badge: 'ART. 93–94',
+      icon: <Sun className="w-6 h-6 text-orange-500" />,
+    },
+    {
+      id: 'dry_bones_crypt',
+      title: "Dry Bones' Prescription Crypt",
+      genre: 'Prescriptive Periods & Safe Spaces',
+      desc: 'Unlock ancient statutory crypts! Master 3-year money claims, 4-year illegal dismissal, R.A. 7877, and R.A. 11313 deadlines!',
+      badge: 'ART. 305–306',
+      icon: <ShieldAlert className="w-6 h-6 text-slate-700" />,
+    },
+    {
+      id: 'pauline_wage_concert',
+      title: "Pauline's New Donk Wage Concert",
+      genre: '13th Month, Service Charge & Wages',
+      desc: 'Conduct New Donk City’s brass band! Hit the right notes on P.D. 851 13th month pay, 100% service charges, and D.O. 174!',
+      badge: 'P.D. 851 / R.A. 11360',
+      icon: <Music className="w-6 h-6 text-rose-600" />,
     },
   ];
 
@@ -643,6 +854,67 @@ export const GameVault: React.FC<GameVaultProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Live Arcade Coin Boost Bar — Spend Coins or Shop Tokens Directly Inside Arcade */}
+        <div
+          data-testid="arcade-coin-boost-bar"
+          className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2"
+        >
+          <div className="flex items-center gap-1.5 text-xs font-black text-amber-300">
+            <MarioCoinIcon className="w-4 h-4 shrink-0" />
+            <span>SPEND COINS IN ARCADE (x{coins}):</span>
+            {boostNotice && (
+              <span className="text-emerald-300 font-semibold hidden sm:inline">
+                · {boostNotice}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              data-testid="arcade-boost-2x-btn"
+              onClick={handleActivate2xBoost}
+              disabled={doublePayoutActive || (vaultTokens.inventory.arcade2x <= 0 && coins < 15)}
+              className={`min-h-[38px] px-3 rounded-xl text-xs font-black border cursor-pointer transition-colors whitespace-nowrap ${
+                doublePayoutActive
+                  ? 'bg-emerald-400 text-slate-950 border-black'
+                  : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-400/60 disabled:opacity-40'
+              }`}
+            >
+              {doublePayoutActive
+                ? '2x Payout ON'
+                : vaultTokens.inventory.arcade2x > 0
+                ? `Use 2x Ticket (${vaultTokens.inventory.arcade2x})`
+                : '2x Payout (15c)'}
+            </button>
+            <button
+              type="button"
+              data-testid="arcade-boost-shield-btn"
+              onClick={handleActivateShieldBoost}
+              disabled={bonusShieldActive || (vaultTokens.inventory.arcadeShield <= 0 && coins < 15)}
+              className={`min-h-[38px] px-3 rounded-xl text-xs font-black border cursor-pointer transition-colors whitespace-nowrap ${
+                bonusShieldActive
+                  ? 'bg-sky-400 text-slate-950 border-black'
+                  : 'bg-slate-900 hover:bg-slate-800 text-sky-300 border-sky-400/60 disabled:opacity-40'
+              }`}
+            >
+              {bonusShieldActive
+                ? 'Extra Armor ON'
+                : vaultTokens.inventory.arcadeShield > 0
+                ? `Use Armor (${vaultTokens.inventory.arcadeShield})`
+                : 'Extra Armor (15c)'}
+            </button>
+            <button
+              type="button"
+              data-testid="arcade-boost-radar-btn"
+              onClick={handleBuyRadarCharge}
+              disabled={coins < 10}
+              className="min-h-[38px] px-3 rounded-xl text-xs font-black border bg-slate-900 hover:bg-slate-800 text-emerald-300 border-emerald-400/60 disabled:opacity-40 cursor-pointer whitespace-nowrap"
+            >
+              +2 Radars (10c · Own {vaultTokens.inventory.arcadeRadar})
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Active Game Surface First on Mobile for Immediate Thumb Reach, Followed by Full Game Shelf */}
@@ -651,6 +923,78 @@ export const GameVault: React.FC<GameVaultProps> = ({
         className="relative z-10 select-none w-full max-w-full min-w-0"
         onContextMenu={(e) => e.preventDefault()}
       >
+        {activeGame === 'skybridge_dash' && (
+          <LakituSkybridgeDashGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            boosts={{
+              doublePayoutActive,
+              bonusShieldActive,
+              radarCharges: vaultTokens.inventory.arcadeRadar,
+              onConsumeRadar: handleConsumeRadar,
+            }}
+          />
+        )}
+        {activeGame === 'payroll_stamp_desk' && (
+          <DolePayrollStampDeskGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            boosts={{
+              doublePayoutActive,
+              bonusShieldActive,
+              radarCharges: vaultTokens.inventory.arcadeRadar,
+              onConsumeRadar: handleConsumeRadar,
+            }}
+          />
+        )}
+        {activeGame === 'union_tower_defense' && (
+          <MushroomUnionTowerDefenseGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            boosts={{
+              doublePayoutActive,
+              bonusShieldActive,
+              radarCharges: vaultTokens.inventory.arcadeRadar,
+              onConsumeRadar: handleConsumeRadar,
+            }}
+          />
+        )}
+        {activeGame === 'koopa_pinball' && (
+          <KoopaPinballBumperArenaGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            boosts={{
+              doublePayoutActive,
+              bonusShieldActive,
+              radarCharges: vaultTokens.inventory.arcadeRadar,
+              onConsumeRadar: handleConsumeRadar,
+            }}
+          />
+        )}
+        {activeGame === 'codal_word_hunt' && (
+          <BarCodalWordHuntGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            boosts={{
+              doublePayoutActive,
+              bonusShieldActive,
+              radarCharges: vaultTokens.inventory.arcadeRadar,
+              onConsumeRadar: handleConsumeRadar,
+            }}
+          />
+        )}
+        {activeGame === 'commissioner_sim' && (
+          <LaborCommissionerBalanceSimGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            boosts={{
+              doublePayoutActive,
+              bonusShieldActive,
+              radarCharges: vaultTokens.inventory.arcadeRadar,
+              onConsumeRadar: handleConsumeRadar,
+            }}
+          />
+        )}
         {activeGame === 'courtroom' && (
           <CourtroomBossBattle
             equippedAvatar={equippedAvatar}
@@ -790,11 +1134,100 @@ export const GameVault: React.FC<GameVaultProps> = ({
             onQuizCompleted={onQuizCompleted}
           />
         )}
+        {activeGame === 'captain_toad_minecart' && (
+          <CaptainToadMinecartGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'daisy_holiday_derby' && (
+          <DaisyHolidayDerbyGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'dry_bones_crypt' && (
+          <DryBonesCryptGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
+        {activeGame === 'pauline_wage_concert' && (
+          <PaulineWageConcertGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+            onQuizCompleted={onQuizCompleted}
+          />
+        )}
       </div>
 
-      {/* 28-Game Selection Shelf */}
+      {/* Genre Filter Strip for 38 Playable Games */}
+      <div
+        data-testid="arcade-genre-filter-strip"
+        className="flex flex-wrap items-center gap-2 bg-slate-900 p-2.5 rounded-2xl border-2 border-slate-800"
+      >
+        {[
+          { id: 'all' as const, label: `All Games (${games.length})` },
+          { id: 'non_quiz' as const, label: 'New Non-Quiz Games (6)' },
+          { id: 'action' as const, label: 'Action, Kart & 3D' },
+          { id: 'strategy' as const, label: 'Board, Slots & Puzzle' },
+          { id: 'quiz_arcade' as const, label: 'Doctrine Arcade' },
+        ].map((gf) => (
+          <button
+            key={gf.id}
+            type="button"
+            onClick={() => {
+              setGenreFilter(gf.id);
+              marioAudio.playClick();
+            }}
+            className={`min-h-[40px] px-3.5 rounded-xl text-xs font-black transition-colors cursor-pointer ${
+              genreFilter === gf.id
+                ? 'bg-amber-400 text-slate-950 border-2 border-black'
+                : 'bg-slate-800 text-slate-200 hover:text-white border border-slate-700'
+            }`}
+          >
+            {gf.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 38-Game Selection Shelf */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {games.map((g) => {
+        {games
+          .filter((g) => {
+            if (genreFilter === 'all') return true;
+            if (genreFilter === 'non_quiz') return g.group === 'non_quiz';
+            if (genreFilter === 'action') {
+              return [
+                'skybridge_dash',
+                'koopa_pinball',
+                'kart',
+                'run2d',
+                'island3d',
+                'catcher',
+                'whack',
+                'koopa_breaker',
+                'yoshi_toss',
+              ].includes(g.id);
+            }
+            if (genreFilter === 'strategy') {
+              return [
+                'payroll_stamp_desk',
+                'union_tower_defense',
+                'codal_word_hunt',
+                'commissioner_sim',
+                'memory',
+                'toad_slots',
+                'lakitu_climber',
+                'bridge',
+              ].includes(g.id);
+            }
+            return g.group !== 'non_quiz';
+          })
+          .map((g) => {
           const isSelected = activeGame === g.id;
           return (
             <button

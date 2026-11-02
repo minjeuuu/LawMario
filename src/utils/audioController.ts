@@ -87,6 +87,86 @@ export const SOUND_PACK_DEFINITIONS: SoundPackInfo[] = [
     previewTone: 'Symphonic Fanfare',
     leadWave: 'triangle',
   },
+  {
+    id: 'sound_underwater_ambient',
+    name: 'Dire Dire Docks Coral Reef',
+    badge: 'N64 Aquatic',
+    era: '1996 Serene',
+    description: 'Dreamy electric-piano coral chords and gentle sub-aquatic bell progressions for calm statutory memorization.',
+    defaultPrice: 75,
+    previewTone: 'Aquatic Bell Pad',
+    leadWave: 'sine',
+  },
+  {
+    id: 'sound_peach_royal',
+    name: 'Peach Castle Harpsichord',
+    badge: 'Royal Court',
+    era: 'Baroque Chamber',
+    description: 'Regal plucked harpsichord cadences and chamber flute counter-melodies worthy of Supreme Court jurisprudence.',
+    defaultPrice: 80,
+    previewTone: 'Royal Harpsichord',
+    leadWave: 'triangle',
+  },
+  {
+    id: 'sound_yoshi_tropical',
+    name: 'Yoshi Island Marimba Breeze',
+    badge: 'Island Groove',
+    era: 'Tropical 16-Bit',
+    description: 'Sunny wooden marimba arpeggios, island basslines, and cheerful syncopated melodies that prevent study burnout.',
+    defaultPrice: 85,
+    previewTone: 'Wooden Marimba',
+    leadWave: 'sine',
+  },
+  {
+    id: 'sound_ghost_organ',
+    name: 'Luigi Mansion Pipe Organ',
+    badge: 'Mansion Mystery',
+    era: 'Gothic Baroque',
+    description: 'Playful gothic pipe-organ harmonies and mysterious pizzicato steps for late-night Bar exam case crunching.',
+    defaultPrice: 90,
+    previewTone: 'Haunted Pipe Organ',
+    leadWave: 'triangle',
+  },
+  {
+    id: 'sound_dk_jungle',
+    name: 'DK Country Jungle Groove',
+    badge: 'Jungle Rhythm',
+    era: 'Rareware 16-Bit',
+    description: 'Warm sub-bass grooves layered with atmospheric rainforest flute echoes and crisp rhythmic momentum.',
+    defaultPrice: 95,
+    previewTone: 'Rainforest Flute & Bass',
+    leadWave: 'triangle',
+  },
+  {
+    id: 'sound_rainbow_synthwave',
+    name: 'Rainbow Road Turbo Synth',
+    badge: 'Star Cup',
+    era: 'Neon Horizon',
+    description: 'Soaring analog lead synths and euphoric championship chord progressions for high-speed review sprints.',
+    defaultPrice: 110,
+    previewTone: 'Championship Synth',
+    leadWave: 'sawtooth',
+  },
+  {
+    id: 'sound_paper_acoustic',
+    name: 'Paper Kingdom Cozy Acoustic',
+    badge: 'Storybook',
+    era: 'Crafted Folk',
+    description: 'Intimate music-box celesta and warm acoustic pluck textures tailored for long reading sessions.',
+    defaultPrice: 115,
+    previewTone: 'Storybook Celesta',
+    leadWave: 'sine',
+  },
+  {
+    id: 'sound_starlight_jazz',
+    name: 'New Donk Starlight Jazz',
+    badge: 'Metro Brass',
+    era: 'Big Band Swing',
+    description: 'Upbeat walking basslines, velvet jazz seventh chords, and crisp brass stabs from Metro Kingdom.',
+    defaultPrice: 125,
+    previewTone: 'Metro Jazz Seventh',
+    leadWave: 'triangle',
+  },
 ];
 
 export interface SoundPackSynthProfile {
@@ -307,7 +387,241 @@ export const SOUND_PACK_SYNTH_PROFILES: Record<SoundPackId, SoundPackSynthProfil
       { f: 523.25, b: 130.81, d: 0.48 },
     ],
   },
+  sound_underwater_ambient: {
+    id: 'sound_underwater_ambient',
+    leadWave: 'sine',
+    bassWave: 'sine',
+    sfxWave: 'sine',
+    pitchMultiplier: 0.9438,
+    tempoScale: 1.28,
+    harmonicRatio: 1.5,
+    harmonicWave: 'sine',
+    harmonicGain: 0.36,
+    attackSec: 0.035,
+    releaseScale: 1.45,
+    lowpassHz: 1950,
+    signatureLoopMs: 6400,
+    signatureSteps: [
+      { f: 392.0, b: 130.81, d: 0.42 },
+      { f: 493.88, b: 130.81, d: 0.38 },
+      { f: 587.33, b: 196.0, d: 0.44 },
+      { f: 783.99, b: 196.0, d: 0.5 },
+      { f: 739.99, b: 185.0, d: 0.42 },
+      { f: 587.33, b: 146.83, d: 0.4 },
+      { f: 493.88, b: 123.47, d: 0.42 },
+      { f: 659.25, b: 164.81, d: 0.46 },
+      { f: 587.33, b: 146.83, d: 0.42 },
+      { f: 523.25, b: 130.81, d: 0.48 },
+      { f: 440.0, b: 110.0, d: 0.44 },
+      { f: 493.88, b: 123.47, d: 0.52 },
+    ],
+  },
+  sound_peach_royal: {
+    id: 'sound_peach_royal',
+    leadWave: 'triangle',
+    bassWave: 'triangle',
+    sfxWave: 'triangle',
+    pitchMultiplier: 1.0595,
+    tempoScale: 1.04,
+    harmonicRatio: 2.0,
+    harmonicWave: 'sine',
+    harmonicGain: 0.28,
+    attackSec: 0.01,
+    releaseScale: 1.15,
+    lowpassHz: 4400,
+    signatureLoopMs: 5400,
+    signatureSteps: [
+      { f: 523.25, b: 130.81, d: 0.28 },
+      { f: 659.25, b: 164.81, d: 0.26 },
+      { f: 783.99, b: 196.0, d: 0.28 },
+      { f: 1046.5, b: 261.63, d: 0.36 },
+      { f: 987.77, b: 246.94, d: 0.26 },
+      { f: 880.0, b: 220.0, d: 0.28 },
+      { f: 783.99, b: 196.0, d: 0.32 },
+      { f: 698.46, b: 174.61, d: 0.28 },
+      { f: 659.25, b: 164.81, d: 0.28 },
+      { f: 587.33, b: 146.83, d: 0.3 },
+      { f: 659.25, b: 164.81, d: 0.32 },
+      { f: 523.25, b: 130.81, d: 0.44 },
+    ],
+  },
+  sound_yoshi_tropical: {
+    id: 'sound_yoshi_tropical',
+    leadWave: 'sine',
+    bassWave: 'triangle',
+    sfxWave: 'triangle',
+    pitchMultiplier: 1.0,
+    tempoScale: 0.94,
+    harmonicRatio: 3.0,
+    harmonicWave: 'sine',
+    harmonicGain: 0.18,
+    attackSec: 0.006,
+    releaseScale: 0.92,
+    lowpassHz: 3600,
+    signatureLoopMs: 4800,
+    signatureSteps: [
+      { f: 523.25, b: 130.81, d: 0.22 },
+      { f: 659.25, b: 196.0, d: 0.2 },
+      { f: 783.99, b: 130.81, d: 0.24 },
+      { f: 880.0, b: 174.61, d: 0.22 },
+      { f: 783.99, b: 196.0, d: 0.22 },
+      { f: 659.25, b: 130.81, d: 0.26 },
+      { f: 587.33, b: 146.83, d: 0.22 },
+      { f: 698.46, b: 196.0, d: 0.22 },
+      { f: 783.99, b: 146.83, d: 0.24 },
+      { f: 659.25, b: 196.0, d: 0.26 },
+      { f: 523.25, b: 130.81, d: 0.34 },
+      { f: 392.0, b: 98.0, d: 0.3 },
+    ],
+  },
+  sound_ghost_organ: {
+    id: 'sound_ghost_organ',
+    leadWave: 'triangle',
+    bassWave: 'sine',
+    sfxWave: 'triangle',
+    pitchMultiplier: 0.8409,
+    tempoScale: 1.12,
+    harmonicRatio: 2.0,
+    harmonicWave: 'triangle',
+    harmonicGain: 0.35,
+    attackSec: 0.022,
+    releaseScale: 1.25,
+    lowpassHz: 2900,
+    signatureLoopMs: 5600,
+    signatureSteps: [
+      { f: 440.0, b: 110.0, d: 0.32 },
+      { f: 523.25, b: 130.81, d: 0.3 },
+      { f: 659.25, b: 164.81, d: 0.32 },
+      { f: 622.25, b: 155.56, d: 0.38 },
+      { f: 587.33, b: 146.83, d: 0.3 },
+      { f: 523.25, b: 130.81, d: 0.3 },
+      { f: 493.88, b: 123.47, d: 0.34 },
+      { f: 440.0, b: 110.0, d: 0.38 },
+      { f: 392.0, b: 98.0, d: 0.3 },
+      { f: 415.3, b: 103.83, d: 0.32 },
+      { f: 440.0, b: 110.0, d: 0.46 },
+    ],
+  },
+  sound_dk_jungle: {
+    id: 'sound_dk_jungle',
+    leadWave: 'triangle',
+    bassWave: 'triangle',
+    sfxWave: 'square',
+    pitchMultiplier: 0.8909,
+    tempoScale: 0.96,
+    harmonicRatio: 1.5,
+    harmonicWave: 'sine',
+    harmonicGain: 0.26,
+    attackSec: 0.012,
+    releaseScale: 1.08,
+    lowpassHz: 2800,
+    signatureLoopMs: 5100,
+    signatureSteps: [
+      { f: 392.0, b: 98.0, d: 0.26 },
+      { f: 466.16, b: 116.54, d: 0.24 },
+      { f: 523.25, b: 130.81, d: 0.28 },
+      { f: 587.33, b: 146.83, d: 0.32 },
+      { f: 523.25, b: 130.81, d: 0.24 },
+      { f: 466.16, b: 116.54, d: 0.26 },
+      { f: 392.0, b: 98.0, d: 0.3 },
+      { f: 349.23, b: 87.31, d: 0.26 },
+      { f: 392.0, b: 98.0, d: 0.28 },
+      { f: 466.16, b: 116.54, d: 0.28 },
+      { f: 392.0, b: 98.0, d: 0.42 },
+    ],
+  },
+  sound_rainbow_synthwave: {
+    id: 'sound_rainbow_synthwave',
+    leadWave: 'sawtooth',
+    bassWave: 'triangle',
+    sfxWave: 'triangle',
+    pitchMultiplier: 1.0595,
+    tempoScale: 0.9,
+    harmonicRatio: 1.005,
+    harmonicWave: 'sawtooth',
+    harmonicGain: 0.34,
+    attackSec: 0.012,
+    releaseScale: 1.16,
+    lowpassHz: 3900,
+    signatureLoopMs: 4900,
+    signatureSteps: [
+      { f: 587.33, b: 146.83, d: 0.24 },
+      { f: 739.99, b: 185.0, d: 0.24 },
+      { f: 880.0, b: 220.0, d: 0.26 },
+      { f: 1174.66, b: 293.66, d: 0.34 },
+      { f: 1108.73, b: 277.18, d: 0.26 },
+      { f: 987.77, b: 246.94, d: 0.26 },
+      { f: 880.0, b: 220.0, d: 0.3 },
+      { f: 783.99, b: 196.0, d: 0.26 },
+      { f: 880.0, b: 220.0, d: 0.28 },
+      { f: 987.77, b: 246.94, d: 0.3 },
+      { f: 1174.66, b: 293.66, d: 0.42 },
+    ],
+  },
+  sound_paper_acoustic: {
+    id: 'sound_paper_acoustic',
+    leadWave: 'sine',
+    bassWave: 'triangle',
+    sfxWave: 'sine',
+    pitchMultiplier: 1.0,
+    tempoScale: 1.15,
+    harmonicRatio: 2.0,
+    harmonicWave: 'sine',
+    harmonicGain: 0.24,
+    attackSec: 0.016,
+    releaseScale: 1.22,
+    lowpassHz: 3100,
+    signatureLoopMs: 5500,
+    signatureSteps: [
+      { f: 523.25, b: 130.81, d: 0.32 },
+      { f: 587.33, b: 146.83, d: 0.3 },
+      { f: 659.25, b: 164.81, d: 0.34 },
+      { f: 783.99, b: 196.0, d: 0.38 },
+      { f: 698.46, b: 174.61, d: 0.3 },
+      { f: 659.25, b: 164.81, d: 0.32 },
+      { f: 587.33, b: 146.83, d: 0.34 },
+      { f: 523.25, b: 130.81, d: 0.36 },
+      { f: 659.25, b: 164.81, d: 0.34 },
+      { f: 523.25, b: 130.81, d: 0.44 },
+    ],
+  },
+  sound_starlight_jazz: {
+    id: 'sound_starlight_jazz',
+    leadWave: 'triangle',
+    bassWave: 'sine',
+    sfxWave: 'triangle',
+    pitchMultiplier: 1.0,
+    tempoScale: 0.95,
+    harmonicRatio: 1.25,
+    harmonicWave: 'sine',
+    harmonicGain: 0.32,
+    attackSec: 0.014,
+    releaseScale: 1.12,
+    lowpassHz: 3700,
+    signatureLoopMs: 5000,
+    signatureSteps: [
+      { f: 523.25, b: 130.81, d: 0.26 },
+      { f: 622.25, b: 155.56, d: 0.22 },
+      { f: 659.25, b: 164.81, d: 0.28 },
+      { f: 783.99, b: 196.0, d: 0.26 },
+      { f: 932.33, b: 233.08, d: 0.32 },
+      { f: 880.0, b: 220.0, d: 0.28 },
+      { f: 783.99, b: 196.0, d: 0.26 },
+      { f: 659.25, b: 164.81, d: 0.26 },
+      { f: 587.33, b: 146.83, d: 0.28 },
+      { f: 659.25, b: 196.0, d: 0.3 },
+      { f: 523.25, b: 130.81, d: 0.4 },
+    ],
+  },
 };
+
+export type StudyAmbiencePreset =
+  | 'off'
+  | 'forest'
+  | 'underwater'
+  | 'castle'
+  | 'rainy_library'
+  | 'starry_night';
 
 export interface SoundToggles {
   jump: boolean;
@@ -333,7 +647,7 @@ export interface AudioSettings {
   musicVolume: number; // 0.0 to 1.0 (Music volume)
   ambianceEnabled: boolean; // Background atmospheric soundscape toggle
   ambianceVolume: number; // 0.0 to 1.0 (Ambiance volume)
-  studyAmbience?: 'off' | 'forest' | 'underwater' | 'castle'; // Dedicated Study Ambience soundscape
+  studyAmbience?: StudyAmbiencePreset; // Dedicated Study Ambience soundscape
   tabSfx: TabSfxType;
   cardSfx: CardSfxType;
   quizSfx: QuizSfxType;
@@ -1251,15 +1565,67 @@ export class AudioController {
   }
 
   public setStudyAmbience(
-    preset: 'off' | 'forest' | 'underwater' | 'castle',
+    preset: StudyAmbiencePreset,
     playChime: boolean = false
   ) {
-    this.updateSettings({
-      studyAmbience: preset,
-      ambianceEnabled: preset !== 'off' ? true : false,
-    });
-    if (playChime && preset !== 'off' && this.settings.enabled) {
-      this.playClick();
+    if (preset !== 'off') {
+      // Ensure audio is audible immediately: unmute if interactive, and pause BGM if BGM was blocking ambience
+      const nextUpdates: Partial<AudioSettings> = {
+        studyAmbience: preset,
+        ambianceEnabled: true,
+        ambianceVolume: Math.max(0.32, this.settings.ambianceVolume ?? 0.32),
+      };
+      if (playChime) {
+        nextUpdates.enabled = true;
+        if (this.settings.musicEnabled) {
+          nextUpdates.musicEnabled = false;
+        }
+      }
+      this.updateSettings(nextUpdates);
+      if (playChime && this.settings.enabled) {
+        this.playAmbienceWelcomeChord(preset);
+      }
+    } else {
+      this.updateSettings({
+        studyAmbience: 'off',
+        ambianceEnabled: false,
+      });
+    }
+  }
+
+  private playAmbienceWelcomeChord(preset: StudyAmbiencePreset) {
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.24);
+      if (!master) return;
+
+      const chordMap: Record<StudyAmbiencePreset, number[]> = {
+        off: [440],
+        forest: [392.0, 493.88, 587.33, 783.99],
+        underwater: [329.63, 440.0, 523.25, 659.25],
+        castle: [293.66, 369.99, 440.0, 587.33],
+        rainy_library: [349.23, 440.0, 523.25, 659.25],
+        starry_night: [440.0, 554.37, 659.25, 880.0],
+      };
+
+      const notes = chordMap[preset] || chordMap.forest;
+      notes.forEach((f, idx) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now + idx * 0.06);
+        gain.gain.setValueAtTime(0.01, now + idx * 0.06);
+        gain.gain.linearRampToValueAtTime(0.55, now + idx * 0.06 + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.55);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now + idx * 0.06);
+        osc.stop(now + idx * 0.06 + 0.58);
+      });
+    } catch {
+      // fallback
     }
   }
 
@@ -1283,7 +1649,7 @@ export class AudioController {
     if (preset !== 'off') {
       this.startAmbiance(preset);
     } else if (this.settings.ambianceEnabled) {
-      this.startAmbiance(this.activeAmbianceTheme || 'overworld');
+      this.startAmbiance(this.activeAmbianceTheme || 'forest');
     } else {
       this.stopAmbiance();
     }
@@ -1486,9 +1852,25 @@ export class AudioController {
           });
           break;
         }
-        case 'sound_default':
         default: {
-          this.playPowerUp();
+          const profile = SOUND_PACK_SYNTH_PROFILES[packId];
+          if (profile && profile.signatureSteps.length > 0) {
+            profile.signatureSteps.slice(0, 4).forEach((st, i) => {
+              if (st.f <= 0) return;
+              const osc = this.ctx!.createOscillator();
+              const gain = this.ctx!.createGain();
+              osc.type = profile.leadWave;
+              osc.frequency.setValueAtTime(st.f, now + i * 0.08);
+              gain.gain.setValueAtTime(0.75, now + i * 0.08);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.34);
+              osc.connect(gain);
+              gain.connect(master);
+              osc.start(now + i * 0.08);
+              osc.stop(now + i * 0.08 + 0.35);
+            });
+          } else {
+            this.playPowerUp();
+          }
           break;
         }
       }
@@ -1497,8 +1879,41 @@ export class AudioController {
     }
   }
 
+  private createSoftNoiseSource(filterType: BiquadFilterType, cutoffHz: number, qVal: number, noiseGainLevel: number): AudioNode[] {
+    if (!this.ctx || !this.ambianceGainNode) return [];
+    const sampleRate = this.ctx.sampleRate || 44100;
+    const bufferSize = sampleRate * 2;
+    const buffer = this.ctx.createBuffer(1, bufferSize, sampleRate);
+    const data = buffer.getChannelData(0);
+    let lastOut = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      lastOut = (lastOut + 0.03 * white) / 1.03;
+      data[i] = lastOut * 2.4;
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(cutoffHz, this.ctx.currentTime);
+    filter.Q.setValueAtTime(qVal, this.ctx.currentTime);
+
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(noiseGainLevel, this.ctx.currentTime);
+
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.ambianceGainNode);
+    noise.start();
+
+    return [noise, filter, nGain];
+  }
+
   // Atmospheric Background Ambiance tied to MarioTheme or Study Ambience Soundscape
-  public startAmbiance(theme: string = 'overworld') {
+  // Uses clearly audible mid-band warm harmonic pads (220Hz–660Hz) + soft filtered pink/brown noise + gentle periodic chimes
+  public startAmbiance(theme: string = 'forest') {
     const studyPreset = this.settings.studyAmbience || 'off';
     if (!this.settings.enabled || (!this.settings.ambianceEnabled && studyPreset === 'off')) {
       return;
@@ -1515,27 +1930,38 @@ export class AudioController {
 
     try {
       const ambGain = this.ctx.createGain();
-      const vol = Math.max(0.01, (this.settings.ambianceVolume ?? 0.28) * 0.22);
-      ambGain.gain.setValueAtTime(vol, this.ctx.currentTime);
+      const rawVol = Math.max(0.12, this.settings.ambianceVolume ?? 0.34);
+      const vol = Math.min(0.45, rawVol * 0.42);
+      ambGain.gain.setValueAtTime(0.005, this.ctx.currentTime);
+      ambGain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.35);
       ambGain.connect(this.ctx.destination);
       this.ambianceGainNode = ambGain;
 
+      const startWarmChordPad = (freqs: number[], wave: OscillatorType, cutoff: number) => {
+        if (!this.ctx || !this.ambianceGainNode) return;
+        const padFilter = this.ctx.createBiquadFilter();
+        padFilter.type = 'lowpass';
+        padFilter.frequency.setValueAtTime(cutoff, this.ctx.currentTime);
+        padFilter.connect(this.ambianceGainNode);
+        this.ambianceActiveNodes.push(padFilter);
+
+        freqs.forEach((freq, idx) => {
+          const osc = this.ctx!.createOscillator();
+          const oscGain = this.ctx!.createGain();
+          osc.type = idx === 0 ? 'sine' : wave;
+          osc.frequency.setValueAtTime(freq, this.ctx!.currentTime);
+          oscGain.gain.setValueAtTime(0.24 / Math.max(1, freqs.length * 0.55), this.ctx!.currentTime);
+          osc.connect(oscGain);
+          oscGain.connect(padFilter);
+          osc.start();
+          this.ambianceActiveNodes.push(osc, oscGain);
+        });
+      };
+
       if (effectiveTheme === 'underwater') {
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const filt = this.ctx.createBiquadFilter();
-        osc1.type = 'sine';
-        osc2.type = 'sine';
-        osc1.frequency.setValueAtTime(82.41, this.ctx.currentTime);
-        osc2.frequency.setValueAtTime(123.47, this.ctx.currentTime);
-        filt.type = 'lowpass';
-        filt.frequency.setValueAtTime(195, this.ctx.currentTime);
-        osc1.connect(filt);
-        osc2.connect(filt);
-        filt.connect(ambGain);
-        osc1.start();
-        osc2.start();
-        this.ambianceActiveNodes.push(osc1, osc2, filt);
+        startWarmChordPad([220.0, 329.63, 440.0, 523.25], 'sine', 920);
+        const surfNodes = this.createSoftNoiseSource('lowpass', 420, 1.2, 0.32);
+        this.ambianceActiveNodes.push(...surfNodes);
 
         const bubble = () => {
           if (!this.ctx || !this.ambianceGainNode) return;
@@ -1543,105 +1969,74 @@ export class AudioController {
             const t = this.ctx.currentTime;
             const bOsc = this.ctx.createOscillator();
             const bGain = this.ctx.createGain();
-            const base = 360 + Math.random() * 240;
+            const base = 420 + Math.random() * 280;
             bOsc.type = 'sine';
             bOsc.frequency.setValueAtTime(base, t);
-            bOsc.frequency.exponentialRampToValueAtTime(base * 2.1, t + 0.16);
-            bGain.gain.setValueAtTime(0.18, t);
-            bGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            bOsc.frequency.exponentialRampToValueAtTime(base * 1.9, t + 0.2);
+            bGain.gain.setValueAtTime(0.28, t);
+            bGain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
             bOsc.connect(bGain);
             bGain.connect(ambGain);
             bOsc.start(t);
-            bOsc.stop(t + 0.22);
+            bOsc.stop(t + 0.28);
           } catch {}
         };
-        this.ambianceIntervalId = window.setInterval(bubble, 2100);
-      } else if (effectiveTheme === 'forest') {
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const filt = this.ctx.createBiquadFilter();
-        osc1.type = 'sine';
-        osc2.type = 'triangle';
-        osc1.frequency.setValueAtTime(196.0, this.ctx.currentTime);
-        osc2.frequency.setValueAtTime(293.66, this.ctx.currentTime);
-        filt.type = 'lowpass';
-        filt.frequency.setValueAtTime(380, this.ctx.currentTime);
-        osc1.connect(filt);
-        osc2.connect(filt);
-        filt.connect(ambGain);
-        osc1.start();
-        osc2.start();
-        this.ambianceActiveNodes.push(osc1, osc2, filt);
+        bubble();
+        this.ambianceIntervalId = window.setInterval(bubble, 1900);
+      } else if (effectiveTheme === 'rainy_library') {
+        startWarmChordPad([261.63, 329.63, 392.0, 493.88], 'sine', 880);
+        const rainNodes = this.createSoftNoiseSource('bandpass', 950, 0.7, 0.42);
+        this.ambianceActiveNodes.push(...rainNodes);
 
-        const birdChirp = () => {
+        const rainDrop = () => {
           if (!this.ctx || !this.ambianceGainNode) return;
           try {
             const t = this.ctx.currentTime;
-            const c = this.ctx.createOscillator();
-            const g = this.ctx.createGain();
-            const f1 = 1046.5 + Math.random() * 260;
-            c.type = 'sine';
-            c.frequency.setValueAtTime(f1, t);
-            c.frequency.exponentialRampToValueAtTime(f1 * 1.25, t + 0.09);
-            g.gain.setValueAtTime(0.11, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
-            c.connect(g);
-            g.connect(ambGain);
-            c.start(t);
-            c.stop(t + 0.25);
+            const dOsc = this.ctx.createOscillator();
+            const dGain = this.ctx.createGain();
+            const notes = [523.25, 659.25, 783.99, 987.77];
+            const f = notes[Math.floor(Math.random() * notes.length)];
+            dOsc.type = 'sine';
+            dOsc.frequency.setValueAtTime(f, t);
+            dGain.gain.setValueAtTime(0.22, t);
+            dGain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+            dOsc.connect(dGain);
+            dGain.connect(ambGain);
+            dOsc.start(t);
+            dOsc.stop(t + 0.58);
           } catch {}
         };
-        this.ambianceIntervalId = window.setInterval(birdChirp, 2900);
-      } else if (
-        effectiveTheme.includes('underground') ||
-        effectiveTheme.includes('pro_study_slate')
-      ) {
-        const osc = this.ctx.createOscillator();
-        const filt = this.ctx.createBiquadFilter();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(65, this.ctx.currentTime);
-        filt.type = 'lowpass';
-        filt.frequency.setValueAtTime(130, this.ctx.currentTime);
-        osc.connect(filt);
-        filt.connect(ambGain);
-        osc.start();
-        this.ambianceActiveNodes.push(osc, filt);
+        rainDrop();
+        this.ambianceIntervalId = window.setInterval(rainDrop, 2400);
+      } else if (effectiveTheme === 'starry_night' || effectiveTheme.includes('galaxy') || effectiveTheme.includes('aurora')) {
+        startWarmChordPad([293.66, 440.0, 554.37, 659.25], 'triangle', 1200);
+        const shimmerNodes = this.createSoftNoiseSource('bandpass', 1400, 1.8, 0.16);
+        this.ambianceActiveNodes.push(...shimmerNodes);
 
-        const drip = () => {
+        const starTwinkle = () => {
           if (!this.ctx || !this.ambianceGainNode) return;
           try {
             const t = this.ctx.currentTime;
-            const dripOsc = this.ctx.createOscillator();
-            const dripGain = this.ctx.createGain();
-            const dropFreq = 1600 + Math.random() * 400;
-            dripOsc.type = 'sine';
-            dripOsc.frequency.setValueAtTime(dropFreq, t);
-            dripOsc.frequency.exponentialRampToValueAtTime(dropFreq * 0.7, t + 0.12);
-            dripGain.gain.setValueAtTime(0.3, t);
-            dripGain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-            dripOsc.connect(dripGain);
-            dripGain.connect(ambGain);
-            dripOsc.start(t);
-            dripOsc.stop(t + 0.19);
+            const sOsc = this.ctx.createOscillator();
+            const sGain = this.ctx.createGain();
+            const pool = [880.0, 1108.73, 1318.51, 1760.0];
+            sOsc.type = 'sine';
+            sOsc.frequency.setValueAtTime(pool[Math.floor(Math.random() * pool.length)], t);
+            sGain.gain.setValueAtTime(0.22, t);
+            sGain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+            sOsc.connect(sGain);
+            sGain.connect(ambGain);
+            sOsc.start(t);
+            sOsc.stop(t + 0.68);
           } catch {}
         };
-        this.ambianceIntervalId = window.setInterval(drip, 2400);
+        starTwinkle();
+        this.ambianceIntervalId = window.setInterval(starTwinkle, 2200);
       } else if (effectiveTheme.includes('castle') || effectiveTheme.includes('bowser_lava')) {
-        const osc = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        osc.type = 'triangle';
-        osc2.type = 'sine';
-        osc.frequency.setValueAtTime(55, this.ctx.currentTime);
-        osc2.frequency.setValueAtTime(110, this.ctx.currentTime);
-        const filt = this.ctx.createBiquadFilter();
-        filt.type = 'lowpass';
-        filt.frequency.setValueAtTime(180, this.ctx.currentTime);
-        osc.connect(filt);
-        osc2.connect(filt);
-        filt.connect(ambGain);
-        osc.start();
-        osc2.start();
-        this.ambianceActiveNodes.push(osc, osc2, filt);
+        // Warm audible hearth + amber study hall drone (midrange 196Hz/293Hz/392Hz instead of sub-audible 55Hz!)
+        startWarmChordPad([196.0, 293.66, 369.99, 440.0], 'triangle', 980);
+        const hearthNodes = this.createSoftNoiseSource('lowpass', 620, 0.9, 0.35);
+        this.ambianceActiveNodes.push(...hearthNodes);
 
         const crackle = () => {
           if (!this.ctx || !this.ambianceGainNode) return;
@@ -1649,67 +2044,73 @@ export class AudioController {
             const t = this.ctx.currentTime;
             const cOsc = this.ctx.createOscillator();
             const cGain = this.ctx.createGain();
-            cOsc.type = 'square';
-            cOsc.frequency.setValueAtTime(260 + Math.random() * 160, t);
-            cGain.gain.setValueAtTime(0.06, t);
-            cGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+            cOsc.type = 'triangle';
+            cOsc.frequency.setValueAtTime(340 + Math.random() * 260, t);
+            cOsc.frequency.exponentialRampToValueAtTime(180, t + 0.14);
+            cGain.gain.setValueAtTime(0.24, t);
+            cGain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
             cOsc.connect(cGain);
             cGain.connect(ambGain);
             cOsc.start(t);
-            cOsc.stop(t + 0.06);
+            cOsc.stop(t + 0.2);
           } catch {}
         };
-        this.ambianceIntervalId = window.setInterval(crackle, 1600);
+        crackle();
+        this.ambianceIntervalId = window.setInterval(crackle, 1500);
       } else if (
-        effectiveTheme.includes('galaxy') ||
-        effectiveTheme.includes('neon_synth') ||
-        effectiveTheme.includes('aurora')
+        effectiveTheme.includes('underground') ||
+        effectiveTheme.includes('pro_study_slate')
       ) {
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        osc1.type = 'sine';
-        osc2.type = 'triangle';
-        osc1.frequency.setValueAtTime(329.63, this.ctx.currentTime);
-        osc2.frequency.setValueAtTime(493.88, this.ctx.currentTime);
-        const filt = this.ctx.createBiquadFilter();
-        filt.type = 'lowpass';
-        filt.frequency.setValueAtTime(750, this.ctx.currentTime);
-        osc1.connect(filt);
-        osc2.connect(filt);
-        filt.connect(ambGain);
-        osc1.start();
-        osc2.start();
-        this.ambianceActiveNodes.push(osc1, osc2, filt);
-      } else {
-        const osc = this.ctx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-        const filt = this.ctx.createBiquadFilter();
-        filt.type = 'bandpass';
-        filt.frequency.setValueAtTime(440, this.ctx.currentTime);
-        filt.Q.setValueAtTime(1.2, this.ctx.currentTime);
-        osc.connect(filt);
-        filt.connect(ambGain);
-        osc.start();
-        this.ambianceActiveNodes.push(osc, filt);
+        startWarmChordPad([220.0, 261.63, 329.63, 440.0], 'sine', 850);
+        const cavernNodes = this.createSoftNoiseSource('lowpass', 480, 1.1, 0.24);
+        this.ambianceActiveNodes.push(...cavernNodes);
 
-        const gentleChime = () => {
+        const drip = () => {
+          if (!this.ctx || !this.ambianceGainNode) return;
+          try {
+            const t = this.ctx.currentTime;
+            const dripOsc = this.ctx.createOscillator();
+            const dripGain = this.ctx.createGain();
+            const dropFreq = 980 + Math.random() * 420;
+            dripOsc.type = 'sine';
+            dripOsc.frequency.setValueAtTime(dropFreq, t);
+            dripOsc.frequency.exponentialRampToValueAtTime(dropFreq * 0.72, t + 0.16);
+            dripGain.gain.setValueAtTime(0.32, t);
+            dripGain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+            dripOsc.connect(dripGain);
+            dripGain.connect(ambGain);
+            dripOsc.start(t);
+            dripOsc.stop(t + 0.25);
+          } catch {}
+        };
+        drip();
+        this.ambianceIntervalId = window.setInterval(drip, 2100);
+      } else {
+        // Default / 'forest' / 'overworld' — Lush Mushroom Breeze + Woodland Chirps
+        startWarmChordPad([261.63, 329.63, 392.0, 523.25], 'triangle', 1050);
+        const breezeNodes = this.createSoftNoiseSource('bandpass', 720, 0.9, 0.28);
+        this.ambianceActiveNodes.push(...breezeNodes);
+
+        const birdChirp = () => {
           if (!this.ctx || !this.ambianceGainNode) return;
           try {
             const t = this.ctx.currentTime;
             const c = this.ctx.createOscillator();
             const g = this.ctx.createGain();
-            c.type = 'triangle';
-            c.frequency.setValueAtTime(880 + (Math.random() > 0.5 ? 440 : 220), t);
-            g.gain.setValueAtTime(0.1, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+            const f1 = 880 + Math.random() * 340;
+            c.type = 'sine';
+            c.frequency.setValueAtTime(f1, t);
+            c.frequency.exponentialRampToValueAtTime(f1 * 1.28, t + 0.11);
+            g.gain.setValueAtTime(0.24, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
             c.connect(g);
             g.connect(ambGain);
             c.start(t);
-            c.stop(t + 0.48);
+            c.stop(t + 0.32);
           } catch {}
         };
-        this.ambianceIntervalId = window.setInterval(gentleChime, 3800);
+        birdChirp();
+        this.ambianceIntervalId = window.setInterval(birdChirp, 2400);
       }
     } catch {}
   }
@@ -2153,7 +2554,9 @@ export class AudioController {
     }
   }
 
-  // Classic Mario Coin sound shaped by active Audio Pack timbre
+  private coinVariationIdx: number = 0;
+
+  // Classic Mario Coin sound with 3 distinct musical variations to prevent audio fatigue
   playCoin() {
     if (
       !this.settings.enabled ||
@@ -2169,16 +2572,24 @@ export class AudioController {
       if (!master) return;
 
       const pack = this.settings.soundPack || 'sound_default';
+      const variant = this.coinVariationIdx % 3;
+      this.coinVariationIdx = (this.coinVariationIdx + 1) % 3;
 
-      if (pack === 'sound_zen_lofi') {
+      if (pack === 'sound_zen_lofi' || pack === 'sound_underwater_ambient' || pack === 'sound_paper_acoustic') {
+        const zenVariants: [number, number][] = [
+          [880.0, 1174.66],
+          [987.77, 1318.51],
+          [783.99, 1046.5],
+        ];
+        const [f1, f2] = zenVariants[variant];
         const osc = this.ctx.createOscillator();
         const noteGain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.1);
+        osc.frequency.setValueAtTime(f1, now);
+        osc.frequency.exponentialRampToValueAtTime(f2, now + 0.1);
         noteGain.gain.setValueAtTime(0.01, now);
         noteGain.gain.linearRampToValueAtTime(0.75, now + 0.03);
-        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
         osc.connect(noteGain);
         noteGain.connect(master);
         osc.start(now);
@@ -2186,48 +2597,22 @@ export class AudioController {
         return;
       }
 
-      if (pack === 'sound_snes_16bit') {
-        [987.77, 1318.51, 1975.53].forEach((f, idx) => {
-          const osc = this.ctx!.createOscillator();
-          const noteGain = this.ctx!.createGain();
-          osc.type = idx === 2 ? 'sine' : 'triangle';
-          osc.frequency.setValueAtTime(f, now + idx * 0.035);
-          noteGain.gain.setValueAtTime(0.65, now + idx * 0.035);
-          noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.035 + 0.42);
-          osc.connect(noteGain);
-          noteGain.connect(master);
-          osc.start(now + idx * 0.035);
-          osc.stop(now + idx * 0.035 + 0.42);
-        });
-        return;
-      }
-
-      if (pack === 'sound_galaxy_synth') {
-        [987.77, 1318.51, 1567.98, 2093.0].forEach((f, idx) => {
-          const osc = this.ctx!.createOscillator();
-          const noteGain = this.ctx!.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(f, now + idx * 0.03);
-          noteGain.gain.setValueAtTime(0.55, now + idx * 0.03);
-          noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.03 + 0.45);
-          osc.connect(noteGain);
-          noteGain.connect(master);
-          osc.start(now + idx * 0.03);
-          osc.stop(now + idx * 0.03 + 0.45);
-        });
-        return;
-      }
-
       if (pack === 'sound_bowser_metal') {
+        const metalPairs: [number, number][] = [
+          [987.77, 1318.51],
+          [880.0, 1174.66],
+          [1046.5, 1567.98],
+        ];
+        const [m1, m2] = metalPairs[variant];
         const osc = this.ctx.createOscillator();
         const sub = this.ctx.createOscillator();
         const noteGain = this.ctx.createGain();
         osc.type = 'sawtooth';
         sub.type = 'triangle';
-        osc.frequency.setValueAtTime(987.77, now);
-        osc.frequency.setValueAtTime(1318.51, now + 0.07);
-        sub.frequency.setValueAtTime(493.88, now);
-        sub.frequency.setValueAtTime(659.25, now + 0.07);
+        osc.frequency.setValueAtTime(m1, now);
+        osc.frequency.setValueAtTime(m2, now + 0.07);
+        sub.frequency.setValueAtTime(m1 / 2, now);
+        sub.frequency.setValueAtTime(m2 / 2, now + 0.07);
         noteGain.gain.setValueAtTime(0.8, now);
         noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
         osc.connect(noteGain);
@@ -2240,22 +2625,87 @@ export class AudioController {
         return;
       }
 
-      const osc = this.ctx.createOscillator();
-      const noteGain = this.ctx.createGain();
-      osc.type = pack === 'sound_nes_8bit' ? 'square' : 'sine';
-      osc.frequency.setValueAtTime(987.77, now);
-      osc.frequency.setValueAtTime(1318.51, now + 0.08);
-      noteGain.gain.setValueAtTime(1, now);
-      noteGain.gain.exponentialRampToValueAtTime(
-        0.001,
-        now + (pack === 'sound_nes_8bit' ? 0.32 : 0.42)
-      );
-      osc.connect(noteGain);
-      noteGain.connect(master);
-      osc.start(now);
-      osc.stop(now + 0.42);
+      // 3 Distinct Mario Coin Chime Variations:
+      // 0 = Classic B5 -> E6 | 1 = Super Coin C6 -> E6 -> G6 | 2 = Dragon Coin Sparkle A5 -> D6 -> F#6 -> A6
+      const wave: OscillatorType = pack === 'sound_nes_8bit' ? 'square' : 'triangle';
+      if (variant === 0) {
+        const osc = this.ctx.createOscillator();
+        const noteGain = this.ctx.createGain();
+        osc.type = pack === 'sound_nes_8bit' ? 'square' : 'sine';
+        osc.frequency.setValueAtTime(987.77, now);
+        osc.frequency.setValueAtTime(1318.51, now + 0.075);
+        noteGain.gain.setValueAtTime(0.95, now);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.connect(noteGain);
+        noteGain.connect(master);
+        osc.start(now);
+        osc.stop(now + 0.41);
+      } else if (variant === 1) {
+        [1046.5, 1318.51, 1567.98].forEach((f, idx) => {
+          const osc = this.ctx!.createOscillator();
+          const noteGain = this.ctx!.createGain();
+          osc.type = idx === 2 ? 'sine' : wave;
+          osc.frequency.setValueAtTime(f, now + idx * 0.045);
+          noteGain.gain.setValueAtTime(0.8, now + idx * 0.045);
+          noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.045 + 0.36);
+          osc.connect(noteGain);
+          noteGain.connect(master);
+          osc.start(now + idx * 0.045);
+          osc.stop(now + idx * 0.045 + 0.37);
+        });
+      } else {
+        [880.0, 1174.66, 1479.98, 1760.0].forEach((f, idx) => {
+          const osc = this.ctx!.createOscillator();
+          const noteGain = this.ctx!.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.035);
+          noteGain.gain.setValueAtTime(0.72, now + idx * 0.035);
+          noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.035 + 0.38);
+          osc.connect(noteGain);
+          noteGain.connect(master);
+          osc.start(now + idx * 0.035);
+          osc.stop(now + idx * 0.035 + 0.39);
+        });
+      }
     } catch {
       // Audio fallback
+    }
+  }
+
+  // Extended Warp Pipe descent & emergence cue (~1.15s) for slowed-down Warp Pipe transition
+  playWarpPipeLong() {
+    if (!this.settings.enabled || this.settings.soundToggles?.pipe === false) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.26);
+      if (!master) return;
+
+      const profile = this.getActivePackProfile();
+      // Descent steps (3 pulses going down) + emergence steps (3 pulses coming up)
+      const steps = [
+        { f: 340, t: 0.0, d: 0.14 },
+        { f: 250, t: 0.17, d: 0.14 },
+        { f: 165, t: 0.34, d: 0.18 },
+        { f: 195, t: 0.72, d: 0.13 },
+        { f: 280, t: 0.88, d: 0.13 },
+        { f: 392, t: 1.04, d: 0.18 },
+      ];
+      steps.forEach((st) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = profile.bassWave === 'sine' ? 'triangle' : profile.bassWave;
+        osc.frequency.setValueAtTime(st.f * profile.pitchMultiplier, now + st.t);
+        gain.gain.setValueAtTime(0.85, now + st.t);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + st.t + st.d);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(now + st.t);
+        osc.stop(now + st.t + st.d + 0.02);
+      });
+    } catch {
+      // fallback
     }
   }
 

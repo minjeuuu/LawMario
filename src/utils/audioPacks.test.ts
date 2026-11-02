@@ -25,8 +25,8 @@ class MockStorage {
   }
 }
 
-test('SOUND_PACK_DEFINITIONS contains all 7 distinct audio packs', () => {
-  assert.equal(SOUND_PACK_DEFINITIONS.length, 7);
+test('SOUND_PACK_DEFINITIONS contains all 15 distinct audio packs', () => {
+  assert.equal(SOUND_PACK_DEFINITIONS.length, 15);
   const expectedPacks: SoundPackId[] = [
     'sound_default',
     'sound_nes_8bit',
@@ -35,6 +35,14 @@ test('SOUND_PACK_DEFINITIONS contains all 7 distinct audio packs', () => {
     'sound_galaxy_synth',
     'sound_bowser_metal',
     'sound_orchestral',
+    'sound_underwater_ambient',
+    'sound_peach_royal',
+    'sound_yoshi_tropical',
+    'sound_ghost_organ',
+    'sound_dk_jungle',
+    'sound_rainbow_synthwave',
+    'sound_paper_acoustic',
+    'sound_starlight_jazz',
   ];
 
   expectedPacks.forEach((expectedId) => {
@@ -47,7 +55,7 @@ test('SOUND_PACK_DEFINITIONS contains all 7 distinct audio packs', () => {
 });
 
 test('SOUNDPACK_ITEMS in ToadShop matches SoundPackId catalogue', () => {
-  assert.equal(SOUNDPACK_ITEMS.length, 7);
+  assert.equal(SOUNDPACK_ITEMS.length, 15);
   SOUNDPACK_ITEMS.forEach((item) => {
     assert.equal(item.category, 'soundpack');
     assert.ok(item.soundPackId, `Item ${item.id} must define soundPackId`);

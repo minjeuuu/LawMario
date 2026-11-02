@@ -20,13 +20,28 @@ import {
   getQuizWorldLabel,
 } from '../utils/studyModes';
 import { drawUniqueFromDeck, shuffleChoiceOptions } from '../utils/gameQuestionDeck';
-import { QuizCompletionPayload } from '../utils/profileAchievements';
+import {
+  QuizCompletionPayload,
+  QuizHistoryRecord,
+} from '../utils/profileAchievements';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import {
   buildTargetedWeaknessDrillDeck,
   QuizCategoryAnswerInput,
+  ActiveDailyQuizStreakSnapshot,
 } from '../utils/round8Features';
+import { MissedQuestionBriefInput } from '../utils/round9Features';
+import {
+  loadRound10VaultState,
+  saveRound10VaultState,
+  Round10VaultState,
+} from '../utils/round10Features';
 import { QuizResultSummaryChart } from './QuizResultSummaryChart';
+import {
+  DailyQuizFireMeter,
+  BossDefeatStarShower,
+  QuizAnalyticsPanel,
+} from './QuizAnalyticsPanel';
 import {
   Trophy,
   CheckCircle,
@@ -48,6 +63,7 @@ import {
   X,
   Target,
   Sparkles as SparklesIcon,
+  Shield,
 } from 'lucide-react';
 import {
   Mario1UpIcon,
@@ -102,6 +118,13 @@ interface BarQuizQuestProps {
     mode: 'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss';
     nonce: number;
   } | null;
+  dailyBossQuizStreak?: ActiveDailyQuizStreakSnapshot;
+  quizHistory?: QuizHistoryRecord[];
+  bossSkipTokens?: number;
+  onConsumeBossSkipToken?: () => void;
+  onActivateBossDefeatInvincible?: () => void;
+  coins?: number;
+  onSpendCoins?: (cost: number) => boolean;
 }
 
 export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
@@ -121,10 +144,41 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   onOpenBossBattleLog,
   bossBattleLogCount = 0,
   externalLaunchMode = null,
+  dailyBossQuizStreak,
+  quizHistory = [],
+  bossSkipTokens = 0,
+  onConsumeBossSkipToken,
+  onActivateBossDefeatInvincible,
+  coins = 0,
+  onSpendCoins,
 }) => {
   const [activeMode, setActiveMode] = useState<
     'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss'
   >('quick');
+  const [wrongShakeNonce, setWrongShakeNonce] = useState<number>(0);
+  const [practiceMissedDetails, setPracticeMissedDetails] = useState<MissedQuestionBriefInput[]>([]);
+  const [r10Vault, setR10Vault] = useState<Round10VaultState>(() =>
+    loadRound10VaultState()
+  );
+  const [eliminatedOptions, setEliminatedOptions] = useState<number[]>([]);
+  const [revealedCounselHint, setRevealedCounselHint] = useState<string | null>(
+    null
+  );
+  const [bossShieldArmed, setBossShieldArmed] = useState<boolean>(false);
+
+  useEffect(() => {
+    const syncVault = () => setR10Vault(loadRound10VaultState());
+    window.addEventListener('mario-round10-vault-updated', syncVault);
+    return () =>
+      window.removeEventListener('mario-round10-vault-updated', syncVault);
+  }, []);
+
+  const triggerWrongAnswerPulse = () => {
+    setWrongShakeNonce(Date.now());
+    window.setTimeout(() => {
+      setWrongShakeNonce(0);
+    }, 520);
+  };
 
   useEffect(() => {
     if (externalLaunchMode && externalLaunchMode.nonce > 0) {
@@ -704,6 +758,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setIsQuizComplete(false);
     setPracticeRecords([]);
     setPracticeMissedTopics([]);
+    setPracticeMissedDetails([]);
     practiceStartTimeRef.current = Date.now();
   };
 
@@ -733,6 +788,16 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       }
     } else {
       setPracticeMissedTopics((prev) => [...prev, `${q.world} (${q.legalBasis})`]);
+      setPracticeMissedDetails((prev) => [
+        ...prev,
+        {
+          scenario: q.scenario,
+          correctOptionText: q.options[q.correctIndex] || '',
+          legalBasis: q.legalBasis || 'Philippine Labor Code',
+          explanation: q.explanation || '',
+        },
+      ]);
+      triggerWrongAnswerPulse();
       marioAudio.playTryAgain();
     }
   };
@@ -831,6 +896,35 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     });
   };
 
+  const handleSkipBossWithToken = () => {
+    if (bossSkipTokens <= 0) return;
+    onConsumeBossSkipToken?.();
+    setBossRecords([
+      { worldCode: 'w1', isCorrect: true },
+      { worldCode: 'w2', isCorrect: true },
+      { worldCode: 'w3', isCorrect: true },
+      { worldCode: 'w5', isCorrect: true },
+      { worldCode: 'w6', isCorrect: true },
+    ]);
+    setBossBattleState('victory');
+    onQuizCompleted?.({
+      worldCode: 'BOSS',
+      correctCount: 5,
+      totalCount: 5,
+      isBossVictory: true,
+      topicTitle: 'Bowser Lava Keep (Royal Writ Skip)',
+    });
+    onBossQuizCompleted?.();
+    onActivateBossDefeatInvincible?.();
+    marioAudio.playStarTheme();
+    onEarnCoins(100);
+    try {
+      confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
+    } catch {
+      // ignore
+    }
+  };
+
   const handleStartBossBattle = (tier: 'standard' | 'mega' = bossTier) => {
     const shuffled = drawUniqueFromDeck(
       'bowser_boss_arena',
@@ -910,6 +1004,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
             topicTitle: `Bowser Lava Keep (${bossTier === 'mega' ? 'Mega 10-Hit' : 'Standard 5-Hit'})`,
           });
           onBossQuizCompleted?.();
+          onActivateBossDefeatInvincible?.();
           if (studyDifficulty === 'exam_prep') {
             onRecordBossBattleLog?.({
               modeLabel: `Bowser Boss (${bossTier === 'mega' ? 'Mega 200 HP' : 'Standard 100 HP'})`,
@@ -949,7 +1044,11 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           }
         }, 900);
       }
+    } else if (bossShieldArmed) {
+      setBossShieldArmed(false);
+      marioAudio.playPowerUp();
     } else {
+      triggerWrongAnswerPulse();
       marioAudio.playTryAgain();
       setComboStreak(0);
       const nextHearts = playerHearts - 1;
@@ -980,6 +1079,197 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setBossAnswerSubmitted(false);
     setTimeLeft(defaultBossSeconds);
     marioAudio.playJump();
+  };
+
+  useEffect(() => {
+    setEliminatedOptions([]);
+    setRevealedCounselHint(null);
+  }, [activeMode, quickIdx, currentIdx, bossIdx, flashbackIdx, simIdx]);
+
+  const consumeTokenOrCoins = (
+    tokenKey: 'quiz5050' | 'quizHint' | 'quizShield',
+    coinCost: number
+  ): boolean => {
+    const latest = loadRound10VaultState();
+    if ((latest.inventory[tokenKey] || 0) > 0) {
+      const updated: Round10VaultState = {
+        ...latest,
+        inventory: {
+          ...latest.inventory,
+          [tokenKey]: Math.max(0, latest.inventory[tokenKey] - 1),
+        },
+      };
+      setR10Vault(updated);
+      saveRound10VaultState(updated);
+      return true;
+    }
+    if (onSpendCoins && coins >= coinCost) {
+      return onSpendCoins(coinCost);
+    }
+    return false;
+  };
+
+  const handleTrigger5050Lifeline = (
+    optionsCount: number,
+    correctIndex: number,
+    alreadySubmitted: boolean
+  ) => {
+    if (alreadySubmitted || eliminatedOptions.length > 0) return;
+    if (!consumeTokenOrCoins('quiz5050', 15)) {
+      marioAudio.playStomp();
+      return;
+    }
+    marioAudio.playPowerUp();
+    const wrongIndices = Array.from({ length: optionsCount }, (_, i) => i).filter(
+      (i) => i !== correctIndex
+    );
+    const toEliminate = wrongIndices.slice(0, Math.min(2, Math.max(1, optionsCount - 2)));
+    setEliminatedOptions(toEliminate);
+  };
+
+  const handleTriggerHintLifeline = (
+    legalBasis?: string,
+    hintText?: string,
+    explanationText?: string,
+    alreadySubmitted?: boolean
+  ) => {
+    if (alreadySubmitted || revealedCounselHint) return;
+    if (!consumeTokenOrCoins('quizHint', 15)) {
+      marioAudio.playStomp();
+      return;
+    }
+    marioAudio.playCoin();
+    const basis = legalBasis || 'Philippine Labor Code (P.D. 442)';
+    const clue =
+      hintText ||
+      (explanationText ? `${explanationText.slice(0, 125)}...` : 'Focus on the statutory threshold & exception.');
+    setRevealedCounselHint(`Counsel Toad Statutory Clue (${basis}): ${clue}`);
+  };
+
+  const handleArmBossShield = () => {
+    if (bossShieldArmed) return;
+    if (!consumeTokenOrCoins('quizShield', 25)) {
+      marioAudio.playStomp();
+      return;
+    }
+    marioAudio.playPowerUp();
+    setBossShieldArmed(true);
+  };
+
+  const renderQuizCoinLifelineBar = (params: {
+    optionsCount: number;
+    correctIndex: number;
+    legalBasis?: string;
+    hint?: string;
+    explanation?: string;
+    submitted: boolean;
+    isBoss?: boolean;
+  }) => {
+    const can5050 =
+      !params.submitted &&
+      eliminatedOptions.length === 0 &&
+      (r10Vault.inventory.quiz5050 > 0 || (Boolean(onSpendCoins) && coins >= 15));
+    const canHint =
+      !params.submitted &&
+      !revealedCounselHint &&
+      (r10Vault.inventory.quizHint > 0 || (Boolean(onSpendCoins) && coins >= 15));
+    const canShield =
+      Boolean(params.isBoss) &&
+      !bossShieldArmed &&
+      (r10Vault.inventory.quizShield > 0 || (Boolean(onSpendCoins) && coins >= 25));
+
+    return (
+      <div
+        data-testid="quiz-coin-lifeline-bar"
+        className={`rounded-2xl p-3 border-2 flex flex-col gap-2 ${
+          params.isBoss
+            ? 'bg-slate-950/90 border-amber-500/60 text-white'
+            : 'bg-amber-50/90 border-amber-400 text-slate-950'
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[10px] font-black uppercase font-mario tracking-wider flex items-center gap-1.5">
+            <MarioCoinIcon className="w-4 h-4 shrink-0" />
+            <span>USE YOUR COINS &amp; TOAD TOKENS ({coins}c WALLET)</span>
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              data-testid="lifeline-5050-btn"
+              disabled={!can5050}
+              onClick={() =>
+                handleTrigger5050Lifeline(
+                  params.optionsCount,
+                  params.correctIndex,
+                  params.submitted
+                )
+              }
+              className="min-h-[38px] px-3 py-1 rounded-xl bg-rose-500 hover:bg-rose-400 disabled:opacity-40 text-white font-black text-xs border-2 border-black cursor-pointer inline-flex items-center gap-1 tabular-nums"
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                50/50 Zapper{' '}
+                {r10Vault.inventory.quiz5050 > 0
+                  ? `(Token x${r10Vault.inventory.quiz5050})`
+                  : '(15c)'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              data-testid="lifeline-hint-btn"
+              disabled={!canHint}
+              onClick={() =>
+                handleTriggerHintLifeline(
+                  params.legalBasis,
+                  params.hint,
+                  params.explanation,
+                  params.submitted
+                )
+              }
+              className="min-h-[38px] px-3 py-1 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-slate-950 font-black text-xs border-2 border-black cursor-pointer inline-flex items-center gap-1 tabular-nums"
+            >
+              <Lightbulb className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                Statutory Hint{' '}
+                {r10Vault.inventory.quizHint > 0
+                  ? `(Scroll x${r10Vault.inventory.quizHint})`
+                  : '(15c)'}
+              </span>
+            </button>
+
+            {params.isBoss && (
+              <button
+                type="button"
+                data-testid="lifeline-boss-shield-btn"
+                disabled={!canShield}
+                onClick={handleArmBossShield}
+                className={`min-h-[38px] px-3 py-1 rounded-xl font-black text-xs border-2 border-black cursor-pointer inline-flex items-center gap-1 tabular-nums ${
+                  bossShieldArmed
+                    ? 'bg-emerald-400 text-slate-950'
+                    : 'bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {bossShieldArmed
+                    ? 'Shield Armed!'
+                    : r10Vault.inventory.quizShield > 0
+                    ? `Heart Shield (x${r10Vault.inventory.quizShield})`
+                    : 'Heart Shield (25c)'}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {revealedCounselHint && (
+          <div className="px-3 py-2 rounded-xl bg-sky-100 border border-sky-400 text-sky-950 text-xs font-extrabold">
+            {revealedCounselHint}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const worldSelectOptions: { worldId: string; label: string }[] = [
@@ -1229,6 +1519,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           </div>
         </div>
       )}
+      {/* Visual Daily Quiz Streak Fire Meter */}
+      <DailyQuizFireMeter
+        activeStreak={dailyBossQuizStreak?.activeStreak ?? 0}
+        completedToday={dailyBossQuizStreak?.completedToday ?? false}
+        nextRewardCoins={dailyBossQuizStreak?.nextStreakBonusCoins ?? 15}
+      />
+
       {/* Mode Switcher Tabs + Global Difficulty Indicator */}
       <div className="bg-slate-900 p-2.5 rounded-2xl border-3 border-slate-950 shadow-[4px_4px_0_#000] space-y-2.5">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -1755,6 +2052,24 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 }))}
               />
 
+              {/* Recharts Skill Breakdown, Bar Master Rank Progress & Quick Study Summary */}
+              <QuizAnalyticsPanel
+                records={simDeck.map((item, idx) => ({
+                  worldCode: item.worldCode,
+                  isCorrect: simAnswers[idx] === item.correctIndex,
+                }))}
+                missedQuestions={simDeck
+                  .filter((item, idx) => simAnswers[idx] !== item.correctIndex)
+                  .map((item) => ({
+                    scenario: item.scenario,
+                    correctOptionText: item.options[item.correctIndex] || '',
+                    legalBasis: item.legalBasis || 'Philippine Labor Code',
+                    explanation: item.explanation || '',
+                  }))}
+                quizHistory={quizHistory}
+                currentRunCorrect={simFinalSummary.correctCount}
+              />
+
               {/* Per-World Topic Accuracy Breakdown */}
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -2024,11 +2339,23 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 )}
               </div>
 
+              {renderQuizCoinLifelineBar({
+                optionsCount: quickQ.options.length,
+                correctIndex: quickQ.correctIndex,
+                legalBasis: quickQ.legalBasis,
+                hint: quickQ.hint,
+                explanation: quickQ.explanation,
+                submitted: quickSubmitted,
+              })}
+
               {/* Options */}
               <div className="space-y-2.5">
                 {quickQ.options.map((option, idx) => {
+                  const isZapped = !quickSubmitted && eliminatedOptions.includes(idx);
                   let optStyle = 'bg-white hover:bg-slate-100 border-slate-800 text-slate-900';
-                  if (quickSelected === idx) {
+                  if (isZapped) {
+                    optStyle = 'bg-slate-100 border-slate-300 text-slate-400 line-through opacity-55';
+                  } else if (quickSelected === idx) {
                     optStyle = 'bg-amber-100 border-amber-600 text-amber-950 ring-2 ring-amber-400';
                   }
                   if (quickSubmitted) {
@@ -2044,7 +2371,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => handleSelectQuickOption(idx)}
-                      disabled={quickSubmitted}
+                      disabled={quickSubmitted || isZapped}
                       className={`w-full min-h-[52px] text-left p-3.5 sm:p-4 rounded-xl border-3 transition-all flex items-start gap-3 cursor-pointer ${optStyle}`}
                     >
                       <span className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-lg bg-slate-950 text-white text-xs sm:text-sm font-black font-mario">
@@ -2182,10 +2509,27 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               {/* Visual Result Summary Breakdown Chart */}
               <QuizResultSummaryChart
                 records={quickRecords.map((r) => ({
-                  worldCode: r.question.worldCode || activeWorldCode,
-                  isCorrect: r.isCorrect,
-                }))}
-              />
+                   worldCode: r.question.worldCode || activeWorldCode,
+                   isCorrect: r.isCorrect,
+                 }))}
+               />
+
+               <QuizAnalyticsPanel
+                 records={quickRecords.map((r) => ({
+                   worldCode: r.question.worldCode || activeWorldCode,
+                   isCorrect: r.isCorrect,
+                 }))}
+                 missedQuestions={quickRecords
+                   .filter((r) => !r.isCorrect)
+                   .map((r) => ({
+                     scenario: r.question.scenario,
+                     correctOptionText: r.question.options[r.question.correctIndex] || '',
+                     legalBasis: r.question.legalBasis || 'Philippine Labor Code',
+                     explanation: r.question.explanation || '',
+                   }))}
+                 quizHistory={quizHistory}
+                 currentRunCorrect={quickRecords.filter((r) => r.isCorrect).length}
+               />
 
               {/* Per-Question Breakdown */}
               <div className="space-y-2.5">
@@ -2648,7 +2992,11 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           </div>
 
           {!isQuizComplete && q ? (
-            <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-7 space-y-5">
+            <div
+              className={`bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-7 space-y-5 transition-shadow ${
+                wrongShakeNonce > 0 ? 'mario-wrong-shake ring-4 ring-rose-500' : ''
+              }`}
+            >
               <div className="space-y-2 border-b-2 border-slate-200 pb-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-black text-slate-800">
                   <span className="inline-flex items-center gap-2 text-red-600">
@@ -2688,10 +3036,22 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 )}
               </div>
 
+              {renderQuizCoinLifelineBar({
+                optionsCount: q.options.length,
+                correctIndex: q.correctIndex,
+                legalBasis: q.legalBasis,
+                hint: q.hint,
+                explanation: q.explanation,
+                submitted: isAnswerSubmitted,
+              })}
+
               <div className="space-y-2.5">
                 {q.options.map((option, idx) => {
+                  const isZapped = !isAnswerSubmitted && eliminatedOptions.includes(idx);
                   let optStyle = 'bg-white hover:bg-slate-100 border-slate-800 text-slate-900';
-                  if (selectedAnswer === idx) {
+                  if (isZapped) {
+                    optStyle = 'bg-slate-100 border-slate-300 text-slate-400 line-through opacity-55';
+                  } else if (selectedAnswer === idx) {
                     optStyle = 'bg-amber-100 border-amber-600 text-amber-950 ring-2 ring-amber-400';
                   }
                   if (isAnswerSubmitted) {
@@ -2707,7 +3067,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => handleSelectOption(idx)}
-                      disabled={isAnswerSubmitted}
+                      disabled={isAnswerSubmitted || isZapped}
                       className={`w-full min-h-[52px] text-left p-3.5 sm:p-4 rounded-xl border-3 transition-all flex items-start gap-3 cursor-pointer ${optStyle}`}
                     >
                       <span className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-slate-950 text-white text-sm font-black font-mario">
@@ -2821,6 +3181,15 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
 
               <QuizResultSummaryChart records={practiceRecords} />
 
+              <div className="text-left">
+                <QuizAnalyticsPanel
+                  records={practiceRecords}
+                  missedQuestions={practiceMissedDetails}
+                  quizHistory={quizHistory}
+                  currentRunCorrect={score}
+                />
+              </div>
+
               <div className="pt-2 text-left">
                 <QuizResultsLeaderboard
                   categoryKey={`practice_${worldFilter}`}
@@ -2885,12 +3254,28 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   <MarioStarIcon className="w-5 h-5 shrink-0" />
                   <span>MEGA BOWSER (200 HP • +200c)</span>
                 </button>
+
+                {bossSkipTokens > 0 && (
+                  <button
+                    type="button"
+                    data-testid="use-boss-skip-token-btn"
+                    onClick={handleSkipBossWithToken}
+                    className="min-h-[48px] px-5 inline-flex items-center justify-center gap-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs sm:text-base rounded-2xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer leading-none whitespace-nowrap"
+                  >
+                    <Shield className="w-5 h-5 shrink-0" />
+                    <span>ROYAL WRIT SKIP ({bossSkipTokens} LEFT)</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
 
           {bossBattleState === 'combat' && bossQ && (
-            <div className="bg-gradient-to-b from-[#2a0808] to-[#0f172a] rounded-3xl p-4 sm:p-8 border-4 border-slate-950 shadow-[6px_6px_0_#000] text-white space-y-5">
+            <div
+              className={`bg-gradient-to-b from-[#2a0808] to-[#0f172a] rounded-3xl p-4 sm:p-8 border-4 border-slate-950 shadow-[6px_6px_0_#000] text-white space-y-5 transition-shadow ${
+                wrongShakeNonce > 0 ? 'mario-wrong-shake ring-4 ring-rose-500' : ''
+              }`}
+            >
               <div className="bg-black/80 rounded-2xl p-3.5 sm:p-4 border-2 border-red-700/80 space-y-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
@@ -2959,10 +3344,23 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 )}
               </div>
 
+              {renderQuizCoinLifelineBar({
+                optionsCount: bossQ.options.length,
+                correctIndex: bossQ.correctIndex,
+                legalBasis: bossQ.legalBasis,
+                hint: bossQ.hint,
+                explanation: bossQ.explanation,
+                submitted: bossAnswerSubmitted,
+                isBoss: true,
+              })}
+
               <div className="space-y-2.5">
                 {bossQ.options.map((opt, idx) => {
+                  const isZapped = !bossAnswerSubmitted && eliminatedOptions.includes(idx);
                   let optStyle = 'bg-slate-900/80 hover:bg-slate-800 border-slate-700 text-slate-100';
-                  if (bossSelectedAnswer === idx) {
+                  if (isZapped) {
+                    optStyle = 'bg-slate-950/60 border-slate-800 text-slate-600 line-through opacity-50';
+                  } else if (bossSelectedAnswer === idx) {
                     optStyle = 'bg-amber-400/20 border-amber-400 text-white ring-2 ring-amber-400';
                   }
                   if (bossAnswerSubmitted) {
@@ -2978,7 +3376,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => handleSelectBossOption(idx)}
-                      disabled={bossAnswerSubmitted}
+                      disabled={bossAnswerSubmitted || isZapped}
                       className={`w-full min-h-[50px] text-left p-3.5 sm:p-4 rounded-xl border-2 transition-all flex items-start gap-3 cursor-pointer ${optStyle}`}
                     >
                       <span className="inline-flex items-center justify-center w-7 h-7 shrink-0 rounded-lg bg-black text-amber-400 text-xs font-black font-mario">
@@ -3043,22 +3441,34 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           )}
 
           {bossBattleState === 'victory' && (
-            <div className="bg-gradient-to-b from-amber-950 via-slate-900 to-black text-white rounded-3xl p-6 sm:p-10 border-4 border-amber-400 shadow-[6px_6px_0_#000] text-center space-y-6">
-              <div className="w-24 h-24 bg-amber-400 border-4 border-black rounded-full mx-auto flex items-center justify-center shadow-[0_4px_0_#000]">
+            <div className="relative overflow-hidden bg-gradient-to-b from-amber-950 via-slate-900 to-black text-white rounded-3xl p-6 sm:p-10 border-4 border-amber-400 shadow-[6px_6px_0_#000] text-center space-y-6">
+              <BossDefeatStarShower active={true} />
+              <div className="relative z-10 w-24 h-24 bg-amber-400 border-4 border-black rounded-full mx-auto flex items-center justify-center shadow-[0_4px_0_#000]">
                 <MarioAxeIcon className="w-12 h-12" />
               </div>
-              <h3 className="text-2xl sm:text-4xl font-black text-white font-display">
+              <h3 className="relative z-10 text-2xl sm:text-4xl font-black text-white font-display">
                 YOU CONQUERED THE LAVA KEEP!
               </h3>
-              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-emerald-400 font-mario">
-                <MarioCoinIcon className="w-5 h-5 shrink-0" />
-                <span>+{bossTier === 'mega' ? 200 : 100} MARIO COINS ADDED!</span>
+              <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm font-bold text-emerald-400 font-mario">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-400">
+                  <MarioCoinIcon className="w-5 h-5 shrink-0" />
+                  <span>+{bossTier === 'mega' ? 200 : 100} MARIO COINS!</span>
+                </span>
+                <span
+                  data-testid="boss-defeat-invincible-banner"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 text-slate-950 border-2 border-black font-black"
+                >
+                  <MarioStarIcon className="w-4 h-4 shrink-0" />
+                  <span>5-MIN INVINCIBLE STUDY MODE (2X COINS)!</span>
+                </span>
               </div>
-              <QuizResultSummaryChart records={bossRecords} darkSurface />
+              <div className="relative z-10">
+                <QuizResultSummaryChart records={bossRecords} darkSurface />
+              </div>
               <button
                 type="button"
                 onClick={() => setBossBattleState('intro')}
-                className="min-h-[48px] px-8 inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer leading-none whitespace-nowrap"
+                className="relative z-10 min-h-[48px] px-8 inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer leading-none whitespace-nowrap"
               >
                 <RotateCcw className="w-5 h-5 shrink-0" />
                 <span>Battle Bowser Again</span>

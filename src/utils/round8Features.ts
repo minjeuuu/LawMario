@@ -1,6 +1,12 @@
 import { LawTopic } from '../types/laborLaw';
 import { QuizQuestion } from '../data/quizQuestionsData';
 import { formatDateKey } from './profileAchievements';
+import {
+  loadStudyNotes,
+  saveStudyNotes,
+  createStudyNote,
+  StudyNoteItem,
+} from './engagementFeatures';
 
 export interface SimpleStorage {
   getItem(key: string): string | null;
@@ -733,6 +739,8 @@ export function loadCompletedTopicsHistory(
     return {};
   }
 }
+
+export const loadCompletedTopicsDailyHistory = loadCompletedTopicsHistory;
 
 export function saveCompletedTopicsHistory(
   history: CompletedTopicsHistoryMap,
@@ -2084,7 +2092,13 @@ export function evaluateStudySprintCompletion(params: {
 // 10. STUDY AMBIENCE SOUNDSCAPES (AUTO-PAUSE WHEN MARIO BGM PLAYS)
 // ============================================================================
 
-export type StudyAmbiencePreset = 'off' | 'forest' | 'underwater' | 'castle';
+export type StudyAmbiencePreset =
+  | 'off'
+  | 'forest'
+  | 'underwater'
+  | 'castle'
+  | 'rainy_library'
+  | 'starry_night';
 
 export const STUDY_AMBIENCE_OPTIONS: readonly {
   id: StudyAmbiencePreset;
@@ -2095,6 +2109,8 @@ export const STUDY_AMBIENCE_OPTIONS: readonly {
   { id: 'forest', label: 'Forest', subtitle: 'Soft woodland breeze & gentle chimes' },
   { id: 'underwater', label: 'Underwater', subtitle: 'Deep aquatic currents & calm bubbles' },
   { id: 'castle', label: 'Castle', subtitle: 'Warm hearth crackle & stone hall' },
+  { id: 'rainy_library', label: 'Rainy Library', subtitle: 'Gentle rain pattering & study hall warmth' },
+  { id: 'starry_night', label: 'Starry Night', subtitle: 'Calm observatory pads & celestial shimmer' },
 ] as const;
 
 export function shouldPlayStudyAmbience(params: {
@@ -2623,4 +2639,25 @@ export function lookupStatutesByQuery(
 
   return scored.sort((a, b) => b.score - a.score).map((s) => s.entry);
 }
+
+export function appendQuickTextToStudyNotes(
+  storage: SimpleStorage | null | undefined,
+  title: string,
+  content: string,
+  worldTag: string = 'all'
+): StudyNoteItem[] {
+  const existing = loadStudyNotes(storage);
+  const updated = createStudyNote(existing, {
+    title,
+    content,
+    worldTag,
+    categoryTag: 'Bar Exam Review',
+  });
+  saveStudyNotes(updated, storage);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('mario-study-notes-updated'));
+  }
+  return updated;
+}
+
 

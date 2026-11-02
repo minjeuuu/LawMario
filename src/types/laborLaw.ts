@@ -87,6 +87,8 @@ export type StudyDifficulty = 'casual' | 'exam_prep';
 
 export type ShopCategory =
   | 'powerup'
+  | 'special_event'
+  | 'luxury'
   | 'theme'
   | 'avatar'
   | 'companion'
@@ -103,7 +105,15 @@ export type SoundPackId =
   | 'sound_zen_lofi'
   | 'sound_galaxy_synth'
   | 'sound_bowser_metal'
-  | 'sound_orchestral';
+  | 'sound_orchestral'
+  | 'sound_underwater_ambient'
+  | 'sound_peach_royal'
+  | 'sound_yoshi_tropical'
+  | 'sound_ghost_organ'
+  | 'sound_dk_jungle'
+  | 'sound_rainbow_synthwave'
+  | 'sound_paper_acoustic'
+  | 'sound_starlight_jazz';
 
 export type StudyCompanionId =
   | 'comp_none'
@@ -134,6 +144,10 @@ export interface ShopItem {
   soundPackId?: SoundPackId;
   companionId?: StudyCompanionId;
   frameId?: CardFrameId;
+  luxuryFrameId?: string;
+  luxuryAuraId?: string;
+  luxuryCartridgeId?: string;
+  specialEventType?: 'double_xp_1h' | 'unlock_modules_30m' | 'boss_skip_token' | 'invincible_frenzy';
   faction?: string;
   badge?: string;
   perkEffect?: string;

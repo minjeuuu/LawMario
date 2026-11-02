@@ -1020,25 +1020,29 @@ export interface CertificatePdfParams {
   certificateId?: string;
   colorAccent?: string;
   fontStyle?: string;
+  orientation?: 'landscape' | 'portrait';
 }
 
 /**
- * Builds an Official A4 Landscape Certificate of Statutory Mastery PDF (297mm x 210mm)
- * styled dynamically with the user's selected color theme and font family, with
- * balanced landscape geometry and zero overflows.
+ * Builds an Official A4 Executive Certificate of Statutory Completion PDF
+ * in either Landscape (297x210mm) or Portrait (210x297mm) with zero overflows.
  */
-export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams): Uint8Array {
+export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Array {
+  const orient = params.orientation === 'portrait' ? 'portrait' : 'landscape';
   const doc = new jsPDF({
-    orientation: 'landscape',
+    orientation: orient,
     unit: 'mm',
     format: 'a4',
     compress: true,
   });
 
-  const theme = resolvePdfThemeAndFont(params.colorAccent, params.fontStyle || 'editorial_serif');
+  const theme = resolvePdfThemeAndFont(
+    params.colorAccent,
+    params.fontStyle || 'editorial_serif'
+  );
   const ff = theme.fontFamily;
-  const W = 297;
-  const H = 210;
+  const W = orient === 'portrait' ? 210 : 297;
+  const H = orient === 'portrait' ? 297 : 210;
 
   const recipient =
     sanitizePdfText(params.recipientName) || 'Distinguished Labor Standards Scholar';
@@ -1058,7 +1062,6 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
       .toString(16)
       .toUpperCase()}`;
 
-  // Diploma background tinted to selected theme
   const certBg: RgbTuple = theme.isInkSaver
     ? [255, 255, 255]
     : theme.id === 'vintage_parchment'
@@ -1069,7 +1072,7 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   doc.setFillColor(...certBg);
   doc.rect(0, 0, W, H, 'F');
 
-  // Double diplomatic frame in theme colors
+  // Double executive frame in theme colors
   doc.setDrawColor(...theme.accent);
   doc.setLineWidth(2.2);
   doc.rect(10, 10, W - 20, H - 20);
@@ -1078,12 +1081,10 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   doc.setLineWidth(0.75);
   doc.rect(13.5, 13.5, W - 27, H - 27);
 
-  // Subtle inner hairline
   doc.setDrawColor(...theme.borderMuted);
   doc.setLineWidth(0.25);
   doc.rect(15.5, 15.5, W - 31, H - 31);
 
-  // Corner ornaments
   const corners = [
     [18, 18],
     [W - 18, 18],
@@ -1095,7 +1096,146 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
     doc.circle(cx, cy, 2.1, 'F');
   });
 
-  // Top Academy Crest Header
+  if (orient === 'portrait') {
+    // Portrait Executive Certificate Geometry (210mm x 297mm)
+    doc.setTextColor(...theme.primary);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(8.8);
+    doc.text(
+      'REPUBLIC OF THE PHILIPPINES  -  PHILIPPINE LABOR STANDARDS GUIDE',
+      W / 2,
+      28,
+      { align: 'center' }
+    );
+
+    doc.setTextColor(...theme.mutedText);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(7.5);
+    doc.text(
+      'PRESIDENTIAL DECREE NO. 442 (LABOR CODE OF THE PHILIPPINES)  -  WORLDS 1 TO 6',
+      W / 2,
+      34,
+      { align: 'center' }
+    );
+
+    doc.setDrawColor(...theme.accent);
+    doc.setLineWidth(0.6);
+    doc.line(24, 41, W - 24, 41);
+    doc.line(24, 62, W - 24, 62);
+
+    doc.setTextColor(...theme.primary);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(20);
+    doc.text('CERTIFICATE OF', W / 2, 50, { align: 'center' });
+    doc.text('STATUTORY COMPLETION', W / 2, 58.5, { align: 'center' });
+
+    doc.setTextColor(...theme.mutedText);
+    doc.setFont(ff, ff === 'courier' ? 'normal' : 'italic');
+    doc.setFontSize(11);
+    doc.text('This Executive Honor Certificate is Conferred Upon', W / 2, 74, {
+      align: 'center',
+    });
+
+    doc.setTextColor(...theme.bodyText);
+    doc.setFont(ff, 'bold');
+    const recSize = recipient.length > 30 ? 17.5 : 21;
+    doc.setFontSize(recSize);
+    const clampedRec = doc.splitTextToSize(recipient, W - 44)[0] || recipient;
+    doc.text(clampedRec, W / 2, 91, { align: 'center' });
+
+    doc.setDrawColor(...theme.primary);
+    doc.setLineWidth(0.5);
+    doc.line(34, 95, W - 34, 95);
+
+    doc.setTextColor(...theme.badgeText);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(9.5);
+    const clampedHonors =
+      doc.splitTextToSize(honors.toUpperCase(), W - 44)[0] || honors.toUpperCase();
+    doc.text(clampedHonors, W / 2, 104, { align: 'center' });
+
+    doc.setTextColor(...theme.bodyText);
+    doc.setFont(ff, 'normal');
+    doc.setFontSize(10.5);
+    const citationBody =
+      'for demonstrating comprehensive statutory mastery and practical command across all Six Worlds of Philippine Labor Standards (Presidential Decree No. 442, as amended), encompassing Hours of Work & Overtime Rules, Rest Days & Holidays, Minimum Wages & D.O. 174 Subcontracting, Special Groups of Employees, Protective Workplace Statutes, and World 6 Statutory Leaves.';
+    const bodyLines = doc.splitTextToSize(citationBody, W - 48).slice(0, 6);
+    doc.text(bodyLines, W / 2, 118, { align: 'center' });
+
+    // 3x2 World Badges Grid in Portrait
+    const gridStartY = 156;
+    const cols = 2;
+    const gapX = 5;
+    const gapY = 4.5;
+    const cardW = (W - 48 - gapX) / cols;
+    const cardH = 17;
+    WORLDS_METADATA.forEach((w, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      const bx = 24 + col * (cardW + gapX);
+      const by = gridStartY + row * (cardH + gapY);
+      doc.setFillColor(...theme.badgeFill);
+      doc.setDrawColor(...theme.badgeBorder);
+      doc.setLineWidth(0.35);
+      doc.roundedRect(bx, by, cardW, cardH, 2, 2, 'FD');
+
+      doc.setTextColor(...theme.badgeText);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(8.2);
+      doc.text(`WORLD ${w.worldNumber}`, bx + cardW / 2, by + 6.5, { align: 'center' });
+
+      doc.setTextColor(...theme.bodyText);
+      doc.setFont(ff, 'bold');
+      doc.setFontSize(7.6);
+      const st = doc.splitTextToSize(sanitizePdfText(w.shortTitle), cardW - 4)[0] || '';
+      doc.text(st, bx + cardW / 2, by + 13, { align: 'center' });
+    });
+
+    // Portrait Seal & Signatures
+    const sealY = 234;
+    doc.setFillColor(...theme.accent);
+    doc.setDrawColor(...theme.primary);
+    doc.setLineWidth(1.0);
+    doc.circle(W / 2, sealY, 12.5, 'FD');
+    doc.setTextColor(...theme.accentTextOnFill);
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(7);
+    doc.text('VERIFIED', W / 2, sealY - 1.5, { align: 'center' });
+    doc.text('SEAL', W / 2, sealY + 2.5, { align: 'center' });
+
+    const sigY = 266;
+    doc.setTextColor(...theme.bodyText);
+    doc.setFont(ff, ff === 'courier' ? 'bold' : 'bolditalic');
+    doc.setFontSize(10.5);
+    doc.text('Matthew Cesar Corpuz', 56, sigY - 2.5, { align: 'center' });
+    doc.text('Academic Standards Council', W - 56, sigY - 2.5, { align: 'center' });
+    doc.setDrawColor(...theme.primary);
+    doc.setLineWidth(0.4);
+    doc.line(24, sigY, 88, sigY);
+    doc.line(W - 88, sigY, W - 24, sigY);
+
+    doc.setFont(ff, 'bold');
+    doc.setFontSize(7.4);
+    doc.text('MATTHEW CESAR CORPUZ', 56, sigY + 4.5, { align: 'center' });
+    doc.text('LABOR STANDARDS BOARD', W - 56, sigY + 4.5, { align: 'center' });
+
+    doc.setTextColor(...theme.mutedText);
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(6.8);
+    doc.text(
+      `ISSUED: ${dateStr}  |  ID: ${certId}  |  MODULES: ${params.completedCount}/${Math.max(
+        1,
+        params.totalCount
+      )}`,
+      W / 2,
+      280,
+      { align: 'center' }
+    );
+
+    return docToUint8Array(doc);
+  }
+
+  // Landscape Executive Certificate Geometry (297mm x 210mm)
   doc.setTextColor(...theme.primary);
   doc.setFont(ff, 'bold');
   doc.setFontSize(9.5);
@@ -1116,7 +1256,6 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
     { align: 'center' }
   );
 
-  // Main Certificate Title with Accent Rules
   doc.setDrawColor(...theme.accent);
   doc.setLineWidth(0.6);
   doc.line(40, 37, W - 40, 37);
@@ -1125,14 +1264,15 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   doc.setTextColor(...theme.primary);
   doc.setFont(ff, 'bold');
   doc.setFontSize(25.5);
-  doc.text('CERTIFICATE OF STATUTORY MASTERY', W / 2, 47, { align: 'center' });
+  doc.text('CERTIFICATE OF STATUTORY COMPLETION', W / 2, 47, { align: 'center' });
 
   doc.setTextColor(...theme.mutedText);
   doc.setFont(ff, ff === 'courier' ? 'normal' : 'italic');
   doc.setFontSize(11.5);
-  doc.text('This Official Diploma is Proudly Conferred Upon', W / 2, 60.5, { align: 'center' });
+  doc.text('This Executive Honor Certificate is Conferred Upon', W / 2, 60.5, {
+    align: 'center',
+  });
 
-  // Recipient Name (dynamically scaled so long names never overflow)
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, 'bold');
   const recipientFontSize = recipient.length > 36 ? 19 : recipient.length > 26 ? 22 : 25.5;
@@ -1144,14 +1284,13 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   doc.setLineWidth(0.5);
   doc.line(64, 78.2, W - 64, 78.2);
 
-  // Honors line
   doc.setTextColor(...theme.badgeText);
   doc.setFont(ff, 'bold');
   doc.setFontSize(10);
-  const clampedHonors = doc.splitTextToSize(honors.toUpperCase(), W - 70)[0] || honors.toUpperCase();
+  const clampedHonors =
+    doc.splitTextToSize(honors.toUpperCase(), W - 70)[0] || honors.toUpperCase();
   doc.text(clampedHonors, W / 2, 85.8, { align: 'center' });
 
-  // Citation Paragraph
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, 'normal');
   doc.setFontSize(10.8);
@@ -1160,7 +1299,6 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   const bodyLines = doc.splitTextToSize(citationBody, W - 74).slice(0, 4);
   doc.text(bodyLines, W / 2, 95.5, { align: 'center' });
 
-  // 6 Worlds Mastery Strip
   const boxY = 120;
   const totalBoxes = WORLDS_METADATA.length;
   const gap = 3.5;
@@ -1187,10 +1325,8 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
     doc.text(shortTitle, bx + boxW / 2, boxY + 12.2, { align: 'center' });
   });
 
-  // Signatures & Official Seal Row
   const sigLineY = 170;
 
-  // Left Signature
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, ff === 'courier' ? 'bold' : 'bolditalic');
   doc.setFontSize(12);
@@ -1206,7 +1342,6 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   doc.setTextColor(...theme.mutedText);
   doc.text('Main Creator & Lead Author of Memory Aid', 74, sigLineY + 9.2, { align: 'center' });
 
-  // Center Medallion Seal
   doc.setFillColor(...theme.accent);
   doc.setDrawColor(...theme.primary);
   doc.setLineWidth(1.0);
@@ -1232,7 +1367,6 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
     { align: 'center' }
   );
 
-  // Right Signature
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, ff === 'courier' ? 'bold' : 'bolditalic');
   doc.setFontSize(12);
@@ -1251,9 +1385,349 @@ export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams):
   return docToUint8Array(doc);
 }
 
+export function buildCertificateLandscapePdfBytes(params: CertificatePdfParams): Uint8Array {
+  return buildCertificatePdfBytes(params);
+}
+
+export function downloadCertificatePdf(params: CertificatePdfParams): Uint8Array {
+  const orient = params.orientation === 'portrait' ? 'Portrait' : 'Landscape';
+  const bytes = buildCertificatePdfBytes(params);
+  triggerPdfDownloadFromBytes(
+    bytes,
+    `Official-Labor-Mastery-Certificate-${orient}-A4.pdf`
+  );
+  return bytes;
+}
+
 export function downloadCertificateLandscapePdf(params: CertificatePdfParams): Uint8Array {
-  const bytes = buildCertificateLandscapePdfBytes(params);
-  triggerPdfDownloadFromBytes(bytes, 'Official-Labor-Mastery-Certificate-Landscape-A4.pdf');
+  return downloadCertificatePdf(params);
+}
+
+/**
+ * Builds Toad's Shop's Distinct ROYAL GRAND MASTER JURIS DIPLOMA & 6-WORLD TRANSCRIPT CHARTER
+ * in either Landscape (297x210mm) or Portrait (210x297mm), visually distinct from Print Studio's
+ * Executive Certificate with a Royal Crimson-Gold Academic Senate header, Charter Registry Bar,
+ * 6-World Statutory Transcript Pillar Grid, Hanging-Ribbon Gold Rosette, and 3-Signatory Senate.
+ */
+export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8Array {
+  const orient = params.orientation === 'portrait' ? 'portrait' : 'landscape';
+  const doc = new jsPDF({
+    orientation: orient,
+    unit: 'mm',
+    format: 'a4',
+    compress: true,
+  });
+
+  const W = orient === 'portrait' ? 210 : 297;
+  const H = orient === 'portrait' ? 297 : 210;
+
+  const recipient =
+    sanitizePdfText(params.recipientName) || 'Mario Bar Candidate';
+  const dateStr = sanitizePdfText(
+    params.dateLabel ||
+      new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+  );
+  const charterNo =
+    sanitizePdfText(params.certificateId) ||
+    `MK-CHARTER-${Math.abs(params.completedCount * 211 + 777)
+      .toString(16)
+      .toUpperCase()}`;
+
+  // Warm Ivory Parchment Charter Canvas
+  doc.setFillColor(254, 250, 240);
+  doc.rect(0, 0, W, H, 'F');
+
+  // Royal Crimson & 24k Gold Triple Filigree Charter Frame
+  doc.setDrawColor(127, 29, 29);
+  doc.setLineWidth(2.8);
+  doc.rect(8, 8, W - 16, H - 16);
+
+  doc.setDrawColor(217, 119, 6);
+  doc.setLineWidth(1.1);
+  doc.rect(12, 12, W - 24, H - 24);
+
+  doc.setDrawColor(153, 27, 27);
+  doc.setLineWidth(0.35);
+  doc.rect(14.2, 14.2, W - 28.4, H - 28.4);
+
+  // Royal Crimson Top Masthead Ribbon
+  const bannerW = W - 40;
+  doc.setFillColor(127, 29, 29);
+  doc.roundedRect(20, 18, bannerW, 18, 2.5, 2.5, 'F');
+  doc.setTextColor(253, 224, 71);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(orient === 'portrait' ? 9.2 : 10.5);
+  doc.text(
+    'ROYAL MUSHROOM ACADEMY  -  SENATE OF SOCIAL LEGISLATION & JURISPRUDENCE',
+    W / 2,
+    25.2,
+    { align: 'center' }
+  );
+  doc.setTextColor(254, 243, 199);
+  doc.setFont('times', 'italic');
+  doc.setFontSize(8);
+  doc.text(
+    '"Iustitia Laboris  -  Salus Populi Suprema Lex  -  Six-World Statutory Charter"',
+    W / 2,
+    31.8,
+    { align: 'center' }
+  );
+
+  // Charter Registry Strip
+  const regY = 39.5;
+  doc.setFillColor(254, 243, 199);
+  doc.setDrawColor(217, 119, 6);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(20, regY, bannerW, 8, 1.5, 1.5, 'FD');
+  doc.setTextColor(120, 53, 15);
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(7.2);
+  doc.text(
+    `CHARTER REGISTRY: ${charterNo}   |   TRANSCRIPT: 6/6 WORLDS SEALED   |   CONFERRED: ${dateStr.toUpperCase()}`,
+    W / 2,
+    regY + 5.2,
+    { align: 'center' }
+  );
+
+  const pillars = [
+    { w: 'WORLD I', t: 'Hours & Overtime', s: 'Arts. 82-90 | 8h | +25% OT | +10% NSD' },
+    { w: 'WORLD II', t: 'Holidays & 13th Mo.', s: '200% Reg | 130% Spec | P.D. 851 | R.A. 11360' },
+    { w: 'WORLD III', t: 'Wages & D.O. 174', s: 'R.A. 6727 | Pineda Formula | P5M Capital' },
+    { w: 'WORLD IV', t: 'Special Groups', s: 'R.A. 10361 Kasambahay | R.A. 9231 | R.A. 7277' },
+    { w: 'WORLD V', t: 'Tenure & Retirement', s: 'Arts. 294-302 | Twin-Notice | R.A. 7641 22.5d' },
+    { w: 'WORLD VI', t: 'Statutory Leaves', s: 'R.A. 11210 (105d) | R.A. 8187 | 9262 | 9710' },
+  ];
+
+  if (orient === 'portrait') {
+    doc.setTextColor(127, 29, 29);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(22);
+    doc.text('GRAND MASTER JURIS DIPLOMA', W / 2, 60, { align: 'center' });
+
+    doc.setTextColor(71, 85, 105);
+    doc.setFont('times', 'italic');
+    doc.setFontSize(10.5);
+    doc.text(
+      'By Authority of the High Academy Senate, Know All Persons That',
+      W / 2,
+      68,
+      { align: 'center' }
+    );
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(recipient.length > 28 ? 19 : 23);
+    const recLine = doc.splitTextToSize(recipient, W - 46)[0] || recipient;
+    doc.text(recLine, W / 2, 82, { align: 'center' });
+    doc.setDrawColor(180, 83, 9);
+    doc.setLineWidth(0.6);
+    doc.line(32, 85.5, W - 32, 85.5);
+
+    doc.setTextColor(153, 27, 27);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(
+      'GRAND MASTER OF PHILIPPINE LABOR STANDARDS  -  SUMMA CUM CODAL',
+      W / 2,
+      93,
+      { align: 'center' }
+    );
+
+    // 3x2 Transcript Matrix in Portrait
+    const pStartY = 103;
+    const cols = 2;
+    const gapX = 5;
+    const gapY = 5;
+    const cardW = (W - 40 - gapX) / cols;
+    const cardH = 26;
+    pillars.forEach((p, idx) => {
+      const c = idx % cols;
+      const r = Math.floor(idx / cols);
+      const bx = 20 + c * (cardW + gapX);
+      const by = pStartY + r * (cardH + gapY);
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(180, 83, 9);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(bx, by, cardW, cardH, 2, 2, 'FD');
+
+      doc.setTextColor(153, 27, 27);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(7.4);
+      doc.text(`${p.w}  [SUMMA SEALED]`, bx + 3.5, by + 6);
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('times', 'bold');
+      doc.setFontSize(9.5);
+      doc.text(p.t, bx + 3.5, by + 13.5);
+
+      doc.setTextColor(71, 85, 105);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.0);
+      const sl = doc.splitTextToSize(p.s, cardW - 7)[0] || p.s;
+      doc.text(sl, bx + 3.5, by + 20.5);
+    });
+
+    // Hanging Ribbon Gold Rosette Seal
+    const sealY = 216;
+    doc.setFillColor(185, 28, 28);
+    doc.triangle(W / 2 - 8, sealY + 6, W / 2 - 2, sealY + 6, W / 2 - 11, sealY + 24, 'F');
+    doc.triangle(W / 2 + 2, sealY + 6, W / 2 + 8, sealY + 6, W / 2 + 11, sealY + 24, 'F');
+    doc.setFillColor(245, 158, 11);
+    doc.setDrawColor(127, 29, 29);
+    doc.setLineWidth(1.2);
+    doc.circle(W / 2, sealY, 13.5, 'FD');
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(7.2);
+    doc.text('HIGH SENATE', W / 2, sealY - 1.5, { align: 'center' });
+    doc.text('GOLD SEAL', W / 2, sealY + 2.8, { align: 'center' });
+
+    // 3-Signatory Academic Senate Block
+    const sigY = 266;
+    const colW = (W - 44) / 3;
+    const sigs = [
+      { s: 'Chancellor Toadsworth', r: 'CHANCELLOR OF LEGISLATION' },
+      { s: 'Matthew Cesar Corpuz', r: 'MAIN CREATOR & ARCHITECT' },
+      { s: 'Chief Arbiter Rosalina', r: 'SUPREME BAR EXAMINER' },
+    ];
+    sigs.forEach((sg, idx) => {
+      const cx = 22 + colW * idx + colW / 2;
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('times', 'bolditalic');
+      doc.setFontSize(9.2);
+      doc.text(sg.s, cx, sigY - 2.5, { align: 'center' });
+      doc.setDrawColor(127, 29, 29);
+      doc.setLineWidth(0.4);
+      doc.line(cx - colW * 0.42, sigY, cx + colW * 0.42, sigY);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(6.2);
+      doc.setTextColor(120, 53, 15);
+      doc.text(sg.r, cx, sigY + 4.5, { align: 'center' });
+    });
+
+    return docToUint8Array(doc);
+  }
+
+  // Landscape Royal Grand Master Juris Diploma (297mm x 210mm)
+  doc.setTextColor(127, 29, 29);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(24);
+  doc.text('GRAND MASTER JURIS DIPLOMA', W / 2, 58, { align: 'center' });
+
+  doc.setTextColor(71, 85, 105);
+  doc.setFont('times', 'italic');
+  doc.setFontSize(10.5);
+  doc.text(
+    'By Authority of the Royal Mushroom Academy Senate, This Sovereign Charter Is Conferred Upon',
+    W / 2,
+    65.5,
+    { align: 'center' }
+  );
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(recipient.length > 32 ? 20 : 24.5);
+  const recLand = doc.splitTextToSize(recipient, W - 70)[0] || recipient;
+  doc.text(recLand, W / 2, 77.5, { align: 'center' });
+  doc.setDrawColor(180, 83, 9);
+  doc.setLineWidth(0.6);
+  doc.line(58, 80.5, W - 58, 80.5);
+
+  doc.setTextColor(153, 27, 27);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(9.5);
+  doc.text(
+    'GRAND MASTER OF PHILIPPINE LABOR STANDARDS  -  SUMMA CUM CODAL HONORS',
+    W / 2,
+    87,
+    { align: 'center' }
+  );
+
+  // 2x3 Statutory Mastery Transcript Matrix
+  const lStartY = 93;
+  const lCols = 3;
+  const lGapX = 4.5;
+  const lGapY = 4;
+  const lCardW = (W - 40 - lGapX * 2) / lCols;
+  const lCardH = 21;
+  pillars.forEach((p, idx) => {
+    const c = idx % lCols;
+    const r = Math.floor(idx / lCols);
+    const bx = 20 + c * (lCardW + lGapX);
+    const by = lStartY + r * (lCardH + lGapY);
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(180, 83, 9);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(bx, by, lCardW, lCardH, 2, 2, 'FD');
+
+    doc.setTextColor(153, 27, 27);
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(7.2);
+    doc.text(`${p.w}  [SUMMA SEALED]`, bx + 3.5, by + 5.5);
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(p.t, bx + 3.5, by + 12);
+
+    doc.setTextColor(71, 85, 105);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.0);
+    const sl = doc.splitTextToSize(p.s, lCardW - 7)[0] || p.s;
+    doc.text(sl, bx + 3.5, by + 17.5);
+  });
+
+  // 3-Signatory Senate Row + Hanging Ribbon Seal
+  const lSigY = 176;
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('times', 'bolditalic');
+  doc.setFontSize(11);
+  doc.text('Chancellor Toadsworth', 62, lSigY - 3, { align: 'center' });
+  doc.text('Matthew Cesar Corpuz', W - 62, lSigY - 3, { align: 'center' });
+
+  doc.setDrawColor(127, 29, 29);
+  doc.setLineWidth(0.45);
+  doc.line(26, lSigY, 98, lSigY);
+  doc.line(W - 98, lSigY, W - 26, lSigY);
+
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(7.2);
+  doc.setTextColor(120, 53, 15);
+  doc.text('CHANCELLOR OF SOCIAL LEGISLATION', 62, lSigY + 5, { align: 'center' });
+  doc.text('MATTHEW  -  MAIN CREATOR & CURATOR', W - 62, lSigY + 5, {
+    align: 'center',
+  });
+
+  // Center Rosette Seal with Hanging Crimson Ribbons
+  const sealX = W / 2;
+  const sealY = 165;
+  doc.setFillColor(185, 28, 28);
+  doc.triangle(sealX - 7, sealY + 6, sealX - 1.5, sealY + 6, sealX - 10, sealY + 23, 'F');
+  doc.triangle(sealX + 1.5, sealY + 6, sealX + 7, sealY + 6, sealX + 10, sealY + 23, 'F');
+  doc.setFillColor(245, 158, 11);
+  doc.setDrawColor(127, 29, 29);
+  doc.setLineWidth(1.2);
+  doc.circle(sealX, sealY, 12.8, 'FD');
+  doc.setTextColor(15, 23, 42);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(7.2);
+  doc.text('ROYAL SENATE', sealX, sealY - 1.5, { align: 'center' });
+  doc.text('CHARTER SEAL', sealX, sealY + 2.8, { align: 'center' });
+
+  return docToUint8Array(doc);
+}
+
+export function downloadMasterDiplomaPdf(params: CertificatePdfParams): Uint8Array {
+  const orient = params.orientation === 'portrait' ? 'Portrait' : 'Landscape';
+  const bytes = buildMasterDiplomaPdfBytes(params);
+  triggerPdfDownloadFromBytes(
+    bytes,
+    `Royal-Grand-Master-Juris-Diploma-${orient}-A4.pdf`
+  );
   return bytes;
 }
 

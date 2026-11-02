@@ -52,17 +52,33 @@ import {
 import {
   ActiveDailyQuizStreakSnapshot,
   CompletedTopicsSparklineSeries,
+  loadCompletedTopicsDailyHistory,
 } from '../utils/round8Features';
+import {
+  CoinLedgerMap,
+  LuxuryAvatarFrameId,
+  LuxuryMushroomAuraId,
+  build30DayStudyIntensitySeries,
+  build30DayCompletionSparklineSeries,
+  build30DayCoinVaultSeries,
+  loadCoinLedger30d,
+  loadLuxuryEquippedState,
+} from '../utils/round9Features';
 import { marioAudio } from '../utils/audio';
 import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   Cell,
   CartesianGrid,
+  Legend,
 } from 'recharts';
 
 interface UserProfileModalProps {
@@ -90,6 +106,10 @@ interface UserProfileModalProps {
   onOpenBossBattleLog?: () => void;
   bossBattleLogCount?: number;
   onLaunchWeaknessDrill?: () => void;
+  coinLedger?: CoinLedgerMap;
+  completedTopicsHistory?: Record<string, number>;
+  equippedLuxuryFrame?: LuxuryAvatarFrameId;
+  equippedLuxuryAura?: LuxuryMushroomAuraId;
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -117,6 +137,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onOpenBossBattleLog,
   bossBattleLogCount = 0,
   onLaunchWeaknessDrill,
+  coinLedger,
+  completedTopicsHistory,
+  equippedLuxuryFrame,
+  equippedLuxuryAura,
 }) => {
   const [filterTab, setFilterTab] = useState<'all' | 'unlocked' | 'locked'>('all');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -129,6 +153,47 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [chartMetric, setChartMetric] = useState<'minutes' | 'sessions'>('minutes');
   const todayStr = formatDateKey(referenceNow);
   const goalStatus = computeDailyStudyGoalStatus(stats, dailyGoalTarget, todayStr);
+
+  const fallbackLuxury = React.useMemo(
+    () =>
+      typeof window !== 'undefined'
+        ? loadLuxuryEquippedState(window.localStorage)
+        : { avatarFrame: 'lux_frame_none' as const, mushroomAura: 'lux_aura_none' as const, cartridgeBadge: 'lux_cart_none' as const },
+    [isOpen]
+  );
+  const activeLuxuryFrame = equippedLuxuryFrame || fallbackLuxury.avatarFrame;
+  const activeLuxuryAura = equippedLuxuryAura || fallbackLuxury.mushroomAura;
+
+  const studyIntensity30d = React.useMemo(
+    () =>
+      build30DayStudyIntensitySeries({
+        dailyPomodoroLogs: stats.dailyPomodoroLogs,
+        todayStudiedSeconds: stats.totalStudySeconds,
+        now: referenceNow,
+      }),
+    [stats.dailyPomodoroLogs, stats.totalStudySeconds, todayStr]
+  );
+
+  const completionSparkline30d = React.useMemo(() => {
+    const hist =
+      completedTopicsHistory ||
+      (typeof window !== 'undefined' ? loadCompletedTopicsDailyHistory(window.localStorage) : {});
+    return build30DayCompletionSparklineSeries({
+      history: hist,
+      currentCompletedCount: completedTopicsCount,
+      now: referenceNow,
+    });
+  }, [completedTopicsHistory, completedTopicsCount, todayStr]);
+
+  const coinVault30d = React.useMemo(() => {
+    const effectiveLedger =
+      coinLedger || (typeof window !== 'undefined' ? loadCoinLedger30d(window.localStorage) : {});
+    return build30DayCoinVaultSeries({
+      ledger: effectiveLedger,
+      currentCoins: coins,
+      now: referenceNow,
+    });
+  }, [coinLedger, coins, todayStr]);
 
   // Favorite Tips State synced from localStorage
   const [favoriteTips, setFavoriteTips] = useState<{ title: string; tip: string; savedAt?: number }[]>(() => {
@@ -397,18 +462,42 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border-2 border-slate-700 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAvatarPicker((prev) => !prev);
-                    marioAudio.playJump();
-                  }}
-                  aria-label="Change Equipped Hero Avatar"
-                  title="Click to switch Hero Avatar"
-                  className="w-16 h-16 rounded-2xl bg-amber-400 border-3 border-black flex items-center justify-center shadow-[0_3px_0_#000] hover:scale-105 transition-transform cursor-pointer shrink-0"
-                >
-                  <MarioCharacterAvatar character={equippedAvatar} className="w-12 h-12" />
-                </button>
+                <div className="relative inline-flex shrink-0">
+                  {activeLuxuryAura !== 'lux_aura_none' && (
+                    <span
+                      aria-hidden="true"
+                      data-testid="profile-luxury-aura"
+                      className={`pointer-events-none absolute -inset-1.5 rounded-3xl blur-xs opacity-90 ${
+                        activeLuxuryAura === 'lux_aura_cosmic_nebula'
+                          ? 'bg-gradient-to-tr from-fuchsia-500 via-cyan-400 to-indigo-500'
+                          : activeLuxuryAura === 'lux_aura_royal_crown_glow'
+                          ? 'bg-gradient-to-tr from-rose-500 via-amber-300 to-yellow-200'
+                          : 'bg-gradient-to-tr from-amber-500 via-yellow-300 to-emerald-400'
+                      }`}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAvatarPicker((prev) => !prev);
+                      marioAudio.playJump();
+                    }}
+                    aria-label="Change Equipped Hero Avatar"
+                    title="Click to switch Hero Avatar"
+                    data-testid="profile-hero-avatar-btn"
+                    className={`relative w-16 h-16 rounded-2xl flex items-center justify-center hover:scale-105 transition-transform cursor-pointer shrink-0 ${
+                      activeLuxuryFrame === 'lux_frame_gold_filigree'
+                        ? 'bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 border-4 border-amber-300 ring-2 ring-yellow-200 shadow-[0_4px_12px_rgba(251,191,36,0.5)]'
+                        : activeLuxuryFrame === 'lux_frame_grand_star_platinum'
+                        ? 'bg-gradient-to-br from-slate-100 via-cyan-200 to-indigo-300 border-4 border-cyan-200 ring-2 ring-white shadow-[0_4px_12px_rgba(103,232,249,0.5)]'
+                        : activeLuxuryFrame === 'lux_frame_sovereign_ruby'
+                        ? 'bg-gradient-to-br from-rose-500 via-amber-400 to-red-700 border-4 border-amber-300 ring-2 ring-rose-300 shadow-[0_4px_12px_rgba(244,63,94,0.5)]'
+                        : 'bg-amber-400 border-3 border-black shadow-[0_3px_0_#000]'
+                    }`}
+                  >
+                    <MarioCharacterAvatar character={equippedAvatar} className="w-12 h-12" />
+                  </button>
+                </div>
 
                 <div className="min-w-0 space-y-1">
                   {isEditingName ? (
@@ -705,6 +794,180 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* 30-Day Recharts Analytics Suite: Study Intensity, 30-Day Completion Sparkline & Coin Vault */}
+            <div
+              data-testid="profile-30d-analytics"
+              className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 pt-1"
+            >
+              {/* 1. 30-Day Study Intensity Bar Chart */}
+              <div className="bg-slate-950/90 rounded-xl p-3.5 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                      STUDY INTENSITY (30D)
+                    </span>
+                    <span className="text-xs font-bold text-slate-300">
+                      Minutes Studied Per Day
+                    </span>
+                  </div>
+                  <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                </div>
+                <div className="h-36 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={studyIntensity30d} margin={{ top: 6, right: 4, left: -24, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        interval={6}
+                        axisLine={{ stroke: '#334155' }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#0f172a',
+                          borderColor: '#f59e0b',
+                          borderRadius: '10px',
+                          fontSize: '11px',
+                          color: '#f8fafc',
+                        }}
+                      />
+                      <Bar dataKey="minutes" name="Minutes" fill="#fbbf24" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* 2. 30-Day Completion Sparkline */}
+              <div className="bg-slate-950/90 rounded-xl p-3.5 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
+                      30-DAY COMPLETION SPARKLINE
+                    </span>
+                    <span className="text-xs font-bold text-slate-300">
+                      Mastered Topics Trajectory
+                    </span>
+                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                </div>
+                <div className="h-36 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={completionSparkline30d} margin={{ top: 6, right: 4, left: -24, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="profileComp30dGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.04} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        interval={6}
+                        axisLine={{ stroke: '#334155' }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        domain={[0, Math.max(totalTopicsCount, 10)]}
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#0f172a',
+                          borderColor: '#10b981',
+                          borderRadius: '10px',
+                          fontSize: '11px',
+                          color: '#f8fafc',
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="completedTopics"
+                        name="Mastered Topics"
+                        stroke="#34d399"
+                        strokeWidth={2.5}
+                        fill="url(#profileComp30dGrad)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* 3. Coin Vault 30-Day Earned vs Spent Line Graph */}
+              <div
+                data-testid="profile-coin-vault-chart"
+                className="bg-slate-950/90 rounded-xl p-3.5 border border-slate-800 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-cyan-300 font-mario block">
+                      COIN VAULT (30D LEDGER)
+                    </span>
+                    <span className="text-xs font-bold text-slate-300">
+                      Cumulative Earned vs Spent
+                    </span>
+                  </div>
+                  <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                </div>
+                <div className="h-36 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={coinVault30d} margin={{ top: 6, right: 6, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        interval={6}
+                        axisLine={{ stroke: '#334155' }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: '#94a3b8', fontSize: 9 }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#0f172a',
+                          borderColor: '#38bdf8',
+                          borderRadius: '10px',
+                          fontSize: '11px',
+                          color: '#f8fafc',
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '2px' }} />
+                      <Line
+                        type="monotone"
+                        dataKey="totalEarned"
+                        name="Earned"
+                        stroke="#fbbf24"
+                        strokeWidth={2.2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="totalSpent"
+                        name="Spent"
+                        stroke="#f43f5e"
+                        strokeWidth={2.2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Section 1.25: 'Need Improvement' Focus Areas & 5-Min Quick Study Mode */}

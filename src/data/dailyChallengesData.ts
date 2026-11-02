@@ -50,12 +50,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'How many total paid leave days is Marco legally entitled to demand from Peach Logistics Inc.?',
     options: [
-      '14 days paid leave (7 days R.A. 8187 Paternity Leave + 7 days R.A. 11210 allocated leave).',
-      '7 days paid leave ONLY (under R.A. 11210 allocation, which applies regardless of civil status; he is disqualified from R.A. 8187 Paternity Leave because it strictly requires lawful marriage to the mother).',
-      '0 days paid leave because both R.A. 8187 and R.A. 11210 allocation require a valid marriage certificate.',
-      '7 days under R.A. 8187 only, because R.A. 11210 allocation is limited to legal spouses.',
+      '14 days paid leave in full, because 6 years of exclusive cohabitation without legal impediment under Art. 147 of the Family Code satisfies both R.A. 8187 and R.A. 11210.',
+      '0 days paid leave, because both Sec. 2 of R.A. 8187 and Sec. 6 of R.A. 11210 require proof of a valid civil or church marriage prior to childbirth.',
+      '7 days paid leave ONLY under Sec. 6 of R.A. 11210 (which applies regardless of civil status), as R.A. 8187 Paternity Leave strictly requires lawful marriage to the mother.',
+      '7 days paid leave ONLY under R.A. 8187 as a cohabiting biological father, because R.A. 11210 leave allocation is restricted exclusively to legitimate spouses.',
     ],
-    correctIndex: 1,
+    correctIndex: 2,
     statutoryBasis: 'Sec. 6, R.A. No. 11210 vs. Sec. 2, R.A. No. 8187',
     doctrinalExplanation:
       'Under Sec. 6 of R.A. 11210 (105-Day Expanded Maternity Leave Law), a female worker may allocate up to 7 days of her maternity leave to the child’s father WHETHER OR NOT he is married to her. Conversely, Sec. 2 of R.A. 8187 (Paternity Leave Act) strictly grants the 7-day Paternity Leave ONLY to a MARRIED male employee cohabiting with his legitimate spouse. Because Marco and Sofia are unmarried, Marco gets the 7 allocated days under R.A. 11210, but NOT the 7 days under R.A. 8187.',
@@ -73,12 +73,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Rule on Koopa Freight Corp.’s defense of prescription.',
     options: [
-      'Sustained: Money claims prescribe strictly 3 years from the end of each calendar year (2018–2021 SIL claims are barred).',
-      'Overruled: Under Auto Bus Transport Systems, Inc. v. Bautista, the 3-year prescriptive period for SIL commences NOT at the end of each year, but from the time the employer refuses to pay upon demand OR upon separation from employment (Luigi gets all 7 years)!',
-      'Sustained in part: Only the last 5 years are recoverable under the Civil Code.',
-      'Overruled: Service Incentive Leave is imprescriptible even 20 years after resignation.',
+      'Overruled: Under Auto Bus Transport Systems v. Bautista, the 3-year period for SIL runs only from employer refusal upon demand OR upon separation from service, so all 7 years are recoverable.',
+      'Sustained: Under Art. 306 of the Labor Code, money claims accrue at the close of each calendar year when SIL becomes commutable, barring the 2018–2021 SIL credits.',
+      'Sustained in part: While Art. 306 bars claims older than 3 years, Art. 1144 of the Civil Code allows recovery of the last 5 years of written statutory leave credits.',
+      'Overruled in part: Unused SIL credits accumulate for a maximum statutory cap of 15 days under the Omnibus Rules, regardless of when the employee resigns.',
     ],
-    correctIndex: 1,
+    correctIndex: 0,
     statutoryBasis: 'Art. 95 & Art. 306, Labor Code; Auto Bus Transport Systems, Inc. v. Bautista (G.R. No. 156367)',
     doctrinalExplanation:
       'In Auto Bus Transport Systems, Inc. v. Bautista, the Supreme Court held that because an employee may choose either to use SIL or commute it to cash at the end of service, the cause of action for accumulated SIL accrues only when the employer refuses a demand for payment OR upon termination/resignation of employment. Since Luigi resigned on March 1, 2025 and filed on June 1, 2025 (within 3 months), NONE of his 2018–2024 SIL claims have prescribed!',
@@ -96,12 +96,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Compute Toadette’s exact statutory gross pay for that 10-hour shift.',
     options: [
-      '₱3,900.00 total (₱3,120.00 for first 8 hours + ₱780.00 for 2 OT hours).',
-      '₱4,134.00 total (₱3,120.00 for first 8 hours at 390% + ₱1,014.00 for 2 OT hours at ₱507/hr [507%]).',
-      '₱3,180.00 total (₱2,400.00 for first 8 hours at 300% + ₱780.00 for 2 OT hours).',
-      '₱2,756.00 total (₱2,080.00 for first 8 hours at 260% + ₱676.00 for 2 OT hours).',
+      '₱3,900.00 total, computed at 390% for the first 8 hours (₱3,120.00) plus 2 overtime hours computed using a 390% straight hourly rate (₱780.00).',
+      '₱3,120.00 total, computed at 300% for the first 8 hours on a Double Regular Holiday (₱2,400.00) plus 2 overtime hours at 360% per hour (₱720.00).',
+      '₱3,768.00 total, computed at 360% for the first 8 hours on a Double Holiday Rest Day (₱2,880.00) plus 2 overtime hours at 444% per hour (₱888.00).',
+      '₱4,134.00 total, computed at 390% for the first 8 hours (₱3,120.00) plus 2 overtime hours at 507% per hour [₱100 × 3.90 × 1.30] (₱1,014.00).',
     ],
-    correctIndex: 1,
+    correctIndex: 3,
     statutoryBasis: 'Art. 87, 93 & 94, Labor Code; DOLE Statutory Benefits Handbook',
     doctrinalExplanation:
       'Step 1 (First 8 Hours): Double Regular Holiday worked = 300%. Because it also falls on her scheduled Rest Day, add +30% of 300% (+90%) = 390%. ₱800 × 3.90 = ₱3,120.00 (effective hourly rate on that day = ₱390.00/hr). Step 2 (2 Hours Overtime): Holiday/Rest Day OT adds +30% on top of the 390% hourly rate: ₱100 × 3.90 × 1.30 = ₱507.00/hr (507%). For 2 OT hours: ₱507 × 2 = ₱1,014.00. Total = ₱3,120.00 + ₱1,014.00 = ₱4,134.00!',
@@ -119,10 +119,10 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Which statutory exemptions may Yoshi Bakeshop validly invoke with EXACTLY ten (10) regular workers?',
     options: [
-      'Exempt from all four: Minimum Wage, Holiday Pay, SIL, and NSD.',
-      'May apply ONLY for Minimum Wage exemption ("not more than 10" = ≤10 workers upon RTWPB approval); it is NOT exempt from Holiday Pay or SIL (both require "less than 10" = ≤9 workers) nor NSD ("not more than 5" = ≤5 workers)!',
-      'Exempt from Minimum Wage, Holiday Pay, and SIL, but liable for NSD.',
-      'Exempt from none because retail exemptions were repealed by R.A. 6727.',
+      'It is automatically exempt from Regular Holiday Pay, SIL, and Minimum Wage (all "not more than 10"), and is liable only for Night Shift Differential ("not more than 5").',
+      'It may apply ONLY for Minimum Wage exemption under R.A. 6727 ("not more than 10" = ≤10 upon RTWPB approval); Holiday Pay & SIL require "less than 10" (≤9) and NSD requires "not more than 5" (≤5).',
+      'It is automatically exempt from all four benefits under Art. 82 and R.A. 9178 as a micro-retail enterprise employing ten or fewer regular rank-and-file personnel.',
+      'It is exempt from Regular Holiday Pay and SIL under Arts. 94 and 95, but remains strictly liable for statutory Minimum Wage and Night Shift Differential.',
     ],
     correctIndex: 1,
     statutoryBasis: 'Art. 82/86 (NSD ≤5), Art. 94 (Holiday <10), Art. 95 (SIL <10), R.A. 6727 Sec. 4 (Min Wage ≤10)',
@@ -142,17 +142,17 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'What is the legal status of ShyGuy Manpower Inc. and its deployed operators?',
     options: [
-      'Legitimate Job Contractor because it exceeds the ₱5,000,000 paid-up capital requirement and holds a DOLE registration.',
-      'Prohibited Labor-Only Contractor! Even with ≥₱5M capital, lacking the Right of Control over the performance of the work renders the arrangement Labor-Only Contracting, making Bowser Electronics the DIRECT EMPLOYER of the 40 workers for all purposes!',
-      'Legitimate Job Contractor; Bowser is only subsidiarily liable for unpaid minimum wages.',
-      'Independent Freelance Agency governed solely by the Civil Code.',
+      'Legitimate Job Contractor, because verified paid-up capital exceeding ₱5,000,000.00 and an active DOLE Certificate of Registration conclusively establish independent contracting.',
+      'Legitimate Job Contractor as to corporate personality, rendering Bowser Electronics merely solidarily liable for unpaid statutory wages under Art. 109 without employer-employee ties.',
+      'Prohibited Labor-Only Contractor under Sec. 5(b) of D.O. 174-17; lacking the Right of Control makes Bowser Electronics the direct employer of the 40 operators ab initio despite ₱8M capital.',
+      'Permissible Trilateral Service Arrangement, provided ShyGuy Manpower executes six-month service agreements co-terminous with Bowser Electronics’ production cycles.',
     ],
-    correctIndex: 1,
+    correctIndex: 2,
     statutoryBasis: 'Art. 106, Labor Code; Sec. 5(b), DOLE D.O. No. 174-17; Alilin v. Petron Corp.',
     doctrinalExplanation:
       'Under Section 5 of DOLE D.O. No. 174-17, Labor-Only Contracting exists under EITHER of two independent prongs: Prong (a) lack of substantial capital/investment + work directly related to principal’s main business, OR Prong (b) the contractor DOES NOT EXERCISE THE RIGHT OF CONTROL over the performance of the work of the employee! Even ₱8M paid-up capital and DOLE registration (which is not conclusive, only disputable) cannot save an arrangement where the principal exercises control. Bowser becomes the direct employer ab initio.',
     barTakeaway:
-      'D.O. 174 has TWO fatal prongs:Even with ₱5M+ capital, if the PRINCIPAL exercises Control, it is Prohibited Labor-Only Contracting!',
+      'D.O. 174 has TWO fatal prongs: Even with ₱5M+ capital, if the PRINCIPAL exercises Control, it is Prohibited Labor-Only Contracting!',
   },
   {
     id: 'dc-06-kasambahay-sil-vs-regular-sil',
@@ -165,12 +165,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Who is legally entitled to cash conversion of accumulated unused SIL?',
     options: [
-      'Both Daisy and Mario get 15 days of SIL cash conversion.',
-      'Mario gets all 15 days of unused SIL converted to cash (Art. 95), whereas Daisy gets ZERO cash conversion because under Sec. 29 of R.A. 10361 (Batas Kasambahay), unused Kasambahay SIL is strictly NON-CUMULATIVE and NON-CONVERTIBLE to cash!',
-      'Daisy gets 5 days for the current year and Mario gets 15 days.',
-      'Neither gets cash conversion unless stipulated in a CBA.',
+      'Mario gets all 15 days of unused SIL converted to cash under Art. 95, whereas Daisy gets ZERO cash conversion because under Sec. 29 of R.A. 10361 unused Kasambahay SIL is non-cumulative and non-convertible to cash.',
+      'Both Mario and Daisy are entitled to full cash commutation of 15 accumulated SIL days upon resignation pursuant to the Auto Bus doctrine and R.A. 10361 parity rules.',
+      'Mario gets 15 days converted to cash under Art. 95, while Daisy gets 5 days converted to cash corresponding only to her final year of household service under Sec. 29 of R.A. 10361.',
+      'Neither gets cash conversion upon voluntary resignation, because statutory SIL commutation applies only when separation is due to an authorized cause by the employer.',
     ],
-    correctIndex: 1,
+    correctIndex: 0,
     statutoryBasis: 'Sec. 29, R.A. No. 10361 (Batas Kasambahay) vs. Art. 95, Labor Code',
     doctrinalExplanation:
       'While both regular rank-and-file employees (Art. 95, after 1 year of service) and Kasambahays (Sec. 29, R.A. 10361, after 1 year of service) are entitled to 5 days of annual Service Incentive Leave with pay, their legal treatment of UNUSED leave is diametrically opposite: Regular Art. 95 SIL is COMMUTABLE to cash if unused, whereas R.A. 10361 Sec. 29 explicitly provides that unused Kasambahay SIL "shall not be cumulative or carried over to the succeeding years" and "Unused leaves shall not be convertible to cash."',
@@ -188,12 +188,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Evaluate HR’s denial of Rosalina’s 7-day Parental Leave.',
     options: [
-      'Valid denial: Parental leave requires 12 months of continuous service.',
-      'Invalid denial! R.A. 11861 (Expanded Solo Parents Welfare Act) lowered the minimum service requirement from 1 year down to SIX (6) MONTHS (continuous or broken), making Rosalina fully entitled to the 7-day forfeitable paid Parental Leave!',
-      'Invalid denial, and if Rosalina does not use the 7 days, HR must pay them in cash in December.',
-      'Valid denial because probationary months never count toward statutory leave tenure.',
+      'Valid denial: Parental Leave under R.A. 8972 and R.A. 11861 still requires twelve (12) months of aggregate service, excluding broken probationary periods.',
+      'Invalid denial, and if Rosalina does not utilize the 7 working days within the calendar year, Star Observatory BPO must automatically convert them to cash in December.',
+      'Valid denial in part: At 6 months of service she qualifies only for a pro-rated 3.5 days of Parental Leave until she completes one full year of regular employment.',
+      'Invalid denial: R.A. 11861 lowered the service requirement from 1 year down to SIX (6) MONTHS (continuous or broken), entitling Rosalina to the full 7-day forfeitable paid Parental Leave.',
     ],
-    correctIndex: 1,
+    correctIndex: 3,
     statutoryBasis: 'Sec. 8, R.A. No. 8972 as amended by R.A. No. 11861',
     doctrinalExplanation:
       'R.A. No. 11861 amended R.A. 8972 by reducing the service qualification for the 7-day paid Parental Leave from one (1) year down to at least SIX (6) MONTHS of service (regardless of employment status, continuous or broken) and presenting a valid Solo Parent ID. Note, however, that the 7-day leave remains forfeitable—non-cumulative and non-convertible to cash unless otherwise agreed upon.',
@@ -211,10 +211,10 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Assess the criminal/administrative liability of Wario AND the civil liability of the company/CEO.',
     options: [
-      'Neither is liable because R.A. 7877 requires moral ascendancy or authority over the victim.',
-      'Wario is liable for Gender-Based Workplace Sexual Harassment under Sec. 16 of R.A. 11313 (which covers peer-to-peer AND subordinate-to-superior acts, including online), AND the employer/CEO is SOLIDARILY LIABLE for damages for taking no immediate action after being informed!',
-      'Only Wario is liable for unjust vexation; the employer is immune from peer/subordinate online chats.',
-      'Liability attaches only if Wario demanded a promotion in exchange.',
+      'Neither is liable for workplace sexual harassment because R.A. 7877 strictly requires moral ascendancy, authority, or supervisory influence by the offender over the victim.',
+      'Wario is liable under Sec. 16 of R.A. 11313 (which covers peer and subordinate-to-superior physical or online acts), and the employer/CEO is SOLIDARILY LIABLE for damages under Sec. 19 for taking no action.',
+      'Wario is personally liable under R.A. 10175 for cyber-unjust vexation, but the employer incurs zero civil liability because Wario lacked managerial authority over Pauline.',
+      'Both are liable under R.A. 7877 only if Wario conditioned his cooperation on sexual favors ("quid pro quo"), as offensive Slack memes alone do not create a hostile environment.',
     ],
     correctIndex: 1,
     statutoryBasis: 'Secs. 16 & 19, R.A. No. 11313 (Safe Spaces Act) vs. R.A. No. 7877',
@@ -230,16 +230,16 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     difficultyLabel: 'Bar Exam High-Difficulty',
     title: 'R.A. 11360 100% Service Charge Distribution & Abolition Rule',
     factPattern:
-      'Grand Star Resort collects ₱500,000 in monthly 10% service charges. Management retains 15% (₱75,000) to cover crystal glasswarepilferage/breakage, includes the Hotel General Manager in the remaining 85% pool, and announces that next quarter it will abolish the service charge entirely without adjusting basic wages.',
+      'Grand Star Resort collects ₱500,000 in monthly 10% service charges. Management retains 15% (₱75,000) to cover crystal glassware pilferage/breakage, includes the Hotel General Manager in the remaining 85% pool, and announces that next quarter it will abolish the service charge entirely without adjusting basic wages.',
     questionPrompt:
       'Identify ALL statutory violations committed by Grand Star Resort under Article 96 (as amended by R.A. 11360).',
     options: [
-      'No violation; management retains 15% for losses/breakage under the Labor Code.',
-      'Three violations: (1) 100% of service charges must go equally to covered employees (the old 85%-15% split was repealed by R.A. 11360); (2) Managerial employees are strictly EXCLUDED; and (3) if service charges are abolished, the employees’ 12-month average share MUST be integrated into their basic wages!',
-      'Only the General Manager’s inclusion is unlawful; abolishing service charges forfeits the benefit.',
-      'Service charges are voluntary tips exempt from DOLE regulation.',
+      'Three violations: (1) 100% of service charges must go equally to covered employees (R.A. 11360 repealed the 15% management cut); (2) Managerial employees are excluded; and (3) upon abolition, the 12-month average share must be integrated into basic wages.',
+      'Only one violation: Management may still retain up to 15% for documented pilferage and abolish the charge freely, but Art. 96 bars including the General Manager in the employee pool.',
+      'Two violations: 100% must be distributed to rank-and-file and supervisory staff excluding the General Manager, but abolishing a discretionary service charge requires no basic wage integration.',
+      'Zero violations, provided Grand Star Resort’s rank-and-file employees already receive basic wages above the prevailing RTWPB regional minimum wage rate.',
     ],
-    correctIndex: 1,
+    correctIndex: 0,
     statutoryBasis: 'Art. 96, Labor Code as amended by R.A. No. 11360 & DOLE D.O. No. 206-19',
     doctrinalExplanation:
       'R.A. 11360 repealed the old 85%–15% management retention rule and mandated that 100% of all service charges collected by hotels, restaurants, and similar establishments be distributed COMPLETELY and EQUALLY among covered employees (all direct and agency workers EXCEPT managerial employees). Furthermore, under Art. 96 / IRR, if the service charge is abolished, the share of covered employees shall be considered integrated into their basic wages based on the average monthly share for the preceding 12 months.',
@@ -257,12 +257,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'What statutory leave benefit is Daisy entitled to demand directly from her employer?',
     options: [
-      '60 days Expanded Maternity Leave under R.A. 11210.',
-      'Special Leave Benefit for Women under Sec. 18 of R.A. 9710 (Magna Carta of Women): up to two (2) months with FULL PAY based on gross monthly compensation following surgery caused by gynecological disorders!',
-      'Only SSS Sickness Daily Allowance at 90% of average daily salary credit.',
-      '10 days paid medical leave under R.A. 9262.',
+      '60 days of paid Emergency Gynecological Maternity Leave under R.A. 11210, advanced by the employer and reimbursed 100% by the Social Security System.',
+      'Only SSS Sickness Daily Allowance equivalent to 90% of her average daily salary credit under R.A. 11199, because non-obstetric surgery requires 12 months of tenure for employer-paid leave.',
+      'Special Leave Benefit for Women under Sec. 18 of R.A. 9710 (Magna Carta of Women): up to two (2) months with FULL PAY based on gross monthly compensation following gynecological surgery.',
+      'Up to 30 calendar days of Special Gynecological Leave at basic pay only (excluding mandatory allowances) under DOLE D.O. 112-11, convertible to cash if unused.',
     ],
-    correctIndex: 1,
+    correctIndex: 2,
     statutoryBasis: 'Sec. 18, R.A. No. 9710 (Magna Carta of Women) & DOLE D.O. No. 112-11',
     doctrinalExplanation:
       'Under Section 18 of R.A. 9710 and DOLE D.O. 112-11, any female employee who has rendered continuous aggregate employment service of at least six (6) months for the last twelve (12) months is entitled to a Special Leave Benefit of up to two (2) months WITH FULL PAY (basic salary + mandatory allowances) following surgery caused by gynecological disorders (e.g. myoma, endometriosis, ovarian cyst, hysterectomy). Note: If she instead suffered a miscarriage/EOP, she would claim 60-day Maternity Leave under R.A. 11210 (not both simultaneously for the same surgical event).',
@@ -276,16 +276,16 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     difficultyLabel: 'Supreme Court Doctrine Trap',
     title: 'Successive Regular Holidays (Maundy Thursday & Good Friday) Preceding Absence Trap',
     factPattern:
-      'Bowser Logistics operates Monday to Saturday. Waluigi went AWOL (absent without pay) on Holy Wednesday. He did NOT work on Maundy Thursday (Regular Holiday #1), NOR did he work on Good Friday (Regular Holiday #2), OR wait—in Scenario B, suppose instead he rested on Maundy Thursday and ACTUALLY WORKED 8 hours on Good Friday!',
+      'Bowser Logistics operates Monday to Saturday. Waluigi went AWOL (absent without pay) on Holy Wednesday. Compare Scenario A (he rests on both Maundy Thursday and Good Friday) against Scenario B (he works on Maundy Thursday or works 8 hours on Good Friday).',
     questionPrompt:
-      'Under Omnibus Rules Book III, Rule IV, Sec. 10, compare Waluigi’s holiday pay if he rested both days vs. if he actually worked on Good Friday:',
+      'Under Omnibus Rules Book III, Rule IV, Sec. 10, state the exact holiday pay rules for successive Regular Holidays:',
     options: [
-      'He gets 100% for both holidays regardless of Holy Wednesday AWOL.',
-      'If he rested both days after Wednesday AWOL, he forfeits unworked holiday pay for BOTH Maundy Thursday and Good Friday; HOWEVER, if he actually worked on Maundy Thursday (earning 200%), he automatically regains 100% unworked holiday pay for Good Friday—and if he works on Good Friday despite Wednesday/Thursday absence, he earns full 200% for Good Friday!',
-      'He forfeits Maundy Thursday only and automatically gets 100% for Good Friday even if unworked.',
-      'Working on Good Friday only pays 100% straight wage because of Wednesday AWOL.',
+      'Holy Wednesday AWOL forfeits unworked Maundy Thursday only; because Maundy Thursday is a non-working Regular Holiday, he automatically regains 100% unworked pay for Good Friday.',
+      'Holy Wednesday AWOL permanently reduces worked holiday pay on both Maundy Thursday and Good Friday from 200% down to 130% penalty holiday pay.',
+      'Monthly-paid and daily-paid workers alike receive 100% unworked holiday pay for both days regardless of Holy Wednesday AWOL under Art. 94 of the Labor Code.',
+      'Resting both days after Wednesday AWOL forfeits unworked pay for BOTH holidays; working Maundy Thursday (200%) restores 100% unworked pay for Good Friday, and working Good Friday always earns 200%.',
     ],
-    correctIndex: 1,
+    correctIndex: 3,
     statutoryBasis: 'Book III, Rule IV, Sec. 10, Omnibus Rules Implementing the Labor Code',
     doctrinalExplanation:
       'Where there are two (2) successive regular holidays (like Maundy Thursday and Good Friday), an employee who is absent without pay on the day immediately preceding the FIRST holiday may not be paid for BOTH holidays UNLESS he works on the first holiday, in which case he is entitled to holiday pay on the second holiday! Furthermore, whenever an employee ACTUALLY WORKS on any Regular Holiday, he ALWAYS earns 200% for that worked holiday regardless of prior unpaid absence.',
@@ -303,12 +303,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Are the meal and lodging deductions from the clerks’ wages legally valid?',
     options: [
-      'Valid, because meals and lodging are always classified as deductible Facilities as a matter of law.',
-      'Invalid! First, the purpose test shows the overnight stay/meals were primarily for the hotel’s business convenience (making them non-deductible SUPPLEMENTS); second, even true Facilities CANNOT be deducted without ALL 3 Mabeza requisites: (1) proof of custom, (2) voluntary WRITTEN acceptance by the employee, and (3) fair and reasonable value!',
-      'Valid up to 50% of minimum wage.',
-      'Invalid only as to lodging, but valid as to meals.',
+      'Invalid: Under the Purpose Test, staying on-site served the hotel’s business convenience (non-deductible Supplements), and even Facilities require Custom + Written Employee Acceptance + Fair Value under Mabeza v. NLRC.',
+      'Valid in part: Under DOLE meal valuation rules, Ghost House Inn may deduct up to 70% of the subsidized cost of meals without written consent, though overnight typhoon lodging is non-deductible.',
+      'Valid in full: Food and lodging furnished to hotel personnel are classified ipso jure as wage-deductible Facilities under Art. 97(f) of the Labor Code without needing individual written waivers.',
+      'Valid up to 20% of the employee’s weekly minimum wage pursuant to Art. 114 of the Labor Code governing hotel deposits and operational subsistence advances.',
     ],
-    correctIndex: 1,
+    correctIndex: 0,
     statutoryBasis: 'Art. 97(f), Labor Code; Mabeza v. NLRC (G.R. No. 118506); Our Haus Realty v. Parian',
     doctrinalExplanation:
       'In Mabeza v. NLRC and Our Haus Realty Development Corp. v. Parian, the Supreme Court established two strict barriers: (1) Under the PURPOSE TEST, the decisive factor is not the kind of item (food/lodging) but its PURPOSE—since staying on-site served the hotel’s operational convenience, they are non-deductible SUPPLEMENTS; and (2) even if an item qualifies as a Facility, deduction from wages is illegal unless the employer proves ALL THREE requisites: customary in the trade, voluntary WRITTEN authorization by the employee, and fair/reasonable value.',
@@ -326,12 +326,12 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Identify the correct statutory computation for Monday and Tuesday.',
     options: [
-      'Management is right on both counts because weekly hours stayed under 48.',
-      'Both deductions/offsets are ILLEGAL: (1) Brownouts ≤ 20 minutes are COMPENSABLE hours worked; and (2) Art. 88 strictly prohibits offsetting undertime on Monday with overtime on Tuesday—Captain Toad suffers 30m undertime deduction on Monday, gets paid for the 15m brownout, AND earns full +25% Overtime Pay for the entire 1 hour on Tuesday!',
-      'Brownout is unpaid, but overtime must be paid at +25%.',
-      'Offsetting is valid if done within the same payroll week.',
+      'Management may validly offset Monday’s 30-minute undertime against Tuesday’s extra hour within the same weekly cutoff, but must pay the 15-minute brownout as compensable waiting time.',
+      'Both the brownout deduction and undertime offset are valid under Art. 83 so long as Captain Toad’s aggregate hours for the six-day workweek do not exceed forty-eight (48) hours.',
+      'Both are ILLEGAL: Brownouts ≤ 20 minutes are compensable hours worked, and Art. 88 strictly bars offsetting Monday’s 30m undertime against Tuesday’s 1-hour Overtime (+25% OT pay applies to the full hour).',
+      'Art. 88 bars offsetting undertime with overtime, so Tuesday’s full hour earns +25% OT pay, but power brownouts of any duration follow the "no work, no pay" rule and are deductible.',
     ],
-    correctIndex: 1,
+    correctIndex: 2,
     statutoryBasis: 'Art. 84 & Art. 88, Labor Code; Omnibus Rules Book III, Rule I, Sec. 4(d)',
     doctrinalExplanation:
       'First, power interruptions or brownouts of twenty (20) minutes or less are treated as compensable hours worked. Second, Article 88 of the Labor Code categorically mandates that undertime work on any particular day SHALL NOT BE OFFSET by overtime work on any other day (because allowing offset would deprive the worker of the +25%/+30% overtime premium!).',
@@ -349,10 +349,10 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     questionPrompt:
       'Rule on all three grounds raised by the bank.',
     options: [
-      'The bank is correct that VAWC leave requires 1 year of service.',
-      'All three grounds are BASELESS! Under Sec. 43 of R.A. 9262: (a) VAWC Leave has NO 1-year or regularization requirement; (b) a Punong Barangay/Kagawad/Prosecutor/Clerk of Court certification of a pending action suffices (no conviction needed); and (c) the 10-day paid leave is EXTENDIBLE when necessity arises as specified in the Protection Order!',
-      'Pauline gets 10 days paid, but extensions under a TPO are always unpaid.',
-      'VAWC leave applies only if Pauline was legally married to the offender.',
+      'Pauline qualifies immediately without 1-year tenure upon presenting the Barangay Certification, but Sec. 43 of R.A. 9262 caps paid VAWC Leave at 10 days so the 5-day TPO extension is unpaid.',
+      'All three grounds fail! Under Sec. 43 of R.A. 9262, VAWC Leave requires NO minimum tenure, a Barangay/Prosecutor/Clerk certification of a pending action suffices, and the 10-day paid leave is EXTENDIBLE as specified in the Protection Order.',
+      'The bank may validly defer paid VAWC Leave until Pauline attains regular status on her 6th month, after which the 10 days and 5-day TPO extension become retroactively payable.',
+      'VAWC Leave under Sec. 43 of R.A. 9262 requires a Prosecutor’s Resolution finding probable cause (a Barangay Certification alone is insufficient), though it is extendible once filed in court.',
     ],
     correctIndex: 1,
     statutoryBasis: 'Sec. 43, R.A. No. 9262 (Anti-VAWC Act of 2004)',

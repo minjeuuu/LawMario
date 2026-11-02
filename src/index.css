@@ -707,10 +707,10 @@ html.dark .theme-arctic_ice_world {
   0% {
     transform: translateY(-100%);
   }
-  45% {
+  35% {
     transform: translateY(0%);
   }
-  55% {
+  65% {
     transform: translateY(0%);
   }
   100% {
@@ -719,7 +719,7 @@ html.dark .theme-arctic_ice_world {
 }
 
 .warp-pipe-transition-active {
-  animation: warpPipeCurtain 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: warpPipeCurtain 1.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Game-like smooth tab view fade-in transition (resolves to transform: none so fixed descendants anchor to viewport) */

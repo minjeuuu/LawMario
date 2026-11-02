@@ -397,7 +397,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
           <aside
             aria-label="Floating Pomodoro Study Timer Overlay"
             data-testid="pomodoro-floating-overlay"
-            className="fixed bottom-20 left-3 lg:bottom-5 lg:left-5 z-40 w-[calc(100vw-1.5rem)] sm:w-[340px] max-w-[340px] bg-[#0f172a]/95 backdrop-blur-md text-white rounded-2xl border-3 border-slate-950 shadow-[5px_5px_0_#000] overflow-hidden select-none print:hidden transition-all duration-200"
+            className="fixed bottom-20 sm:bottom-[max(1.25rem,3dvh)] left-[max(0.75rem,2vw)] z-40 w-[min(calc(100vw-1.5rem),340px)] max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-6rem)] bg-[#0f172a]/95 backdrop-blur-md text-white rounded-2xl border-3 border-slate-950 shadow-[5px_5px_0_#000] overflow-y-auto overflow-x-hidden select-none print:hidden transition-all duration-200"
           >
             {/* Progress Strip */}
             <div className="w-full h-1.5 bg-slate-800">
@@ -616,7 +616,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
             data-testid="pomodoro-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs select-none overflow-y-auto print:hidden"
           >
-            <div className="bg-[#1e293b] text-white w-full max-w-md max-h-[92vh] rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden flex flex-col my-auto">
+            <div className="bg-[#1e293b] text-white w-full max-w-md max-h-[min(90dvh,calc(100dvh-1.5rem))] rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden flex flex-col my-auto">
               {/* Header */}
               <div className="bg-[#0f172a] p-3 sm:p-4 border-b-2 border-slate-700 flex items-center justify-between gap-2 shrink-0">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">

@@ -30,9 +30,12 @@ import {
   Zap,
   X,
   Scale,
-  MoreHorizontal,
+   MoreHorizontal,
   FileDown,
   Headphones,
+  Flame,
+  Shield,
+  Unlock,
 } from 'lucide-react';
 import { MarioCoinIcon, MarioCharacterAvatar, MarioStarIcon } from './MarioIcons';
 import { marioAudio, AudioSettings, SOUND_PACK_DEFINITIONS } from '../utils/audio';
@@ -48,12 +51,13 @@ import { StudyTimer } from './StudyTimer';
 import { LoginStreakCounter } from './LoginStreakCounter';
 import { PWAInstallButton } from './PWAInstallButton';
 import { MARIO_SOUNDSCAPES, MarioSoundscapeId } from '../utils/engagementFeatures';
-import { ColorMode } from '../utils/profileAchievements';
+import { ColorMode, DailyPomodoroRecord } from '../utils/profileAchievements';
 import {
   STUDY_AMBIENCE_OPTIONS,
   StudyAmbiencePreset,
   APP_STUDY_FONTS,
 } from '../utils/round8Features';
+import { computeGoalStreakAndWeeklyConsistency } from '../utils/round9Features';
 
 interface NavbarProps {
   activeTab: string;
@@ -105,6 +109,12 @@ interface NavbarProps {
   onSelectTheme?: (theme: MarioTheme) => void;
   appStudyFont?: AppStudyFontId;
   onSelectAppStudyFont?: (font: AppStudyFontId) => void;
+  dailyPomodoroLogs?: Record<string, DailyPomodoroRecord>;
+  dailyGoalMinutes?: number;
+  todayStudiedSeconds?: number;
+  invincibleRemainingLabel?: string | null;
+  doubleXpRemainingLabel?: string | null;
+  unlockAllRemainingLabel?: string | null;
 }
 
 const QUICK_FREE_SKINS: Array<{ id: MarioTheme; label: string }> = [
@@ -160,6 +170,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTheme,
   appStudyFont = 'jakarta',
   onSelectAppStudyFont,
+  dailyPomodoroLogs = {},
+  dailyGoalMinutes = 30,
+  todayStudiedSeconds = 0,
+  invincibleRemainingLabel = null,
+  doubleXpRemainingLabel = null,
+  unlockAllRemainingLabel = null,
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showQuickAudioSliders, setShowQuickAudioSliders] = useState(false);
@@ -251,7 +267,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     {
       label: 'Games & Tools',
       items: [
-        { id: 'vault', label: 'Arcade', shortLabel: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '28' },
+        { id: 'vault', label: 'Arcade', shortLabel: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '32' },
         { id: 'calculator', label: 'Calculator', shortLabel: 'Pay Calc', icon: <Calculator className="w-4 h-4 text-cyan-300 shrink-0" /> },
         { id: 'shop', label: "Toad's Shop", shortLabel: 'Shop', icon: <ShoppingBag className="w-4 h-4 text-pink-300 shrink-0" /> },
       ],
@@ -266,78 +282,132 @@ export const Navbar: React.FC<NavbarProps> = ({
   const activeSoundscapeMeta =
     MARIO_SOUNDSCAPES.find((s) => s.id === audioState.soundscape) || MARIO_SOUNDSCAPES[0];
 
+  const goalConsistency = computeGoalStreakAndWeeklyConsistency({
+    dailyPomodoroLogs,
+    dailyGoalMinutes,
+    todayStudiedSeconds,
+  });
+
   return (
     <>
       <header
         data-testid="main-navbar"
-        className="bg-[#1e293b] border-b-4 border-slate-950 shadow-[0_4px_0_rgba(0,0,0,0.5)] text-white select-none w-full max-w-full overflow-x-clip print:hidden relative z-40"
+        className="bg-gradient-to-b from-[#171226] via-[#13192b] to-[#0f172a] border-b-4 border-slate-950 shadow-[0_5px_0_rgba(0,0,0,0.65)] text-white select-none w-full max-w-full overflow-x-clip print:hidden relative z-40"
       >
-        {/* Top Status & Power-Up HUD Bar — Dedicated Power-Up Space, Zero-Overlap, Zero-Scroll, Zero-Crop */}
+        {/* Royal Gold Top Rim Accent */}
+        <div
+          aria-hidden="true"
+          className="h-1 w-full bg-gradient-to-r from-red-600 via-amber-400 to-red-600"
+        />
+
+        {/* Top Status & Power-Up HUD Bar — Aesthetic Royal HUD, Dedicated Power-Up Space, Zero-Overlap, Zero-Scroll */}
         {!zenMode && (
           <div
             data-testid="navbar-top-status-row"
-            className="bg-[#0f172a] border-b border-slate-800 px-1.5 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-2 text-xs font-semibold w-full max-w-full min-w-0"
+            className="bg-gradient-to-r from-[#0d1220] via-[#151d32] to-[#0d1220] border-b border-amber-400/20 px-1.5 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-2 text-xs font-semibold w-full max-w-full min-w-0"
           >
-            {/* Zone 1: Hero Logo & Profile Button (Compact on <400px so Power-Ups always fit with zero crop) */}
-            <button
-              type="button"
-              onClick={() => {
-                onOpenProfile();
-                marioAudio.playCoin();
-              }}
-              data-testid="navbar-profile-btn"
-              aria-label={`Open Hero Profile (${unlockedAchievementsCount} of ${totalAchievementsCount} badges)`}
-              title="Your Hero Profile & Milestone Achievements (Click to view badges & customize)"
-              className="relative z-20 flex items-center gap-1 sm:gap-2 shrink-0 group hover:opacity-95 cursor-pointer bg-slate-900/90 hover:bg-slate-800/90 px-1 min-[400px]:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl border border-amber-400/60 shadow-[0_1px_0_#000] active:translate-y-0.5 transition-all"
-            >
-              <div
-                data-testid="navbar-avatar-profile-btn"
-                className="w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-lg bg-amber-400 border-2 border-black inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+            {/* Zone 1: Hero Logo, Profile Button & Desktop Goal Streak Consistency Capsule */}
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenProfile();
+                  marioAudio.playCoin();
+                }}
+                data-testid="navbar-profile-btn"
+                aria-label={`Open Hero Profile (${unlockedAchievementsCount} of ${totalAchievementsCount} badges)`}
+                title="Your Hero Profile & Milestone Achievements (Click to view badges & 30-day charts)"
+                className="relative z-20 flex items-center gap-1 sm:gap-2 shrink-0 group hover:brightness-105 cursor-pointer bg-gradient-to-r from-red-950/90 via-slate-900 to-slate-900 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-xl border-2 border-amber-400/80 shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all"
               >
-                <MarioCharacterAvatar character={equippedAvatar} className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              <div className="flex flex-col text-left leading-none min-w-0">
-                <div className="hidden min-[400px]:flex items-center gap-1">
-                  <span className="font-display sm:font-mario font-black text-[10px] sm:text-[10px] tracking-tight uppercase text-amber-300 whitespace-nowrap">
-                    <span className="sm:hidden">MARIO</span>
-                    <span className="hidden sm:inline">MARIO LAW</span>
-                  </span>
-                  <span className="hidden lg:inline-block px-1 py-0.2 rounded bg-amber-400/20 text-amber-300 text-[8px] font-bold border border-amber-400/40">
-                    PROFILE
+                <div
+                  data-testid="navbar-avatar-profile-btn"
+                  className="w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-lg bg-amber-400 border-2 border-black inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                >
+                  <MarioCharacterAvatar character={equippedAvatar} className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="flex flex-col text-left leading-none min-w-0">
+                  <div className="hidden min-[400px]:flex items-center gap-1">
+                    <span className="font-display sm:font-mario font-black text-[10px] tracking-tight uppercase text-amber-300 whitespace-nowrap">
+                      <span className="sm:hidden">MARIO</span>
+                      <span className="hidden sm:inline">MARIO LAW</span>
+                    </span>
+                    <span className="hidden xl:inline-block px-1 py-0.2 rounded bg-amber-400 text-slate-950 text-[8px] font-black border border-black">
+                      HERO
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-bold text-slate-200 flex items-center gap-0.5 sm:gap-1 min-[400px]:mt-0.5">
+                    <Award className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                    <span className="font-mono text-amber-200 tabular-nums">
+                      {unlockedAchievementsCount}/{totalAchievementsCount}
+                    </span>
+                    <span className="hidden lg:inline text-slate-300 font-semibold">Badges</span>
                   </span>
                 </div>
-                <span className="text-[9px] font-bold text-slate-300 flex items-center gap-0.5 sm:gap-1 min-[400px]:mt-0.5">
-                  <Award className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                  <span className="font-mono text-amber-200 tabular-nums">
-                    {unlockedAchievementsCount}/{totalAchievementsCount}
-                  </span>
-                  <span className="hidden md:inline text-slate-400 font-semibold">Badges</span>
-                </span>
-              </div>
-            </button>
+              </button>
 
-            {/* Zone 2: Reserved Power-Ups (2X Multiplier & Map), Wallet, Streak, Pomodoro, Theme, Mute, Audio & Tools */}
+              {/* Daily Goal Streak & 7-Day Consistency Pill (md+) */}
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenProfile();
+                  marioAudio.playCoin();
+                }}
+                data-testid="navbar-goal-streak-consistency"
+                title={`Daily Study Goal Streak: ${goalConsistency.goalStreakDays}d (${goalConsistency.todayMinutes}/${goalConsistency.dailyGoalMinutes}m today) · 7-Day Consistency: ${goalConsistency.weeklyConsistencyPercent}%`}
+                className={`hidden md:inline-flex h-7 px-2 items-center gap-1.5 rounded-xl border text-[10px] font-black leading-none whitespace-nowrap cursor-pointer transition-all shadow-[0_1px_0_#000] tabular-nums shrink-0 ${
+                  goalConsistency.goalMetToday
+                    ? 'bg-emerald-950/90 hover:bg-emerald-900/90 text-emerald-200 border-emerald-400/80'
+                    : 'bg-slate-900/95 hover:bg-slate-800 text-amber-200 border-amber-400/45'
+                }`}
+              >
+                <Flame
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    goalConsistency.goalMetToday ? 'text-emerald-400 fill-emerald-400' : 'text-amber-400'
+                  }`}
+                />
+                <span>Goal {goalConsistency.goalStreakDays}d</span>
+                <span className="text-slate-500">·</span>
+                <span className="hidden xl:inline text-sky-300">
+                  7d {goalConsistency.weeklyConsistencyPercent}%
+                </span>
+                <span className="xl:hidden text-sky-300">{goalConsistency.weeklyConsistencyPercent}%</span>
+              </button>
+            </div>
+
+            {/* Zone 2: Reserved Power-Ups (2X, Invincible, 2X Event, Unlock-All & Map), Wallet, Streak, Pomodoro, Theme, Mute, Audio & Tools */}
             <div className="flex items-center gap-0.5 min-[400px]:gap-1 sm:gap-1.5 shrink-0 flex-nowrap min-w-0">
-              {/* Dedicated Power-Ups Slot (Uncropped on all viewports from 360px phones to 1440px desktop) */}
+              {/* Dedicated Power-Ups Slot (Uncropped on all viewports from 360px phones to 1440px desktop, zero horizontal scroll) */}
               <div
                 data-testid="navbar-powerups-slot"
                 className="inline-flex items-center gap-0.5 sm:gap-1 shrink-0"
               >
-                {superStarRemainingLabel ? (
+                {superStarRemainingLabel || invincibleRemainingLabel || doubleXpRemainingLabel ? (
                   <button
                     type="button"
                     onClick={handleCoinClick}
                     data-testid="navbar-super-star-badge"
-                    aria-label={`Super Star 2x Coin Multiplier Active, ${superStarRemainingLabel} remaining`}
-                    title={`Super Star 2x Coin Multiplier Active (${superStarRemainingLabel} left) — Click to view Toad's Shop`}
-                    className="h-7 px-1 min-[400px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-gradient-to-r from-amber-300 via-emerald-300 to-amber-300 hover:brightness-105 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0"
+                    aria-label={`2x Coin Multiplier Active, ${
+                      invincibleRemainingLabel || superStarRemainingLabel || doubleXpRemainingLabel
+                    } remaining`}
+                    title={`2x Coin Multiplier Active (${
+                      invincibleRemainingLabel
+                        ? `Invincible Study Mode: ${invincibleRemainingLabel}`
+                        : superStarRemainingLabel
+                        ? `Super Star: ${superStarRemainingLabel}`
+                        : `Special Event 2x: ${doubleXpRemainingLabel}`
+                    }) — Click to open Toad's Shop`}
+                    className="h-7 px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-gradient-to-r from-amber-300 via-yellow-200 to-emerald-300 hover:brightness-105 text-slate-950 font-black rounded-lg border-2 border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0"
                   >
-                    <MarioStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    {invincibleRemainingLabel ? (
+                      <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-700 shrink-0" />
+                    ) : (
+                      <MarioStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    )}
                     <span className="font-mono sm:font-mario font-black text-[10px] sm:text-[9.5px]">
                       2X
                     </span>
-                    <span className="hidden md:inline font-mono font-bold text-[10px]">
-                      · {superStarRemainingLabel}
+                    <span className="hidden lg:inline font-mono font-bold text-[10px]">
+                      · {invincibleRemainingLabel || superStarRemainingLabel || doubleXpRemainingLabel}
                     </span>
                   </button>
                 ) : (
@@ -346,11 +416,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={handleCoinClick}
                     data-testid="navbar-powerup-slot-launcher"
                     aria-label="Activate 2X Coin Power-Up in Toad's Shop"
-                    title="2X Power-Up Slot Ready — Click to activate Super Star (2x Coins) in Toad's Shop!"
-                    className="hidden sm:inline-flex h-7 px-1.5 lg:px-2 items-center justify-center gap-1 bg-slate-900/90 hover:bg-slate-800 text-amber-300/90 hover:text-amber-200 font-bold rounded-lg border border-dashed border-amber-400/50 cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
+                    title="2X Power-Up Slot Ready — Click to activate Super Star or Special Event 2x Coins in Toad's Shop!"
+                    className="hidden sm:inline-flex h-7 px-1.5 lg:px-2 items-center justify-center gap-1 bg-slate-900/95 hover:bg-slate-800 text-amber-300 hover:text-amber-200 font-bold rounded-lg border border-amber-400/60 shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
                   >
-                    <MarioStarIcon className="w-3 h-3 shrink-0 opacity-85" />
+                    <MarioStarIcon className="w-3 h-3 shrink-0 opacity-90" />
                     <span className="font-mono font-black text-[10px]">2X</span>
+                  </button>
+                )}
+
+                {unlockAllRemainingLabel && (
+                  <button
+                    type="button"
+                    onClick={handleCoinClick}
+                    data-testid="navbar-unlock-all-badge"
+                    aria-label={`All Stages Unlocked Pass Active (${unlockAllRemainingLabel} left)`}
+                    title={`All Locked Stages Unlocked (${unlockAllRemainingLabel} left)`}
+                    className="hidden sm:inline-flex h-7 px-1.5 items-center justify-center gap-1 bg-cyan-300 hover:bg-cyan-200 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0"
+                  >
+                    <Unlock className="w-3 h-3 shrink-0" />
+                    <span className="hidden xl:inline font-mono">{unlockAllRemainingLabel}</span>
                   </button>
                 )}
 
@@ -689,7 +773,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           {ambiencePausedByBgm ? 'Paused by BGM' : activeAmbience.toUpperCase()}
                         </span>
                       </div>
-                      <div className="grid grid-cols-4 gap-1">
+                      <div className="grid grid-cols-3 gap-1">
                         {STUDY_AMBIENCE_OPTIONS.map((opt) => {
                           const isSel = activeAmbience === opt.id;
                           return (
@@ -1106,7 +1190,39 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Main Navigation Row: Zero Horizontal Scroll & Zero Crop Across All Viewports */}
+        {/* Mobile Goal Streak & Weekly Consistency Slim Sub-Bar (Visible <MD, Zero Horizontal Scroll) */}
+        {!zenMode && (
+          <div
+            data-testid="navbar-goal-streak-mobile"
+            className="flex md:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] border-b border-slate-800/80 text-[10px] font-bold"
+          >
+            <span className="inline-flex items-center gap-1 text-amber-300 tabular-nums whitespace-nowrap">
+              <Flame className="w-3 h-3 text-orange-400 shrink-0" />
+              <span>Goal Streak: {goalConsistency.goalStreakDays}d</span>
+              <span className="text-slate-400">
+                ({goalConsistency.todayMinutes}/{goalConsistency.dailyGoalMinutes}m)
+              </span>
+            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="w-16 h-1.5 bg-slate-950 rounded-full border border-slate-700 overflow-hidden shrink-0">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-400 to-emerald-400"
+                  style={{
+                    width: `${Math.max(
+                      goalConsistency.weeklyConsistencyPercent > 0 ? 10 : 0,
+                      goalConsistency.weeklyConsistencyPercent
+                    )}%`,
+                  }}
+                />
+              </div>
+              <span className="font-mono text-emerald-300 tabular-nums whitespace-nowrap">
+                {goalConsistency.weeklyConsistencyPercent}% Wk
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Main Navigation Row: Royal Arcade Tabs, Zero Horizontal Scroll & Zero Crop Across All Viewports */}
         <div className="px-1.5 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 xl:gap-2 w-full max-w-full min-w-0">
           {/* Zen Restore Button */}
           {zenMode && (
@@ -1123,7 +1239,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Desktop Navigation — Single-Row Uniform h-9 Alignment, Zero Horizontal Scroll */}
+          {/* Desktop Navigation — Single-Row Uniform h-9 Royal Tabs, Zero Horizontal Scroll */}
           <nav
             aria-label="Primary Navigation"
             data-testid="desktop-primary-nav"
@@ -1134,10 +1250,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => handleTabClick(item.id)}
-                className={`h-9 px-2 xl:px-2.5 inline-flex items-center justify-center gap-1 xl:gap-1.5 rounded-xl font-black text-[11px] xl:text-xs border-2 border-black transition-all cursor-pointer leading-none whitespace-nowrap shrink-0 ${
+                className={`h-9 px-2 xl:px-2.5 inline-flex items-center justify-center gap-1 xl:gap-1.5 rounded-xl font-black text-[11px] xl:text-xs border-2 transition-all cursor-pointer leading-none whitespace-nowrap shrink-0 ${
                   activeTab === item.id
-                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                    ? 'bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 border-black shadow-[0_2px_0_#000] -translate-y-0.5'
+                    : 'bg-slate-900/90 hover:bg-slate-800 text-slate-100 border-slate-700/90 hover:border-amber-400/60 shadow-[0_2px_0_#020617]'
                 }`}
               >
                 {item.icon}

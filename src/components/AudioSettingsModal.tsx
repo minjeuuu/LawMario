@@ -108,8 +108,16 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
   const handleToggleAmbiance = () => {
     const next = !settings.ambianceEnabled;
-    marioAudio.updateSettings({ ambianceEnabled: next });
-    if (next) marioAudio.playPowerUp();
+    if (next) {
+      marioAudio.setStudyAmbience(
+        settings.studyAmbience && settings.studyAmbience !== 'off'
+          ? settings.studyAmbience
+          : 'forest',
+        true
+      );
+    } else {
+      marioAudio.setStudyAmbience('off', false);
+    }
   };
 
   const handleAmbianceVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

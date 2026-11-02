@@ -52,7 +52,11 @@ import {
   Scale,
   Clock,
   XCircle,
+  Pin,
+  Trash2,
 } from 'lucide-react';
+import { WorldGoalRing } from './TopicStudyModals';
+import { PinnedRuleBookmark } from '../utils/round9Features';
 
 interface WorldMapProps {
   onSelectWorld: (worldId: string) => void;
@@ -79,6 +83,10 @@ interface WorldMapProps {
     badge: string;
     worldId: string;
   }[];
+  pinnedRuleBookmarks?: PinnedRuleBookmark[];
+  onJumpToPinnedRule?: (worldId: string, topicId: string) => void;
+  onRemovePinnedRule?: (bookmarkId: string) => void;
+  unlockAllModulesActive?: boolean;
 }
 
 interface MapNode {
@@ -102,7 +110,7 @@ const MAP_NODES: MapNode[] = [
     name: 'YOSHI ISLAND',
     worldName: 'Hours of Work',
     x: 16,
-    y: 70,
+    y: 68,
     iconType: 'mushroom',
     badge: 'Art. 82-90 Labor Code',
     summary:
@@ -116,7 +124,7 @@ const MAP_NODES: MapNode[] = [
     name: 'DONUT PLAINS',
     worldName: 'Rest & Holidays',
     x: 28,
-    y: 40,
+    y: 42,
     iconType: 'flower',
     badge: 'Art. 91-94, RA 11360, PD 851',
     summary:
@@ -129,8 +137,8 @@ const MAP_NODES: MapNode[] = [
     levelNumber: 'HOLIDAY HUB',
     name: 'FESTIVAL ISLAND',
     worldName: 'PH Holidays Master Tab',
-    x: 45,
-    y: 14,
+    x: 42,
+    y: 24,
     iconType: 'holiday',
     badge: '12 Regular + Special Days',
     summary:
@@ -144,7 +152,7 @@ const MAP_NODES: MapNode[] = [
     name: 'VANILLA DOME',
     worldName: 'Wages & D.O. 174',
     x: 52,
-    y: 74,
+    y: 72,
     iconType: 'star',
     badge: 'Art. 97-129 & D.O. 174',
     summary:
@@ -158,7 +166,7 @@ const MAP_NODES: MapNode[] = [
     name: 'FOREST OF ILLUSION',
     worldName: 'Special Groups',
     x: 68,
-    y: 44,
+    y: 52,
     iconType: 'crown',
     badge: 'Women, Minors, Kasambahay',
     summary:
@@ -171,7 +179,7 @@ const MAP_NODES: MapNode[] = [
     levelNumber: 'WORLD 5',
     name: 'BOWSER CASTLE',
     worldName: 'Protective Laws',
-    x: 84,
+    x: 81,
     y: 68,
     iconType: '1up',
     badge: 'RA 10028, 7192, 9710, 7877, 11313, 9262',
@@ -185,8 +193,8 @@ const MAP_NODES: MapNode[] = [
     levelNumber: 'WORLD 6',
     name: 'PEACH CASTLE',
     worldName: 'Statutory Leaves',
-    x: 88,
-    y: 20,
+    x: 83,
+    y: 31,
     iconType: 'crown',
     badge: 'Art. 95, RA 11210, 8187, 8972/11861, 9710, 9262',
     summary:
@@ -200,7 +208,7 @@ const MAP_NODES: MapNode[] = [
     name: 'PIPE LAND',
     worldName: 'Multiplier Calculator',
     x: 34,
-    y: 84,
+    y: 78,
     iconType: 'pipe',
     badge: 'Interactive Wage Engine',
     summary:
@@ -213,8 +221,8 @@ const MAP_NODES: MapNode[] = [
     levelNumber: 'STAR ROAD',
     name: 'STAR ROAD',
     worldName: '17 Regions Matrix',
-    x: 66,
-    y: 13,
+    x: 58,
+    y: 24,
     iconType: 'star',
     badge: 'NCR to BARMM Rates',
     summary:
@@ -244,6 +252,10 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   onEarnCoins,
   superStarActive = false,
   recentlyViewedTopics = [],
+  pinnedRuleBookmarks = [],
+  onJumpToPinnedRule,
+  onRemovePinnedRule,
+  unlockAllModulesActive = false,
 }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string>(
     MAP_NODES.some((n) => n.id === activeWorld) ? activeWorld : 'world1'
@@ -334,10 +346,19 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     [loginStreak]
   );
 
-  const worldProgressMap = useMemo(
-    () => computeWorldProgressMap(ALL_LAW_TOPICS, completedTopicIds),
-    [completedTopicIds]
-  );
+  const worldProgressMap = useMemo(() => {
+    const raw = computeWorldProgressMap(ALL_LAW_TOPICS, completedTopicIds);
+    if (!unlockAllModulesActive) return raw;
+    const unlockedCopy: typeof raw = {};
+    for (const [k, wp] of Object.entries(raw)) {
+      unlockedCopy[k] = {
+        ...wp,
+        isWorldUnlocked: true,
+        topics: wp.topics.map((t) => ({ ...t, isUnlocked: true })),
+      };
+    }
+    return unlockedCopy;
+  }, [completedTopicIds, unlockAllModulesActive]);
 
   const uncompletedTopics = useMemo(() => {
     return ALL_LAW_TOPICS.filter((t) => !completedTopicIds?.includes(t.id));
@@ -582,6 +603,78 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           ) : (
             <p className="text-xs text-slate-400 font-medium">
               Open any module card or use Quick Jump to pin your last 5 accessed topics here for instant 1-click re-selection.
+            </p>
+          )}
+        </section>
+
+        {/* 1B. Quick Review: Pinned Rule-Items Bookmarked from Topic Cards */}
+        <section
+          data-testid="world-map-quick-review-section"
+          className="mb-4 bg-slate-900/95 border-2 border-amber-400/60 rounded-2xl p-3.5 sm:p-4 space-y-2.5"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Pin className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-xs font-black uppercase tracking-wider text-amber-300 font-mario">
+                QUICK REVIEW · PINNED RULE ITEMS ({pinnedRuleBookmarks.length})
+              </span>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-400">
+              Pin specific statutory rules inside any Module Topic Card for rapid pre-exam review
+            </span>
+          </div>
+
+          {pinnedRuleBookmarks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {pinnedRuleBookmarks.slice(0, 6).map((bm) => (
+                <div
+                  key={bm.id}
+                  data-testid={`quick-review-bookmark-${bm.id}`}
+                  className="bg-slate-950/95 border border-slate-700 hover:border-amber-400 rounded-xl p-3 flex items-start justify-between gap-2.5 transition-colors"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      marioAudio.playPipe();
+                      if (onJumpToPinnedRule) {
+                        onJumpToPinnedRule(bm.worldId, bm.topicId);
+                      } else if (onSelectTopic) {
+                        onSelectTopic(bm.worldId, bm.topicId);
+                      } else {
+                        onSelectWorld(bm.worldId);
+                      }
+                    }}
+                    className="text-left flex-1 min-w-0 space-y-1 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-mono font-bold text-amber-300">
+                      <span>{bm.topicBadge}</span>
+                      <span aria-hidden="true" className="text-slate-600">·</span>
+                      <span className="text-slate-300 truncate">{bm.ruleHeading}</span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-100 leading-snug line-clamp-2 break-words">
+                      {bm.itemText}
+                    </p>
+                  </button>
+                  {onRemovePinnedRule && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRemovePinnedRule(bm.id);
+                        marioAudio.playClick();
+                      }}
+                      aria-label={`Remove pinned rule from ${bm.topicTitle}`}
+                      title="Unpin rule item"
+                      className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white inline-flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 font-medium">
+              No individual rule items pinned yet — click the <strong className="text-amber-300">Pin</strong> button on any rule clause in the Modules tab to build your custom Quick Review deck here.
             </p>
           )}
         </section>
@@ -867,17 +960,18 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
                     {todayChallenge.doctrinalExplanation}
                   </p>
-                  <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-amber-200 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-                      <span>Bar Takeaway: {todayChallenge.barTakeaway}</span>
+                  <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 max-w-full min-w-0">
+                    <span className="text-xs font-bold text-amber-200 flex items-start gap-1.5 min-w-0 flex-1">
+                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-400 mt-0.5" />
+                      <span className="break-words">Bar Takeaway: {todayChallenge.barTakeaway}</span>
                     </span>
                     <button
                       type="button"
+                      data-testid="daily-challenge-review-world-btn"
                       onClick={() => onSelectWorld(todayChallenge.worldId)}
-                      className="min-h-[40px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      className="min-h-[40px] max-w-full px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-600 inline-flex items-center justify-between gap-1.5 cursor-pointer whitespace-normal break-words text-left leading-snug"
                     >
-                      <span>Review {todayChallenge.worldLabel}</span>
+                      <span className="break-words">Review {todayChallenge.worldLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
@@ -977,7 +1071,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
         {/* 5. 2D Canvas-style Interactive Overworld Map Display with Live Unlocked/Cleared Progress */}
         <div
           data-testid="interactive-world-map"
-          className="relative w-full h-[390px] sm:h-[460px] md:h-[500px] bg-[#064e3b] rounded-2xl border-4 border-slate-950 shadow-inner select-none mb-5"
+          className="relative w-full h-[440px] sm:h-[500px] md:h-[540px] bg-[#064e3b] rounded-2xl border-4 border-slate-950 shadow-inner select-none mb-5 overflow-hidden"
         >
           {/* Inner clipped container for background patterns & water gradient */}
           <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
@@ -997,43 +1091,43 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               className="absolute inset-0 w-full h-full pointer-events-none z-0"
             >
               <path
-                d="M 16 70 Q 22 54 28 40"
+                d="M 16 68 Q 22 54 28 42"
                 stroke={worldProgressMap.world2?.isWorldUnlocked ? '#34d399' : '#F59E0B'}
                 strokeWidth="1.4"
                 strokeDasharray={worldProgressMap.world1?.isWorldCleared ? undefined : '2 2'}
                 fill="none"
               />
-              <path d="M 28 40 L 45 14" stroke="#EC4899" strokeWidth="1.2" strokeDasharray="1.8 1.8" fill="none" />
+              <path d="M 28 42 L 42 24" stroke="#EC4899" strokeWidth="1.2" strokeDasharray="1.8 1.8" fill="none" />
               <path
-                d="M 28 40 Q 40 58 52 74"
+                d="M 28 42 Q 40 58 52 72"
                 stroke={worldProgressMap.world3?.isWorldUnlocked ? '#34d399' : '#F59E0B'}
                 strokeWidth="1.4"
                 strokeDasharray={worldProgressMap.world2?.isWorldCleared ? undefined : '2 2'}
                 fill="none"
               />
               <path
-                d="M 52 74 Q 60 58 68 44"
+                d="M 52 72 Q 60 62 68 52"
                 stroke={worldProgressMap.world4?.isWorldUnlocked ? '#34d399' : '#F59E0B'}
                 strokeWidth="1.4"
                 strokeDasharray={worldProgressMap.world3?.isWorldCleared ? undefined : '2 2'}
                 fill="none"
               />
               <path
-                d="M 68 44 Q 76 58 84 68"
+                d="M 68 52 Q 75 60 81 68"
                 stroke={worldProgressMap.world5?.isWorldUnlocked ? '#34d399' : '#F59E0B'}
                 strokeWidth="1.4"
                 strokeDasharray={worldProgressMap.world4?.isWorldCleared ? undefined : '2 2'}
                 fill="none"
               />
               <path
-                d="M 84 68 Q 89 44 88 20"
+                d="M 81 68 Q 85 50 83 31"
                 stroke={worldProgressMap.world6?.isWorldUnlocked ? '#34d399' : '#F59E0B'}
                 strokeWidth="1.4"
                 strokeDasharray={worldProgressMap.world5?.isWorldCleared ? undefined : '2 2'}
                 fill="none"
               />
-              <path d="M 16 70 L 34 84" stroke="#10B981" strokeWidth="1" strokeDasharray="1.5 1.5" fill="none" />
-              <path d="M 45 14 L 66 13 L 68 44" stroke="#FCD34D" strokeWidth="1" strokeDasharray="1.5 1.5" fill="none" />
+              <path d="M 16 68 L 34 78" stroke="#10B981" strokeWidth="1" strokeDasharray="1.5 1.5" fill="none" />
+              <path d="M 42 24 L 58 24 L 68 52" stroke="#FCD34D" strokeWidth="1" strokeDasharray="1.5 1.5" fill="none" />
             </svg>
           </div>
 
@@ -1156,90 +1250,93 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   aria-label={`Inspect ${node.levelNumber}: ${node.worldName}`}
                   onClick={() => handleNodeInspect(node)}
                   onDoubleClick={() => onSelectWorld(node.id)}
-                  className={`group relative min-w-[48px] min-h-[48px] p-1 flex flex-col items-center focus:outline-none cursor-pointer transition-transform duration-200 ${
-                    isActive || isSelected ? 'scale-105 sm:scale-110' : 'hover:scale-105'
+                  className={`group relative min-w-[48px] min-h-[48px] p-1.5 flex flex-col items-center focus:outline-none cursor-pointer transition-transform duration-200 ${
+                    isActive || isSelected ? 'scale-105' : 'hover:scale-105'
                   }`}
                 >
                   {(isActive || isSelected) && (
-                    <div className="absolute -top-9 sm:-top-10 animate-bounce">
-                      <div className="bg-white/95 p-1 rounded-full border-2 border-black shadow-md">
+                    <div className="absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-bounce">
+                      <div className="bg-white/95 p-0.5 sm:p-1 rounded-full border-2 border-black shadow-md">
                         <MarioCharacterAvatar
                           character={equippedAvatar}
-                          className="w-6 h-6 sm:w-7 sm:h-7"
+                          className="w-5 h-5 sm:w-6 sm:h-6"
                         />
                       </div>
                     </div>
                   )}
 
-                  {wp && (
-                    <span
-                      className={`absolute -top-2 -right-2 z-20 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-black flex items-center justify-center shadow ${
-                        isCleared
-                          ? 'bg-emerald-400 text-slate-950'
-                          : isUnlocked
-                          ? 'bg-amber-300 text-slate-950'
-                          : 'bg-slate-800 text-slate-300'
-                      }`}
-                      title={
-                        isCleared
-                          ? 'World 100% Mastered!'
-                          : isUnlocked
-                          ? `Unlocked (${wp.completedCount}/${wp.totalCount})`
-                          : 'Complete a topic in the previous World to unlock trail'
-                      }
-                    >
-                      {isCleared ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
-                      ) : isUnlocked ? (
-                        <Unlock className="w-3 h-3 stroke-[2.5]" />
-                      ) : (
-                        <Lock className="w-3 h-3 stroke-[2.5]" />
-                      )}
-                    </span>
-                  )}
-
-                  <div
-                    className={`w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center border-3 sm:border-4 border-slate-950 transition-all ${
-                      isCleared
-                        ? 'bg-emerald-500 shadow-[0_0_16px_#10b981]'
-                        : isSelected || isActive
-                        ? 'bg-amber-400 shadow-[0_0_15px_#f59e0b]'
-                        : node.iconType === 'pipe'
-                        ? 'bg-emerald-600'
-                        : node.iconType === 'holiday'
-                        ? 'bg-pink-600'
-                        : node.iconType === 'star'
-                        ? 'bg-yellow-500'
-                        : isUnlocked
-                        ? 'bg-red-600'
-                        : 'bg-slate-700 opacity-90'
-                    }`}
-                  >
-                    {node.iconType === 'mushroom' && (
-                      <MarioMushroomIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-                    )}
-                    {node.iconType === 'flower' && (
-                      <MarioFireFlowerIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-                    )}
-                    {node.iconType === 'star' && (
-                      <MarioStarIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-                    )}
-                    {node.iconType === 'crown' && (
-                      <MarioPeachCrownIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-                    )}
-                    {node.iconType === '1up' && (
-                      <Mario1UpIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-                    )}
-                    {node.iconType === 'pipe' && (
-                      <MarioPipeIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-                    )}
-                    {node.iconType === 'holiday' && (
-                      <Calendar
-                        className={`w-5 h-5 sm:w-7 sm:h-7 ${
-                          isSelected || isActive ? 'text-slate-950' : 'text-white'
+                  <div className="relative p-1 inline-flex items-center justify-center">
+                    {wp && (
+                      <span
+                        data-testid={`map-node-status-badge-${node.id}`}
+                        className={`absolute top-0 right-0 z-20 w-5 h-5 rounded-full border-2 border-black flex items-center justify-center shadow overflow-hidden ${
+                          isCleared
+                            ? 'bg-emerald-400 text-slate-950'
+                            : isUnlocked
+                            ? 'bg-amber-300 text-slate-950'
+                            : 'bg-slate-800 text-slate-300'
                         }`}
-                      />
+                        title={
+                          isCleared
+                            ? 'World 100% Mastered!'
+                            : isUnlocked
+                            ? `Unlocked (${wp.completedCount}/${wp.totalCount})`
+                            : 'Complete a topic in the previous World to unlock trail'
+                        }
+                      >
+                        {isCleared ? (
+                          <CheckCircle2 className="w-3 h-3 stroke-[3] shrink-0" />
+                        ) : isUnlocked ? (
+                          <Unlock className="w-2.5 h-2.5 stroke-[2.5] shrink-0" />
+                        ) : (
+                          <Lock className="w-2.5 h-2.5 stroke-[2.5] shrink-0" />
+                        )}
+                      </span>
                     )}
+
+                    <div
+                      className={`w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center border-3 sm:border-4 border-slate-950 transition-all ${
+                        isCleared
+                          ? 'bg-emerald-500 shadow-[0_0_16px_#10b981]'
+                          : isSelected || isActive
+                          ? 'bg-amber-400 shadow-[0_0_15px_#f59e0b]'
+                          : node.iconType === 'pipe'
+                          ? 'bg-emerald-600'
+                          : node.iconType === 'holiday'
+                          ? 'bg-pink-600'
+                          : node.iconType === 'star'
+                          ? 'bg-yellow-500'
+                          : isUnlocked
+                          ? 'bg-red-600'
+                          : 'bg-slate-700 opacity-90'
+                      }`}
+                    >
+                      {node.iconType === 'mushroom' && (
+                        <MarioMushroomIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                      )}
+                      {node.iconType === 'flower' && (
+                        <MarioFireFlowerIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                      )}
+                      {node.iconType === 'star' && (
+                        <MarioStarIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                      )}
+                      {node.iconType === 'crown' && (
+                        <MarioPeachCrownIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                      )}
+                      {node.iconType === '1up' && (
+                        <Mario1UpIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                      )}
+                      {node.iconType === 'pipe' && (
+                        <MarioPipeIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+                      )}
+                      {node.iconType === 'holiday' && (
+                        <Calendar
+                          className={`w-5 h-5 sm:w-7 sm:h-7 ${
+                            isSelected || isActive ? 'text-slate-950' : 'text-white'
+                          }`}
+                        />
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-1 px-1.5 sm:px-2 py-0.5 rounded-lg bg-slate-950/95 text-white border-2 border-slate-700 shadow font-black text-[9px] sm:text-[10px] whitespace-nowrap flex flex-col items-center gap-0.5">
@@ -1270,6 +1367,10 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   <span className="px-2.5 py-1 bg-red-600 text-white text-[11px] font-black rounded-md border border-black uppercase font-mario leading-none">
                     {selectedNode.levelNumber}
                   </span>
+                  <WorldGoalRing
+                    percent={selectedWorldProgress?.percent ?? 0}
+                    size={32}
+                  />
                   <h3 className="text-lg sm:text-xl font-black text-amber-300 font-display leading-tight">
                     {selectedNode.name}: {selectedNode.worldName}
                   </h3>
@@ -1553,9 +1654,15 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 font-mario block truncate">
                       {summaryModalNode.levelNumber} COMPLETE STATUTORY DOSSIER
                     </span>
-                    <h3 className="text-base sm:text-2xl font-black text-white font-display truncate">
-                      {summaryModalNode.name}: {summaryModalNode.worldName}
-                    </h3>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <WorldGoalRing
+                        percent={worldProgressMap[summaryModalNode.id]?.percent ?? 0}
+                        size={30}
+                      />
+                      <h3 className="text-base sm:text-2xl font-black text-white font-display truncate">
+                        {summaryModalNode.name}: {summaryModalNode.worldName}
+                      </h3>
+                    </div>
                   </div>
                 </div>
                 <button

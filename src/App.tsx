@@ -33,6 +33,11 @@ import { LegalCitationsModal, CitationsView } from './components/LegalCitationsM
 import { QuickGlossaryModal } from './components/QuickGlossaryModal';
 import { StatuteLookupModal } from './components/StatuteLookupModal';
 import { BossBattleLogModal } from './components/BossBattleLogModal';
+import {
+  TopicFlashcardDeckModal,
+  TopicQuickQuizModal,
+  WorldGoalRing,
+} from './components/TopicStudyModals';
 import { ModulesStudySprint } from './components/ModulesStudySprint';
 import { DailyStudyGoalRing } from './components/DailyStudyGoalRing';
 import { CoinConfetti } from './components/CoinConfetti';
@@ -84,8 +89,10 @@ import {
   EvaluatedAchievement,
   PlayerProfileStats,
   QuizCompletionPayload,
+  readStoredDailyStudyGoal,
 } from './utils/profileAchievements';
 import {
+  LawTopic,
   MarioTheme,
   MarioAvatar,
   ComplexityMode,
@@ -165,6 +172,31 @@ import {
   APP_STUDY_FONTS,
   APP_STUDY_FONT_STORAGE_KEY,
 } from './utils/round8Features';
+import {
+  TopicMasteredSectionsMap,
+  loadTopicMasteredSectionsMap,
+  saveTopicMasteredSectionsMap,
+  toggleTopicSectionMastered,
+  PinnedRuleBookmark,
+  loadPinnedRuleBookmarks,
+  savePinnedRuleBookmarks,
+  togglePinnedRuleBookmark,
+  QuickQuizLogEntry,
+  loadQuickQuizLog,
+  saveQuickQuizLog,
+  recordQuickQuizLogEntry,
+  CoinLedgerMap,
+  loadCoinLedger30d,
+  saveCoinLedger30d,
+  recordCoinDeltaInLedger,
+  ToadSpecialEventsState,
+  loadToadSpecialEventsState,
+  saveToadSpecialEventsState,
+  LuxuryEquippedState,
+  LUXURY_CARTRIDGE_LABELS,
+  loadLuxuryEquippedState,
+  saveLuxuryEquippedState,
+} from './utils/round9Features';
 
 const TOAD_PRO_TIPS = [
   {
@@ -533,7 +565,7 @@ export default function App() {
     return 'mario';
   });
 
-  // Super Star Power-Up (2x Coins for 10m), Shortcut Map, Companions & Card Frames
+  // Super Star Power-Up (2x Coins for 10m), Special Events, Luxury Goods, Ledger & Section Mastery
   const [superStarEndsAt, setSuperStarEndsAt] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -544,25 +576,133 @@ export default function App() {
     }
     return 0;
   });
+
+  const [specialEventsState, setSpecialEventsState] = useState<ToadSpecialEventsState>(() =>
+    typeof window !== 'undefined'
+      ? loadToadSpecialEventsState(window.localStorage)
+      : loadToadSpecialEventsState(null)
+  );
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveToadSpecialEventsState(specialEventsState, window.localStorage);
+    }
+  }, [specialEventsState]);
+
+  const [luxuryEquipped, setLuxuryEquipped] = useState<LuxuryEquippedState>(() =>
+    typeof window !== 'undefined'
+      ? loadLuxuryEquippedState(window.localStorage)
+      : loadLuxuryEquippedState(null)
+  );
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveLuxuryEquippedState(luxuryEquipped, window.localStorage);
+    }
+  }, [luxuryEquipped]);
+
+  const [coinLedger, setCoinLedger] = useState<CoinLedgerMap>(() =>
+    typeof window !== 'undefined' ? loadCoinLedger30d(window.localStorage) : {}
+  );
+  const prevCoinsRef = useRef<number>(coins);
+  useEffect(() => {
+    const delta = coins - prevCoinsRef.current;
+    prevCoinsRef.current = coins;
+    if (delta !== 0) {
+      setCoinLedger((prev) => {
+        const next = recordCoinDeltaInLedger(prev, delta);
+        if (typeof window !== 'undefined') {
+          saveCoinLedger30d(next, window.localStorage);
+        }
+        return next;
+      });
+    }
+  }, [coins]);
+
+  const [topicMasteredSections, setTopicMasteredSections] = useState<TopicMasteredSectionsMap>(() =>
+    typeof window !== 'undefined' ? loadTopicMasteredSectionsMap(window.localStorage) : {}
+  );
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveTopicMasteredSectionsMap(topicMasteredSections, window.localStorage);
+    }
+  }, [topicMasteredSections]);
+
+  const [pinnedRuleBookmarks, setPinnedRuleBookmarks] = useState<PinnedRuleBookmark[]>(() =>
+    typeof window !== 'undefined' ? loadPinnedRuleBookmarks(window.localStorage) : []
+  );
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      savePinnedRuleBookmarks(pinnedRuleBookmarks, window.localStorage);
+    }
+  }, [pinnedRuleBookmarks]);
+  const pinnedRuleIdSet = useMemo(
+    () => new Set(pinnedRuleBookmarks.map((b) => b.id)),
+    [pinnedRuleBookmarks]
+  );
+
+  const [quickQuizLog, setQuickQuizLog] = useState<QuickQuizLogEntry[]>(() =>
+    typeof window !== 'undefined' ? loadQuickQuizLog(window.localStorage) : []
+  );
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      saveQuickQuizLog(quickQuizLog, window.localStorage);
+    }
+  }, [quickQuizLog]);
+  const [bossBattleLogInitialTab, setBossBattleLogInitialTab] = useState<'boss' | 'quick'>('boss');
+  const [activeTopicFlashcardModal, setActiveTopicFlashcardModal] = useState<LawTopic | null>(null);
+  const [activeTopicQuickQuizModal, setActiveTopicQuickQuizModal] = useState<LawTopic | null>(null);
+
   const [buffNowMs, setBuffNowMs] = useState<number>(() => Date.now());
 
+  const maxActiveBuffEndsAt = Math.max(
+    superStarEndsAt,
+    specialEventsState.invincibleEndsAt,
+    specialEventsState.doubleXpEndsAt,
+    specialEventsState.unlockAllModulesEndsAt
+  );
+
   useEffect(() => {
-    if (superStarEndsAt <= Date.now()) return;
+    if (maxActiveBuffEndsAt <= Date.now()) return;
     setBuffNowMs(Date.now());
     const id = window.setInterval(() => {
       const now = Date.now();
       setBuffNowMs(now);
-      if (now >= superStarEndsAt) {
+      if (now >= maxActiveBuffEndsAt) {
         window.clearInterval(id);
       }
     }, 1000);
     return () => window.clearInterval(id);
-  }, [superStarEndsAt]);
+  }, [maxActiveBuffEndsAt]);
 
   const superStarStatus = useMemo(
     () => getSuperStarBuffStatus(superStarEndsAt, buffNowMs),
     [superStarEndsAt, buffNowMs]
   );
+
+  const formatCountdownLabel = (endsAt: number, nowMs: number): string | null => {
+    if (endsAt <= nowMs) return null;
+    const remSec = Math.max(0, Math.ceil((endsAt - nowMs) / 1000));
+    const mins = Math.floor(remSec / 60);
+    const secs = remSec % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const invincibleRemainingLabel = formatCountdownLabel(
+    specialEventsState.invincibleEndsAt,
+    buffNowMs
+  );
+  const doubleXpRemainingLabel = formatCountdownLabel(
+    specialEventsState.doubleXpEndsAt,
+    buffNowMs
+  );
+  const unlockAllRemainingLabel = formatCountdownLabel(
+    specialEventsState.unlockAllModulesEndsAt,
+    buffNowMs
+  );
+  const isUnlockAllActive = specialEventsState.unlockAllModulesEndsAt > buffNowMs;
+  const isAny2xCoinActive =
+    superStarStatus.isActive ||
+    specialEventsState.invincibleEndsAt > buffNowMs ||
+    specialEventsState.doubleXpEndsAt > buffNowMs;
 
   const [shortcutMapActive, setShortcutMapActive] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -986,10 +1126,15 @@ export default function App() {
       });
 
       if (levelUpCheck.triggered && levelUpCheck.worldId) {
+        const nowCheck = Date.now();
+        const active2x =
+          getSuperStarBuffStatus(superStarEndsAt, nowCheck).isActive ||
+          specialEventsState.invincibleEndsAt > nowCheck ||
+          specialEventsState.doubleXpEndsAt > nowCheck;
         const effectiveReward = computeEffectiveCoinReward(
           2 + levelUpCheck.bonusCoins,
           {
-            isSuperStarActive: getSuperStarBuffStatus(superStarEndsAt).isActive,
+            isSuperStarActive: active2x,
             hasMushroomCoinCharm: hasMushroomCoinCharm(),
           }
         );
@@ -1009,8 +1154,13 @@ export default function App() {
         });
         setShowCoinConfetti(true);
       } else {
+        const nowCheck = Date.now();
+        const active2x =
+          getSuperStarBuffStatus(superStarEndsAt, nowCheck).isActive ||
+          specialEventsState.invincibleEndsAt > nowCheck ||
+          specialEventsState.doubleXpEndsAt > nowCheck;
         const effectiveReward = computeEffectiveCoinReward(2, {
-          isSuperStarActive: getSuperStarBuffStatus(superStarEndsAt).isActive,
+          isSuperStarActive: active2x,
           hasMushroomCoinCharm: hasMushroomCoinCharm(),
         });
         setCoins((c) => c + effectiveReward);
@@ -1294,9 +1444,18 @@ export default function App() {
     }
   };
 
+  const checkLive2xActive = () => {
+    const nowCheck = Date.now();
+    return (
+      getSuperStarBuffStatus(superStarEndsAt, nowCheck).isActive ||
+      specialEventsState.invincibleEndsAt > nowCheck ||
+      specialEventsState.doubleXpEndsAt > nowCheck
+    );
+  };
+
   const handleEarnCoin = () => {
     const reward = computeEffectiveCoinReward(1, {
-      isSuperStarActive: getSuperStarBuffStatus(superStarEndsAt).isActive,
+      isSuperStarActive: checkLive2xActive(),
       hasMushroomCoinCharm: hasMushroomCoinCharm(),
     });
     setCoins((c) => c + reward);
@@ -1305,18 +1464,18 @@ export default function App() {
   const handleEarnCoins = (amount: number) => {
     if (amount <= 0) return;
     const reward = computeEffectiveCoinReward(amount, {
-      isSuperStarActive: getSuperStarBuffStatus(superStarEndsAt).isActive,
+      isSuperStarActive: checkLive2xActive(),
       hasMushroomCoinCharm: false,
     });
     setCoins((c) => c + reward);
   };
 
-  // Wrapper for GameVault so arcade coin pickups also receive the Super Star 2x buff
+  // Wrapper for GameVault so arcade coin pickups also receive active 2x buffs
   const handleArcadeSetCoins: React.Dispatch<React.SetStateAction<number>> = (updater) => {
     setCoins((prev) => {
       const rawNext = typeof updater === 'function' ? updater(prev) : updater;
       const delta = rawNext - prev;
-      if (delta > 0 && getSuperStarBuffStatus(superStarEndsAt).isActive) {
+      if (delta > 0 && checkLive2xActive()) {
         return prev + delta * 2;
       }
       return rawNext;
@@ -1375,6 +1534,79 @@ export default function App() {
     victory?: boolean;
   }) => {
     setBossBattleLog((prev) => recordBossBattleLogEntry(prev, input));
+  };
+
+  const handleToggleSectionMastered = (topicId: string, sectionKey: string) => {
+    recordTopicEngagement(topicId);
+    setTopicMasteredSections((prev) => {
+      const res = toggleTopicSectionMastered(prev, topicId, sectionKey);
+      if (res.isNowMastered) {
+        handleEarnCoin();
+      }
+      return res.nextMap;
+    });
+  };
+
+  const handleTogglePinRuleItem = (candidate: Omit<PinnedRuleBookmark, 'pinnedAt'>) => {
+    setPinnedRuleBookmarks((prev) => {
+      const res = togglePinnedRuleBookmark(prev, candidate);
+      return res.nextItems;
+    });
+  };
+
+  const handleRemovePinnedRule = (bookmarkId: string) => {
+    setPinnedRuleBookmarks((prev) => prev.filter((b) => b.id !== bookmarkId));
+  };
+
+  const handleCompleteTopicQuickQuiz = (result: {
+    topic: LawTopic;
+    score: number;
+    totalQuestions: number;
+    durationSeconds: number;
+    missedPoints: string[];
+    coinsEarned: number;
+  }) => {
+    recordTopicEngagement(result.topic.id);
+    setQuickQuizLog((prev) =>
+      recordQuickQuizLogEntry(prev, {
+        topicId: result.topic.id,
+        topicTitle: result.topic.title,
+        topicBadge: result.topic.badge,
+        worldId: result.topic.worldId,
+        score: result.score,
+        totalQuestions: result.totalQuestions,
+        durationSeconds: result.durationSeconds,
+        missedPoints: result.missedPoints,
+      })
+    );
+    if (result.coinsEarned > 0) {
+      handleEarnCoins(result.coinsEarned);
+    }
+  };
+
+  const handleUpdateSpecialEvents = (next: ToadSpecialEventsState) => {
+    setSpecialEventsState(next);
+    setBuffNowMs(Date.now());
+  };
+
+  const handleUpdateLuxuryEquipped = (next: LuxuryEquippedState) => {
+    setLuxuryEquipped(next);
+  };
+
+  const handleConsumeBossSkipToken = () => {
+    setSpecialEventsState((prev) => ({
+      ...prev,
+      bossSkipTokens: Math.max(0, prev.bossSkipTokens - 1),
+    }));
+  };
+
+  const handleActivateBossDefeatInvincible = () => {
+    const now = Date.now();
+    setSpecialEventsState((prev) => ({
+      ...prev,
+      invincibleEndsAt: Math.max(prev.invincibleEndsAt, now) + 5 * 60 * 1000,
+    }));
+    setBuffNowMs(now);
   };
 
   const handleToggleNeedsImprovementTopic = (topicId: string) => {
@@ -1588,7 +1820,153 @@ export default function App() {
           onSelectTheme={handleSelectActiveTheme}
           appStudyFont={appStudyFont}
           onSelectAppStudyFont={handleSelectAppStudyFont}
+          dailyPomodoroLogs={profileStats.dailyPomodoroLogs}
+          dailyGoalMinutes={readStoredDailyStudyGoal()}
+          todayStudiedSeconds={getTodayStudiedSeconds(profileStats)}
+          invincibleRemainingLabel={invincibleRemainingLabel}
+          doubleXpRemainingLabel={doubleXpRemainingLabel}
+          unlockAllRemainingLabel={unlockAllRemainingLabel}
         />
+
+        {/* Breadcrumb Navigation Trail directly below Header in 'Modules' View */}
+        {activeTab === 'modules' && !zenMode && (
+          <nav
+            aria-label="Modules Breadcrumb Navigation"
+            data-testid="modules-breadcrumb-nav"
+            className="bg-slate-900/98 border-b-2 border-amber-400/70 px-3 sm:px-4 py-1.5 sm:py-2 print:hidden"
+          >
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs min-w-0 flex-1">
+                <button
+                  type="button"
+                  data-testid="breadcrumb-return-map-btn"
+                  onClick={() => {
+                    setActiveTab('map');
+                    marioAudio.playTabSwitch();
+                  }}
+                  className="min-h-[34px] px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-black inline-flex items-center gap-1.5 border border-slate-700 cursor-pointer shrink-0 whitespace-nowrap"
+                >
+                  <Compass className="w-3.5 h-3.5 shrink-0" />
+                  <span>World Map</span>
+                </button>
+
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 shrink-0" aria-hidden="true" />
+
+                {/* Active World Switcher + WorldGoalRing */}
+                {(() => {
+                  const activeWObj = WORLDS_METADATA.find((w) => w.id === activeWorld);
+                  const wTopicIds = activeWObj
+                    ? topicsByWorld[activeWObj.id] || []
+                    : ALL_LAW_TOPICS.map((t) => t.id);
+                  const wDone = wTopicIds.filter((id) => completedTopicIds.includes(id)).length;
+                  const wPct =
+                    wTopicIds.length > 0 ? Math.round((wDone / wTopicIds.length) * 100) : 0;
+
+                  return (
+                    <div className="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-lg px-2 py-0.5 min-h-[34px] min-w-0">
+                      <WorldGoalRing percent={wPct} size={20} strokeWidth={2.6} showLabel={false} />
+                      <select
+                        aria-label="Switch active world from breadcrumb"
+                        data-testid="breadcrumb-world-select"
+                        value={activeWorld}
+                        onChange={(e) => handleWorldSelect(e.target.value)}
+                        className="bg-transparent text-white font-black text-xs focus:outline-none cursor-pointer min-w-0 max-w-[140px] sm:max-w-[210px] truncate"
+                      >
+                        <option value="all" className="bg-slate-950 text-white">
+                          All 6 Worlds ({completedTopicIds.length}/{ALL_LAW_TOPICS.length})
+                        </option>
+                        {WORLDS_METADATA.map((w) => {
+                          const ids = topicsByWorld[w.id] || [];
+                          const done = ids.filter((id) => completedTopicIds.includes(id)).length;
+                          return (
+                            <option key={w.id} value={w.id} className="bg-slate-950 text-white">
+                              W{w.worldNumber}: {w.shortTitle} ({done}/{ids.length})
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  );
+                })()}
+
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 shrink-0 hidden sm:inline" aria-hidden="true" />
+
+                {/* Active Category / Statutory Scope */}
+                <span
+                  data-testid="breadcrumb-active-category"
+                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-emerald-300 truncate max-w-[200px]"
+                >
+                  <span>
+                    {activeWorld === 'all'
+                      ? difficultyFilter === 'all'
+                        ? 'All Statutory Categories'
+                        : `${difficultyFilter} Tier`
+                      : WORLDS_METADATA.find((w) => w.id === activeWorld)?.title || 'Module Topics'}
+                  </span>
+                </span>
+
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 shrink-0" aria-hidden="true" />
+
+                {/* Related Topics Quick-Jump Select */}
+                <select
+                  aria-label="Jump to related topic in current world"
+                  data-testid="breadcrumb-topic-jump-select"
+                  value=""
+                  onChange={(e) => {
+                    const topicId = e.target.value;
+                    if (!topicId) return;
+                    handleRecordAccessedTopic(topicId);
+                    marioAudio.playPipe();
+                    const idxInDisplayed = displayedTopics.findIndex((t) => t.id === topicId);
+                    if (
+                      (moduleViewMode === 'focus' || moduleViewMode === 'slides') &&
+                      idxInDisplayed >= 0
+                    ) {
+                      setFocusTopicIdx(idxInDisplayed);
+                      setSlideStepIdx(0);
+                      return;
+                    }
+                    window.setTimeout(() => {
+                      const el = document.getElementById(`topic-card-${topicId}`);
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('ring-4', 'ring-amber-400');
+                        window.setTimeout(
+                          () => el.classList.remove('ring-4', 'ring-amber-400'),
+                          2400
+                        );
+                      }
+                    }, 80);
+                  }}
+                  className="min-h-[34px] rounded-lg bg-slate-950 border border-amber-400/60 focus:border-amber-400 px-2.5 py-1 text-xs font-bold text-amber-200 cursor-pointer min-w-0 max-w-[165px] sm:max-w-[240px] truncate"
+                >
+                  <option value="" disabled>
+                    Jump to Topic ({displayedTopics.length})...
+                  </option>
+                  {displayedTopics.map((t, i) => (
+                    <option key={t.id} value={t.id} className="bg-slate-950 text-white">
+                      {i + 1}. {t.badge} — {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="button"
+                data-testid="modules-open-quick-quiz-log-btn"
+                onClick={() => {
+                  setBossBattleLogInitialTab('quick');
+                  setIsBossBattleLogOpen(true);
+                  marioAudio.playClick();
+                }}
+                className="min-h-[34px] px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] border border-black inline-flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap tabular-nums"
+              >
+                <Trophy className="w-3.5 h-3.5 shrink-0" />
+                <span>Quick Quiz Log ({quickQuizLog.length})</span>
+              </button>
+            </div>
+          </nav>
+        )}
       </div>
 
       {/* Main Container with Mobile Bottom Nav Padding */}
@@ -1716,7 +2094,7 @@ export default function App() {
             <DailyStudyGoalRing
               studiedSeconds={getTodayStudiedSeconds(profileStats)}
               onEarnCoins={handleEarnCoins}
-              superStarActive={superStarStatus.isActive}
+              superStarActive={isAny2xCoinActive}
             />
 
             <WorldMap
@@ -1749,8 +2127,25 @@ export default function App() {
                 (profileStats.needsImprovementWorlds?.length || 0)
               }
               onEarnCoins={handleEarnCoins}
-              superStarActive={superStarStatus.isActive}
+              superStarActive={isAny2xCoinActive}
               recentlyViewedTopics={recentlyViewedTopics}
+              pinnedRuleBookmarks={pinnedRuleBookmarks}
+              onJumpToPinnedRule={(worldId, topicId) => {
+                handleRecordAccessedTopic(topicId);
+                setActiveWorld(worldId);
+                setActiveTab('modules');
+                marioAudio.syncModuleAudio(worldId, true);
+                setTimeout(() => {
+                  const el = document.getElementById(`topic-card-${topicId}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('ring-4', 'ring-amber-400');
+                    setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
+                  }
+                }, 150);
+              }}
+              onRemovePinnedRule={handleRemovePinnedRule}
+              unlockAllModulesActive={isUnlockAllActive}
             />
 
 
@@ -2817,6 +3212,12 @@ export default function App() {
                                 onEarnCoins={handleEarnCoins}
                                 isBookmarked={bookmarkedTopicIds.includes(focusedTopic.id)}
                                 onToggleBookmark={() => handleToggleBookmarkTopic(focusedTopic.id)}
+                                masteredSectionsMap={topicMasteredSections}
+                                onToggleSectionMastered={handleToggleSectionMastered}
+                                pinnedRuleIds={pinnedRuleIdSet}
+                                onTogglePinRuleItem={handleTogglePinRuleItem}
+                                onOpenTopicFlashcardMode={(t) => setActiveTopicFlashcardModal(t)}
+                                onOpenTopicQuickQuiz={(t) => setActiveTopicQuickQuizModal(t)}
                               />
                             )}
                           </div>
@@ -2846,6 +3247,12 @@ export default function App() {
                           onEarnCoins={handleEarnCoins}
                           isBookmarked={bookmarkedTopicIds.includes(topic.id)}
                           onToggleBookmark={() => handleToggleBookmarkTopic(topic.id)}
+                          masteredSectionsMap={topicMasteredSections}
+                          onToggleSectionMastered={handleToggleSectionMastered}
+                          pinnedRuleIds={pinnedRuleIdSet}
+                          onTogglePinRuleItem={handleTogglePinRuleItem}
+                          onOpenTopicFlashcardMode={(t) => setActiveTopicFlashcardModal(t)}
+                          onOpenTopicQuickQuiz={(t) => setActiveTopicQuickQuizModal(t)}
                         />
                       ))
                     )}
@@ -2906,6 +3313,11 @@ export default function App() {
             appStudyFont={appStudyFont}
             onSelectAppStudyFont={handleSelectAppStudyFont}
             onOpenCertificatePreview={() => openPrintStudio('certificate')}
+            specialEventsState={specialEventsState}
+            onUpdateSpecialEventsState={handleUpdateSpecialEvents}
+            luxuryEquipped={luxuryEquipped}
+            onUpdateLuxuryEquipped={handleUpdateLuxuryEquipped}
+            onNavigateTab={(tabId) => setActiveTab(tabId as typeof activeTab)}
           />
         )}
 
@@ -2943,7 +3355,7 @@ export default function App() {
           />
         )}
 
-        {/* Tab 6: Mario Arcade Game Vault (28 Total Games) */}
+        {/* Tab 6: Mario Arcade Game Vault (38 Total Games) */}
         {(activeTab === 'vault' || activeTab === 'game2d' || activeTab === 'game3d') && (
           <GameVault
             equippedAvatar={equippedAvatar}
@@ -2976,9 +3388,23 @@ export default function App() {
             needsImprovementWorlds={profileStats.needsImprovementWorlds}
             onBossQuizCompleted={handleBossQuizCompleted}
             onRecordBossBattleLog={handleRecordBossBattleLog}
-            onOpenBossBattleLog={() => setIsBossBattleLogOpen(true)}
-            bossBattleLogCount={bossBattleLog.length}
+            onOpenBossBattleLog={() => {
+              setBossBattleLogInitialTab('boss');
+              setIsBossBattleLogOpen(true);
+            }}
+            bossBattleLogCount={bossBattleLog.length + quickQuizLog.length}
             externalLaunchMode={quizExternalLaunch}
+            dailyBossQuizStreak={dailyBossQuizStreakSnapshot}
+            quizHistory={profileStats.quizHistory || []}
+            bossSkipTokens={specialEventsState.bossSkipTokens}
+            onConsumeBossSkipToken={handleConsumeBossSkipToken}
+            onActivateBossDefeatInvincible={handleActivateBossDefeatInvincible}
+            coins={coins}
+            onSpendCoins={(cost) => {
+              if (coins < cost) return false;
+              setCoins((prev) => Math.max(0, prev - cost));
+              return true;
+            }}
           />
         )}
 
@@ -3111,13 +3537,18 @@ export default function App() {
         completedTopicsSparkline={completedTopicsSparkline}
         onOpenBossBattleLog={() => {
           setIsProfileOpen(false);
+          setBossBattleLogInitialTab('boss');
           setIsBossBattleLogOpen(true);
         }}
-        bossBattleLogCount={bossBattleLog.length}
+        bossBattleLogCount={bossBattleLog.length + quickQuizLog.length}
         onLaunchWeaknessDrill={handleLaunchWeaknessDrill}
+        coinLedger={coinLedger}
+        completedTopicsHistory={completedTopicsHistory}
+        equippedLuxuryFrame={luxuryEquipped.avatarFrame}
+        equippedLuxuryAura={luxuryEquipped.mushroomAura}
       />
 
-      {/* Global Coin Leaderboard Modal */}
+      {/* Global Coin & Quiz Leaderboard Modal */}
       <CoinLeaderboardModal
         isOpen={isLeaderboardOpen}
         onClose={() => setIsLeaderboardOpen(false)}
@@ -3127,6 +3558,8 @@ export default function App() {
         coins={coins}
         streakDays={loginStreak}
         completedTopicsCount={completedTopicIds.length}
+        quizHistory={profileStats.quizHistory || []}
+        equippedCartridgeBadge={LUXURY_CARTRIDGE_LABELS[luxuryEquipped.cartridgeBadge] || null}
       />
 
       {/* First-Time & On-Demand Complete 10-Chapter App Walkthrough Guide */}
@@ -3279,15 +3712,46 @@ export default function App() {
         }}
       />
 
-      {/* Bar Master 'Boss Battle Log' Modal (Past 10 Results) */}
+      {/* Bar Master 'Boss Battle & Quick Quiz Log' Modal */}
       <BossBattleLogModal
         isOpen={isBossBattleLogOpen}
         onClose={() => setIsBossBattleLogOpen(false)}
         entries={bossBattleLog}
+        quickQuizEntries={quickQuizLog}
+        initialTab={bossBattleLogInitialTab}
         onLaunchWeaknessDrill={() => {
           setIsBossBattleLogOpen(false);
           handleLaunchWeaknessDrill();
         }}
+        onJumpToTopic={(topicId, worldId) => {
+          setIsBossBattleLogOpen(false);
+          handleRecordAccessedTopic(topicId);
+          setActiveWorld(worldId || 'all');
+          setActiveTab('modules');
+          marioAudio.syncModuleAudio(worldId || 'world1', true);
+          window.setTimeout(() => {
+            const el = document.getElementById(`topic-card-${topicId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('ring-4', 'ring-amber-400');
+              window.setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2400);
+            }
+          }, 150);
+        }}
+      />
+
+      {/* Dedicated Topic Card Flashcard Deck Modal */}
+      <TopicFlashcardDeckModal
+        topic={activeTopicFlashcardModal}
+        onClose={() => setActiveTopicFlashcardModal(null)}
+        onEarnCoin={handleEarnCoin}
+      />
+
+      {/* Dedicated Topic Card 3-Question Quick Quiz Modal */}
+      <TopicQuickQuizModal
+        topic={activeTopicQuickQuizModal}
+        onClose={() => setActiveTopicQuickQuizModal(null)}
+        onCompleteQuickQuiz={handleCompleteTopicQuickQuiz}
       />
 
       {/* Mario Golden Coin Confetti Animation */}

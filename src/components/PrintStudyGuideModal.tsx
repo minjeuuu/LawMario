@@ -52,11 +52,11 @@ import {
 } from '../utils/onePageSummaryData';
 import {
   downloadOnePageSummaryA4Pdf,
-  downloadCertificateLandscapePdf,
+  downloadCertificatePdf,
   downloadStudyGuideReviewerPdf,
   downloadScoreCardLandscapePdf,
   buildOnePageSummaryPdfBytes,
-  buildCertificateLandscapePdfBytes,
+  buildCertificatePdfBytes,
   buildStudyGuideReviewerPdfBytes,
   buildScoreCardLandscapePdfBytes,
   countPdfPagesFromBytes,
@@ -151,6 +151,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [includeLatinMaxims, setIncludeLatinMaxims] = useState(true);
   const [includeHonorPledge, setIncludeHonorPledge] = useState(true);
   const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [certOrientation, setCertOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [documentMode, setDocumentMode] = useState<PrintModalDocumentMode>(
     initialMode || 'summary'
   );
@@ -279,7 +280,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       clearPrintPageRule();
       return;
     }
-    if (documentMode === 'certificate' || documentMode === 'scorecard') {
+    if (documentMode === 'certificate') {
+      applyPrintPageRule(certOrientation, '6mm');
+    } else if (documentMode === 'scorecard') {
       applyPrintPageRule('landscape', '6mm');
     } else if (documentMode === 'summary') {
       applyPrintPageRule('portrait', '8mm');
@@ -292,7 +295,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     return () => {
       clearPrintPageRule();
     };
-  }, [isOpen, documentMode, pageOrientation]);
+  }, [isOpen, documentMode, pageOrientation, certOrientation]);
 
   const resolvedNotes =
     studyNotes ??
@@ -379,7 +382,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
         watermarkText: formatOptions.watermarkText,
       });
     } else if (documentMode === 'certificate') {
-      bytes = buildCertificateLandscapePdfBytes({
+      bytes = buildCertificatePdfBytes({
         recipientName: candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
         honors: certificateHonors,
         completedCount,
@@ -387,6 +390,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
         dateLabel: currentDate,
         colorAccent: formatOptions.colorAccent,
         fontStyle: formatOptions.fontStyle,
+        orientation: certOrientation,
       });
     } else if (documentMode === 'scorecard') {
       bytes = buildScoreCardLandscapePdfBytes(buildCurrentScoreCardParams());
@@ -437,6 +441,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     previewRenderMode,
     documentMode,
     pageOrientation,
+    certOrientation,
     candidateName,
     playerName,
     certificateHonors,
@@ -496,7 +501,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       });
     } else if (documentMode === 'certificate') {
       marioAudio.playQuizComplete();
-      downloadCertificateLandscapePdf({
+      downloadCertificatePdf({
         recipientName:
           candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
         honors: certificateHonors,
@@ -505,6 +510,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
         dateLabel: currentDate,
         colorAccent: formatOptions.colorAccent,
         fontStyle: formatOptions.fontStyle,
+        orientation: certOrientation,
       });
     } else if (documentMode === 'scorecard') {
       marioAudio.playQuizComplete();
@@ -562,7 +568,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const certThemeClasses = activeThemeCatalog.certClasses;
 
   const isLandscapeDocument =
-    documentMode === 'certificate' ||
+    (documentMode === 'certificate' && certOrientation === 'landscape') ||
     documentMode === 'scorecard' ||
     (documentMode === 'guide' && pageOrientation === 'landscape');
 
@@ -726,7 +732,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   {documentMode === 'summary'
                     ? 'ONE-PAGE A4 SUMMARY'
                     : documentMode === 'certificate'
-                    ? 'A4 LANDSCAPE CERTIFICATE'
+                    ? certOrientation === 'portrait'
+                      ? 'A4 PORTRAIT CERTIFICATE'
+                      : 'A4 LANDSCAPE CERTIFICATE'
                     : documentMode === 'scorecard'
                     ? 'A4 HERO SCORE CARD'
                     : 'COMPLETE LABOR REVIEWER'}
@@ -1022,6 +1030,44 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 </button>
               </div>
 
+              {documentMode === 'certificate' && (
+                <div
+                  data-testid="print-cert-orientation-toolbar-toggle"
+                  className="inline-flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 gap-0.5"
+                >
+                  <button
+                    type="button"
+                    data-testid="cert-orientation-landscape-btn"
+                    onClick={() => {
+                      marioAudio.playClick();
+                      setCertOrientation('landscape');
+                    }}
+                    className={`min-h-[30px] px-2.5 py-0.5 rounded-md text-[11px] font-black cursor-pointer whitespace-nowrap ${
+                      certOrientation === 'landscape'
+                        ? 'bg-amber-400 text-slate-950'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Landscape
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="cert-orientation-portrait-btn"
+                    onClick={() => {
+                      marioAudio.playClick();
+                      setCertOrientation('portrait');
+                    }}
+                    className={`min-h-[30px] px-2.5 py-0.5 rounded-md text-[11px] font-black cursor-pointer whitespace-nowrap ${
+                      certOrientation === 'portrait'
+                        ? 'bg-amber-400 text-slate-950'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Portrait
+                  </button>
+                </div>
+              )}
+
               <span
                 data-testid="print-page-estimate-label"
                 className="text-[11px] text-slate-400 font-mono tabular-nums whitespace-nowrap px-1"
@@ -1172,17 +1218,17 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-amber-300 text-xs font-black uppercase font-mario">
-                    OFFICIAL CERTIFICATE CUSTOMIZER
+                    EXECUTIVE CERTIFICATE CUSTOMIZER (PORTRAIT OR LANDSCAPE)
                   </span>
                   <span className="text-[11px] text-slate-300">
-                    Downloads directly as an A4 Landscape Diploma PDF (.pdf)
+                    Exports directly as an A4 {certOrientation === 'portrait' ? 'Portrait (210×297mm)' : 'Landscape (297×210mm)'} Certificate PDF (.pdf)
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="bg-slate-800/90 p-2.5 rounded-xl border border-slate-600 space-y-1">
                     <label className="text-[11px] text-amber-300 font-bold block">
-                      Learner Name on Diploma:
+                      Learner Name on Certificate:
                     </label>
                     <input
                       type="text"
@@ -1209,9 +1255,47 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </select>
                   </div>
 
+                  <div className="bg-slate-800/90 p-2.5 rounded-xl border border-slate-600 space-y-1">
+                    <span className="text-[11px] text-amber-300 font-bold block">
+                      Page Orientation:
+                    </span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          marioAudio.playClick();
+                          setCertOrientation('landscape');
+                        }}
+                        className={`min-h-[34px] rounded-lg text-xs font-black border cursor-pointer ${
+                          certOrientation === 'landscape'
+                            ? 'bg-amber-400 text-slate-950 border-black'
+                            : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white'
+                        }`}
+                      >
+                        Landscape
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          marioAudio.playClick();
+                          setCertOrientation('portrait');
+                        }}
+                        className={`min-h-[34px] rounded-lg text-xs font-black border cursor-pointer ${
+                          certOrientation === 'portrait'
+                            ? 'bg-amber-400 text-slate-950 border-black'
+                            : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white'
+                        }`}
+                      >
+                        Portrait
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="bg-slate-800/90 p-2.5 rounded-xl border border-slate-600 flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <span className="text-white text-xs font-bold block truncate">Landscape A4 Diploma</span>
+                      <span className="text-white text-xs font-bold block truncate">
+                        {certOrientation === 'portrait' ? 'Portrait A4' : 'Landscape A4'}
+                      </span>
                       <span className="text-[10px] text-slate-400 block truncate">Direct .pdf download</span>
                     </div>
                     <button
@@ -2008,13 +2092,18 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </div>
                   </div>
                 ) : documentMode === 'certificate' ? (
-                  /* ==================== OFFICIAL CERTIFICATE OF STATUTORY MASTERY (A4 LANDSCAPE 1122x794) ==================== */
+                  /* ==================== EXECUTIVE CERTIFICATE OF STATUTORY COMPLETION (PORTRAIT 794x1122 OR LANDSCAPE 1122x794) ==================== */
                   <div
                     id="official-labor-certificate"
                     data-testid="official-labor-certificate"
                     data-theme={formatOptions.colorAccent}
                     data-font={formatOptions.fontStyle}
-                    className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 px-12 py-8 border-[10px] rounded-2xl shadow-2xl w-full min-h-[794px] relative select-text flex flex-col justify-between gap-3 outline outline-3`}
+                    data-orientation={certOrientation}
+                    className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 ${
+                      certOrientation === 'portrait'
+                        ? 'px-10 py-12 min-h-[1122px]'
+                        : 'px-12 py-8 min-h-[794px]'
+                    } border-[10px] rounded-2xl shadow-2xl w-full relative select-text flex flex-col justify-between gap-3 outline outline-3`}
                   >
                     {/* Corner Ornaments */}
                     <div className={`absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
@@ -2026,7 +2115,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     <div className={`absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
                       <Award className="w-4 h-4" />
                     </div>
-                    <div className={`absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 ${certThemeClasses.corner} flex items-center justify-center`}>
+                    <div className={`absolute bottom-3 right-3 w-7 h-7 border-r-2 border-b-2 ${certThemeClasses.corner} flex items-center justify-center`}>
                       <Award className="w-4 h-4" />
                     </div>
 
@@ -2041,24 +2130,32 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             REPUBLIC OF THE PHILIPPINES · PHILIPPINE LABOR STANDARDS GUIDE
                           </p>
                           <p className="text-[10.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
-                            Department of Labor and Employment · Statutory &amp; Workplace Rights Mastery
+                            Department of Labor and Employment · Executive Statutory Completion Record
                           </p>
                         </div>
                       </div>
 
                       <div className="pt-1">
-                        <h2 className={`text-4xl font-black tracking-wide uppercase border-y-2 py-2 my-1 ${certThemeClasses.title}`}>
-                          Certificate of Statutory Mastery
+                        <h2
+                          className={`${
+                            certOrientation === 'portrait' ? 'text-3xl' : 'text-4xl'
+                          } font-black tracking-wide uppercase border-y-2 py-2 my-1 ${certThemeClasses.title}`}
+                        >
+                          Certificate of Statutory Completion
                         </h2>
                         <p className="text-sm italic text-slate-700">
-                          This Official Diploma is Proudly Conferred Upon
+                          This Executive Honor Certificate is Proudly Conferred Upon
                         </p>
                       </div>
                     </div>
 
                     {/* Recipient */}
                     <div className="text-center py-1">
-                      <h3 className="text-4xl font-extrabold text-slate-950 tracking-tight border-b-2 border-slate-900 pb-1.5 max-w-2xl mx-auto">
+                      <h3
+                        className={`${
+                          certOrientation === 'portrait' ? 'text-3xl' : 'text-4xl'
+                        } font-extrabold text-slate-950 tracking-tight border-b-2 border-slate-900 pb-1.5 max-w-2xl mx-auto`}
+                      >
                         {candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar'}
                       </h3>
                       <p className={`text-sm font-sans font-black tracking-widest uppercase mt-2 ${certThemeClasses.honors}`}>
@@ -2072,10 +2169,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         for demonstrating comprehensive statutory mastery and practical command across all Six Worlds of the <strong className="font-bold">Labor Code of the Philippines (Presidential Decree No. 442, as amended)</strong>, encompassing Hours of Work &amp; Overtime Rules, Wages &amp; D.O. 174 Subcontracting, Kasambahay Rights, Security of Tenure, and all Statutory Leaves.
                       </p>
 
-                      {/* 6 World Badges Strip */}
-                      <div className="grid grid-cols-6 gap-2 pt-1 text-[11px] font-sans font-bold">
+                      {/* 6 World Badges Strip (6-across in Landscape, 2x3 in Portrait) */}
+                      <div
+                        className={`grid ${
+                          certOrientation === 'portrait' ? 'grid-cols-2 gap-3' : 'grid-cols-6 gap-2'
+                        } pt-1 text-[11px] font-sans font-bold`}
+                      >
                         {WORLDS_METADATA.map((w) => (
-                          <div key={w.id} className={`border px-2 py-1.5 rounded-lg text-center min-w-0 ${certThemeClasses.badge}`}>
+                          <div key={w.id} className={`border px-2.5 py-2 rounded-lg text-center min-w-0 ${certThemeClasses.badge}`}>
                             <span className="block font-black font-mono">WORLD {w.worldNumber}</span>
                             <span className="block leading-tight">{w.shortTitle}</span>
                           </div>

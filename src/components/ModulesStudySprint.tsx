@@ -243,34 +243,85 @@ export const ModulesStudySprint: React.FC<ModulesStudySprintProps> = ({
         </div>
       </div>
 
-      {/* Pure SVG Progress Track */}
-      <svg
-        viewBox="0 0 100 3"
-        preserveAspectRatio="none"
-        className="w-full h-2 rounded-full bg-slate-950 border border-slate-800 overflow-hidden block"
-        aria-hidden="true"
+      {/* Musical Note Focus Gauge + Pure SVG Progress Track */}
+      <div
+        data-testid="study-sprint-musical-note-gauge"
+        className="bg-slate-950/85 rounded-xl border border-slate-800 px-3 py-2 space-y-2"
       >
-        <rect
-          x="0"
-          y="0"
-          width={Math.max(isRunning ? 2 : 0, elapsedPct)}
-          height="3"
-          fill={switchedTabs ? '#fbbf24' : '#34d399'}
-        />
-      </svg>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-[11px] font-bold">
+            <span className="text-amber-300 font-display tracking-tight">
+              Musical Note Focus Gauge
+            </span>
+            <span aria-hidden="true" className="text-slate-600">·</span>
+            <span className={switchedTabs ? 'text-amber-300' : 'text-emerald-300'}>
+              {switchedTabs
+                ? 'Focus Interrupted (+20 Base Coins)'
+                : `${Math.min(8, Math.floor((elapsedPct / 100) * 8))}/8 Notes Charged (+40 Bonus Coins at 8/8)`}
+            </span>
+          </div>
 
-      {/* Bottom Row: Study Ambience Soundscapes (Forest, Underwater, Castle) */}
+          <div
+            className="flex items-center gap-1"
+            aria-label={`Focus musical notes: ${Math.min(8, Math.floor((elapsedPct / 100) * 8))} of 8 lit`}
+          >
+            {(['♪', '♫', '♬', '♩', '♪', '♫', '♬', '★'] as const).map((glyph, noteIdx) => {
+              const filledNotes = Math.min(8, Math.floor((elapsedPct / 100) * 8));
+              const isFilled = noteIdx < filledNotes;
+              const isCurrentCharging = !switchedTabs && isRunning && noteIdx === filledNotes;
+              return (
+                <span
+                  key={noteIdx}
+                  data-testid={`sprint-note-${noteIdx}`}
+                  className={`w-6 h-6 rounded-lg border text-xs font-black inline-flex items-center justify-center transition-all select-none ${
+                    switchedTabs
+                      ? 'bg-slate-900 border-slate-800 text-slate-600'
+                      : isFilled
+                      ? 'bg-amber-400 text-slate-950 border-black shadow-[0_1px_0_#000] scale-105'
+                      : isCurrentCharging
+                      ? 'bg-emerald-950/90 border-emerald-400 text-emerald-300 animate-pulse'
+                      : 'bg-slate-900 border-slate-800 text-slate-500'
+                  }`}
+                >
+                  {glyph}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        <svg
+          viewBox="0 0 100 3"
+          preserveAspectRatio="none"
+          className="w-full h-2 rounded-full bg-slate-900 border border-slate-800 overflow-hidden block"
+          aria-hidden="true"
+        >
+          <rect
+            x="0"
+            y="0"
+            width={Math.max(isRunning ? 2 : 0, elapsedPct)}
+            height="3"
+            fill={switchedTabs ? '#fbbf24' : '#34d399'}
+          />
+        </svg>
+      </div>
+
+      {/* Bottom Row: Study Ambience Soundscapes (All 6 Audible Presets) */}
       <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs text-slate-300 min-w-0">
           <Headphones className="w-4 h-4 text-sky-400 shrink-0" />
           <span className="font-bold">Study Ambience:</span>
           {ambiencePausedByBgm ? (
             <span className="text-[11px] font-bold text-amber-300 truncate">
-              Auto-paused while Mario BGM is playing
+              Click any ambience preset to switch from BGM
             </span>
           ) : activeAmbience !== 'off' && !audioState.enabled ? (
             <span className="text-[11px] font-bold text-rose-300 truncate">
               Muted globally (press M to unmute)
+            </span>
+          ) : activeAmbience !== 'off' ? (
+            <span className="text-[11px] font-bold text-emerald-300 truncate">
+              Playing {STUDY_AMBIENCE_OPTIONS.find((o) => o.id === activeAmbience)?.label}
             </span>
           ) : null}
         </div>
@@ -288,10 +339,13 @@ export const ModulesStudySprint: React.FC<ModulesStudySprintProps> = ({
                 type="button"
                 data-testid={`modules-ambience-${opt.id}`}
                 onClick={() => {
-                  marioAudio.setStudyAmbience(opt.id);
+                  if (opt.id !== 'off' && !audioState.enabled) {
+                    marioAudio.toggleMute();
+                  }
+                  marioAudio.setStudyAmbience(opt.id, true);
                 }}
                 title={opt.subtitle}
-                className={`min-h-[32px] px-2.5 py-1 rounded-lg text-xs font-bold border cursor-pointer transition-colors ${
+                className={`min-h-[32px] px-2.5 py-1 rounded-lg text-xs font-bold border cursor-pointer transition-colors whitespace-nowrap ${
                   isSelected
                     ? 'bg-sky-400 text-slate-950 border-black font-black'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
