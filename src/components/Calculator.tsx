@@ -7,6 +7,11 @@ import {
   computeProRated13thMonth,
   computeWageDistortionAdjustment,
 } from '../utils/calculator';
+import {
+  parseCalculatorMonthsInput,
+  normalizeCalculatorMonthsOnBlur,
+  dispatchDailyMissionEvent,
+} from '../utils/round11Features';
 import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
 import { marioAudio } from '../utils/audio';
 import { Calculator, ArrowRight, Zap, RefreshCw, Check, BookOpen } from 'lucide-react';
@@ -18,8 +23,8 @@ interface CalculatorProps {
 
 export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
   // Wage input states
-  const [dailyWage, setDailyWage] = useState<number>(640);
-  const [monthlyWage, setMonthlyWage] = useState<number>(19466.67);
+  const [dailyWage, setDailyWage] = useState<string>('640');
+  const [monthlyWage, setMonthlyWage] = useState<string>('19466.67');
   const [calcFactor, setCalcFactor] = useState<number>(365);
 
   // Scenario states
@@ -35,56 +40,66 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
     | 'double_regular_holiday_worked'
   >('ordinary');
 
-  const [regularHours, setRegularHours] = useState<number>(8);
-  const [otHours, setOtHours] = useState<number>(2);
-  const [nightHours, setNightHours] = useState<number>(0);
+  const [regularHours, setRegularHours] = useState<string>('8');
+  const [otHours, setOtHours] = useState<string>('2');
+  const [nightHours, setNightHours] = useState<string>('0');
   const [isNightDuringOT, setIsNightDuringOT] = useState<boolean>(false);
 
-  // 13th Month Pay states
-  const [thirteenthBasic, setThirteenthBasic] = useState<number>(25000);
+  // 13th Month Pay states (string draft allows clearing "" and typing 2-9 or 6.5 freely!)
+  const [thirteenthBasic, setThirteenthBasic] = useState<string>('25000');
+  const [thirteenthMonthsInput, setThirteenthMonthsInput] = useState<string>('12');
   const [thirteenthMonths, setThirteenthMonths] = useState<number>(12);
 
   // Wage Distortion states
-  const [distortionPrevMin, setDistortionPrevMin] = useState<number>(610);
-  const [distortionActual, setDistortionActual] = useState<number>(670);
-  const [distortionIncrease, setDistortionIncrease] = useState<number>(35);
+  const [distortionPrevMin, setDistortionPrevMin] = useState<string>('610');
+  const [distortionActual, setDistortionActual] = useState<string>('670');
+  const [distortionIncrease, setDistortionIncrease] = useState<string>('35');
 
   const [copiedFormula, setCopiedFormula] = useState<string | null>(null);
 
-  const handleDailyWageChange = (val: number) => {
-    setDailyWage(val);
-    setMonthlyWage(computeMonthlyFromDaily(val, calcFactor));
+  const dailyNum = parseFloat(dailyWage) || 0;
+  const regHoursNum = Math.min(8, Math.max(0, parseFloat(regularHours) || 0));
+  const otHoursNum = Math.max(0, parseFloat(otHours) || 0);
+  const nightHoursNum = Math.min(8, Math.max(0, parseFloat(nightHours) || 0));
+
+  const handleDailyWageChange = (raw: string) => {
+    setDailyWage(raw);
+    const val = parseFloat(raw) || 0;
+    setMonthlyWage(val > 0 ? String(computeMonthlyFromDaily(val, calcFactor)) : '');
+    dispatchDailyMissionEvent('calculator_use', 1);
   };
 
-  const handleMonthlyWageChange = (val: number) => {
-    setMonthlyWage(val);
-    setDailyWage(computeDailyFromMonthly(val, calcFactor));
+  const handleMonthlyWageChange = (raw: string) => {
+    setMonthlyWage(raw);
+    const val = parseFloat(raw) || 0;
+    setDailyWage(val > 0 ? String(computeDailyFromMonthly(val, calcFactor)) : '');
+    dispatchDailyMissionEvent('calculator_use', 1);
   };
 
   const handleFactorChange = (f: number) => {
     setCalcFactor(f);
-    setMonthlyWage(computeMonthlyFromDaily(dailyWage, f));
+    setMonthlyWage(String(computeMonthlyFromDaily(dailyNum, f)));
   };
 
   // Compute live breakdown
   const payResult = computePayBreakdown({
-    dailyWage: Number(dailyWage) || 0,
+    dailyWage: dailyNum,
     workScenario: scenario,
-    regularHoursWorked: Number(regularHours) || 0,
-    otHours: Number(otHours) || 0,
-    nightDiffHours: Number(nightHours) || 0,
+    regularHoursWorked: regHoursNum,
+    otHours: otHoursNum,
+    nightDiffHours: nightHoursNum,
     isNightDiffDuringOT: isNightDuringOT,
   });
 
   const thirteenthResult = computeProRated13thMonth(
-    Number(thirteenthBasic) || 0,
-    Number(thirteenthMonths) || 0
+    parseFloat(thirteenthBasic) || 0,
+    thirteenthMonths
   );
 
   const distortionAdjustment = computeWageDistortionAdjustment(
-    Number(distortionPrevMin) || 0,
-    Number(distortionActual) || 0,
-    Number(distortionIncrease) || 0
+    parseFloat(distortionPrevMin) || 0,
+    parseFloat(distortionActual) || 0,
+    parseFloat(distortionIncrease) || 0
   );
 
   const bodyTextClass =
@@ -148,32 +163,34 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
           {/* Wage Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-800 font-extrabold text-base mb-1.5">
+              <label htmlFor="calc-daily-wage" className="block text-slate-800 font-extrabold text-base mb-1.5">
                 Daily Wage Rate (PHP)
               </label>
               <input
+                id="calc-daily-wage"
                 type="number"
                 min="0"
                 step="0.01"
                 value={dailyWage}
-                onChange={(e) => handleDailyWageChange(parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleDailyWageChange(e.target.value)}
                 className="w-full bg-slate-50 border-3 border-slate-800 rounded-xl px-4 py-2.5 font-black text-xl text-slate-900 focus:bg-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all"
               />
               <span className="text-xs font-bold text-slate-500 mt-1 block">
-                Hourly Base: PHP {computeHourlyRate(dailyWage).toFixed(2)}/hr
+                Hourly Base: PHP {computeHourlyRate(dailyNum).toFixed(2)}/hr
               </span>
             </div>
 
             <div>
-              <label className="block text-slate-800 font-extrabold text-base mb-1.5">
+              <label htmlFor="calc-monthly-wage" className="block text-slate-800 font-extrabold text-base mb-1.5">
                 Equivalent Monthly Pay (PHP)
               </label>
               <input
+                id="calc-monthly-wage"
                 type="number"
                 min="0"
                 step="0.01"
                 value={monthlyWage}
-                onChange={(e) => handleMonthlyWageChange(parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleMonthlyWageChange(e.target.value)}
                 className="w-full bg-slate-50 border-3 border-slate-800 rounded-xl px-4 py-2.5 font-black text-xl text-slate-900 focus:bg-amber-50 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all"
               />
               <span className="text-xs font-bold text-slate-500 mt-1 block">
@@ -211,46 +228,53 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
           {/* Hours inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-slate-800 font-bold text-sm mb-1">
+              <label htmlFor="calc-reg-hours" className="block text-slate-800 font-bold text-sm mb-1">
                 Regular Hours Worked
               </label>
               <input
+                id="calc-reg-hours"
                 type="number"
                 min="0"
                 max="8"
+                step="0.5"
                 value={regularHours}
-                onChange={(e) => setRegularHours(Math.min(8, Math.max(0, parseFloat(e.target.value) || 0)))}
+                onChange={(e) => setRegularHours(e.target.value)}
+                onBlur={() => setRegularHours(String(regHoursNum))}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-xl px-3 py-2 font-black text-lg text-slate-900"
               />
               <span className="text-xs text-slate-500 font-bold">Standard 8 hrs</span>
             </div>
 
             <div>
-              <label className="block text-slate-800 font-bold text-sm mb-1">
+              <label htmlFor="calc-ot-hours" className="block text-slate-800 font-bold text-sm mb-1">
                 Overtime Hours
               </label>
               <input
+                id="calc-ot-hours"
                 type="number"
                 min="0"
                 step="0.5"
                 value={otHours}
-                onChange={(e) => setOtHours(Math.max(0, parseFloat(e.target.value) || 0))}
+                onChange={(e) => setOtHours(e.target.value)}
+                onBlur={() => setOtHours(String(otHoursNum))}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-xl px-3 py-2 font-black text-lg text-slate-900"
               />
               <span className="text-xs text-slate-500 font-bold">Excess beyond 8h</span>
             </div>
 
             <div>
-              <label className="block text-slate-800 font-bold text-sm mb-1">
+              <label htmlFor="calc-night-hours" className="block text-slate-800 font-bold text-sm mb-1">
                 Night Diff Hours (10PM-6AM)
               </label>
               <input
+                id="calc-night-hours"
                 type="number"
                 min="0"
                 step="0.5"
                 max="8"
                 value={nightHours}
-                onChange={(e) => setNightHours(Math.max(0, parseFloat(e.target.value) || 0))}
+                onChange={(e) => setNightHours(e.target.value)}
+                onBlur={() => setNightHours(String(nightHoursNum))}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-xl px-3 py-2 font-black text-lg text-slate-900"
               />
               <span className="text-xs text-slate-500 font-bold">+10% differential</span>
@@ -258,7 +282,7 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
           </div>
 
           {/* Night Diff During OT Checkbox */}
-          {nightHours > 0 && (
+          {nightHoursNum > 0 && (
             <div className="flex items-center gap-3 bg-indigo-50 border-2 border-indigo-300 rounded-xl p-3">
               <input
                 type="checkbox"
@@ -298,7 +322,7 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
               {/* OT Pay */}
               <div className="flex items-center justify-between">
                 <span className={`${bodyTextClass} text-slate-300`}>
-                  Overtime Pay ({otHours} hrs)
+                  Overtime Pay ({otHoursNum} hrs)
                 </span>
                 <span className={`${bodyTextClass} font-black text-amber-300`}>
                   PHP {payResult.otPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -308,7 +332,7 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
               {/* Night Diff Pay */}
               <div className="flex items-center justify-between">
                 <span className={`${bodyTextClass} text-slate-300`}>
-                  Night Differential ({nightHours} hrs)
+                  Night Differential ({nightHoursNum} hrs)
                 </span>
                 <span className={`${bodyTextClass} font-black text-cyan-300`}>
                   PHP {payResult.nightDiffPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -363,29 +387,65 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">
+              <label htmlFor="calc-13th-basic" className="block text-sm font-bold text-slate-700 mb-1">
                 Monthly Basic Salary (PHP)
               </label>
               <input
+                id="calc-13th-basic"
                 type="number"
                 min="0"
+                step="0.01"
                 value={thirteenthBasic}
-                onChange={(e) => setThirteenthBasic(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setThirteenthBasic(e.target.value)}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-xl px-3 py-2 font-black text-lg text-slate-900"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">
-                Months Worked in Year
+              <label htmlFor="calc-13th-months" className="block text-sm font-bold text-slate-700 mb-1">
+                Months Worked in Year (1 - 12)
               </label>
               <input
+                id="calc-13th-months"
+                data-testid="calculator-months-input"
                 type="number"
-                min="1"
+                inputMode="decimal"
+                min="0.5"
                 max="12"
-                value={thirteenthMonths}
-                onChange={(e) => setThirteenthMonths(Math.min(12, Math.max(1, parseFloat(e.target.value) || 1)))}
+                step="0.5"
+                placeholder="e.g. 6 or 8.5"
+                value={thirteenthMonthsInput}
+                onChange={(e) => {
+                  const parsed = parseCalculatorMonthsInput(e.target.value);
+                  setThirteenthMonthsInput(parsed.rawText);
+                  setThirteenthMonths(parsed.numericMonths);
+                }}
+                onBlur={() => {
+                  const norm = normalizeCalculatorMonthsOnBlur(thirteenthMonthsInput);
+                  setThirteenthMonthsInput(norm.rawText);
+                  setThirteenthMonths(norm.numericMonths);
+                }}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-xl px-3 py-2 font-black text-lg text-slate-900"
               />
+              <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                {[1, 3, 5, 6, 8, 9, 12].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setThirteenthMonthsInput(String(m));
+                      setThirteenthMonths(m);
+                      marioAudio.playCoin();
+                    }}
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-black border cursor-pointer transition-colors ${
+                      thirteenthMonths === m
+                        ? 'bg-amber-400 text-slate-950 border-slate-900'
+                        : 'bg-slate-100 hover:bg-amber-100 text-slate-700 border-slate-300'
+                    }`}
+                  >
+                    {m}m
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -419,29 +479,32 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Prev Min Wage</label>
+              <label htmlFor="calc-dist-prev" className="block text-xs font-bold text-slate-700 mb-1">Prev Min Wage</label>
               <input
+                id="calc-dist-prev"
                 type="number"
                 value={distortionPrevMin}
-                onChange={(e) => setDistortionPrevMin(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setDistortionPrevMin(e.target.value)}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-lg px-2.5 py-2 font-bold text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Actual Salary</label>
+              <label htmlFor="calc-dist-actual" className="block text-xs font-bold text-slate-700 mb-1">Actual Salary</label>
               <input
+                id="calc-dist-actual"
                 type="number"
                 value={distortionActual}
-                onChange={(e) => setDistortionActual(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setDistortionActual(e.target.value)}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-lg px-2.5 py-2 font-bold text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Increase Amount</label>
+              <label htmlFor="calc-dist-inc" className="block text-xs font-bold text-slate-700 mb-1">Increase Amount</label>
               <input
+                id="calc-dist-inc"
                 type="number"
                 value={distortionIncrease}
-                onChange={(e) => setDistortionIncrease(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setDistortionIncrease(e.target.value)}
                 className="w-full bg-slate-50 border-2 border-slate-800 rounded-lg px-2.5 py-2 font-bold text-sm"
               />
             </div>
@@ -459,7 +522,7 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
             <div className="text-left sm:text-right">
               <span className="text-xs text-slate-500 font-semibold block">Adjusted Salary</span>
               <span className="text-lg font-black text-slate-900 tabular-nums">
-                PHP {(distortionActual + distortionAdjustment).toFixed(2)}/day
+                PHP {((parseFloat(distortionActual) || 0) + distortionAdjustment).toFixed(2)}/day
               </span>
             </div>
           </div>

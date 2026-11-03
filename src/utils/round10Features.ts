@@ -1406,13 +1406,17 @@ export const ROUND10_ALL_NEW_SHOP_ITEMS: Round10ShopCatalogItem[] = [
   ...EXTENDED_COMPANIONS_AND_FRAMES_ITEMS,
 ];
 
-export function computeLawChambersPrestige(unlockedIds: string[]): {
+export function computeLawChambersPrestige(
+  unlockedIds: string[],
+  extraChambersItems: Round10ShopCatalogItem[] = []
+): {
   unlockedCount: number;
   totalCount: number;
   bonusCoinPct: number;
   rankLabel: string;
 } {
-  const unlockedItems = LAW_CHAMBERS_UPGRADE_ITEMS.filter((i) =>
+  const combinedChambers = [...LAW_CHAMBERS_UPGRADE_ITEMS, ...extraChambersItems];
+  const unlockedItems = combinedChambers.filter((i) =>
     unlockedIds.includes(i.id)
   );
   const bonusCoinPct = unlockedItems.reduce(
@@ -1432,7 +1436,7 @@ export function computeLawChambersPrestige(unlockedIds: string[]): {
       : 'Starter Law Carrel';
   return {
     unlockedCount: count,
-    totalCount: LAW_CHAMBERS_UPGRADE_ITEMS.length,
+    totalCount: combinedChambers.length,
     bonusCoinPct,
     rankLabel,
   };
@@ -1468,7 +1472,7 @@ export const COIN_UTILITY_DESTINATIONS: CoinUtilityDestination[] = [
     id: 'use_arcade_boosts',
     title: 'Arcade Vault Power-Ups & Coin Wagers',
     costRangeLabel: '5–20 Coins',
-    whereLabel: 'Arcade Tab (38 Games)',
+    whereLabel: 'Arcade Tab (46 Games)',
     description:
       'Activate 2x Arcade Payout Multipliers, Extra Shield Hearts, and Inspector Radars across our new non-quiz Action, Sim & Defense games!',
     targetType: 'app_tab',
@@ -1478,7 +1482,7 @@ export const COIN_UTILITY_DESTINATIONS: CoinUtilityDestination[] = [
   {
     id: 'use_law_chambers',
     title: 'Build Your Law Chambers Sanctuary',
-    costRangeLabel: '35–135 Coins (18 Upgrades)',
+    costRangeLabel: '35–165 Coins (26 Upgrades)',
     whereLabel: "Toad's Shop · Law Chambers",
     description:
       'Furnish your interactive legal office with Narra desks, SCRA libraries, chandeliers & espresso bars for permanent Prestige!',
@@ -1500,7 +1504,7 @@ export const COIN_UTILITY_DESTINATIONS: CoinUtilityDestination[] = [
   {
     id: 'use_consumable_tokens',
     title: 'Stockpile Lifeline & Arcade Bundles',
-    costRangeLabel: '18–85 Coins (20 Packs)',
+    costRangeLabel: '18–145 Coins (28 Packs)',
     whereLabel: "Toad's Shop · Boost Tokens",
     description:
       'Buy discounted 6x and 10x value packs of 50/50 Zappers, Hint Scrolls, Boss Shields, and Arcade Radars.',

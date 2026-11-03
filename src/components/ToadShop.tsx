@@ -69,6 +69,12 @@ import {
   Round10VaultState,
 } from '../utils/round10Features';
 import {
+  SOUNDBOARD_SFX_CATALOG,
+  EQUIPPED_SOUNDBOARD_SFX_KEY,
+  COIN_MAGNET_ACTIVE_KEY,
+  SoundboardShopItem,
+} from '../utils/round11Features';
+import {
   ShoppingBag,
   Palette,
   User,
@@ -102,6 +108,8 @@ import {
   Award,
   Layers,
   ArrowUpRight,
+  Magnet,
+  Music,
 } from 'lucide-react';
 
 interface ToadShopProps {
@@ -179,6 +187,50 @@ export const POWERUP_ITEMS: ShopItem[] = [
     perkEffect: '+5 Consecutive Study Days Instantly',
     isConsumable: true,
   },
+  {
+    id: 'powerup_coin_magnet',
+    name: 'Arcade Coin Magnet Field',
+    category: 'powerup',
+    price: 55,
+    description:
+      'Permanent toggleable magnetic field for Arcade Vault & Coin Rush games! Automatically pulls nearby Gold Coins and Star bonuses toward your Hero.',
+    badge: 'Coin Magnet',
+    perkEffect: 'Auto-Pulls Nearby Coins in Arcade Games (Toggleable)',
+  },
+  {
+    id: 'powerup_toadstool_zapper_bundle',
+    name: 'Toadstool -2 Option Zapper Pack (+3)',
+    category: 'powerup',
+    price: 48,
+    description:
+      'Stocks +3 Toadstool Power-Up charges in Castle Quest & Koopa Boss Mode to eliminate two wrong options instantly on tricky Bar questions.',
+    badge: '+3 Toadstools',
+    perkEffect: '+3 Eliminate-2-Wrong Lifelines in Castle Quest',
+    isConsumable: true,
+  },
+  {
+    id: 'powerup_1up_shield_pack',
+    name: '1-Up Life Guard Pack (+2 Boss Shields)',
+    category: 'powerup',
+    price: 45,
+    description:
+      'Adds +2 Bowser Mistake Shields to your Quest Backpack so tough statutory exceptions never break your 3-Life streak or Koopa Boss run.',
+    badge: '+2 Life Shields',
+    perkEffect: '+2 Mistake-Absorbing Shields in Castle Quest',
+    isConsumable: true,
+  },
+  {
+    id: 'powerup_pomodoro_note_boost',
+    name: 'Musical Focus Sprint Rush (15 Mins)',
+    category: 'powerup',
+    price: 40,
+    description:
+      'Activates a 15-minute 2x Coin Multiplier tuned for 25-minute Pomodoro Study Sprints and Musical Note focus bonuses!',
+    badge: '2x Coins · 15m',
+    perkEffect: '15-Minute 2x Coin Multiplier (Stackable)',
+    isConsumable: true,
+    durationMinutes: 15,
+  },
 ];
 
 export const COMPANION_ITEMS: ShopItem[] = [
@@ -235,6 +287,96 @@ export const COMPANION_ITEMS: ShopItem[] = [
     price: 120,
     description: 'Fierce golden courtroom guardian that chomps through Labor-Only Contracting traps!',
     badge: 'Luxury Pet',
+  },
+  {
+    id: 'comp_toadsworth',
+    name: 'Chancellor Toadsworth Dean',
+    category: 'companion',
+    companionId: 'comp_toadsworth',
+    price: 95,
+    description: 'Distinguished senior Bar Dean reciting classic Supreme Court social justice ponencias.',
+    badge: 'Senior Dean',
+  },
+  {
+    id: 'comp_captain_toad',
+    name: 'Captain Toad Headlamp Scout',
+    category: 'companion',
+    companionId: 'comp_captain_toad',
+    price: 85,
+    description: 'Shines his explorer headlamp directly onto hidden omnibus rules and wage exceptions.',
+    badge: 'Explorer',
+  },
+  {
+    id: 'comp_pauline',
+    name: 'Mayor Pauline Metro Counsel',
+    category: 'companion',
+    companionId: 'comp_pauline',
+    price: 110,
+    description: 'New Donk City executive expert on NCR Wage Orders, OSH standards, and Telecommuting.',
+    badge: 'Metro Exec',
+  },
+  {
+    id: 'comp_dry_bones',
+    name: 'Dry Bones Precedent Keeper',
+    category: 'companion',
+    companionId: 'comp_dry_bones',
+    price: 70,
+    description: 'Unbreakable fortress scholar who never forgets 3-year money-claim and 4-year illegal dismissal periods.',
+    badge: 'Fortress Clerk',
+  },
+  {
+    id: 'comp_shy_guy',
+    name: 'Shy Guy Payroll Auditor',
+    category: 'companion',
+    companionId: 'comp_shy_guy',
+    price: 60,
+    description: 'Quietly verifies 200%, 260%, and 130% holiday pay vouchers with zero arithmetic errors.',
+    badge: 'Audit Buddy',
+  },
+  {
+    id: 'comp_birdo',
+    name: 'Birdo Ribbon Advocate',
+    category: 'companion',
+    companionId: 'comp_birdo',
+    price: 88,
+    description: 'Champions Safe Spaces Act, Magna Carta of Women, and Expanded Maternity Leave doctrines.',
+    badge: 'Advocate',
+  },
+  {
+    id: 'comp_dk',
+    name: 'Donkey Kong Union Steward',
+    category: 'companion',
+    companionId: 'comp_dk',
+    price: 105,
+    description: 'Heavyweight collective-protection ally guarding against illegal deductions and wage distortion.',
+    badge: 'Heavyweight',
+  },
+  {
+    id: 'comp_diddy',
+    name: 'Diddy Kong Sprint Runner',
+    category: 'companion',
+    companionId: 'comp_diddy',
+    price: 78,
+    description: 'High-energy study sprinter built for 5-Minute Quick Study drills and rapid recall.',
+    badge: 'Sprint Buddy',
+  },
+  {
+    id: 'comp_kamek',
+    name: 'Kamek Magikoopa Codifier',
+    category: 'companion',
+    companionId: 'comp_kamek',
+    price: 115,
+    description: 'Transforms dense Labor Code articles into crystal-clear Four-Fold and D.O. 174 checklists.',
+    badge: 'Spell Scholar',
+  },
+  {
+    id: 'comp_nabbit',
+    name: 'Nabbit High-Yield Collector',
+    category: 'companion',
+    companionId: 'comp_nabbit',
+    price: 92,
+    description: 'Stashes the highest-frequency Bar Exam exceptions inside his purple statutory sack.',
+    badge: 'Loot Scout',
   },
 ];
 
@@ -293,6 +435,121 @@ export const CARD_FRAME_ITEMS: ShopItem[] = [
     description: 'Distinguished judicial crimson border reserved for dedicated Bar Exam contenders.',
     badge: 'Judicial',
   },
+  {
+    id: 'frame_koopa_sovereign',
+    name: 'Koopa Sovereign Shell Frame',
+    category: 'frame',
+    frameId: 'frame_koopa_sovereign',
+    price: 180,
+    description: 'Armored emerald-and-gold Koopa Boss trophy trim! Unlock free by defeating Koopa Boss Mode (10 Hard Qs) or acquire here.',
+    badge: 'Koopa Boss Trophy',
+  },
+  {
+    id: 'frame_peach_stained_glass',
+    name: 'Peach Castle Stained-Glass Frame',
+    category: 'frame',
+    frameId: 'frame_peach_stained_glass',
+    price: 85,
+    description: 'Rose-quartz cathedral stained-glass border inspired by Princess Peach’s Royal Hall.',
+    badge: 'Cathedral',
+  },
+  {
+    id: 'frame_bowser_obsidian',
+    name: 'Bowser Keep Obsidian Frame',
+    category: 'frame',
+    frameId: 'frame_bowser_obsidian',
+    price: 110,
+    description: 'Forged volcanic basalt and magma-orange trim built for World 6 Boss contenders.',
+    badge: 'Lava Keep',
+  },
+  {
+    id: 'frame_yoshi_botanical',
+    name: 'Yoshi Island Botanical Frame',
+    category: 'frame',
+    frameId: 'frame_yoshi_botanical',
+    price: 65,
+    description: 'Fresh lime-leaf storybook border that keeps marathon reading light and uplifting.',
+    badge: 'Island Leaf',
+  },
+  {
+    id: 'frame_boo_ethereal',
+    name: 'Boo Mansion Ethereal Violet Frame',
+    category: 'frame',
+    frameId: 'frame_boo_ethereal',
+    price: 80,
+    description: 'Luminous spectral violet border crafted for Night Shift Differential study owls.',
+    badge: 'Spectral',
+  },
+  {
+    id: 'frame_rainbow_prism',
+    name: 'Rainbow Road Championship Frame',
+    category: 'frame',
+    frameId: 'frame_rainbow_prism',
+    price: 140,
+    description: 'Iridescent Star Cup prism border celebrating 100% six-world statutory mastery.',
+    badge: 'Star Cup',
+  },
+];
+
+export const ROUND11_CHAMBERS_EXTRAS: Round10ShopCatalogItem[] = [
+  { id: 'chamber_narra_gavel_podium', name: 'Supreme Court Narra Lectern', section: 'law_chambers', subType: 'chambers_furniture', price: 85, badge: 'Lectern', description: 'Hand-carved Philippine Narra oral-argument podium for rehearsing Bar doctrines aloud.', effectSummary: '+2% Law Chambers Prestige · Oral Podium', chambersBonusPct: 2, chambersSlot: 'Oral Podium' },
+  { id: 'chamber_stained_glass_lamp', name: 'Peach Cathedral Banker Lamp', section: 'law_chambers', subType: 'chambers_furniture', price: 65, badge: 'Lighting', description: 'Warm emerald-and-amber stained-glass desk lamp illuminating late-night codal study.', effectSummary: '+2% Law Chambers Prestige · Desk Lamp', chambersBonusPct: 2, chambersSlot: 'Desk Lamp' },
+  { id: 'chamber_scra_annals_wall', name: 'Complete SCRA Labor Vault', section: 'law_chambers', subType: 'chambers_furniture', price: 130, badge: 'Library', description: 'Floor-to-ceiling leather-bound Supreme Court Reports Annotated labor jurisprudence wall.', effectSummary: '+3% Law Chambers Prestige · SCRA Wall', chambersBonusPct: 3, chambersSlot: 'SCRA Wall' },
+  { id: 'chamber_brass_scales_justice', name: '24K Brass Scales of Social Justice', section: 'law_chambers', subType: 'chambers_furniture', price: 95, badge: 'Centerpiece', description: 'Balanced Art. XIII Sec. 3 constitutional scales honoring labor as a primary social force.', effectSummary: '+2% Law Chambers Prestige · Justice Scales', chambersBonusPct: 2, chambersSlot: 'Justice Scales' },
+  { id: 'chamber_warp_espresso_bar', name: 'Toadstool Espresso & Matcha Bar', section: 'law_chambers', subType: 'chambers_furniture', price: 75, badge: 'Refreshment', description: 'Corner barista station brewing Midnight NSD Espresso for 25-minute Pomodoro sprints.', effectSummary: '+2% Law Chambers Prestige · Coffee Station', chambersBonusPct: 2, chambersSlot: 'Coffee Station' },
+  { id: 'chamber_star_observatory_dome', name: 'Rosalina Skylight Observatory Dome', section: 'law_chambers', subType: 'chambers_furniture', price: 165, badge: 'Architecture', description: 'Panoramic starlight ceiling dome projecting quiet cosmic constellations over your desk.', effectSummary: '+4% Law Chambers Prestige · Skylight Dome', chambersBonusPct: 4, chambersSlot: 'Skylight Dome' },
+  { id: 'chamber_dole_wage_ticker', name: 'Live RTWPB 17-Region Brass Ticker', section: 'law_chambers', subType: 'chambers_furniture', price: 90, badge: 'Wall Display', description: 'Mechanical split-flap wall board tracking NCR and regional minimum wage orders.', effectSummary: '+2% Law Chambers Prestige · Wage Ticker', chambersBonusPct: 2, chambersSlot: 'Wage Ticker' },
+  { id: 'chamber_imperial_seal_carpet', name: 'Crimson Senate Medallion Carpet', section: 'law_chambers', subType: 'chambers_furniture', price: 110, badge: 'Flooring', description: 'Plush royal crimson woven carpet emblazoned with the Mushroom Academy Juris Seal.', effectSummary: '+3% Law Chambers Prestige · Royal Carpet', chambersBonusPct: 3, chambersSlot: 'Royal Carpet' },
+];
+
+export const ROUND11_BOOST_EXTRAS: Round10ShopCatalogItem[] = [
+  { id: 'boost_koopa_boss_armor_5x', name: 'Koopa Boss Mega Shield Crate (5x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 95, badge: '5x Boss Shields', description: 'Heavy-duty bundle of 5 Quest Mistake Shields engineered for 10-question Koopa Boss gauntlets.', effectSummary: '+5 Quest Mistake Shields', isConsumable: true, consumableKey: 'quizShield', packQuantity: 5 },
+  { id: 'boost_toadstool_zapper_6x', name: 'Toadstool -2 Option Zapper Crate (6x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 88, badge: '6x Zappers', description: 'Bulk pack of 6 Option Zappers to clear pairs of distractor choices in Castle Quest & Async Battles.', effectSummary: '+6 50/50 Option Zappers', isConsumable: true, consumableKey: 'quiz5050', packQuantity: 6 },
+  { id: 'boost_counsel_scroll_archive_6x', name: 'Counsel Toad Citation Scrolls (6x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 78, badge: '6x Hints', description: 'Six sealed statutory hint scrolls revealing the exact Labor Code article before you lock an answer.', effectSummary: '+6 Statutory Hint Scrolls', isConsumable: true, consumableKey: 'quizHint', packQuantity: 6 },
+  { id: 'boost_arcade_double_payout_5x', name: 'Star Carnival 2x Arcade Pass (5x)', section: 'arcade_quiz_boosts', subType: 'arcade_boost', price: 82, badge: '5x Arcade 2x', description: 'Doubles Gold Coin payouts across your next 5 Arcade Game Vault sessions (all 46 games supported!).', effectSummary: '+5 Arcade 2x Payout Tickets', isConsumable: true, consumableKey: 'arcade2x', packQuantity: 5 },
+  { id: 'boost_arcade_hazard_aegis_5x', name: 'Spiny Shell Hazard Aegis (5x)', section: 'arcade_quiz_boosts', subType: 'arcade_boost', price: 74, badge: '5x Arcade Shields', description: 'Absorbs hazard hits and wrong-pipe penalties across 5 Arcade Vault runs.', effectSummary: '+5 Arcade Hazard Shields', isConsumable: true, consumableKey: 'arcadeShield', packQuantity: 5 },
+  { id: 'boost_arcade_citation_radar_5x', name: 'Lakitu Statutory Radar Array (5x)', section: 'arcade_quiz_boosts', subType: 'arcade_boost', price: 70, badge: '5x Radars', description: 'Highlights optimal targets and statutory matches across 5 Arcade Vault sessions.', effectSummary: '+5 Arcade Radar Charges', isConsumable: true, consumableKey: 'arcadeRadar', packQuantity: 5 },
+  { id: 'boost_async_rival_prep_pack', name: 'Async Rival Duelist Starter Kit (4x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 62, badge: '4x Zappers', description: 'Tuned for 3-Question Asynchronous Quiz Battles where speed and accuracy decide the crown.', effectSummary: '+4 50/50 Option Zappers', isConsumable: true, consumableKey: 'quiz5050', packQuantity: 4 },
+  { id: 'boost_bar_eve_survival_chest', name: 'Bar Eve Survival Shield Supply (8x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 145, badge: '8x Boss Shields', description: 'Maximum-capacity shield chest for marathon Mock Bar Simulation & Boss Battle nights.', effectSummary: '+8 Quest Mistake Shields', isConsumable: true, consumableKey: 'quizShield', packQuantity: 8 },
+];
+
+export const ROUND11_FX_EXTRAS: Round10ShopCatalogItem[] = [
+  { id: 'fx_click_emerald_pipe', name: 'Emerald Warp Spark Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 48, badge: 'Click FX', description: 'Emits crisp Warp-Zone emerald pixel rings whenever you click or tap across the app.', effectSummary: 'Equippable Emerald Click Spark FX', fxColorHex: '#10b981' },
+  { id: 'fx_click_fireball_amber', name: 'Fire Flower Ember Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 54, badge: 'Click FX', description: 'Bursts warm Fire Flower orange-gold sparks on every button press and card flip.', effectSummary: 'Equippable Fireball Click Spark FX', fxColorHex: '#f97316' },
+  { id: 'fx_click_cosmic_cyan', name: 'Comet Starbit Cyan Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 62, badge: 'Click FX', description: 'Leaves luminous Rosalina observatory starbit ripples on every pointer tap.', effectSummary: 'Equippable Starbit Click Spark FX', fxColorHex: '#06b6d4' },
+  { id: 'fx_confetti_1up_emerald', name: '1-Up Mushroom Emerald Shower', section: 'click_confetti_fx', subType: 'confetti_fx', price: 68, badge: 'Confetti FX', description: 'Transforms milestone and quiz victory confetti into lush 1-Up emerald, mint, and gold hues!', effectSummary: 'Equippable 1-Up Confetti Palette', fxColorHex: '#22c55e' },
+  { id: 'fx_confetti_peach_blossom', name: 'Royal Peach Blossom Cascade', section: 'click_confetti_fx', subType: 'confetti_fx', price: 72, badge: 'Confetti FX', description: 'Celebrates every Course Clear with regal rose, magenta, and champagne-gold confetti!', effectSummary: 'Equippable Royal Blossom Confetti', fxColorHex: '#ec4899' },
+  { id: 'fx_confetti_koopa_sovereign', name: 'Koopa Sovereign Gold-Jade Storm', section: 'click_confetti_fx', subType: 'confetti_fx', price: 85, badge: 'Confetti FX', description: 'Unleashes jade, obsidian-gold, and crimson championship confetti on every victory!', effectSummary: 'Equippable Koopa Gold-Jade Confetti', fxColorHex: '#eab308' },
+];
+
+export const ROUND11_RELIC_EXTRAS: Round10ShopCatalogItem[] = [
+  { id: 'relic_pd442_first_edition', name: '1974 P.D. 442 Original Promulgation Scroll', section: 'relics_badges', subType: 'statutory_relic', price: 90, badge: 'Museum Relic', description: 'Archival facsimile of Presidential Decree No. 442 instituting the Labor Code of the Philippines.', effectSummary: 'Permanent Museum Relic Collectible' },
+  { id: 'relic_calamba_control_compass', name: 'Four-Fold Control Test Brass Compass', section: 'relics_badges', subType: 'statutory_relic', price: 82, badge: 'World 1 Relic', description: 'Engraved with Selection, Payment of Wages, Power of Dismissal, and the paramount Control Test.', effectSummary: 'Permanent Museum Relic Collectible' },
+  { id: 'relic_capitol_wireless_abacus', name: '22.5-Day Retirement Jade Abacus', section: 'relics_badges', subType: 'statutory_relic', price: 88, badge: 'World 3 Relic', description: 'Commemorates the 15 + 5 SIL + 2.5 (1/12 of 13th Month) Art. 302 retirement multiplier.', effectSummary: 'Permanent Museum Relic Collectible' },
+  { id: 'relic_do174_trilateral_seal', name: 'D.O. 174-17 Trilateral Wax Seal', section: 'relics_badges', subType: 'statutory_relic', price: 96, badge: 'World 3 Relic', description: 'Stamps out Labor-Only Contracting by verifying substantial capital and independent control.', effectSummary: 'Permanent Museum Relic Collectible' },
+  { id: 'plate_koopa_slayer_counsel', name: 'Koopa Boss Conqueror Esq.', section: 'relics_badges', subType: 'hud_nameplate', price: 115, badge: 'HUD Nameplate', description: 'Prestigious HUD & Profile title proclaiming mastery over 10-question hard Bar gauntlets.', effectSummary: 'Equippable HUD & Shop Banner Title' },
+  { id: 'plate_summa_cum_codal', name: 'Summa Cum Codal Laureate', section: 'relics_badges', subType: 'hud_nameplate', price: 135, badge: 'HUD Nameplate', description: 'Top-honors academic nameplate displayed on your Toad’s Shop header and Profile card.', effectSummary: 'Equippable HUD & Shop Banner Title' },
+  { id: 'plate_chief_wage_architect', name: 'Chief Wage & Multiplier Architect', section: 'relics_badges', subType: 'hud_nameplate', price: 105, badge: 'HUD Nameplate', description: 'Honors flawless precision across OT, NSD, Holiday, Rest Day, and Wage Distortion formulas.', effectSummary: 'Equippable HUD & Shop Banner Title' },
+  { id: 'plate_protector_of_workers', name: 'Tribune of Protective Legislation', section: 'relics_badges', subType: 'hud_nameplate', price: 120, badge: 'HUD Nameplate', description: 'Celebrates mastery of R.A. 11210, R.A. 10361, R.A. 11313, R.A. 9262, and R.A. 11058.', effectSummary: 'Equippable HUD & Shop Banner Title' },
+];
+
+export const ROUND11_GEAR_EXTRAS: Round10ShopCatalogItem[] = [
+  { id: 'gear_golden_quill_codifier', name: 'Golden Feather Case-Digest Quill', section: 'extended_gear', subType: 'extra_frame', price: 58, badge: 'Desk Gear', description: 'Cape-Feather gilded fountain pen crafted for outlining Supreme Court labor doctrines.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_warp_pipe_bookends', name: 'Cast-Iron Warp Pipe Codal Bookends', section: 'extended_gear', subType: 'extra_frame', price: 64, badge: 'Desk Gear', description: 'Heavy emerald Warp Pipe bookends keeping Volumes I & II of your Labor Reviewer upright.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_question_block_timer', name: 'Mechanical [?] Block Brass Timer', section: 'extended_gear', subType: 'extra_frame', price: 72, badge: 'Sprint Gear', description: 'Precision wind-up 25-minute Pomodoro desk cube chiming at every focus milestone.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_starman_highlighter_case', name: 'Iridescent Starman Highlighter Set', section: 'extended_gear', subType: 'extra_frame', price: 52, badge: 'Study Kit', description: 'Six color-coded highlighters mapped to General Rule, Exception, Multiplier, Period, Case, and Trap.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_royal_wax_signet_kit', name: 'Princess Peach Charter Signet Kit', section: 'extended_gear', subType: 'extra_frame', price: 78, badge: 'Diploma Gear', description: 'Crimson sealing wax and brass mushroom signet for authenticating printed review binders.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_nlrc_moot_gavel_case', name: 'Velvet-Lined Labor Arbiter Gavel', section: 'extended_gear', subType: 'extra_frame', price: 94, badge: 'Court Gear', description: 'Presentation gavel honoring compulsory arbitration and speedy labor justice.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_lakitu_cloud_wristrest', name: 'Lakitu Cloud Ergonomic Wrist Rest', section: 'extended_gear', subType: 'extra_frame', price: 60, badge: 'Comfort Gear', description: 'Cushioned cloud-foam keyboard rest built for zero-fatigue Bar essay typing.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_bowser_fireproof_briefcase', name: 'Bowser Keep Fireproof Bar Valise', section: 'extended_gear', subType: 'extra_frame', price: 118, badge: 'Bar Valise', description: 'Obsidian-leather courtroom briefcase engineered to carry every statutory cheat sheet.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+];
+
+export const ROUND11_ALL_EXTRA_VAULT_ITEMS: Round10ShopCatalogItem[] = [
+  ...ROUND11_CHAMBERS_EXTRAS,
+  ...ROUND11_BOOST_EXTRAS,
+  ...ROUND11_FX_EXTRAS,
+  ...ROUND11_RELIC_EXTRAS,
+  ...ROUND11_GEAR_EXTRAS,
 ];
 
 export const THEME_ITEMS: ShopItem[] = [
@@ -994,6 +1251,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState<
     | 'powerups'
+    | 'soundboard'
     | 'law_chambers'
     | 'arcade_quiz_boosts'
     | 'lucky_wheel'
@@ -1012,9 +1270,23 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     | 'certificate'
   >('powerups');
 
+  const [equippedSoundboardSfx, setEquippedSoundboardSfx] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(EQUIPPED_SOUNDBOARD_SFX_KEY) || 'sfx_coin_classic';
+    }
+    return 'sfx_coin_classic';
+  });
+
+  const [coinMagnetActive, setCoinMagnetActive] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(COIN_MAGNET_ACTIVE_KEY) === 'true';
+    }
+    return false;
+  });
+
   const [diplomaOrientation, setDiplomaOrientation] =
     useState<DocumentOrientation>('landscape');
-  const [showCoinGuide, setShowCoinGuide] = useState<boolean>(true);
+  const [showCoinGuide, setShowCoinGuide] = useState<boolean>(false);
   const [shopSearchQuery, setShopSearchQuery] = useState<string>('');
   const [r10State, setR10State] = useState<Round10VaultState>(() =>
     loadRound10VaultState()
@@ -1147,6 +1419,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       'avatar_peach',
       'sound_default',
       'frame_default',
+      'sfx_coin_classic',
     ];
     if (typeof window !== 'undefined') {
       try {
@@ -1162,6 +1435,34 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     }
     return defaults;
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const syncUnlocked = () => {
+      try {
+        const saved = localStorage.getItem('mario_unlocked_items');
+        if (saved) {
+          const parsed = JSON.parse(saved) as string[];
+          setUnlockedItemIds((prev) => Array.from(new Set([...prev, ...parsed])));
+        }
+      } catch {
+        // ignore
+      }
+    };
+    const syncMagnet = () => {
+      try {
+        setCoinMagnetActive(localStorage.getItem(COIN_MAGNET_ACTIVE_KEY) === 'true');
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('mario-unlocked-items-updated', syncUnlocked);
+    window.addEventListener('mario-coin-magnet-updated', syncMagnet);
+    return () => {
+      window.removeEventListener('mario-unlocked-items-updated', syncUnlocked);
+      window.removeEventListener('mario-coin-magnet-updated', syncMagnet);
+    };
+  }, []);
 
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
@@ -1213,6 +1514,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     setLocalLuxuryEquipped(next);
     if (typeof window !== 'undefined') {
       saveLuxuryEquippedState(next, window.localStorage);
+      window.dispatchEvent(new CustomEvent('mario-luxury-updated'));
     }
     onUpdateLuxuryEquipped?.(next);
   };
@@ -1322,7 +1624,11 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     triggerConfetti();
     triggerCoinRainIfHighRoller(item.price);
 
-    if (item.id === 'powerup_super_star' || item.id === 'powerup_mega_star_30m') {
+    if (
+      item.id === 'powerup_super_star' ||
+      item.id === 'powerup_mega_star_30m' ||
+      item.id === 'powerup_pomodoro_note_boost'
+    ) {
       const mins = item.durationMinutes || 10;
       marioAudio.playStarTheme();
       if (onActivateSuperStar) {
@@ -1337,6 +1643,47 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         }
       }
       setPowerupNotice(`Super Star Active! All coin rewards are DOUBLED (2x) for +${mins} minutes!`);
+      setTimeout(() => setPowerupNotice(null), 4000);
+      return;
+    }
+
+    if (item.id === 'powerup_toadstool_zapper_bundle') {
+      marioAudio.playPowerUp();
+      const nextInv = {
+        ...r10State.inventory,
+        quiz5050: (r10State.inventory.quiz5050 || 0) + 3,
+      };
+      persistRound10State({ ...r10State, inventory: nextInv });
+      setPowerupNotice('Toadstool Power-Up Stocked! +3 Eliminate-2-Wrong Lifelines ready in Castle Quest!');
+      setTimeout(() => setPowerupNotice(null), 4000);
+      return;
+    }
+
+    if (item.id === 'powerup_1up_shield_pack') {
+      marioAudio.playOneUp();
+      const nextInv = {
+        ...r10State.inventory,
+        quizShield: (r10State.inventory.quizShield || 0) + 2,
+      };
+      persistRound10State({ ...r10State, inventory: nextInv });
+      setPowerupNotice('1-Up Life Guard Stocked! +2 Mistake Shields added to your Quest Backpack!');
+      setTimeout(() => setPowerupNotice(null), 4000);
+      return;
+    }
+
+    if (item.id === 'powerup_coin_magnet') {
+      marioAudio.playPowerUp();
+      const updated = Array.from(new Set([...unlockedItemIds, item.id]));
+      setUnlockedItemIds(updated);
+      setCoinMagnetActive(true);
+      try {
+        localStorage.setItem('mario_unlocked_items', JSON.stringify(updated));
+        localStorage.setItem(COIN_MAGNET_ACTIVE_KEY, 'true');
+        window.dispatchEvent(new CustomEvent('mario-coin-magnet-updated'));
+      } catch {
+        // ignore
+      }
+      setPowerupNotice('Arcade Coin Magnet Unlocked & Active! Nearby coins now pull toward your Hero!');
       setTimeout(() => setPowerupNotice(null), 4000);
       return;
     }
@@ -1369,6 +1716,48 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       setPowerupNotice("Toad's Shortcut Map Unlocked & Active! High-yield Bar topics are now highlighted!");
       setTimeout(() => setPowerupNotice(null), 4000);
     }
+  };
+
+  const handleToggleCoinMagnet = () => {
+    const next = !coinMagnetActive;
+    marioAudio.playJump();
+    setCoinMagnetActive(next);
+    try {
+      localStorage.setItem(COIN_MAGNET_ACTIVE_KEY, String(next));
+      window.dispatchEvent(new CustomEvent('mario-coin-magnet-updated'));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleEquipSoundboardSfx = (sfx: SoundboardShopItem) => {
+    setEquippedSoundboardSfx(sfx.id);
+    try {
+      localStorage.setItem(EQUIPPED_SOUNDBOARD_SFX_KEY, sfx.id);
+    } catch {
+      // ignore
+    }
+    marioAudio.playSoundboardSfx(sfx.id);
+    setPowerupNotice(`Equipped Mastery & Milestone SFX: ${sfx.name}!`);
+    setTimeout(() => setPowerupNotice(null), 3500);
+  };
+
+  const handleBuySoundboardSfx = (sfx: SoundboardShopItem) => {
+    if (coins < sfx.price) {
+      marioAudio.playStomp();
+      return;
+    }
+    setCoins((prev) => prev - sfx.price);
+    triggerConfetti();
+    triggerCoinRainIfHighRoller(sfx.price);
+    const updated = Array.from(new Set([...unlockedItemIds, sfx.id]));
+    setUnlockedItemIds(updated);
+    try {
+      localStorage.setItem('mario_unlocked_items', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    handleEquipSoundboardSfx(sfx);
   };
 
   const handleToggleShortcutMapState = () => {
@@ -1576,10 +1965,27 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
   const isCertUnlocked = unlockedItemIds.includes(CERTIFICATE_ITEM.id);
   const isShortcutMapUnlocked = unlockedItemIds.includes('map_shortcut_bar');
-  const chambersPrestige = computeLawChambersPrestige(r10State.unlockedIds);
+  const isCoinMagnetUnlocked =
+    coinMagnetActive || unlockedItemIds.includes('powerup_coin_magnet');
+
+  const allChambersItems = [...LAW_CHAMBERS_UPGRADE_ITEMS, ...ROUND11_CHAMBERS_EXTRAS];
+  const allBoostPackItems = [...ARCADE_AND_QUIZ_CONSUMABLE_ITEMS, ...ROUND11_BOOST_EXTRAS];
+  const allClickFxItems = [...CLICK_AND_CONFETTI_FX_ITEMS, ...ROUND11_FX_EXTRAS];
+  const allRelicsItems = [...RELICS_AND_NAMEPLATES_ITEMS, ...ROUND11_RELIC_EXTRAS];
+  const allExtendedGearItems = [...EXTENDED_COMPANIONS_AND_FRAMES_ITEMS, ...ROUND11_GEAR_EXTRAS];
+  const allSearchableVaultItems = [
+    ...ROUND10_ALL_NEW_SHOP_ITEMS,
+    ...ROUND11_ALL_EXTRA_VAULT_ITEMS,
+  ];
+
+  const chambersPrestige = computeLawChambersPrestige(
+    r10State.unlockedIds,
+    ROUND11_CHAMBERS_EXTRAS
+  );
 
   const totalShopCatalogCount =
     POWERUP_ITEMS.length +
+    SOUNDBOARD_SFX_CATALOG.length +
     SPECIAL_EVENT_ITEMS.length +
     LUXURY_GOODS_ITEMS.length +
     SOUNDPACK_ITEMS.length +
@@ -1589,7 +1995,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     CARD_FRAME_ITEMS.length +
     PERK_ITEMS.length +
     PRESTIGE_ITEMS.length +
-    ROUND10_ALL_NEW_SHOP_ITEMS.length +
+    allSearchableVaultItems.length +
     4; // 3 Mystery Chests + Master Diploma
 
   const handleEquipRound10Item = (item: Round10ShopCatalogItem) => {
@@ -1741,7 +2147,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
   const normalizedSearch = shopSearchQuery.trim().toLowerCase();
   const matchingRound10Items = normalizedSearch
-    ? ROUND10_ALL_NEW_SHOP_ITEMS.filter(
+    ? allSearchableVaultItems.filter(
         (it) =>
           it.name.toLowerCase().includes(normalizedSearch) ||
           it.description.toLowerCase().includes(normalizedSearch) ||
@@ -2034,7 +2440,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-semibold">
-                Your coins now work everywhere: inside live Quest Quizzes (50/50, Hints, Boss Shields), Arcade Games (2x Payouts &amp; Radars), Law Chambers, Lucky Wheel &amp; 17 Shop Vaults!
+                Your coins now work everywhere: inside live Quest Quizzes (50/50, Hints, Boss Shields), Arcade Games (2x Payouts &amp; Radars), Law Chambers, Lucky Wheel &amp; 18 Shop Vaults!
               </p>
             </div>
           </div>
@@ -2048,20 +2454,25 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                 onChange={(e) => setShopSearchQuery(e.target.value)}
                 data-testid="shop-global-search-input"
                 aria-label="Search Toad Shop items"
-                placeholder={`Search ${ROUND10_ALL_NEW_SHOP_ITEMS.length}+ vault items...`}
+                placeholder={`Search ${allSearchableVaultItems.length}+ vault items...`}
                 className="min-h-[44px] w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border-2 border-slate-700 focus:border-amber-400 text-xs font-bold text-white placeholder:text-slate-400 outline-none"
               />
             </div>
             <button
               type="button"
               data-testid="toggle-where-to-use-coins-btn"
+              aria-expanded={showCoinGuide}
               onClick={() => {
                 setShowCoinGuide((prev) => !prev);
                 marioAudio.playClick();
               }}
-              className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border-2 border-slate-600 text-xs font-black cursor-pointer whitespace-nowrap"
+              className={`min-h-[44px] px-4 rounded-xl border-2 text-xs font-black cursor-pointer whitespace-nowrap transition-colors ${
+                showCoinGuide
+                  ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-600'
+                  : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-black shadow-[0_2px_0_#000]'
+              }`}
             >
-              {showCoinGuide ? 'Hide Coin Map' : 'Show Where to Use Coins'}
+              {showCoinGuide ? 'Hide Coin Map' : 'Show Coin Map'}
             </button>
           </div>
         </div>
@@ -2160,30 +2571,31 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       >
         {[
           { id: 'powerups' as const, label: `Power-Ups (${POWERUP_ITEMS.length})`, icon: Sparkles },
+          { id: 'soundboard' as const, label: `Soundboard (${SOUNDBOARD_SFX_CATALOG.length})`, icon: Music },
           {
             id: 'law_chambers' as const,
-            label: `Law Chambers (${LAW_CHAMBERS_UPGRADE_ITEMS.length})`,
+            label: `Law Chambers (${allChambersItems.length})`,
             icon: Landmark,
           },
           {
             id: 'arcade_quiz_boosts' as const,
-            label: `Boost Packs (${ARCADE_AND_QUIZ_CONSUMABLE_ITEMS.length})`,
+            label: `Boost Packs (${allBoostPackItems.length})`,
             icon: Layers,
           },
           { id: 'lucky_wheel' as const, label: 'Lucky Wheel', icon: Gift },
           {
             id: 'click_confetti_fx' as const,
-            label: `Click & FX (${CLICK_AND_CONFETTI_FX_ITEMS.length})`,
+            label: `Click & FX (${allClickFxItems.length})`,
             icon: Wand2,
           },
           {
             id: 'relics_badges' as const,
-            label: `Relics & Plates (${RELICS_AND_NAMEPLATES_ITEMS.length})`,
+            label: `Relics & Plates (${allRelicsItems.length})`,
             icon: Award,
           },
           {
             id: 'extended_gear' as const,
-            label: `Studio Gear (${EXTENDED_COMPANIONS_AND_FRAMES_ITEMS.length})`,
+            label: `Studio Gear (${allExtendedGearItems.length})`,
             icon: BookOpen,
           },
           { id: 'special_events' as const, label: `Special Events (${SPECIAL_EVENT_ITEMS.length})`, icon: Flame },
@@ -2225,6 +2637,118 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         })}
       </nav>
 
+      {/* ==================== SOUNDBOARD TAB: 12 MARIO MASTERY & MILESTONE SFX ==================== */}
+      {activeCategory === 'soundboard' && (
+        <div data-testid="shop-soundboard-panel" className="space-y-4">
+          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-amber-950 text-white rounded-3xl border-4 border-slate-950 p-5 shadow-[5px_5px_0_#000] flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[10px] font-black uppercase font-mario">
+                <Music className="w-3.5 h-3.5" />
+                <span>MARIO MASTERY SOUNDBOARD ({SOUNDBOARD_SFX_CATALOG.length} CHIMES)</span>
+              </span>
+              <h2 className="text-lg sm:text-2xl font-black text-white font-display uppercase">
+                UNLOCKABLE TOPIC COMPLETION &amp; MILESTONE SOUND EFFECTS
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-200 font-semibold max-w-2xl">
+                Test any synthesized Mario sound effect right here, then equip your favorite chime to play automatically whenever you master a Labor Law Topic or reach your Daily Study Goal!
+              </p>
+            </div>
+            <button
+              type="button"
+              data-testid="soundboard-play-equipped-btn"
+              onClick={() => marioAudio.playCompletionOrMilestoneCoin()}
+              className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap"
+            >
+              <Play className="w-4 h-4 fill-current shrink-0" />
+              <span>Play Equipped Mastery Chime</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {SOUNDBOARD_SFX_CATALOG.map((sfx) => {
+              const isOwned = sfx.price === 0 || unlockedItemIds.includes(sfx.id);
+              const isEquipped = equippedSoundboardSfx === sfx.id;
+              return (
+                <div
+                  key={sfx.id}
+                  data-testid={`soundboard-card-${sfx.id}`}
+                  className={`rounded-2xl border-3 border-slate-950 p-4 flex flex-col justify-between gap-3 shadow-[3px_3px_0_#000] ${
+                    isEquipped
+                      ? 'bg-amber-50 ring-2 ring-amber-400'
+                      : isOwned
+                      ? 'bg-emerald-50/75'
+                      : 'bg-white'
+                  } text-slate-950`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900 text-amber-300 text-[10px] font-black uppercase font-mario">
+                        <Music className="w-3 h-3 shrink-0" />
+                        <span>{sfx.badge}</span>
+                      </span>
+                      {isEquipped ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-[10px] font-black">
+                          EQUIPPED
+                        </span>
+                      ) : isOwned ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-200 text-emerald-950 border border-emerald-600 text-[10px] font-black">
+                          OWNED
+                        </span>
+                      ) : null}
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-950 font-display leading-snug">
+                      {sfx.name}
+                    </h3>
+                    <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                      {sfx.description}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      data-testid={`soundboard-test-${sfx.id}`}
+                      onClick={() => marioAudio.playSoundboardSfx(sfx.id)}
+                      className="min-h-[42px] px-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-black text-xs border-2 border-black inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    >
+                      <Volume2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>Test SFX</span>
+                    </button>
+
+                    {isOwned ? (
+                      <button
+                        type="button"
+                        data-testid={`soundboard-equip-${sfx.id}`}
+                        onClick={() => handleEquipSoundboardSfx(sfx)}
+                        className={`min-h-[42px] px-2.5 rounded-xl font-black text-xs border-2 border-black inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                          isEquipped
+                            ? 'bg-emerald-500 text-slate-950'
+                            : 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5 shrink-0" />
+                        <span>{isEquipped ? 'Active' : 'Equip'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        data-testid={`soundboard-buy-${sfx.id}`}
+                        disabled={coins < sfx.price}
+                        onClick={() => handleBuySoundboardSfx(sfx)}
+                        className="min-h-[42px] px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-950 font-black text-xs border-2 border-black inline-flex items-center justify-center gap-1 cursor-pointer tabular-nums whitespace-nowrap"
+                      >
+                        <MarioCoinIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span>{sfx.price} Coins</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ==================== NEW CATEGORY 1: LAW CHAMBERS SANCTUARY ==================== */}
       {activeCategory === 'law_chambers' && (
         <div data-testid="shop-law-chambers-panel" className="space-y-4">
@@ -2236,7 +2760,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   <span>INTERACTIVE COUNSEL SANCTUARY</span>
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black text-white font-display">
-                  {chambersPrestige.rankLabel.toUpperCase()} ({chambersPrestige.unlockedCount}/{chambersPrestige.totalCount} FURNISHED)
+                  {chambersPrestige.rankLabel.toUpperCase()} ({chambersPrestige.unlockedCount}/{allChambersItems.length} FURNISHED)
                 </h2>
                 <p className="text-xs sm:text-sm text-amber-100/90 font-semibold max-w-2xl">
                   Upgrade your personal Philippine Labor Law Chambers from a starter carrel into a Supreme Court Grand Suite! Every unlocked piece lights up inside your live office diagram below.
@@ -2254,7 +2778,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
             {/* Live Visual Sanctuary Floorplan Preview */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-2">
-              {LAW_CHAMBERS_UPGRADE_ITEMS.slice(0, 12).map((furn) => {
+              {allChambersItems.slice(0, 12).map((furn) => {
                 const placed = r10State.unlockedIds.includes(furn.id);
                 return (
                   <div
@@ -2277,7 +2801,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
             </div>
           </div>
 
-          {renderRound10CatalogGrid(LAW_CHAMBERS_UPGRADE_ITEMS)}
+          {renderRound10CatalogGrid(allChambersItems)}
         </div>
       )}
 
@@ -2287,7 +2811,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
           <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-emerald-950 text-white rounded-3xl border-4 border-slate-950 p-5 shadow-[4px_4px_0_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
-                QUEST LIFELINES &amp; ARCADE POWER-UP BUNDLES (20 PACKS)
+                QUEST LIFELINES &amp; ARCADE POWER-UP BUNDLES ({allBoostPackItems.length} PACKS)
               </h2>
               <p className="text-xs sm:text-sm text-slate-200 font-semibold mt-1">
                 Stockpile discounted 50/50 Option Zappers, Counsel Toad Statutory Hints, Boss Mistake Shields, and Arcade 2x Payout Tickets—then trigger them directly inside Quest &amp; Arcade!
@@ -2313,7 +2837,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
             )}
           </div>
 
-          {renderRound10CatalogGrid(ARCADE_AND_QUIZ_CONSUMABLE_ITEMS)}
+          {renderRound10CatalogGrid(allBoostPackItems)}
         </div>
       )}
 
@@ -2415,13 +2939,13 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         <div data-testid="shop-click-fx-panel" className="space-y-4">
           <div className="bg-slate-900 text-white rounded-3xl border-3 border-slate-950 p-5 shadow-[4px_4px_0_#000]">
             <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
-              EQUIPPABLE CLICK SPARKS &amp; VICTORY CONFETTI FX ({CLICK_AND_CONFETTI_FX_ITEMS.length} EFFECTS)
+              EQUIPPABLE CLICK SPARKS &amp; VICTORY CONFETTI FX ({allClickFxItems.length} EFFECTS)
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
               Customize your interactive pointer sparks across the entire reviewer and upgrade your celebratory confetti bursts!
             </p>
           </div>
-          {renderRound10CatalogGrid(CLICK_AND_CONFETTI_FX_ITEMS)}
+          {renderRound10CatalogGrid(allClickFxItems)}
         </div>
       )}
 
@@ -2430,13 +2954,13 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         <div data-testid="shop-relics-panel" className="space-y-4">
           <div className="bg-slate-900 text-white rounded-3xl border-3 border-slate-950 p-5 shadow-[4px_4px_0_#000]">
             <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
-              6-WORLD STATUTORY MUSEUM RELICS &amp; HUD NAMEPLATES ({RELICS_AND_NAMEPLATES_ITEMS.length} COLLECTIBLES)
+              6-WORLD STATUTORY MUSEUM RELICS &amp; HUD NAMEPLATES ({allRelicsItems.length} COLLECTIBLES)
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
               Collect iconic artifacts from Philippine Labor Law jurisprudence and equip prestigious Counsel Nameplates on your shop &amp; profile banner!
             </p>
           </div>
-          {renderRound10CatalogGrid(RELICS_AND_NAMEPLATES_ITEMS)}
+          {renderRound10CatalogGrid(allRelicsItems)}
         </div>
       )}
 
@@ -2445,13 +2969,13 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         <div data-testid="shop-extended-gear-panel" className="space-y-4">
           <div className="bg-slate-900 text-white rounded-3xl border-3 border-slate-950 p-5 shadow-[4px_4px_0_#000]">
             <h2 className="text-lg sm:text-2xl font-black text-amber-300 font-display uppercase">
-              EXTENDED STUDY MASCOTS, CODAL FOLIOS &amp; STUDIO COLLECTIBLES ({EXTENDED_COMPANIONS_AND_FRAMES_ITEMS.length} ITEMS)
+              EXTENDED STUDY MASCOTS, CODAL FOLIOS &amp; STUDIO COLLECTIBLES ({allExtendedGearItems.length} ITEMS)
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
               Expand your study arsenal with rare Mushroom Kingdom paralegal mascots, gilded statutory folios, and collector desk gear!
             </p>
           </div>
-          {renderRound10CatalogGrid(EXTENDED_COMPANIONS_AND_FRAMES_ITEMS)}
+          {renderRound10CatalogGrid(allExtendedGearItems)}
         </div>
       )}
 
@@ -2676,13 +3200,19 @@ export const ToadShop: React.FC<ToadShopProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
             {POWERUP_ITEMS.map((item) => {
               const isShortcutCard = item.id === 'map_shortcut_bar';
-              const isStarCard = item.id === 'powerup_super_star' || item.id === 'powerup_mega_star_30m';
+              const isMagnetCard = item.id === 'powerup_coin_magnet';
+              const isStarCard =
+                item.id === 'powerup_super_star' ||
+                item.id === 'powerup_mega_star_30m' ||
+                item.id === 'powerup_pomodoro_note_boost';
               return (
                 <div
                   key={item.id}
                   data-testid={`shop-item-${item.id}`}
                   className={`bg-white rounded-2xl mario-card border-4 border-slate-950 p-5 flex flex-col justify-between h-full ${
-                    (isShortcutCard && effectiveShortcutActive) || (isStarCard && effectiveStarStatus.isActive)
+                    (isShortcutCard && effectiveShortcutActive) ||
+                    (isMagnetCard && coinMagnetActive) ||
+                    (isStarCard && effectiveStarStatus.isActive)
                       ? 'ring-4 ring-amber-400 bg-amber-50/40'
                       : ''
                   }`}
@@ -2697,12 +3227,23 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                           {effectiveShortcutActive ? 'MAP ACTIVE' : 'OWNED'}
                         </span>
                       )}
+                      {isMagnetCard && isCoinMagnetUnlocked && (
+                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-200 text-emerald-950 border border-emerald-600 font-mario">
+                          {coinMagnetActive ? 'MAGNET ON' : 'OWNED'}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-start gap-3.5">
                       <div className="w-16 h-16 bg-amber-100 rounded-2xl border-3 border-black flex items-center justify-center shrink-0 shadow-[0_3px_0_#000]">
                         {isShortcutCard ? (
                           <MapIcon className="w-8 h-8 text-emerald-700" />
+                        ) : isMagnetCard ? (
+                          <Magnet className="w-8 h-8 text-amber-700" />
+                        ) : item.id === 'powerup_1up_shield_pack' ? (
+                          <Mario1UpIcon className="w-9 h-9" />
+                        ) : item.id === 'powerup_toadstool_zapper_bundle' ? (
+                          <MarioMushroomIcon className="w-9 h-9" />
                         ) : item.id === 'powerup_fire_flower_streak' ? (
                           <MarioFireFlowerIcon className="w-9 h-9" />
                         ) : (
@@ -2745,6 +3286,19 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                       >
                         {effectiveShortcutActive ? 'Highlights ON (Toggle Off)' : 'Enable Shortcut Highlights'}
                       </button>
+                    ) : isMagnetCard && isCoinMagnetUnlocked ? (
+                      <button
+                        type="button"
+                        onClick={handleToggleCoinMagnet}
+                        data-testid="toggle-coin-magnet-shop-btn"
+                        className={`min-h-[44px] inline-flex items-center justify-center px-4 rounded-xl font-black text-xs border-2 border-black transition-all cursor-pointer whitespace-nowrap ${
+                          coinMagnetActive
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_2px_0_#000]'
+                            : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-[0_2px_0_#000]'
+                        }`}
+                      >
+                        {coinMagnetActive ? 'Magnet ON (Toggle Off)' : 'Enable Coin Magnet'}
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -2757,6 +3311,8 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                           ? isStarCard && effectiveStarStatus.isActive
                             ? `Extend +${item.durationMinutes}m`
                             : 'Activate Power-Up'
+                          : isMagnetCard
+                          ? 'Unlock Coin Magnet'
                           : 'Unlock Shortcut Map'}
                       </button>
                     )}

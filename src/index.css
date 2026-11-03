@@ -1177,30 +1177,22 @@ body.printing-scorecard-only {
 }
 
 .animate-module-slide-in {
-  animation: moduleDoctrineSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInModuleStream 0.16s ease-out forwards;
 }
 
-.module-doctrine-stream > *:nth-child(1) {
-  animation: moduleDoctrineSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) 0ms forwards;
-}
-.module-doctrine-stream > *:nth-child(2) {
-  animation: moduleDoctrineSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) 35ms forwards;
-}
-.module-doctrine-stream > *:nth-child(3) {
-  animation: moduleDoctrineSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) 70ms forwards;
-}
-.module-doctrine-stream > *:nth-child(4) {
-  animation: moduleDoctrineSlideIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) 105ms forwards;
-}
-.module-doctrine-stream > *:nth-child(n + 5) {
-  animation: moduleDoctrineSlideIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) 130ms forwards;
+@keyframes fadeInModuleStream {
+  from {
+    opacity: 0.92;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-levelup-bounce-in,
   .animate-levelup-bounce-out,
-  .animate-module-slide-in,
-  .module-doctrine-stream > * {
+  .animate-module-slide-in {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
   }
@@ -1386,32 +1378,25 @@ body.printing-scorecard-only {
   font-family: var(--font-primary);
 }
 
-/* Topic Card Mario Level-Progression Scroll Reveal */
+/* Topic Card Zero-Latency Section Rendering & Offscreen Content Visibility */
 .mario-reveal-section {
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
-}
-
-.mario-reveal-section.mario-reveal-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .mario-reveal-section {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
+.topic-card-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
 }
 
 @media print {
   .mario-reveal-section {
     opacity: 1 !important;
     transform: none !important;
+  }
+  .topic-card-perf {
+    content-visibility: visible !important;
+    contain-intrinsic-size: none !important;
   }
 }
 
@@ -1426,4 +1411,83 @@ body.printing-scorecard-only {
   max-height: 100%;
   object-fit: contain;
 }
+
+/* Ensure chosen Print Studio font cascades into every Reviewer heading, table, and paragraph */
+#printable-study-guide :is(h1, h2, h3, h4, h5, p, li, td, th, span, div, blockquote):not(.font-mono):not(.font-mario) {
+  font-family: inherit;
+}
+
+/* 100% Quiz Score Mario Flagpole Slide Keyframe Animation */
+@keyframes marioFlagpoleSlide {
+  0% {
+    top: 6%;
+    transform: translateX(-50%) scale(1.08);
+  }
+  20% {
+    top: 12%;
+    transform: translateX(-50%) scale(1.12);
+  }
+  75% {
+    top: 76%;
+    transform: translateX(-50%) scale(1);
+  }
+  90% {
+    top: 78%;
+    transform: translateX(6px) scale(1.08);
+  }
+  100% {
+    top: 76%;
+    transform: translateX(12px) scale(1);
+  }
+}
+
+.mario-flagpole-slider {
+  animation: marioFlagpoleSlide 1.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Subtle Topic Card Hover Jump */
+.mario-topic-hover-jump {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.mario-topic-hover-jump:hover {
+  transform: translateY(-3px);
+}
+
+/* Floating Mario Reaction Burst on Topic Cards */
+@keyframes marioReactionFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.75);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-42px) scale(0.95);
+  }
+}
+
+.mario-reaction-burst {
+  animation: marioReactionFloat 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Click Spark FX from Toad Shop Luxury Equip */
+@keyframes marioClickSparkPop {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -85%) scale(1.35);
+  }
+}
+
+.mario-click-spark {
+  animation: marioClickSparkPop 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 

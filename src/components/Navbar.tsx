@@ -182,12 +182,35 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showMoreToolsMenu, setShowMoreToolsMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [audioState, setAudioState] = useState<AudioSettings>({ ...marioAudio.settings });
+  const [luxuryAvatarFrame, setLuxuryAvatarFrame] = useState<string>('');
+  const [luxuryAura, setLuxuryAura] = useState<string>('');
 
   const mixerRef = useRef<HTMLDivElement | null>(null);
   const moreToolsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     return marioAudio.subscribe((next) => setAudioState(next));
+  }, []);
+
+  useEffect(() => {
+    const syncLuxury = () => {
+      try {
+        const raw = localStorage.getItem('mario_luxury_equipped_v1');
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as Record<string, string>;
+        setLuxuryAvatarFrame(parsed.avatar_frames || '');
+        setLuxuryAura(parsed.mushroom_auras || '');
+      } catch {
+        // ignore
+      }
+    };
+    syncLuxury();
+    window.addEventListener('storage', syncLuxury);
+    window.addEventListener('mario-luxury-updated', syncLuxury);
+    return () => {
+      window.removeEventListener('storage', syncLuxury);
+      window.removeEventListener('mario-luxury-updated', syncLuxury);
+    };
   }, []);
 
   useEffect(() => {
@@ -267,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     {
       label: 'Games & Tools',
       items: [
-        { id: 'vault', label: 'Arcade', shortLabel: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '32' },
+        { id: 'vault', label: 'Arcade', shortLabel: 'Arcade', icon: <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />, badge: '46' },
         { id: 'calculator', label: 'Calculator', shortLabel: 'Pay Calc', icon: <Calculator className="w-4 h-4 text-cyan-300 shrink-0" /> },
         { id: 'shop', label: "Toad's Shop", shortLabel: 'Shop', icon: <ShoppingBag className="w-4 h-4 text-pink-300 shrink-0" /> },
       ],
@@ -321,7 +344,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <div
                   data-testid="navbar-avatar-profile-btn"
-                  className="w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-lg bg-amber-400 border-2 border-black inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                  data-avatar-frame={luxuryAvatarFrame || 'default'}
+                  className={`w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-lg inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                    luxuryAvatarFrame.includes('diamond') || luxuryAvatarFrame.includes('cosmic')
+                      ? 'bg-cyan-300 border-2 border-cyan-100 ring-2 ring-cyan-400'
+                      : luxuryAvatarFrame.includes('crimson') || luxuryAvatarFrame.includes('bowser')
+                      ? 'bg-rose-500 border-2 border-amber-300 ring-2 ring-rose-400'
+                      : luxuryAvatarFrame.includes('emerald') || luxuryAvatarFrame.includes('pipe')
+                      ? 'bg-emerald-400 border-2 border-black ring-2 ring-emerald-300'
+                      : luxuryAvatarFrame
+                      ? 'bg-gradient-to-br from-amber-300 via-yellow-200 to-amber-500 border-2 border-white ring-2 ring-amber-300'
+                      : 'bg-amber-400 border-2 border-black'
+                  } ${
+                    luxuryAura
+                      ? 'shadow-[0_0_12px_rgba(251,191,36,0.75)]'
+                      : ''
+                  }`}
                 >
                   <MarioCharacterAvatar character={equippedAvatar} className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
@@ -1245,27 +1283,35 @@ export const Navbar: React.FC<NavbarProps> = ({
             data-testid="desktop-primary-nav"
             className="hidden lg:flex items-center gap-1 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-hidden"
           >
-            {navCategories.flatMap((cat) => cat.items).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => handleTabClick(item.id)}
-                className={`h-9 px-2 xl:px-2.5 inline-flex items-center justify-center gap-1 xl:gap-1.5 rounded-xl font-black text-[11px] xl:text-xs border-2 transition-all cursor-pointer leading-none whitespace-nowrap shrink-0 ${
-                  activeTab === item.id
-                    ? 'bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 border-black shadow-[0_2px_0_#000] -translate-y-0.5'
-                    : 'bg-slate-900/90 hover:bg-slate-800 text-slate-100 border-slate-700/90 hover:border-amber-400/60 shadow-[0_2px_0_#020617]'
-                }`}
-              >
-                {item.icon}
-                <span className="xl:hidden">{item.shortLabel}</span>
-                <span className="hidden xl:inline">{item.label}</span>
-                {item.badge && (
-                  <span className="hidden 2xl:inline-block text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-mario font-bold leading-none">
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
+            {navCategories.flatMap((cat) => cat.items).map((item) => {
+              const isSansTab =
+                item.id === 'wages_matrix' || item.id === 'calculator' || item.id === 'shop';
+              const labelTypography = isSansTab
+                ? 'font-sans font-black text-[11px] xl:text-xs'
+                : 'font-mario font-bold text-[8px] xl:text-[8.5px] 2xl:text-[9.5px] tracking-tighter';
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  data-nav-font={isSansTab ? 'sans' : 'mario'}
+                  onClick={() => handleTabClick(item.id)}
+                  className={`h-9 px-1.5 xl:px-2.5 inline-flex items-center justify-center gap-1 xl:gap-1.5 rounded-xl border-2 transition-all cursor-pointer leading-none whitespace-nowrap shrink-0 ${labelTypography} ${
+                    activeTab === item.id
+                      ? 'bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 border-black shadow-[0_2px_0_#000] -translate-y-0.5'
+                      : 'bg-slate-900/90 hover:bg-slate-800 text-slate-100 border-slate-700/90 hover:border-amber-400/60 shadow-[0_2px_0_#020617]'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="2xl:hidden">{item.shortLabel}</span>
+                  <span className="hidden 2xl:inline">{item.label}</span>
+                  {item.badge && (
+                    <span className="hidden 2xl:inline-block text-[8.5px] bg-red-600 text-white px-1.5 py-0.5 rounded font-mario font-bold leading-none">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Mobile & Tablet 5-Column Equal Grid Utility Row (Fits 360px with Zero Overflow & Zero Crop) */}
@@ -1815,21 +1861,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {cat.label}
                   </span>
                   <div className="grid grid-cols-2 gap-2">
-                    {cat.items.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleTabClick(item.id)}
-                        className={`min-h-[44px] flex items-center gap-2 p-2.5 rounded-xl font-black text-xs border-2 border-black text-left cursor-pointer transition-all ${
-                          activeTab === item.id
-                            ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
-                            : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                        }`}
-                      >
-                        {item.icon}
-                        <span className="truncate">{item.label}</span>
-                      </button>
-                    ))}
+                    {cat.items.map((item) => {
+                      const isSansTab =
+                        item.id === 'wages_matrix' ||
+                        item.id === 'calculator' ||
+                        item.id === 'shop';
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleTabClick(item.id)}
+                          className={`min-h-[44px] flex items-center gap-2 p-2.5 rounded-xl border-2 border-black text-left cursor-pointer transition-all min-w-0 ${
+                            isSansTab
+                              ? 'font-sans font-black text-xs'
+                              : 'font-mario font-bold text-[9.5px] tracking-tight'
+                          } ${
+                            activeTab === item.id
+                              ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                              : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                          }`}
+                        >
+                          {item.icon}
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

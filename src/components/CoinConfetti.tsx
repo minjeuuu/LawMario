@@ -1,7 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { MarioCoinIcon, MarioStarIcon } from './MarioIcons';
+import { marioAudio } from '../utils/marioAudio';
 import { X } from 'lucide-react';
+
+const CONFETTI_PALETTES: Record<string, string[]> = {
+  confetti_rainbow_star: ['#facc15', '#38bdf8', '#f43f5e', '#4ade80', '#c084fc', '#ffffff'],
+  confetti_emerald_1up: ['#22c55e', '#4ade80', '#86efac', '#16a34a', '#fef08a', '#ffffff'],
+  confetti_fire_flower: ['#ef4444', '#f97316', '#f59e0b', '#fde047', '#dc2626', '#ffffff'],
+  confetti_royal_peach: ['#f472b6', '#fb7185', '#fde047', '#e879f9', '#f9a8d4', '#ffffff'],
+  default: ['#f59e0b', '#fbbf24', '#fcd34d', '#eab308', '#ca8a04', '#ffffff'],
+};
 
 interface CoinConfettiProps {
   active: boolean;
@@ -23,9 +32,23 @@ export const CoinConfetti: React.FC<CoinConfettiProps> = ({
   useEffect(() => {
     if (!active) return;
 
-    // Trigger exactly TWO discrete bursts of canvas-confetti with golden/amber palette
+    // Trigger iconic Mario Coin chime for immediate auditory celebration feedback
+    marioAudio.playCoin();
+
+    // Trigger discrete bursts of canvas-confetti using equipped Toad Shop Confetti FX or classic gold palette
     try {
-      const colors = ['#f59e0b', '#fbbf24', '#fcd34d', '#eab308', '#ca8a04', '#ffffff'];
+      let colors = CONFETTI_PALETTES.default;
+      try {
+        const rawLux = localStorage.getItem('mario_luxury_equipped_v1');
+        if (rawLux) {
+          const parsedLux = JSON.parse(rawLux) as { confettiFx?: string | null };
+          if (parsedLux?.confettiFx && CONFETTI_PALETTES[parsedLux.confettiFx]) {
+            colors = CONFETTI_PALETTES[parsedLux.confettiFx];
+          }
+        }
+      } catch {
+        // fallback to default gold palette
+      }
 
       confetti({
         particleCount: 40,

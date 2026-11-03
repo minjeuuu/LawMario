@@ -169,17 +169,20 @@ test('Game3D momentum & variable jump cuts upward velocity on early release', ()
   assert.ok(cut.vx > 0);
 });
 
-test('Centralized AudioController maps Modules 1-6 (including Modules 2-5 and World 6) and verifies 6 sound packs', () => {
+test('Centralized AudioController maps Modules 1-6 (including Modules 2-5 and World 6) and verifies all 15 sound packs + SFX methods', () => {
   const check = audioController.verifyModuleAudioMappings();
   assert.equal(check.valid, true);
   for (const worldKey of ['world1', 'world2', 'world3', 'world4', 'world5', 'world6', 'holidays']) {
     assert.ok(MODULE_AUDIO_PROFILES[worldKey], `Missing audio profile for ${worldKey}`);
   }
-  assert.equal(SOUND_PACK_DEFINITIONS.length, 7);
+  assert.equal(SOUND_PACK_DEFINITIONS.length, 15);
   const restored = audioController.restoreAudioPacks();
-  assert.equal(restored.restoredPacks.length, 7);
+  assert.equal(restored.restoredPacks.length, SOUND_PACK_DEFINITIONS.length);
   assert.ok(restored.modulesVerified.includes('world2'));
   assert.ok(restored.modulesVerified.includes('world6'));
+  assert.equal(typeof audioController.playStar, 'function');
+  assert.equal(typeof audioController.playFlip, 'function');
+  assert.equal(typeof audioController.playFlagpole, 'function');
 });
 
 test('Super Star 2x buff, Fire Flower 5-day streak, Quick Study deck, Print filters, Leaderboard & World 6 data', () => {

@@ -2437,29 +2437,6 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
   },
 ];
 
-export function findGlossaryTerm(matchStr: string): QuickGlossaryItem | undefined {
-  if (!matchStr) return undefined;
-  const norm = matchStr.toLowerCase().trim();
-  if (norm.length < 3) return undefined;
-
-  const byId = QUICK_GLOSSARY_TERMS.find((item) => item.id.toLowerCase() === norm);
-  if (byId) return byId;
-
-  const byTerm = QUICK_GLOSSARY_TERMS.find((item) => {
-    const full = item.term.toLowerCase();
-    const clean = item.term.replace(/\s*\(.*?\)/g, '').trim().toLowerCase();
-    return full === norm || clean === norm;
-  });
-  if (byTerm) return byTerm;
-
-  const byAlias = QUICK_GLOSSARY_TERMS.find((item) =>
-    item.aliases.some((a) => a.toLowerCase() === norm)
-  );
-  if (byAlias) return byAlias;
-
-  return undefined;
-}
-
 const GENERIC_SINGLE_WORD_EXCLUSIONS = new Set([
   'work',
   'wage',
@@ -2470,6 +2447,32 @@ const GENERIC_SINGLE_WORD_EXCLUSIONS = new Set([
   'coupons',
   'homework',
 ]);
+
+const GLOSSARY_FAST_MAP: Map<string, QuickGlossaryItem> = (() => {
+  const map = new Map<string, QuickGlossaryItem>();
+  QUICK_GLOSSARY_TERMS.forEach((item) => {
+    map.set(item.id.toLowerCase(), item);
+    map.set(item.term.toLowerCase(), item);
+    const clean = item.term.replace(/\s*\(.*?\)/g, '').trim().toLowerCase();
+    if (clean.length >= 3 && !map.has(clean)) {
+      map.set(clean, item);
+    }
+    item.aliases.forEach((alias) => {
+      const normAlias = alias.trim().toLowerCase();
+      if (normAlias.length >= 3 && !map.has(normAlias)) {
+        map.set(normAlias, item);
+      }
+    });
+  });
+  return map;
+})();
+
+export function findGlossaryTerm(matchStr: string): QuickGlossaryItem | undefined {
+  if (!matchStr) return undefined;
+  const norm = matchStr.toLowerCase().trim();
+  if (norm.length < 3) return undefined;
+  return GLOSSARY_FAST_MAP.get(norm);
+}
 
 export const ALL_GLOSSARY_KEYWORDS: { keyword: string; item: QuickGlossaryItem }[] = (() => {
   const seen = new Set<string>();
@@ -2495,3 +2498,15 @@ export const ALL_GLOSSARY_KEYWORDS: { keyword: string; item: QuickGlossaryItem }
 
   return list.sort((a, b) => b.keyword.length - a.keyword.length);
 })();
+
+export const SHARED_GLOSSARY_REGEX: RegExp | null = (() => {
+  if (!ALL_GLOSSARY_KEYWORDS || ALL_GLOSSARY_KEYWORDS.length === 0) return null;
+  const pattern = ALL_GLOSSARY_KEYWORDS.map(({ keyword }) => {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const leading = /^\w/.test(keyword) ? '\\b' : '';
+    const trailing = /\w$/.test(keyword) ? '\\b' : '';
+    return `${leading}${escaped}${trailing}`;
+  }).join('|');
+  return new RegExp(`(${pattern})`, 'gi');
+})();
+

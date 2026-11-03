@@ -169,8 +169,8 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
         </div>
 
         {/* Mode Switcher: Coin Vault vs Quiz Leaderboard */}
-        <div className="px-4 sm:px-6 py-2.5 bg-slate-950 border-b border-slate-800 shrink-0">
-          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="px-3 sm:px-6 py-2.5 bg-slate-950 border-b border-slate-800 shrink-0">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 p-1 rounded-xl bg-slate-900 border border-slate-800">
             <button
               type="button"
               data-testid="leaderboard-tab-coins"
@@ -178,14 +178,14 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
                 setBoardTab('coins');
                 marioAudio.playClick();
               }}
-              className={`min-h-[38px] px-3 rounded-lg text-xs font-black inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap ${
+              className={`min-h-[40px] px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-black inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors min-w-0 text-center leading-tight ${
                 boardTab === 'coins'
                   ? 'bg-amber-400 text-slate-950 border border-black shadow-[0_2px_0_#000]'
                   : 'text-slate-300 hover:text-white'
               }`}
             >
               <MarioCoinIcon className="w-4 h-4 shrink-0" />
-              <span>Coin Vault Ranking</span>
+              <span className="truncate sm:whitespace-normal">Coin Vault Ranking</span>
             </button>
             <button
               type="button"
@@ -194,14 +194,15 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
                 setBoardTab('quiz');
                 marioAudio.playClick();
               }}
-              className={`min-h-[38px] px-3 rounded-lg text-xs font-black inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap ${
+              className={`min-h-[40px] px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-black inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors min-w-0 text-center leading-tight ${
                 boardTab === 'quiz'
                   ? 'bg-emerald-400 text-slate-950 border border-black shadow-[0_2px_0_#000]'
                   : 'text-slate-300 hover:text-white'
               }`}
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Quiz Leaderboard (Correct Answers)</span>
+              <span className="sm:hidden truncate">Quiz Leaderboard</span>
+              <span className="hidden sm:inline truncate">Quiz Leaderboard (Correct)</span>
             </button>
           </div>
         </div>

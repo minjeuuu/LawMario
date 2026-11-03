@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { Trophy, Sparkles, ArrowRight, X, CheckCircle2 } from 'lucide-react';
-import { MarioStarIcon, MarioCoinIcon, Mario1UpIcon } from './MarioIcons';
+import { MarioStarIcon, MarioCoinIcon, Mario1UpIcon, MarioFlagIcon } from './MarioIcons';
 import { WORLDS_METADATA, ALL_LAW_TOPICS } from '../data/laborLawData';
 import { marioAudio } from '../utils/audio';
 
@@ -185,6 +185,38 @@ export const LevelUpModal: React.FC<LevelUpModalProps> = ({
 
         {/* Body */}
         <div className="p-5 sm:p-6 space-y-4">
+          {/* Animated Mario Flagpole Stage-Clear Progress Visual */}
+          <div
+            data-testid="levelup-flagpole-visual"
+            className="bg-gradient-to-r from-sky-950 via-indigo-950 to-slate-950 rounded-2xl p-3.5 border-2 border-emerald-400/80 flex items-center justify-between gap-4 relative overflow-hidden"
+          >
+            <div className="space-y-1 min-w-0">
+              <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
+                GOAL POLE REACHED · 5,000 PTS
+              </span>
+              <p className="text-xs font-bold text-slate-200 leading-snug">
+                Top of the Flagpole! All {worldTopics.length} statutory stages cleared in{' '}
+                {worldMeta ? `World ${worldMeta.worldNumber}` : 'this World'}.
+              </p>
+              <div className="w-full h-2 bg-slate-900 rounded-full border border-slate-700 overflow-hidden mt-1.5">
+                <div className="h-full w-full bg-gradient-to-r from-emerald-400 via-amber-300 to-yellow-300" />
+              </div>
+            </div>
+
+            <div className="relative w-14 h-20 rounded-xl bg-sky-900/50 border border-sky-400/40 flex items-end justify-center shrink-0 overflow-hidden pb-1.5">
+              {/* Pole */}
+              <div className="w-1 h-16 bg-emerald-300 rounded-full border border-black relative">
+                <div className="w-3 h-3 rounded-full bg-amber-400 border border-black -left-1 -top-2 absolute" />
+              </div>
+              {/* Animated Flag Sliding to Peak */}
+              <div className="absolute left-4 bottom-2 mario-flagpole-slider">
+                <MarioFlagIcon className="w-6 h-6" />
+              </div>
+              {/* Ground Block */}
+              <div className="absolute bottom-0 inset-x-2 h-2 bg-amber-700 border-t border-black rounded-t-xs" />
+            </div>
+          </div>
+
           {/* Bonus Coin Reward Box */}
           <div className="bg-slate-900 rounded-2xl p-4 border-2 border-amber-400 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">

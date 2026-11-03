@@ -586,6 +586,8 @@ export interface QuizCompletionPayload {
   totalCount: number;
   isBossVictory?: boolean;
   topicTitle?: string;
+  mode?: string;
+  elapsedSeconds?: number;
 }
 
 export function getQuizWorldDisplayName(worldCode: string): string {

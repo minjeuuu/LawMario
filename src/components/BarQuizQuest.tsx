@@ -64,6 +64,10 @@ import {
   Target,
   Sparkles as SparklesIcon,
   Shield,
+  Swords,
+  Share2,
+  Copy,
+  Check,
 } from 'lucide-react';
 import {
   Mario1UpIcon,
@@ -74,8 +78,28 @@ import {
   MarioBowserIcon,
   MarioFireballIcon,
   MarioAxeIcon,
+  MarioQuestionBlockIcon,
+  MarioPipeIcon,
+  MarioCharacterAvatar,
 } from './MarioIcons';
 import { QuizResultsLeaderboard } from './QuizResultsLeaderboard';
+import {
+  INITIAL_QUIZ_LIVES,
+  KOOPA_BOSS_TOTAL_QUESTIONS,
+  KOOPA_BOSS_MAX_MISSES,
+  KOOPA_SOVEREIGN_FRAME_ID,
+  KoopaBossState,
+  createInitialKoopaBossState,
+  stepKoopaBossAnswer,
+  OneUpBlockOption,
+  createOneUpRecoveryBlocks,
+  AsyncBattleChallenge,
+  encodeAsyncBattleChallenge,
+  decodeAsyncBattleChallenge,
+  computeSimulatedRivalResult,
+  dispatchDailyMissionEvent,
+  createFreshShuffledDeck,
+} from '../utils/round11Features';
 
 interface DigitalBadge {
   id: string;
@@ -115,7 +139,14 @@ interface BarQuizQuestProps {
   onOpenBossBattleLog?: () => void;
   bossBattleLogCount?: number;
   externalLaunchMode?: {
-    mode: 'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss';
+    mode:
+      | 'quick'
+      | 'exam_sim'
+      | 'flashback'
+      | 'practice'
+      | 'boss'
+      | 'koopa_boss'
+      | 'async_battle';
     nonce: number;
   } | null;
   dailyBossQuizStreak?: ActiveDailyQuizStreakSnapshot;
@@ -125,6 +156,7 @@ interface BarQuizQuestProps {
   onActivateBossDefeatInvincible?: () => void;
   coins?: number;
   onSpendCoins?: (cost: number) => boolean;
+  onOpenLeaderboard?: () => void;
 }
 
 export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
@@ -151,10 +183,23 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   onActivateBossDefeatInvincible,
   coins = 0,
   onSpendCoins,
+  onOpenLeaderboard,
 }) => {
   const [activeMode, setActiveMode] = useState<
-    'quick' | 'exam_sim' | 'flashback' | 'practice' | 'boss'
-  >('quick');
+    | 'quick'
+    | 'exam_sim'
+    | 'flashback'
+    | 'practice'
+    | 'boss'
+    | 'koopa_boss'
+    | 'async_battle'
+  >(() => {
+    if (typeof window !== 'undefined') {
+      const token = new URLSearchParams(window.location.search).get('async_battle');
+      if (token) return 'async_battle';
+    }
+    return 'quick';
+  });
   const [wrongShakeNonce, setWrongShakeNonce] = useState<number>(0);
   const [practiceMissedDetails, setPracticeMissedDetails] = useState<MissedQuestionBriefInput[]>([]);
   const [r10Vault, setR10Vault] = useState<Round10VaultState>(() =>
@@ -273,8 +318,19 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     if (summary.coinsEarned > 0) {
       onEarnCoins(summary.coinsEarned);
     }
+    if (!didTimeOut && summary.accuracyPercent >= 80) {
+      dispatchDailyMissionEvent('quiz_80', 1);
+    }
     if (didTimeOut) {
       marioAudio.playQuizTimeout();
+    } else if (summary.accuracyPercent === 100) {
+      marioAudio.playFlagpole();
+      marioAudio.playQuizComplete();
+      try {
+        confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+      } catch {
+        // ignore
+      }
     } else if (summary.accuracyPercent >= 75) {
       marioAudio.playQuizComplete();
       try {
@@ -283,7 +339,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         // ignore
       }
     } else {
-      marioAudio.playTryAgain();
+      marioAudio.playGameOver();
     }
   };
 
@@ -478,7 +534,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       if (summary.coinsEarned > 0) {
         onEarnCoins(summary.coinsEarned);
       }
-      if (summary.accuracyPercent < 40) {
+      if (summary.accuracyPercent >= 80) {
+        dispatchDailyMissionEvent('quiz_80', 1);
+      }
+      if (summary.accuracyPercent === 100) {
+        marioAudio.playFlagpole();
+        marioAudio.playQuizComplete();
+      } else if (summary.accuracyPercent < 60) {
         marioAudio.playGameOver();
       } else {
         marioAudio.playQuizComplete();
@@ -635,7 +697,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       if (bonusReward > 0) {
         onEarnCoins(bonusReward);
       }
-      if (summary.accuracyPercent < 40) {
+      if (summary.accuracyPercent >= 80) {
+        dispatchDailyMissionEvent('quiz_80', 1);
+      }
+      if (summary.accuracyPercent === 100) {
+        marioAudio.playFlagpole();
+        marioAudio.playQuizComplete();
+      } else if (summary.accuracyPercent < 60) {
         marioAudio.playGameOver();
       } else {
         marioAudio.playQuizComplete();
@@ -670,6 +738,11 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   const [practiceRecords, setPracticeRecords] = useState<QuizCategoryAnswerInput[]>([]);
   const [practiceMissedTopics, setPracticeMissedTopics] = useState<string[]>([]);
   const practiceStartTimeRef = useRef<number>(Date.now());
+  const [practiceLives, setPracticeLives] = useState<number>(INITIAL_QUIZ_LIVES);
+  const [oneUpBlocks, setOneUpBlocks] = useState<OneUpBlockOption[] | null>(null);
+  const [oneUpPickedIdx, setOneUpPickedIdx] = useState<number | null>(null);
+  const [oneUpRecoveryBanner, setOneUpRecoveryBanner] = useState<string | null>(null);
+  const [practiceGameOver, setPracticeGameOver] = useState<boolean>(false);
 
   useEffect(() => {
     setCurrentIdx(0);
@@ -679,6 +752,11 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setIsQuizComplete(false);
     setPracticeRecords([]);
     setPracticeMissedTopics([]);
+    setPracticeLives(INITIAL_QUIZ_LIVES);
+    setOneUpBlocks(null);
+    setOneUpPickedIdx(null);
+    setOneUpRecoveryBanner(null);
+    setPracticeGameOver(false);
     practiceStartTimeRef.current = Date.now();
   }, [studyDifficulty]);
 
@@ -759,18 +837,24 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setPracticeRecords([]);
     setPracticeMissedTopics([]);
     setPracticeMissedDetails([]);
+    setPracticeLives(INITIAL_QUIZ_LIVES);
+    setOneUpBlocks(null);
+    setOneUpPickedIdx(null);
+    setOneUpRecoveryBanner(null);
+    setPracticeGameOver(false);
     practiceStartTimeRef.current = Date.now();
   };
 
   const handleSelectOption = (idx: number) => {
-    if (isAnswerSubmitted) return;
+    if (isAnswerSubmitted || oneUpBlocks !== null || practiceGameOver) return;
     setSelectedAnswer(idx);
     marioAudio.playJump();
   };
 
   const handleSubmitAnswer = () => {
-    if (selectedAnswer === null || !q) return;
+    if (selectedAnswer === null || !q || oneUpBlocks !== null || practiceGameOver) return;
     setIsAnswerSubmitted(true);
+    setOneUpRecoveryBanner(null);
     const isRight = selectedAnswer === q.correctIndex;
     setPracticeRecords((prev) => [
       ...prev,
@@ -799,6 +883,33 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       ]);
       triggerWrongAnswerPulse();
       marioAudio.playTryAgain();
+      const nextLives = Math.max(0, practiceLives - 1);
+      setPracticeLives(nextLives);
+      if (nextLives === 0) {
+        setOneUpBlocks(createOneUpRecoveryBlocks(Date.now() + currentIdx));
+        setOneUpPickedIdx(null);
+      }
+    }
+  };
+
+  const handlePickOneUpBlock = (block: OneUpBlockOption) => {
+    if (oneUpPickedIdx !== null) return;
+    setOneUpPickedIdx(block.index);
+    if (block.hasOneUp) {
+      marioAudio.playOneUp();
+      setPracticeLives(1);
+      setOneUpRecoveryBanner('1-UP MUSHROOM FOUND! +1 Extra Life Restored — Keep Climbing!');
+      window.setTimeout(() => {
+        setOneUpBlocks(null);
+        setOneUpPickedIdx(null);
+      }, 950);
+    } else {
+      marioAudio.playGameOver();
+      window.setTimeout(() => {
+        setOneUpBlocks(null);
+        setOneUpPickedIdx(null);
+        setPracticeGameOver(true);
+      }, 950);
     }
   };
 
@@ -807,12 +918,17 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       setCurrentIdx((i) => i + 1);
       setSelectedAnswer(null);
       setIsAnswerSubmitted(false);
+      setOneUpRecoveryBanner(null);
       marioAudio.playPipe();
     } else {
       setIsQuizComplete(true);
       const practiceLabel =
         worldFilter === 'all' ? 'All Worlds Practice' : `World ${worldFilter.toUpperCase()} Practice`;
       const elapsed = Math.max(15, Math.round((Date.now() - practiceStartTimeRef.current) / 1000));
+      const accPct = Math.round((score / Math.max(1, activePracticePool.length)) * 100);
+      if (accPct >= 80) {
+        dispatchDailyMissionEvent('quiz_80', 1);
+      }
       onQuizCompleted?.({
         worldCode: worldFilter,
         correctCount: score,
@@ -830,7 +946,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           victory: score >= Math.ceil(activePracticePool.length * 0.7),
         });
       }
-      marioAudio.playQuizComplete();
+      if (accPct === 100) {
+        marioAudio.playFlagpole();
+        marioAudio.playQuizComplete();
+      } else if (accPct < 60) {
+        marioAudio.playGameOver();
+      } else {
+        marioAudio.playQuizComplete();
+      }
       try {
         confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       } catch {
@@ -1081,10 +1204,269 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     marioAudio.playJump();
   };
 
+  // ==================== MODE 3: KOOPA BOSS MODE (10 Hard Qs, <=1 Miss Unlocks Koopa Sovereign Frame) ====================
+  const buildKoopaBossDeck = (): AdaptedQuizQuestion[] => {
+    const hardSource = createFreshShuffledDeck(BOWSER_BOSS_QUESTIONS, Date.now());
+    return hardSource.slice(0, KOOPA_BOSS_TOTAL_QUESTIONS).map((item) => {
+      const adapted = adaptBossQuestionForDifficulty(item, 'exam_prep');
+      const shuffled = shuffleChoiceOptions(adapted.options, adapted.correctIndex);
+      return {
+        ...adapted,
+        options: shuffled.options,
+        correctIndex: shuffled.correctIndex,
+      };
+    });
+  };
+
+  const [koopaDeck, setKoopaDeck] = useState<AdaptedQuizQuestion[]>(() => buildKoopaBossDeck());
+  const [koopaIdx, setKoopaIdx] = useState<number>(0);
+  const [koopaSelected, setKoopaSelected] = useState<number | null>(null);
+  const [koopaSubmitted, setKoopaSubmitted] = useState<boolean>(false);
+  const [koopaState, setKoopaState] = useState<KoopaBossState>(() =>
+    createInitialKoopaBossState()
+  );
+  const [koopaFrameEquippedFeedback, setKoopaFrameEquippedFeedback] = useState<boolean>(false);
+
+  const startFreshKoopaBoss = () => {
+    setKoopaDeck(buildKoopaBossDeck());
+    setKoopaIdx(0);
+    setKoopaSelected(null);
+    setKoopaSubmitted(false);
+    setKoopaState(createInitialKoopaBossState());
+    setKoopaFrameEquippedFeedback(false);
+    setEliminatedOptions([]);
+    setRevealedCounselHint(null);
+  };
+
+  const koopaQ = koopaDeck[koopaIdx];
+
+  const unlockKoopaSovereignFrame = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('mario_unlocked_items');
+      const parsed: string[] = raw ? JSON.parse(raw) : [];
+      if (!parsed.includes(KOOPA_SOVEREIGN_FRAME_ID)) {
+        const updated = [...parsed, KOOPA_SOVEREIGN_FRAME_ID];
+        localStorage.setItem('mario_unlocked_items', JSON.stringify(updated));
+        window.dispatchEvent(new Event('mario-unlocked-items-updated'));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleEquipKoopaFrameNow = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      unlockKoopaSovereignFrame();
+      localStorage.setItem('mario_equipped_card_frame', KOOPA_SOVEREIGN_FRAME_ID);
+      window.dispatchEvent(
+        new CustomEvent('mario-equip-card-frame', { detail: KOOPA_SOVEREIGN_FRAME_ID })
+      );
+      setKoopaFrameEquippedFeedback(true);
+      marioAudio.playPowerUp();
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSubmitKoopaAnswer = () => {
+    if (koopaSelected === null || koopaSubmitted || !koopaQ || koopaState.status !== 'active') {
+      return;
+    }
+    setKoopaSubmitted(true);
+    const isCorrect = koopaSelected === koopaQ.correctIndex;
+    const nextState = stepKoopaBossAnswer(koopaState, isCorrect, koopaDeck.length);
+    setKoopaState(nextState);
+
+    if (isCorrect) {
+      marioAudio.playSuccess();
+      marioAudio.playFireball();
+      onEarnCoins(10);
+    } else {
+      triggerWrongAnswerPulse();
+      marioAudio.playTryAgain();
+    }
+
+    if (nextState.status === 'victory') {
+      unlockKoopaSovereignFrame();
+      onEarnCoins(150);
+      dispatchDailyMissionEvent('quiz_80', 1);
+      onQuizCompleted?.({
+        worldCode: 'KOOPA_BOSS',
+        correctCount: nextState.correctCount,
+        totalCount: koopaDeck.length,
+        isBossVictory: true,
+        topicTitle: 'Koopa Boss Gauntlet (10 Hard Qs)',
+      });
+      onBossQuizCompleted?.();
+      marioAudio.playFlagpole();
+      marioAudio.playLevelUp();
+      try {
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.55 } });
+      } catch {
+        // ignore
+      }
+    } else if (nextState.status === 'defeat') {
+      marioAudio.playGameOver();
+    }
+  };
+
+  const handleNextKoopaQuestion = () => {
+    if (koopaState.status !== 'active') return;
+    setKoopaIdx((i) => Math.min(koopaDeck.length - 1, i + 1));
+    setKoopaSelected(null);
+    setKoopaSubmitted(false);
+    marioAudio.playPipe();
+  };
+
+  // ==================== MODE 4: ASYNC 3-QUESTION QUIZ BATTLE ====================
+  const [incomingChallenge, setIncomingChallenge] = useState<AsyncBattleChallenge | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const token = new URLSearchParams(window.location.search).get('async_battle') || '';
+    return decodeAsyncBattleChallenge(token);
+  });
+  const [asyncWorld, setAsyncWorld] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const token = new URLSearchParams(window.location.search).get('async_battle') || '';
+      const parsed = decodeAsyncBattleChallenge(token);
+      if (parsed?.worldId) return parsed.worldId;
+    }
+    return activeWorld || 'world1';
+  });
+
+  const buildAsyncDeck = (targetWorldId: string, forcedIds?: string[]): AdaptedQuizQuestion[] => {
+    const code = mapActiveWorldToQuizCode(targetWorldId);
+    const fullPool = getQuizQuestionsForDifficulty('exam_prep', 'all');
+    if (forcedIds && forcedIds.length > 0) {
+      const matched = forcedIds
+        .map((qid) => fullPool.find((item) => String(item.id) === String(qid)))
+        .filter((item): item is AdaptedQuizQuestion => Boolean(item));
+      if (matched.length >= 3) {
+        return matched.slice(0, 3);
+      }
+    }
+    const worldPool =
+      code === 'all'
+        ? fullPool
+        : fullPool.filter((item) => item.worldCode === code);
+    const source = worldPool.length >= 3 ? worldPool : fullPool;
+    return createFreshShuffledDeck(source, Date.now()).slice(0, 3).map((item) => {
+      const shuffled = shuffleChoiceOptions(item.options, item.correctIndex);
+      return {
+        ...item,
+        options: shuffled.options,
+        correctIndex: shuffled.correctIndex,
+      };
+    });
+  };
+
+  const [asyncDeck, setAsyncDeck] = useState<AdaptedQuizQuestion[]>(() =>
+    buildAsyncDeck(asyncWorld, incomingChallenge?.questionIds)
+  );
+  const [asyncIdx, setAsyncIdx] = useState<number>(0);
+  const [asyncSelected, setAsyncSelected] = useState<number | null>(null);
+  const [asyncSubmitted, setAsyncSubmitted] = useState<boolean>(false);
+  const [asyncScore, setAsyncScore] = useState<number>(0);
+  const [asyncComplete, setAsyncComplete] = useState<boolean>(false);
+  const [asyncElapsedSec, setAsyncElapsedSec] = useState<number>(0);
+  const [asyncCopied, setAsyncCopied] = useState<boolean>(false);
+  const asyncStartRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    if (activeMode !== 'async_battle' || asyncComplete) return;
+    const t = window.setInterval(() => {
+      setAsyncElapsedSec(Math.max(1, Math.round((Date.now() - asyncStartRef.current) / 1000)));
+    }, 500);
+    return () => window.clearInterval(t);
+  }, [activeMode, asyncComplete]);
+
+  const startFreshAsyncBattle = (targetWorldId: string = asyncWorld, keepIncoming = false) => {
+    const nextChallenge = keepIncoming ? incomingChallenge : null;
+    if (!keepIncoming) setIncomingChallenge(null);
+    setAsyncWorld(targetWorldId);
+    setAsyncDeck(buildAsyncDeck(targetWorldId, nextChallenge?.questionIds));
+    setAsyncIdx(0);
+    setAsyncSelected(null);
+    setAsyncSubmitted(false);
+    setAsyncScore(0);
+    setAsyncComplete(false);
+    setAsyncElapsedSec(0);
+    setAsyncCopied(false);
+    asyncStartRef.current = Date.now();
+  };
+
+  const asyncQ = asyncDeck[asyncIdx];
+
+  const handleSubmitAsyncAnswer = () => {
+    if (asyncSelected === null || asyncSubmitted || !asyncQ) return;
+    setAsyncSubmitted(true);
+    const isRight = asyncSelected === asyncQ.correctIndex;
+    const nextScore = asyncScore + (isRight ? 1 : 0);
+    setAsyncScore(nextScore);
+    if (isRight) {
+      marioAudio.playSuccess();
+      marioAudio.playCoin();
+    } else {
+      triggerWrongAnswerPulse();
+      marioAudio.playTryAgain();
+    }
+  };
+
+  const handleNextAsyncQuestion = () => {
+    if (asyncIdx < asyncDeck.length - 1) {
+      setAsyncIdx((i) => i + 1);
+      setAsyncSelected(null);
+      setAsyncSubmitted(false);
+      marioAudio.playPipe();
+    } else {
+      const totalSec = Math.max(4, Math.round((Date.now() - asyncStartRef.current) / 1000));
+      setAsyncElapsedSec(totalSec);
+      setAsyncComplete(true);
+      const rival = incomingChallenge
+        ? {
+            rivalName: incomingChallenge.challengerName,
+            rivalScore: incomingChallenge.challengerScore,
+            rivalTimeSec: incomingChallenge.challengerTimeSec,
+          }
+        : computeSimulatedRivalResult(`${asyncWorld}_${asyncDeck.map((d) => d.id).join('_')}`);
+      const playerWon =
+        asyncScore > rival.rivalScore ||
+        (asyncScore === rival.rivalScore && totalSec <= rival.rivalTimeSec);
+      onEarnCoins(playerWon ? 45 : 20);
+      if (asyncScore / Math.max(1, asyncDeck.length) >= 0.8) {
+        dispatchDailyMissionEvent('quiz_80', 1);
+      }
+      if (playerWon) {
+        marioAudio.playFlagpole();
+        marioAudio.playQuizComplete();
+      } else {
+        marioAudio.playTryAgain();
+      }
+    }
+  };
+
+  const handleCopyAsyncShareUrl = () => {
+    if (typeof window === 'undefined') return;
+    const token = encodeAsyncBattleChallenge({
+      worldId: asyncWorld,
+      challengerName: 'Counsel Mario',
+      challengerScore: asyncScore,
+      challengerTimeSec: Math.max(4, asyncElapsedSec),
+      questionIds: asyncDeck.map((item) => String(item.id)),
+    });
+    const shareUrl = `${window.location.origin}${window.location.pathname}?async_battle=${encodeURIComponent(token)}`;
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(shareUrl).catch(() => {});
+    }
+    setAsyncCopied(true);
+    marioAudio.playCoin();
+  };
+
   useEffect(() => {
     setEliminatedOptions([]);
     setRevealedCounselHint(null);
-  }, [activeMode, quickIdx, currentIdx, bossIdx, flashbackIdx, simIdx]);
+  }, [activeMode, quickIdx, currentIdx, bossIdx, flashbackIdx, simIdx, koopaIdx, asyncIdx]);
 
   const consumeTokenOrCoins = (
     tokenKey: 'quiz5050' | 'quizHint' | 'quizShield',
@@ -1156,6 +1538,153 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setBossShieldArmed(true);
   };
 
+  const renderMarioStageProgressBar = (params: {
+    currentStep: number;
+    totalSteps: number;
+    stageTitle: string;
+    rightLabel?: string;
+    lives?: number;
+    maxLives?: number;
+  }) => {
+    const safeTotal = Math.max(1, params.totalSteps);
+    const clampedStep = Math.min(safeTotal, Math.max(1, params.currentStep));
+    const pct = Math.min(100, Math.max(6, Math.round((clampedStep / safeTotal) * 100)));
+
+    return (
+      <div
+        data-testid="mario-stage-flag-progress"
+        className="rounded-2xl bg-slate-950 text-white p-3.5 border-3 border-black shadow-[0_3px_0_#000] space-y-2.5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mario text-[10px] text-amber-300 whitespace-nowrap">
+              STAGE {clampedStep}/{safeTotal}
+            </span>
+            <span className="text-slate-500">·</span>
+            <span className="font-bold text-slate-200 truncate">{params.stageTitle}</span>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            {typeof params.lives === 'number' && (
+              <div
+                data-testid="quiz-mario-lives-indicator"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-950/90 border border-emerald-500/70"
+              >
+                {Array.from({ length: params.maxLives ?? INITIAL_QUIZ_LIVES }).map((_, i) => (
+                  <Mario1UpIcon
+                    key={i}
+                    className={`w-4 h-4 transition-opacity ${
+                      i < (params.lives ?? 0) ? 'opacity-100' : 'opacity-25 grayscale'
+                    }`}
+                  />
+                ))}
+                <span className="font-mario text-[9px] text-emerald-300 ml-0.5 tabular-nums">
+                  x{params.lives}
+                </span>
+              </div>
+            )}
+            {params.rightLabel && (
+              <span className="font-extrabold text-amber-300 text-xs tabular-nums">
+                {params.rightLabel}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Mario Overworld Track -> Goal Flagpole */}
+        <div className="relative pt-3 pb-1 pr-7">
+          <div className="w-full h-3.5 rounded-full bg-slate-800 border-2 border-black overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-yellow-300 transition-all duration-300"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          {/* Runner Icon advancing toward the Stage Flag */}
+          <div
+            className="absolute top-0.5 -translate-x-1/2 transition-all duration-300 pointer-events-none"
+            style={{ left: `calc(${pct}% * 0.92 + 10px)` }}
+          >
+            <div className="w-6 h-6 rounded-full bg-amber-400 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000]">
+              <MarioCharacterAvatar character="mario" className="w-4 h-4" />
+            </div>
+          </div>
+          {/* Goal Flagpole at right end */}
+          <div
+            className="absolute right-0 top-0 w-7 h-7 rounded-xl bg-emerald-500 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000]"
+            title="Course Goal Flagpole"
+          >
+            <MarioFlagIcon className="w-4 h-4" />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMarioCourseOutcomeBanner = (params: {
+    accuracyPercent: number;
+    courseTitle: string;
+  }) => {
+    const isClear = params.accuracyPercent >= 60;
+    const isPerfect = params.accuracyPercent === 100;
+
+    return (
+      <div
+        data-testid={isClear ? 'mario-course-clear-overlay' : 'mario-game-over-overlay'}
+        className={`rounded-3xl p-4 sm:p-5 border-3 border-black shadow-[0_4px_0_#000] text-white ${
+          isClear
+            ? 'bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900'
+            : 'bg-gradient-to-r from-rose-950 via-red-950 to-slate-950'
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 text-center sm:text-left">
+            <div
+              className={`w-14 h-14 rounded-2xl border-3 border-black flex items-center justify-center shrink-0 shadow-[0_3px_0_#000] ${
+                isClear ? 'bg-amber-400 text-slate-950' : 'bg-red-700 text-white'
+              }`}
+            >
+              {isClear ? (
+                <MarioFlagIcon className="w-8 h-8" />
+              ) : (
+                <MarioBowserIcon className="w-9 h-9" />
+              )}
+            </div>
+            <div className="space-y-1">
+              <span className="font-mario text-[10px] sm:text-xs text-amber-300 uppercase block">
+                {isPerfect
+                  ? 'PERFECT 100% TOP-OF-FLAGPOLE FINISH!'
+                  : isClear
+                  ? 'MUSHROOM KINGDOM COURSE CLEAR!'
+                  : 'GAME OVER — CONTINUE & MASTER THE CODAL!'}
+              </span>
+              <h4 className="text-lg sm:text-xl font-black font-display text-white">
+                {params.courseTitle} · {params.accuracyPercent}% Accuracy
+              </h4>
+            </div>
+          </div>
+
+          {/* Animated Flagpole Slide on 100% Flawless Runs */}
+          {isPerfect && (
+            <div
+              data-testid="perfect-score-flagpole-animation"
+              className="relative w-20 h-24 rounded-2xl bg-sky-950/90 border-2 border-amber-400 flex items-end justify-center p-2 shrink-0 overflow-hidden"
+            >
+              <div className="w-1.5 h-20 bg-slate-200 border border-black rounded-full relative">
+                <div className="w-3.5 h-3.5 rounded-full bg-amber-400 border border-black -top-2 -left-1 absolute" />
+                <div className="absolute left-1 bottom-1 mario-flagpole-slider">
+                  <MarioFlagIcon className="w-6 h-6" />
+                </div>
+              </div>
+              <span className="absolute bottom-1 right-1.5 font-mario text-[8px] text-amber-300">
+                1UP!
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderQuizCoinLifelineBar = (params: {
     optionsCount: number;
     correctIndex: number;
@@ -1190,12 +1719,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-[10px] font-black uppercase font-mario tracking-wider flex items-center gap-1.5">
             <MarioCoinIcon className="w-4 h-4 shrink-0" />
-            <span>USE YOUR COINS &amp; TOAD TOKENS ({coins}c WALLET)</span>
+            <span>TOADSTOOL LIFELINES ({coins}c WALLET)</span>
           </span>
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
               data-testid="lifeline-5050-btn"
+              data-toadstool-powerup="true"
               disabled={!can5050}
               onClick={() =>
                 handleTrigger5050Lifeline(
@@ -1204,13 +1734,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   params.submitted
                 )
               }
-              className="min-h-[38px] px-3 py-1 rounded-xl bg-rose-500 hover:bg-rose-400 disabled:opacity-40 text-white font-black text-xs border-2 border-black cursor-pointer inline-flex items-center gap-1 tabular-nums"
+              className="min-h-[38px] px-3 py-1 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-black text-xs border-2 border-black cursor-pointer inline-flex items-center gap-1.5 tabular-nums"
             >
-              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <MarioMushroomIcon className="w-4 h-4 shrink-0" />
               <span>
-                50/50 Zapper{' '}
+                Toadstool Power-Up (-2 Wrong){' '}
                 {r10Vault.inventory.quiz5050 > 0
-                  ? `(Token x${r10Vault.inventory.quiz5050})`
+                  ? `(x${r10Vault.inventory.quiz5050})`
                   : '(15c)'}
               </span>
             </button>
@@ -1528,7 +2058,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
 
       {/* Mode Switcher Tabs + Global Difficulty Indicator */}
       <div className="bg-slate-900 p-2.5 rounded-2xl border-3 border-slate-950 shadow-[4px_4px_0_#000] space-y-2.5">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           <button
             type="button"
             onClick={() => {
@@ -1536,14 +2066,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playPowerUp();
             }}
             data-testid="quiz-mode-quick"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
               activeMode === 'quick'
                 ? 'bg-emerald-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-slate-200 hover:text-white border-2 border-slate-700'
             }`}
           >
             <Zap className="w-4 h-4 shrink-0" />
-            <span>Quick Test (5)</span>
+            <span className="truncate">Quick Test (5)</span>
           </button>
 
           <button
@@ -1556,14 +2086,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               }
             }}
             data-testid="quiz-mode-exam-sim"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
               activeMode === 'exam_sim'
                 ? 'bg-sky-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-sky-300 hover:text-white border-2 border-slate-700'
             }`}
           >
             <GraduationCap className="w-4 h-4 shrink-0" />
-            <span>Exam Simulation</span>
+            <span className="truncate">Exam Simulation</span>
           </button>
 
           <button
@@ -1574,14 +2104,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               startFreshFlashback();
             }}
             data-testid="quiz-mode-weakness-drill"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
               activeMode === 'flashback'
                 ? 'bg-rose-500 text-white border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-rose-300 hover:text-white border-2 border-slate-700'
             }`}
           >
             <Target className="w-4 h-4 shrink-0" />
-            <span>Weakness Drill</span>
+            <span className="truncate">Weakness Drill</span>
           </button>
 
           <button
@@ -1591,14 +2121,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playJump();
             }}
             data-testid="quiz-mode-practice"
-            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
               activeMode === 'practice'
                 ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-slate-200 hover:text-white border-2 border-slate-700'
             }`}
           >
             <Trophy className="w-4 h-4 shrink-0" />
-            <span>Practice ({fullPracticePoolForDifficulty.length})</span>
+            <span className="truncate">Practice ({fullPracticePoolForDifficulty.length})</span>
           </button>
 
           <button
@@ -1608,14 +2138,48 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               marioAudio.playFireball();
             }}
             data-testid="quiz-mode-boss"
-            className={`col-span-2 sm:col-span-1 min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap ${
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
               activeMode === 'boss'
                 ? 'bg-red-600 text-white border-2 border-black shadow-[0_2px_0_#000]'
                 : 'bg-slate-800 text-slate-200 hover:text-white border-2 border-slate-700'
             }`}
           >
             <Flame className="w-4 h-4 text-amber-300 shrink-0" />
-            <span>Bowser Boss</span>
+            <span className="truncate">Bowser Boss</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMode('koopa_boss');
+              marioAudio.playPowerUp();
+            }}
+            data-testid="quiz-mode-koopa-boss"
+            className={`min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
+              activeMode === 'koopa_boss'
+                ? 'bg-lime-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
+                : 'bg-slate-800 text-lime-300 hover:text-white border-2 border-slate-700'
+            }`}
+          >
+            <Shield className="w-4 h-4 shrink-0" />
+            <span className="truncate">Koopa Boss (10)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMode('async_battle');
+              marioAudio.playPipe();
+            }}
+            data-testid="quiz-mode-async-battle"
+            className={`col-span-2 sm:col-span-3 lg:col-span-2 min-h-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all cursor-pointer leading-none whitespace-nowrap min-w-0 ${
+              activeMode === 'async_battle'
+                ? 'bg-violet-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
+                : 'bg-slate-800 text-violet-300 hover:text-white border-2 border-slate-700'
+            }`}
+          >
+            <Swords className="w-4 h-4 shrink-0" />
+            <span className="truncate">Async 3-Q Battle (Share Rival Link)</span>
           </button>
         </div>
 
@@ -1637,17 +2201,16 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               {studyDifficulty === 'exam_prep' ? (
                 <>
                   <GraduationCap className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                  <span>Exam Prep (4-Choice Scenarios)</span>
+                  <span>Exam Prep (4-Choice)</span>
                 </>
               ) : (
                 <>
                   <Feather className="w-3.5 h-3.5 shrink-0" />
-                  <span>Casual (3-Choice Definitions + Hints)</span>
+                  <span>Casual (3-Choice + Hints)</span>
                 </>
               )}
             </button>
 
-            {/* Randomize Questions Toggle to prevent rote memorization */}
             <button
               type="button"
               data-testid="toggle-randomize-questions-btn"
@@ -1682,7 +2245,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   return next;
                 });
               }}
-              className={`min-h-[34px] px-3 rounded-lg border border-black font-black text-xs inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+              className={`min-h-[34px] px-3 rounded-lg border border-black font-black text-xs inline-flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap ${
                 isExamMode
                   ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
@@ -1692,6 +2255,21 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               <span>{isExamMode ? 'Exit Exam Mode' : 'Exam Focus Mode'}</span>
             </button>
 
+            {onOpenLeaderboard && (
+              <button
+                type="button"
+                data-testid="open-quiz-leaderboard-btn"
+                onClick={() => {
+                  onOpenLeaderboard();
+                  marioAudio.playCoin();
+                }}
+                className="min-h-[34px] px-3 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/70 inline-flex items-center gap-1.5 text-xs font-black text-amber-300 cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Leaderboard</span>
+              </button>
+            )}
+
             {onOpenBossBattleLog && (
               <button
                 type="button"
@@ -1700,7 +2278,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   onOpenBossBattleLog();
                   marioAudio.playCoin();
                 }}
-                className="min-h-[34px] px-3 rounded-lg bg-red-950/90 hover:bg-red-900 border border-red-600 inline-flex items-center gap-1.5 text-xs font-black text-amber-300 tabular-nums cursor-pointer whitespace-nowrap"
+                className="min-h-[34px] px-3 rounded-lg bg-red-950/90 hover:bg-red-900 border border-red-600 inline-flex items-center gap-1.5 text-xs font-black text-amber-300 tabular-nums cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>Boss Log ({bossBattleLogCount})</span>
@@ -1713,10 +2291,10 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 onOpenProfile?.();
                 marioAudio.playCoin();
               }}
-              className="min-h-[34px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 inline-flex items-center gap-1.5 text-xs font-bold text-slate-200 tabular-nums cursor-pointer whitespace-nowrap"
+              className="min-h-[34px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 inline-flex items-center gap-1.5 text-xs font-bold text-slate-200 tabular-nums cursor-pointer whitespace-nowrap shrink-0"
             >
               <Award className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Achievements:</span>
+              <span>Badges:</span>
               <span className="text-amber-400 font-mario">
                 {unlockedAchievementsCount !== undefined ? unlockedAchievementsCount : badges.length}
               </span>
@@ -2286,40 +2864,12 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
 
           {!quickComplete && quickQ ? (
             <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-7 space-y-5">
-              {/* Progress Bar (1 of 5 .. 5 of 5) */}
-              <div className="space-y-2 border-b-2 border-slate-200 pb-3.5">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-black text-slate-800">
-                  <span className="inline-flex items-center gap-1.5 text-emerald-800">
-                    <span className="font-mario text-[11px] text-red-600">
-                      QUICK Q {quickIdx + 1} OF {quickDeck.length}
-                    </span>
-                    <span className="text-slate-400">·</span>
-                    <span className="text-slate-700 truncate">{quickQ.world}</span>
-                  </span>
-                  <span className="text-slate-900 font-extrabold text-xs tabular-nums">
-                    Accuracy so far: {quickRecords.filter((r) => r.isCorrect).length} / {quickRecords.length}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-5 gap-1.5">
-                  {quickDeck.map((item, idx) => {
-                    const rec = quickRecords[idx];
-                    const stateClass = rec
-                      ? rec.isCorrect
-                        ? 'bg-emerald-500'
-                        : 'bg-rose-500'
-                      : idx === quickIdx
-                      ? 'bg-amber-400'
-                      : 'bg-slate-200';
-                    return (
-                      <div
-                        key={item.id}
-                        className={`h-2.5 rounded-full border border-black transition-colors ${stateClass}`}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+              {renderMarioStageProgressBar({
+                currentStep: quickIdx + 1,
+                totalSteps: quickDeck.length,
+                stageTitle: quickQ.world,
+                rightLabel: `Accuracy: ${quickRecords.filter((r) => r.isCorrect).length}/${quickRecords.length}`,
+              })}
 
               {/* Question Prompt */}
               <div className="bg-slate-50 border-3 border-slate-800 rounded-2xl p-4 sm:p-6 space-y-2.5">
@@ -2460,6 +3010,10 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               data-testid="quick-test-summary"
               className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-5 sm:p-8 space-y-6"
             >
+              {renderMarioCourseOutcomeBanner({
+                accuracyPercent: quickSummary.accuracyPercent,
+                courseTitle: `${activeWorldTitle} Quick Sprint`,
+              })}
               <div className="text-center space-y-3">
                 <div className="w-16 h-16 bg-amber-400 border-4 border-black rounded-2xl mx-auto flex items-center justify-center shadow-[0_4px_0_#000]">
                   <MarioStarIcon className="w-9 h-9" />
@@ -2633,26 +3187,12 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
 
           {!flashbackComplete && flashbackQ ? (
             <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-7 space-y-5">
-              {/* Progress Bar (1 of 5 .. 5 of 5) */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-black font-mario text-slate-800">
-                  <span className="flex items-center gap-1.5 text-rose-600">
-                    <Target className="w-4 h-4 shrink-0" />
-                    <span>FLASHBACK {flashbackIdx + 1} OF {flashbackDeck.length}</span>
-                  </span>
-                  <span className="text-slate-500 font-mono">
-                    {flashbackQ.world}
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden border-2 border-black">
-                  <div
-                    className="h-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all duration-300"
-                    style={{
-                      width: `${((flashbackIdx + 1) / flashbackDeck.length) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
+              {renderMarioStageProgressBar({
+                currentStep: flashbackIdx + 1,
+                totalSteps: flashbackDeck.length,
+                stageTitle: flashbackQ.world,
+                rightLabel: 'Weakness Drill',
+              })}
 
               {/* Scenario Prompt */}
               <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border-2 border-slate-900 space-y-2">
@@ -2775,6 +3315,10 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               data-testid="flashback-test-summary"
               className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-5 sm:p-8 space-y-6"
             >
+              {renderMarioCourseOutcomeBanner({
+                accuracyPercent: flashbackSummary.accuracyPercent,
+                courseTitle: 'Weakness Drill Stage',
+              })}
               <div className="text-center space-y-3">
                 <div className="w-16 h-16 bg-rose-500 border-4 border-black rounded-2xl mx-auto flex items-center justify-center shadow-[0_4px_0_#000] text-white">
                   <RotateCcw className="w-9 h-9" />
@@ -2997,27 +3541,106 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 wrongShakeNonce > 0 ? 'mario-wrong-shake ring-4 ring-rose-500' : ''
               }`}
             >
-              <div className="space-y-2 border-b-2 border-slate-200 pb-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-black text-slate-800">
-                  <span className="inline-flex items-center gap-2 text-red-600">
-                    <span className="font-mario text-[11px]">
-                      STAGE {currentIdx + 1} OF {activePracticePool.length}
-                    </span>
-                    <span className="text-slate-400">·</span>
-                    <span className="text-slate-700">{q.world}</span>
-                  </span>
-                  <span className="text-emerald-800 font-extrabold text-xs tabular-nums">
-                    Score: {score} / {currentIdx + (isAnswerSubmitted ? 1 : 0)}
-                  </span>
-                </div>
+              {renderMarioStageProgressBar({
+                currentStep: currentIdx + 1,
+                totalSteps: activePracticePool.length,
+                stageTitle: q.world,
+                rightLabel: `Score: ${score}/${currentIdx + (isAnswerSubmitted ? 1 : 0)}`,
+                lives: practiceLives,
+                maxLives: INITIAL_QUIZ_LIVES,
+              })}
 
-                <div className="w-full bg-slate-200 h-3 rounded-full border-2 border-black overflow-hidden">
-                  <div
-                    className="bg-amber-400 h-full border-r-2 border-black transition-all duration-300"
-                    style={{ width: `${((currentIdx + 1) / activePracticePool.length) * 100}%` }}
-                  />
+              {oneUpRecoveryBanner && (
+                <div className="p-3.5 rounded-2xl bg-emerald-100 border-3 border-emerald-700 text-emerald-950 font-black text-xs sm:text-sm flex items-center gap-2.5">
+                  <Mario1UpIcon className="w-6 h-6 shrink-0" />
+                  <span>{oneUpRecoveryBanner}</span>
                 </div>
-              </div>
+              )}
+
+              {/* 1-Up [?] Block Finder Recovery Mini-Game when Lives hit 0 */}
+              {oneUpBlocks && (
+                <div
+                  data-testid="oneup-recovery-minigame"
+                  className="rounded-3xl bg-slate-950 text-white p-5 border-4 border-amber-400 shadow-[0_4px_0_#000] space-y-4 text-center"
+                >
+                  <div className="space-y-1">
+                    <span className="font-mario text-[10px] text-amber-300 uppercase block">
+                      0 LIVES REMAINING · EMERGENCY TOAD HOUSE BONUS!
+                    </span>
+                    <h4 className="text-lg sm:text-xl font-black font-display text-white">
+                      Strike a Mystery [?] Block to Find the Hidden 1-Up Mushroom!
+                    </h4>
+                    <p className="text-xs text-slate-300 font-semibold">
+                      Hit the lucky block containing the Green 1-Up Mushroom to restore +1 Life and save your run!
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                    {oneUpBlocks.map((blk) => {
+                      const revealed = oneUpPickedIdx !== null;
+                      const isChosen = oneUpPickedIdx === blk.index;
+                      return (
+                        <button
+                          key={blk.index}
+                          type="button"
+                          data-testid={`oneup-block-${blk.index}`}
+                          disabled={revealed}
+                          onClick={() => handlePickOneUpBlock(blk)}
+                          className={`min-h-[84px] rounded-2xl border-3 border-black flex flex-col items-center justify-center gap-1.5 p-3 font-black cursor-pointer transition-transform active:translate-y-0.5 ${
+                            !revealed
+                              ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-[0_4px_0_#000]'
+                              : blk.hasOneUp
+                              ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-200'
+                              : isChosen
+                              ? 'bg-rose-700 text-white'
+                              : 'bg-slate-800 text-slate-400 opacity-65'
+                          }`}
+                        >
+                          {!revealed ? (
+                            <>
+                              <MarioQuestionBlockIcon className="w-9 h-9" />
+                              <span className="font-mario text-[9px]">HIT #{blk.index + 1}</span>
+                            </>
+                          ) : blk.hasOneUp ? (
+                            <>
+                              <Mario1UpIcon className="w-9 h-9" />
+                              <span className="font-mario text-[9px]">+1 UP!</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-7 h-7" />
+                              <span className="font-mario text-[9px]">EMPTY</span>
+                            </>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {practiceGameOver && (
+                <div
+                  data-testid="practice-lives-gameover"
+                  className="rounded-3xl bg-gradient-to-b from-red-950 to-slate-950 text-white p-6 border-4 border-red-600 text-center space-y-4"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-red-800 border-3 border-black mx-auto flex items-center justify-center">
+                    <MarioBowserIcon className="w-10 h-10" />
+                  </div>
+                  <span className="font-mario text-xs text-amber-300 block">GAME OVER · OUT OF MARIO LIVES</span>
+                  <h4 className="text-2xl font-black font-display">
+                    You Reached Stage {currentIdx + 1} with Score {score}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => resetPracticeRun(worldFilter, runLimit, true)}
+                    className="min-h-[46px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Continue with 3 Fresh Mario Lives</span>
+                  </button>
+                </div>
+              )}
 
               <div className="bg-slate-50 border-3 border-slate-800 rounded-2xl p-4 sm:p-6 space-y-2">
                 <span className="text-xs font-black uppercase text-amber-700 tracking-wider font-mario block">
@@ -3146,6 +3769,10 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
             </div>
           ) : (
             <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-6 sm:p-10 text-center space-y-6">
+              {renderMarioCourseOutcomeBanner({
+                accuracyPercent: Math.round((score / Math.max(1, activePracticePool.length)) * 100),
+                courseTitle: 'Practice Doctrine Arena',
+              })}
               <div className="w-20 h-20 bg-amber-400 border-4 border-black rounded-full mx-auto flex items-center justify-center shadow-[0_4px_0_#000]">
                 <MarioFlagIcon className="w-10 h-10" />
               </div>
@@ -3494,6 +4121,418 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 <span>Retry Boss Battle</span>
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ==================== MODE 3: KOOPA BOSS GAUNTLET (10 HARD QS, <=1 MISS -> EXCLUSIVE FRAME) ==================== */}
+      {activeMode === 'koopa_boss' && (
+        <div data-testid="koopa-boss-mode-view" className="space-y-5">
+          <div className="bg-gradient-to-r from-emerald-950 via-lime-950 to-slate-950 text-white rounded-3xl p-5 sm:p-7 mario-card border-4 border-slate-950 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-lime-400 text-slate-950 font-black rounded-lg border border-black text-[10px] uppercase font-mario">
+                  <Shield className="w-3.5 h-3.5 shrink-0" />
+                  <span>10 HARD QUESTIONS · MAX 1 MISS ALLOWED</span>
+                </div>
+                <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white font-display">
+                  KOOPA SOVEREIGN CITADEL GAUNTLET
+                </h2>
+                <p className="text-xs sm:text-sm text-lime-100 font-semibold max-w-2xl">
+                  Conquer {KOOPA_BOSS_TOTAL_QUESTIONS} consecutive Exam-Prep Bar scenarios with at most{' '}
+                  {KOOPA_BOSS_MAX_MISSES} wrong answer (`9/10` or `10/10`) to unlock the exclusive{' '}
+                  <strong>Koopa Sovereign Shell Card Frame</strong> + <strong>150 Bonus Coins</strong>!
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  startFreshKoopaBoss();
+                  marioAudio.playPowerUp();
+                }}
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <RotateCcw className="w-4 h-4 shrink-0" />
+                <span>Fresh 10-Q Gauntlet</span>
+              </button>
+            </div>
+          </div>
+
+          {koopaState.status === 'active' && koopaQ ? (
+            <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-7 space-y-5">
+              {renderMarioStageProgressBar({
+                currentStep: koopaIdx + 1,
+                totalSteps: koopaDeck.length,
+                stageTitle: koopaQ.world,
+                rightLabel: `Misses: ${koopaState.missCount}/${KOOPA_BOSS_MAX_MISSES} Max`,
+                lives: Math.max(0, KOOPA_BOSS_MAX_MISSES + 1 - koopaState.missCount),
+                maxLives: KOOPA_BOSS_MAX_MISSES + 1,
+              })}
+
+              <div className="bg-slate-50 border-3 border-slate-900 rounded-2xl p-4 sm:p-6 space-y-2">
+                <span className="text-[11px] font-black uppercase text-emerald-800 font-mario block">
+                  KOOPA CITADEL HARD HYPOTHETICAL #{koopaIdx + 1}
+                </span>
+                <p className={`${bodyTextClass} font-extrabold text-slate-950 leading-relaxed`}>
+                  &ldquo;{koopaQ.scenario}&rdquo;
+                </p>
+              </div>
+
+              {renderQuizCoinLifelineBar({
+                optionsCount: koopaQ.options.length,
+                correctIndex: koopaQ.correctIndex,
+                legalBasis: koopaQ.legalBasis,
+                hint: koopaQ.hint,
+                explanation: koopaQ.explanation,
+                submitted: koopaSubmitted,
+              })}
+
+              <div className="space-y-2.5">
+                {koopaQ.options.map((opt, idx) => {
+                  const isZapped = !koopaSubmitted && eliminatedOptions.includes(idx);
+                  let optStyle = 'bg-white hover:bg-slate-100 border-slate-800 text-slate-900';
+                  if (isZapped) {
+                    optStyle = 'bg-slate-100 border-slate-300 text-slate-400 line-through opacity-55';
+                  } else if (koopaSelected === idx) {
+                    optStyle = 'bg-lime-100 border-lime-700 text-slate-950 ring-2 ring-lime-400';
+                  }
+                  if (koopaSubmitted) {
+                    if (idx === koopaQ.correctIndex) {
+                      optStyle = 'bg-emerald-100 border-emerald-700 text-emerald-950 ring-3 ring-emerald-400';
+                    } else if (koopaSelected === idx) {
+                      optStyle = 'bg-rose-100 border-rose-600 text-rose-950';
+                    }
+                  }
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={koopaSubmitted || isZapped}
+                      onClick={() => {
+                        setKoopaSelected(idx);
+                        marioAudio.playJump();
+                      }}
+                      className={`w-full min-h-[52px] text-left p-3.5 sm:p-4 rounded-xl border-3 transition-all flex items-start gap-3 cursor-pointer ${optStyle}`}
+                    >
+                      <span className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-slate-950 text-lime-300 text-xs sm:text-sm font-black font-mario">
+                        {String.fromCharCode(65 + idx)}
+                      </span>
+                      <span className={`${bodyTextClass} font-bold leading-snug pt-0.5`}>{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {koopaSubmitted && (
+                <div
+                  className={`p-4 rounded-2xl border-3 space-y-1.5 ${
+                    koopaSelected === koopaQ.correctIndex
+                      ? 'bg-emerald-50 border-emerald-600 text-emerald-950'
+                      : 'bg-rose-50 border-rose-600 text-rose-950'
+                  }`}
+                >
+                  <div className="font-mario text-xs font-black">
+                    {koopaSelected === koopaQ.correctIndex
+                      ? 'SHELL CRACKED! +10 COINS!'
+                      : 'WARNING: 1 SHELL SHIELD LOST (0 MISSES LEFT)!'}
+                  </div>
+                  <p className="text-xs sm:text-sm font-semibold">
+                    {koopaQ.explanation} ({koopaQ.legalBasis})
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2 border-t-2 border-slate-200">
+                {!koopaSubmitted ? (
+                  <button
+                    type="button"
+                    data-testid="koopa-submit-btn"
+                    disabled={koopaSelected === null}
+                    onClick={handleSubmitKoopaAnswer}
+                    className="min-h-[46px] px-6 py-2.5 rounded-xl bg-lime-400 hover:bg-lime-300 disabled:opacity-45 text-slate-950 font-black border-3 border-black shadow-[0_3px_0_#000] cursor-pointer"
+                  >
+                    Lock In Ruling
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    data-testid="koopa-next-btn"
+                    onClick={handleNextKoopaQuestion}
+                    className="min-h-[46px] px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Next Citadel Question</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : koopaState.status === 'victory' ? (
+            <div
+              data-testid="koopa-boss-victory-card"
+              className="bg-gradient-to-b from-emerald-950 via-slate-900 to-black text-white rounded-3xl p-6 sm:p-10 border-4 border-lime-400 shadow-[6px_6px_0_#000] text-center space-y-5"
+            >
+              {renderMarioCourseOutcomeBanner({
+                accuracyPercent: Math.round((koopaState.correctCount / koopaDeck.length) * 100),
+                courseTitle: 'Koopa Sovereign Citadel',
+              })}
+              <h3 className="text-2xl sm:text-4xl font-black font-display text-lime-300">
+                KOOPA SOVEREIGN SHELL FRAME UNLOCKED!
+              </h3>
+              <p className="text-sm text-slate-200 max-w-lg mx-auto font-semibold">
+                You cleared all {koopaDeck.length} hard questions with {koopaState.correctCount}/
+                {koopaDeck.length} correct and earned +150 Gold Coins plus the exclusive Koopa Sovereign Topic Card Frame!
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  data-testid="equip-koopa-frame-btn"
+                  onClick={handleEquipKoopaFrameNow}
+                  className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-black border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-5 h-5" />
+                  <span>
+                    {koopaFrameEquippedFeedback
+                      ? 'Koopa Sovereign Frame Equipped!'
+                      : 'Equip Koopa Sovereign Frame Now'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={startFreshKoopaBoss}
+                  className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-black border-2 border-slate-600 inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Play Another 10-Q Gauntlet</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              data-testid="koopa-boss-defeat-card"
+              className="bg-gradient-to-b from-rose-950 to-slate-950 text-white rounded-3xl p-6 sm:p-10 border-4 border-rose-600 shadow-[6px_6px_0_#000] text-center space-y-5"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-rose-800 border-3 border-black mx-auto flex items-center justify-center">
+                <MarioBowserIcon className="w-10 h-10" />
+              </div>
+              <span className="font-mario text-xs text-amber-300 block">
+                GAME OVER · EXCEEDED 1-MISS LIMIT ({koopaState.missCount} MISSES)
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-black font-display">
+                Koopa Citadel Repelled Your Advance at Question {koopaState.answeredCount}
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  startFreshKoopaBoss();
+                  marioAudio.playPowerUp();
+                }}
+                className="min-h-[48px] px-7 py-2.5 rounded-2xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-black border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              >
+                <RotateCcw className="w-5 h-5" />
+                <span>Retry Koopa Boss Gauntlet</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ==================== MODE 4: ASYNC 3-QUESTION QUIZ BATTLE ==================== */}
+      {activeMode === 'async_battle' && (
+        <div data-testid="async-battle-mode-view" className="space-y-5">
+          <div className="bg-gradient-to-r from-violet-950 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 sm:p-7 mario-card border-4 border-slate-950 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-violet-300 text-slate-950 font-black rounded-lg border border-black text-[10px] uppercase font-mario">
+                  <Swords className="w-3.5 h-3.5 shrink-0" />
+                  <span>ASYNC 3-QUESTION DUEL · SCORE &amp; SPEED</span>
+                </div>
+                <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white font-display">
+                  ASYNCHRONOUS BAR QUIZ BATTLE
+                </h2>
+                <p className="text-xs sm:text-sm text-violet-100 font-semibold max-w-2xl">
+                  {incomingChallenge
+                    ? `Challenged by ${incomingChallenge.challengerName}: Beat ${incomingChallenge.challengerScore}/3 in ${incomingChallenge.challengerTimeSec}s!`
+                    : 'Pick any Labor Law World, race 3 timed Bar questions against a Rival Counsel, and share your Challenge Link with friends!'}
+                </p>
+              </div>
+              <div className="px-4 py-2 rounded-2xl bg-slate-950 border-2 border-violet-400 font-mono font-black text-amber-300 text-base tabular-nums shrink-0">
+                Time: {asyncElapsedSec}s
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-white/15 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase text-violet-300 font-mario mr-1">
+                BATTLE WORLD:
+              </span>
+              {worldSelectOptions.map((opt) => (
+                <button
+                  key={opt.worldId}
+                  type="button"
+                  onClick={() => {
+                    startFreshAsyncBattle(opt.worldId, false);
+                    marioAudio.playPipe();
+                  }}
+                  className={`min-h-[38px] px-3 rounded-xl text-xs font-black border border-black cursor-pointer whitespace-nowrap ${
+                    asyncWorld === opt.worldId
+                      ? 'bg-violet-300 text-slate-950 shadow-[0_2px_0_#000]'
+                      : 'bg-slate-950/60 text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {!asyncComplete && asyncQ ? (
+            <div className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-7 space-y-5">
+              {renderMarioStageProgressBar({
+                currentStep: asyncIdx + 1,
+                totalSteps: asyncDeck.length,
+                stageTitle: asyncQ.world,
+                rightLabel: `Duel Score: ${asyncScore}/${asyncIdx + (asyncSubmitted ? 1 : 0)}`,
+              })}
+
+              <div className="bg-slate-50 border-3 border-slate-900 rounded-2xl p-4 sm:p-6 space-y-2">
+                <span className="text-[11px] font-black uppercase text-violet-800 font-mario block">
+                  DUEL ROUND {asyncIdx + 1} OF 3
+                </span>
+                <p className={`${bodyTextClass} font-extrabold text-slate-950 leading-relaxed`}>
+                  &ldquo;{asyncQ.scenario}&rdquo;
+                </p>
+              </div>
+
+              <div className="space-y-2.5">
+                {asyncQ.options.map((opt, idx) => {
+                  let optStyle = 'bg-white hover:bg-slate-100 border-slate-800 text-slate-900';
+                  if (asyncSelected === idx) {
+                    optStyle = 'bg-violet-100 border-violet-700 text-slate-950 ring-2 ring-violet-400';
+                  }
+                  if (asyncSubmitted) {
+                    if (idx === asyncQ.correctIndex) {
+                      optStyle = 'bg-emerald-100 border-emerald-700 text-emerald-950 ring-3 ring-emerald-400';
+                    } else if (asyncSelected === idx) {
+                      optStyle = 'bg-rose-100 border-rose-600 text-rose-950';
+                    }
+                  }
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={asyncSubmitted}
+                      onClick={() => {
+                        setAsyncSelected(idx);
+                        marioAudio.playJump();
+                      }}
+                      className={`w-full min-h-[52px] text-left p-3.5 sm:p-4 rounded-xl border-3 transition-all flex items-start gap-3 cursor-pointer ${optStyle}`}
+                    >
+                      <span className="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-slate-950 text-violet-300 text-xs font-black font-mario">
+                        {String.fromCharCode(65 + idx)}
+                      </span>
+                      <span className={`${bodyTextClass} font-bold leading-snug pt-0.5`}>{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end pt-2 border-t-2 border-slate-200">
+                {!asyncSubmitted ? (
+                  <button
+                    type="button"
+                    data-testid="async-submit-btn"
+                    disabled={asyncSelected === null}
+                    onClick={handleSubmitAsyncAnswer}
+                    className="min-h-[46px] px-6 py-2.5 rounded-xl bg-violet-400 hover:bg-violet-300 disabled:opacity-45 text-slate-950 font-black border-3 border-black shadow-[0_3px_0_#000] cursor-pointer"
+                  >
+                    Lock In Duel Answer
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    data-testid="async-next-btn"
+                    onClick={handleNextAsyncQuestion}
+                    className="min-h-[46px] px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>{asyncIdx < asyncDeck.length - 1 ? 'Next Duel Round' : 'Compare Duel Scorecard'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            (() => {
+              const rival = incomingChallenge
+                ? {
+                    rivalName: incomingChallenge.challengerName,
+                    rivalScore: incomingChallenge.challengerScore,
+                    rivalTimeSec: incomingChallenge.challengerTimeSec,
+                  }
+                : computeSimulatedRivalResult(`${asyncWorld}_${asyncDeck.map((d) => d.id).join('_')}`);
+              const didWin =
+                asyncScore > rival.rivalScore ||
+                (asyncScore === rival.rivalScore && asyncElapsedSec <= rival.rivalTimeSec);
+
+              return (
+                <div
+                  data-testid="async-battle-results-card"
+                  className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-6 sm:p-8 space-y-6"
+                >
+                  {renderMarioCourseOutcomeBanner({
+                    accuracyPercent: Math.round((asyncScore / Math.max(1, asyncDeck.length)) * 100),
+                    courseTitle: didWin ? 'Async Duel Victory!' : 'Close Rival Duel!',
+                  })}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 tabular-nums">
+                    <div className="p-5 rounded-2xl bg-emerald-50 border-3 border-emerald-700 space-y-1 text-center">
+                      <span className="font-mario text-[10px] text-emerald-800 block">YOU (CHALLENGER)</span>
+                      <div className="text-3xl font-black text-slate-950 font-display">
+                        {asyncScore} / 3
+                      </div>
+                      <div className="text-xs font-extrabold text-emerald-800">
+                        Clear Time: {asyncElapsedSec}s
+                      </div>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-violet-50 border-3 border-violet-700 space-y-1 text-center">
+                      <span className="font-mario text-[10px] text-violet-800 block truncate">
+                        RIVAL · {rival.rivalName.toUpperCase()}
+                      </span>
+                      <div className="text-3xl font-black text-slate-950 font-display">
+                        {rival.rivalScore} / 3
+                      </div>
+                      <div className="text-xs font-extrabold text-violet-800">
+                        Clear Time: {rival.rivalTimeSec}s
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      data-testid="copy-async-challenge-link-btn"
+                      onClick={handleCopyAsyncShareUrl}
+                      className="min-h-[46px] px-5 py-2.5 rounded-2xl bg-violet-500 hover:bg-violet-400 text-white font-black border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      {asyncCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      <span>
+                        {asyncCopied
+                          ? 'Challenge Link Copied to Clipboard!'
+                          : 'Copy Shareable 3-Q Challenge Link'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => startFreshAsyncBattle(asyncWorld, false)}
+                      className="min-h-[46px] px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>New 3-Question Duel</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()
           )}
         </div>
       )}

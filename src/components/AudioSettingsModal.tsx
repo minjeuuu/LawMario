@@ -137,20 +137,20 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
       role="dialog"
       aria-label="Mushroom Sound Settings"
       data-testid="audio-settings-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs select-none print:hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/75 backdrop-blur-xs select-none print:hidden"
     >
-      <div className="bg-[#1e293b] text-white w-full max-w-lg rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden">
+      <div className="bg-[#1e293b] text-white w-full max-w-lg rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-x-hidden overflow-y-hidden flex flex-col max-h-[92dvh]">
         {/* Modal Header */}
-        <div className="bg-[#0f172a] p-4 sm:p-5 border-b-3 border-slate-700 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000]">
-              <Sliders className="w-6 h-6 text-slate-950" />
+        <div className="bg-[#0f172a] p-3.5 sm:p-5 border-b-3 border-slate-700 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-amber-400 rounded-xl border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
+              <Sliders className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             </div>
-            <div>
-              <span className="text-xs font-black uppercase text-amber-400 font-mario block">
+            <div className="min-w-0">
+              <span className="text-[9px] sm:text-xs font-black uppercase text-amber-400 font-mario block truncate">
                 SOUNDSCAPES &amp; SFX MIXER
               </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white font-display">
+              <h2 className="text-base sm:text-2xl font-black text-white font-display leading-tight truncate">
                 MUSHROOM SOUND SETTINGS
               </h2>
             </div>
@@ -159,7 +159,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close Sound Settings"
-            className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer"
+            className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
             title="Close Settings"
           >
             <X className="w-5 h-5" />
@@ -167,20 +167,20 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+        <div className="p-3.5 sm:p-6 space-y-5 overflow-y-auto overflow-x-hidden flex-1">
           {/* Master Sound Switch */}
-          <div className="bg-slate-900/90 rounded-2xl p-4 border-2 border-slate-700 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="bg-slate-900/90 rounded-2xl p-3.5 sm:p-4 border-2 border-slate-700 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <div
-                className={`w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center ${
+                className={`w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0 ${
                   settings.enabled ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-500'
                 }`}
               >
                 {settings.enabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </div>
-              <div>
-                <span className="font-black text-base block">Master Audio</span>
-                <span className="text-xs font-semibold text-slate-400">
+              <div className="min-w-0">
+                <span className="font-black text-sm sm:text-base block">Master Audio</span>
+                <span className="text-xs font-semibold text-slate-400 block">
                   {settings.enabled ? 'Synthesizer & soundscapes ready' : 'All audio globally muted'}
                 </span>
               </div>
@@ -188,7 +188,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
             <button
               type="button"
               onClick={handleToggleEnabled}
-              className={`px-4 py-2 rounded-xl font-black text-sm border-2 border-black cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all ${
+              className={`px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm border-2 border-black cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all shrink-0 ${
                 settings.enabled
                   ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
                   : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
@@ -202,20 +202,20 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
           {setShowLegalCitations && (
             <div
               data-testid="legal-citations-setting-card"
-              className="bg-slate-900/90 rounded-2xl p-4 border-2 border-amber-400/70 flex items-center justify-between gap-3"
+              className="bg-slate-900/90 rounded-2xl p-3.5 sm:p-4 border-2 border-amber-400/70 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                 <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
                   <MarioStarIcon className="w-5 h-5" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-black text-sm sm:text-base text-white">Legal Citations Display</span>
-                    <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-mario leading-none">
+                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-mario leading-none shrink-0">
                       BAR STUDY
                     </span>
                   </div>
-                  <span className="text-xs text-slate-400 block mt-0.5">
+                  <span className="text-xs text-slate-400 block mt-0.5 leading-snug">
                     Reveal or hide explicit Article numbers (e.g. Art. 83) and Republic Acts in topic cards.
                   </span>
                 </div>
@@ -226,7 +226,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   setShowLegalCitations(!showLegalCitations);
                   marioAudio.playCoin();
                 }}
-                className={`px-4 py-2 rounded-xl font-black text-xs font-mario border-2 border-black cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all ${
+                className={`px-3 py-2 rounded-xl font-black text-[10px] font-mario border-2 border-black cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all shrink-0 ${
                   showLegalCitations
                     ? 'bg-amber-400 text-slate-950'
                     : 'bg-slate-700 text-slate-300'
@@ -238,19 +238,19 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
           )}
 
           {/* Ambient Mario Soundscape Selector + BGM Player */}
-          <div className="bg-slate-900/95 rounded-2xl p-4 border-2 border-amber-400/60 space-y-3.5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+          <div className="bg-slate-900/95 rounded-2xl p-3.5 sm:p-4 border-2 border-amber-400/60 space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Disc3
                   className={`w-5 h-5 text-amber-400 shrink-0 ${
                     isMusicActive ? 'animate-spin' : ''
                   }`}
                 />
-                <div>
-                  <span className="text-xs font-black uppercase text-amber-400 font-mario block">
+                <div className="min-w-0">
+                  <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 font-mario block leading-snug">
                     MARIO AMBIENT SOUNDSCAPES
                   </span>
-                  <span className="text-xs text-slate-300 font-semibold">
+                  <span className="text-xs text-slate-300 font-semibold block">
                     Choose a themed background study soundtrack
                   </span>
                 </div>
@@ -259,7 +259,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                 type="button"
                 onClick={handleToggleMusic}
                 data-testid="modal-bgm-toggle"
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs border-2 border-black cursor-pointer shadow-[0_2px_0_#000] transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs border-2 border-black cursor-pointer shadow-[0_2px_0_#000] transition-all shrink-0 ${
                   isMusicActive
                     ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950'
                     : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
@@ -267,12 +267,12 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
               >
                 {isMusicActive ? (
                   <>
-                    <Pause className="w-3.5 h-3.5 fill-current" />
+                    <Pause className="w-3.5 h-3.5 fill-current shrink-0" />
                     <span>PAUSE BGM</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <Play className="w-3.5 h-3.5 fill-current shrink-0" />
                     <span>PLAY BGM</span>
                   </>
                 )}
@@ -376,12 +376,12 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
             {/* Atmospheric Background Ambiance Toggle & Volume */}
             <div className="pt-2.5 border-t border-slate-800 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <span className="text-xs font-black uppercase text-sky-400 font-mario block">
+              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] sm:text-xs font-black uppercase text-sky-400 font-mario block">
                     BACKGROUND AMBIANCE
                   </span>
-                  <span className="text-[11px] text-slate-300 font-medium">
+                  <span className="text-[11px] text-slate-300 font-medium block leading-snug">
                     Subtle, loopable atmospheric game soundscapes (waterfall, underground dripping, castle fire) tied to theme
                   </span>
                 </div>
@@ -390,7 +390,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   data-testid="ambiance-toggle-btn"
                   onClick={handleToggleAmbiance}
                   disabled={!settings.enabled}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs font-mario border-2 border-black cursor-pointer shadow-[0_2px_0_#000] transition-all whitespace-nowrap ${
+                  className={`px-2.5 py-1.5 rounded-xl font-black text-[10px] font-mario border-2 border-black cursor-pointer shadow-[0_2px_0_#000] transition-all shrink-0 ${
                     settings.ambianceEnabled && settings.enabled
                       ? 'bg-sky-400 text-slate-950'
                       : 'bg-slate-700 text-slate-300'
@@ -423,37 +423,37 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
           </div>
 
           {/* Content Complexity Mode Toggle */}
-          <div className="bg-slate-900/90 rounded-2xl p-4 border-2 border-slate-700 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
+          <div className="bg-slate-900/90 rounded-2xl p-3.5 sm:p-4 border-2 border-slate-700 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
                   CONTENT COMPLEXITY MODE
                 </span>
                 <span className="text-xs text-slate-300 font-semibold block">
                   Switch summary style for all memory aid modules
                 </span>
               </div>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-black text-amber-300 border border-amber-400/50 font-mario">
+              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-black text-amber-300 border border-amber-400/50 font-mario shrink-0">
                 {complexityMode === 'beginner' ? 'BEGINNER' : 'ADVANCED'}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => {
                   if (setComplexityMode) setComplexityMode('beginner');
                   marioAudio.playPowerUp();
                 }}
-                className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer min-w-0 ${
                   complexityMode === 'beginner'
                     ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-600'
                 }`}
               >
-                <div className="flex items-center gap-1.5 font-black text-xs font-mario mb-1">
-                  <MarioMushroomIcon className="w-4 h-4" />
-                  <span>Mushroom Kingdom</span>
+                <div className="flex items-center gap-1.5 font-black text-[10px] font-mario mb-1 leading-snug">
+                  <MarioMushroomIcon className="w-4 h-4 shrink-0" />
+                  <span className="break-words">Mushroom Kingdom</span>
                 </div>
                 <p className="text-[11px] font-medium leading-tight opacity-90">
                   Beginner: Plain-English practical takeaways &amp; easy rules of thumb.
@@ -466,15 +466,15 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   if (setComplexityMode) setComplexityMode('advanced');
                   marioAudio.playFireball();
                 }}
-                className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer min-w-0 ${
                   complexityMode === 'advanced'
                     ? 'bg-red-600 text-white border-black shadow-[0_2px_0_#000]'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-600'
                 }`}
               >
-                <div className="flex items-center gap-1.5 font-black text-xs font-mario mb-1">
-                  <MarioStarIcon className="w-4 h-4" />
-                  <span>Bowser&apos;s Castle</span>
+                <div className="flex items-center gap-1.5 font-black text-[10px] font-mario mb-1 leading-snug">
+                  <MarioStarIcon className="w-4 h-4 shrink-0" />
+                  <span className="break-words">Bowser&apos;s Castle</span>
                 </div>
                 <p className="text-[11px] font-medium leading-tight opacity-90">
                   Advanced: Full codified articles, jurisprudence &amp; exhaustive exceptions.
@@ -485,19 +485,19 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
           {/* Section 1: Tab Switch SFX */}
           <div className="space-y-3">
-            <span className="text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
+            <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
               1. TAB SWITCH SOUND
             </span>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               {[
-                { id: 'pipe', label: 'Warp Pipe', icon: <MarioPipeIcon className="w-4 h-4" />, play: () => marioAudio.playPipe() },
-                { id: 'jump', label: 'Mario Jump', icon: <MarioMushroomIcon className="w-4 h-4" />, play: () => marioAudio.playJump() },
-                { id: 'coin', label: 'Coin Clink', icon: <MarioCoinIcon className="w-4 h-4" />, play: () => marioAudio.playCoin() },
-                { id: 'stomp', label: 'Enemy Stomp', icon: <MarioStarIcon className="w-4 h-4" />, play: () => marioAudio.playStomp() },
+                { id: 'pipe', label: 'Warp Pipe', icon: <MarioPipeIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playPipe() },
+                { id: 'jump', label: 'Mario Jump', icon: <MarioMushroomIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playJump() },
+                { id: 'coin', label: 'Coin Clink', icon: <MarioCoinIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playCoin() },
+                { id: 'stomp', label: 'Enemy Stomp', icon: <MarioStarIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playStomp() },
               ].map((opt) => (
                 <div
                   key={opt.id}
-                  className={`flex items-center justify-between p-2.5 rounded-xl border-2 transition-all ${
+                  className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border-2 transition-all min-w-0 ${
                     settings.tabSfx === opt.id
                       ? 'bg-amber-400/20 border-amber-400 text-white'
                       : 'bg-slate-900/60 border-slate-700 text-slate-300 hover:bg-slate-800'
@@ -506,17 +506,17 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleTabSfxChange(opt.id as TabSfxType)}
-                    className="flex items-center gap-2 font-bold text-sm cursor-pointer flex-1 text-left"
+                    className="flex items-center gap-2 font-bold text-xs sm:text-sm cursor-pointer flex-1 text-left min-w-0"
                   >
                     {opt.icon}
-                    <span>{opt.label}</span>
+                    <span className="truncate">{opt.label}</span>
                   </button>
                   <button
                     type="button"
                     onClick={opt.play}
                     aria-label={`Sample ${opt.label}`}
                     title="Sample Sound"
-                    className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-600 cursor-pointer"
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-600 cursor-pointer shrink-0"
                   >
                     <Play className="w-3.5 h-3.5" />
                   </button>
@@ -527,19 +527,19 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
           {/* Section 2: Topic Completion / Quiz Celebration SFX */}
           <div className="space-y-3">
-            <span className="text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
+            <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
               2. TOPIC COMPLETION &amp; QUIZ SOUND
             </span>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               {[
-                { id: 'coin', label: 'Coin Collect', icon: <MarioCoinIcon className="w-4 h-4" />, play: () => marioAudio.playCoin() },
-                { id: 'powerup', label: 'Super Mushroom', icon: <MarioMushroomIcon className="w-4 h-4" />, play: () => marioAudio.playPowerUp() },
-                { id: 'fireball', label: 'Fireball', icon: <MarioFireballIcon className="w-4 h-4" />, play: () => marioAudio.playFireball() },
-                { id: 'oneup', label: '1-Up Jingle', icon: <Mario1UpIcon className="w-4 h-4" />, play: () => marioAudio.playOneUp() },
+                { id: 'coin', label: 'Coin Collect', icon: <MarioCoinIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playCoin() },
+                { id: 'powerup', label: 'Super Mushroom', icon: <MarioMushroomIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playPowerUp() },
+                { id: 'fireball', label: 'Fireball', icon: <MarioFireballIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playFireball() },
+                { id: 'oneup', label: '1-Up Jingle', icon: <Mario1UpIcon className="w-4 h-4 shrink-0" />, play: () => marioAudio.playOneUp() },
               ].map((opt) => (
                 <div
                   key={opt.id}
-                  className={`flex items-center justify-between p-2.5 rounded-xl border-2 transition-all ${
+                  className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border-2 transition-all min-w-0 ${
                     settings.cardSfx === opt.id
                       ? 'bg-amber-400/20 border-amber-400 text-white'
                       : 'bg-slate-900/60 border-slate-700 text-slate-300 hover:bg-slate-800'
@@ -548,17 +548,17 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleCardSfxChange(opt.id as CardSfxType)}
-                    className="flex items-center gap-2 font-bold text-sm cursor-pointer flex-1 text-left"
+                    className="flex items-center gap-2 font-bold text-xs sm:text-sm cursor-pointer flex-1 text-left min-w-0"
                   >
                     {opt.icon}
-                    <span>{opt.label}</span>
+                    <span className="truncate">{opt.label}</span>
                   </button>
                   <button
                     type="button"
                     onClick={opt.play}
                     aria-label={`Sample ${opt.label}`}
                     title="Sample Sound"
-                    className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-600 cursor-pointer"
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-600 cursor-pointer shrink-0"
                   >
                     <Play className="w-3.5 h-3.5" />
                   </button>
@@ -566,7 +566,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 pt-1">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1">
               {[
                 { id: 'fanfare' as const, label: 'Fanfare', play: () => marioAudio.playFanfare() },
                 { id: 'star' as const, label: 'Star Theme', play: () => marioAudio.playStarTheme() },
@@ -579,7 +579,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                     handleQuizSfxChange(qOpt.id);
                     qOpt.play();
                   }}
-                  className={`py-2 px-2.5 rounded-xl border text-xs font-bold cursor-pointer ${
+                  className={`py-2 px-1.5 sm:px-2.5 rounded-xl border text-[11px] sm:text-xs font-bold cursor-pointer truncate ${
                     settings.quizSfx === qOpt.id
                       ? 'bg-emerald-500 text-slate-950 border-black font-black'
                       : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
@@ -593,16 +593,16 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
           {/* Section 3: Dedicated 8-Bit Sound Board */}
           <div className="space-y-3 pt-2 border-t-2 border-slate-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
                   3. INTERACTION SFX SOUND BOARD
                 </span>
-                <span className="text-xs text-slate-400 font-semibold">
+                <span className="text-xs text-slate-400 font-semibold block">
                   Preview coin collection, level-up, wrong-answer &amp; game-over cues
                 </span>
               </div>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-black text-amber-300 font-mario border border-amber-400/40">
+              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-black text-amber-300 font-mario border border-amber-400/40 shrink-0">
                 8-BIT MIXER
               </span>
             </div>
@@ -623,14 +623,14 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                 return (
                   <div
                     key={item.key}
-                    className={`p-2.5 rounded-xl border-2 transition-all flex flex-col justify-between gap-2 ${
+                    className={`p-2.5 rounded-xl border-2 transition-all flex flex-col justify-between gap-2 min-w-0 ${
                       isEnabled
                         ? 'bg-slate-900 border-amber-400/80 text-white'
                         : 'bg-slate-900/40 border-slate-700 text-slate-500'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs truncate">{item.label}</span>
+                    <div className="flex items-center justify-between gap-1 min-w-0">
+                      <span className="font-bold text-[11px] sm:text-xs truncate min-w-0">{item.label}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -643,7 +643,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                             },
                           });
                         }}
-                        className={`px-2 py-0.5 rounded text-[10px] font-black font-mario cursor-pointer transition-all ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-black font-mario cursor-pointer transition-all shrink-0 ${
                           isEnabled
                             ? 'bg-amber-400 text-slate-950'
                             : 'bg-slate-700 text-slate-300'
@@ -658,10 +658,10 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                       onClick={item.play}
                       disabled={!settings.enabled}
                       title={`Sample ${item.label} Sound`}
-                      className="flex items-center justify-center gap-1 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold border border-slate-600 disabled:opacity-40 cursor-pointer"
+                      className="flex items-center justify-center gap-1 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold border border-slate-600 disabled:opacity-40 cursor-pointer w-full"
                     >
-                      <Play className="w-3 h-3 fill-current" />
-                      <span>Test SFX</span>
+                      <Play className="w-3 h-3 fill-current shrink-0" />
+                      <span className="truncate">Test SFX</span>
                     </button>
                   </div>
                 );
@@ -671,16 +671,16 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
           {/* Section 4: Equipped Audio Pack & Synthesizer Timbre */}
           <div className="space-y-3 pt-2 border-t-2 border-slate-700" data-testid="audio-packs-section">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-xs font-black uppercase text-amber-400 tracking-wider block font-mario">
                   4. ACTIVE AUDIO PACK &amp; TIMBRE
                 </span>
-                <span className="text-xs text-slate-300 font-semibold">
+                <span className="text-xs text-slate-300 font-semibold block">
                   Equip soundpacks unlocked in Toad&apos;s Store to modify synthesized instruments
                 </span>
               </div>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-mario border border-black">
+              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-mario border border-black shrink-0">
                 STORE AUDIO PACKS
               </span>
             </div>
@@ -716,25 +716,25 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   <div
                     key={pack.id}
                     data-testid={`settings-soundpack-${pack.id}`}
-                    className={`p-3 rounded-2xl border-2 transition-all flex flex-col justify-between gap-2.5 ${
+                    className={`p-3 rounded-2xl border-2 transition-all flex flex-col justify-between gap-2.5 min-w-0 ${
                       isEquipped
                         ? 'bg-amber-400/15 border-amber-400 text-white shadow-[0_2px_0_#000]'
                         : 'bg-slate-900/80 border-slate-700 text-slate-300'
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="font-black text-xs sm:text-sm text-white font-display">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1">
+                        <span className="font-black text-xs sm:text-sm text-white font-display leading-snug">
                           {pack.name}
                         </span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-indigo-900 text-amber-300 border border-black font-mario">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-indigo-900 text-amber-300 border border-black font-mario">
                             {pack.badge}
                           </span>
                           {isEquipped && (
-                            <span className="text-[9px] font-black uppercase text-emerald-900 bg-emerald-300 px-1.5 py-0.5 rounded font-mario flex items-center gap-0.5">
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
-                              EQUIPPED
+                            <span className="text-[8px] font-black uppercase text-emerald-900 bg-emerald-300 px-1.5 py-0.5 rounded font-mario inline-flex items-center gap-0.5">
+                              <Check className="w-2.5 h-2.5 stroke-[3] shrink-0" />
+                              <span>EQUIPPED</span>
                             </span>
                           )}
                         </div>
@@ -744,14 +744,14 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-800">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-slate-800">
                       {isUnlocked ? (
                         <button
                           type="button"
                           onClick={() => marioAudio.toggleSoundPackFullTrack(pack.id)}
                           disabled={!settings.enabled}
                           data-testid={`settings-loop-soundpack-${pack.id}`}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer disabled:opacity-40 transition-colors ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer disabled:opacity-40 transition-colors ${
                             isEquipped && isMusicActive
                               ? 'bg-emerald-400 text-slate-950 border-black'
                               : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-600'
@@ -759,13 +759,13 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                         >
                           {isEquipped && isMusicActive ? (
                             <>
-                              <Pause className="w-3 h-3 fill-current" />
+                              <Pause className="w-3 h-3 fill-current shrink-0" />
                               <span>Pause Loop</span>
                             </>
                           ) : (
                             <>
-                              <Play className="w-3 h-3 fill-current" />
-                              <span>Play Full Loop</span>
+                              <Play className="w-3 h-3 fill-current shrink-0" />
+                              <span>Play Loop</span>
                             </>
                           )}
                         </button>
@@ -774,9 +774,9 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                           type="button"
                           onClick={() => marioAudio.previewSoundPack(pack.id)}
                           disabled={!settings.enabled}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold border border-slate-600 cursor-pointer disabled:opacity-40"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold border border-slate-600 cursor-pointer disabled:opacity-40"
                         >
-                          <Play className="w-3 h-3 fill-current" />
+                          <Play className="w-3 h-3 fill-current shrink-0" />
                           <span>Sample Tone</span>
                         </button>
                       )}
@@ -786,13 +786,13 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                           type="button"
                           onClick={() => marioAudio.setSoundPack(pack.id, true)}
                           disabled={isEquipped && isMusicActive}
-                          className={`px-3 py-1 rounded-lg font-black text-xs border cursor-pointer transition-all ${
+                          className={`px-2.5 py-1 rounded-lg font-black text-[11px] border cursor-pointer transition-all ${
                             isEquipped && isMusicActive
                               ? 'bg-emerald-500 text-slate-950 border-black cursor-default'
                               : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-black shadow-[0_1px_0_#000]'
                           }`}
                         >
-                          {isEquipped && isMusicActive ? 'Looping Live' : 'Equip & Loop'}
+                          {isEquipped && isMusicActive ? 'Live' : 'Equip & Loop'}
                         </button>
                       ) : (
                         <button
@@ -817,21 +817,21 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-[#0f172a] p-4 sm:p-5 border-t-2 border-slate-700 flex items-center justify-between gap-3">
+        <div className="bg-[#0f172a] p-3.5 sm:p-5 border-t-2 border-slate-700 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-600 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-600 cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5 shrink-0" />
             <span>Reset Defaults</span>
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex items-center gap-1.5 px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-5 sm:px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
           >
-            <Check className="w-4 h-4 stroke-[3]" />
+            <Check className="w-4 h-4 stroke-[3] shrink-0" />
             <span>Save &amp; Return</span>
           </button>
         </div>

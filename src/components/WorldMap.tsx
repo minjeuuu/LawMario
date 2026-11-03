@@ -9,10 +9,12 @@ import {
   MarioPeachCrownIcon,
   Mario1UpIcon,
   MarioCoinIcon,
+  MarioBowserIcon,
+  MarioFlagIcon,
 } from './MarioIcons';
 import { MarioAvatar } from '../types/laborLaw';
 import { HERO_ROSTER, getHeroMeta } from '../data/heroesData';
-import { ALL_LAW_TOPICS } from '../data/laborLawData';
+import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import {
   computeWorldProgressMap,
   GROUP_MEMBERS,
@@ -57,6 +59,14 @@ import {
 } from 'lucide-react';
 import { WorldGoalRing } from './TopicStudyModals';
 import { PinnedRuleBookmark } from '../utils/round9Features';
+import {
+  getLocalDateKey,
+  loadOrGenerateDailyMissions,
+  claimDailyMissionReward,
+  DailyMissionBundle,
+  DAILY_MISSIONS_STORAGE_KEY,
+  computeToadstoolQuestLog,
+} from '../utils/round11Features';
 
 interface WorldMapProps {
   onSelectWorld: (worldId: string) => void;
@@ -263,6 +273,72 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   const [hoveredNode, setHoveredNode] = useState<MapNode | null>(null);
   const [summaryModalNode, setSummaryModalNode] = useState<MapNode | null>(null);
   const [showAllHeroes, setShowAllHeroes] = useState<boolean>(false);
+  const [isFastTravelOpen, setIsFastTravelOpen] = useState<boolean>(false);
+  const [warpPipeTargetNode, setWarpPipeTargetNode] = useState<MapNode | null>(null);
+  const warpTimerRef = useRef<number | null>(null);
+  const [dailyMissionBundle, setDailyMissionBundle] = useState<DailyMissionBundle>(() =>
+    loadOrGenerateDailyMissions(
+      getLocalDateKey(),
+      typeof window !== 'undefined' ? window.localStorage : undefined
+    )
+  );
+
+  useEffect(() => {
+    const syncMissions = () => {
+      setDailyMissionBundle(
+        loadOrGenerateDailyMissions(
+          getLocalDateKey(),
+          typeof window !== 'undefined' ? window.localStorage : undefined
+        )
+      );
+    };
+    window.addEventListener('mario-daily-missions-updated', syncMissions);
+    window.addEventListener('storage', syncMissions);
+    return () => {
+      window.removeEventListener('mario-daily-missions-updated', syncMissions);
+      window.removeEventListener('storage', syncMissions);
+      if (warpTimerRef.current !== null) {
+        window.clearTimeout(warpTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleTriggerFastTravelWarp = (node: MapNode) => {
+    setIsFastTravelOpen(false);
+    setSelectedNodeId(node.id);
+    setWarpPipeTargetNode(node);
+    marioAudio.playPipe();
+    if (warpTimerRef.current !== null) {
+      window.clearTimeout(warpTimerRef.current);
+    }
+    warpTimerRef.current = window.setTimeout(() => {
+      setWarpPipeTargetNode(null);
+      onSelectWorld(node.id);
+    }, 620);
+  };
+
+  const handleClaimDailyMission = (missionId: string) => {
+    const { updated, coinsAwarded } = claimDailyMissionReward(dailyMissionBundle, missionId);
+    if (coinsAwarded <= 0) return;
+    setDailyMissionBundle(updated);
+    try {
+      window.localStorage.setItem(DAILY_MISSIONS_STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    onEarnCoins?.(coinsAwarded);
+    marioAudio.playCompletionOrMilestoneCoin();
+    try {
+      confetti({
+        particleCount: 55,
+        spread: 65,
+        origin: { y: 0.65 },
+        colors: ['#fbbf24', '#10b981', '#38bdf8'],
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     if (!summaryModalNode || typeof document === 'undefined') return;
@@ -394,6 +470,38 @@ export const WorldMap: React.FC<WorldMapProps> = ({
     (w) => w.isWorldCleared
   ).length;
 
+  const questLogSnapshot = useMemo(() => {
+    let quizHighScoresCount = 0;
+    let unlockedItemsCount = 5;
+    if (typeof window !== 'undefined') {
+      try {
+        const qHist = JSON.parse(localStorage.getItem('mario_quiz_history_v1') || '[]');
+        if (Array.isArray(qHist)) {
+          quizHighScoresCount = qHist.filter(
+            (r: { accuracyPercent?: number }) => (r?.accuracyPercent ?? 0) >= 70
+          ).length;
+        }
+      } catch {
+        // ignore
+      }
+      try {
+        const uItems = JSON.parse(localStorage.getItem('mario_unlocked_items') || '[]');
+        if (Array.isArray(uItems)) {
+          unlockedItemsCount = uItems.length;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return computeToadstoolQuestLog({
+      completedTopicsCount: completedTopicIds.length,
+      totalTopicsCount: ALL_LAW_TOPICS.length,
+      clearedWorldsCount: totalClearedWorlds,
+      quizHighScoresCount,
+      unlockedItemsCount,
+    });
+  }, [completedTopicIds.length, totalClearedWorlds]);
+
   const handleNodeInspect = (node: MapNode) => {
     setSelectedNodeId(node.id);
     marioAudio.playJump();
@@ -487,6 +595,24 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                   <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
                   <span className="truncate">World Summary</span>
                 </button>
+                <button
+                  type="button"
+                  data-testid="map-fast-travel-btn"
+                  aria-expanded={isFastTravelOpen}
+                  onClick={() => {
+                    setIsFastTravelOpen((v) => !v);
+                    marioAudio.playPipe();
+                  }}
+                  className="min-h-[42px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap max-w-full"
+                >
+                  <MarioPipeIcon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Fast-Travel Warp</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform ${
+                      isFastTravelOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
               </div>
             </div>
           </div>
@@ -526,6 +652,191 @@ export const WorldMap: React.FC<WorldMapProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Fast-Travel Warp-Pipe Menu Drawer (Quick-Jump to Any Unlocked World Node) */}
+        {isFastTravelOpen && (
+          <div
+            data-testid="map-fast-travel-panel"
+            className="mb-4 bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-950 border-3 border-emerald-400 rounded-2xl p-4 shadow-[4px_4px_0_#000] space-y-3 animate-in fade-in duration-150"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <MarioPipeIcon className="w-5 h-5 shrink-0" />
+                <span className="text-xs font-black uppercase text-emerald-300 font-mario">
+                  WARP ZONE FAST-TRAVEL · SELECT UNLOCKED STAGE
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFastTravelOpen(false)}
+                className="text-xs font-bold text-slate-300 hover:text-white px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer"
+              >
+                Close Pipe Menu
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {MAP_NODES.map((node) => {
+                const wp = worldProgressMap[node.id];
+                const isNodeUnlocked = wp ? wp.isWorldUnlocked : true;
+                const isNodeCleared = Boolean(wp?.isWorldCleared);
+                return (
+                  <button
+                    key={`fast-travel-${node.id}`}
+                    type="button"
+                    data-testid={`fast-travel-node-${node.id}`}
+                    disabled={!isNodeUnlocked}
+                    onClick={() => handleTriggerFastTravelWarp(node)}
+                    className={`min-h-[52px] px-3 py-2 rounded-xl border-2 flex items-center justify-between gap-2 text-left transition-all ${
+                      isNodeUnlocked
+                        ? 'bg-slate-900 hover:bg-emerald-900/60 border-emerald-400/70 hover:border-amber-300 text-white cursor-pointer shadow-[0_2px_0_#000]'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-500 cursor-not-allowed opacity-70'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/60 flex items-center justify-center shrink-0">
+                        {isNodeUnlocked ? (
+                          <MarioPipeIcon className="w-4 h-4" />
+                        ) : (
+                          <Lock className="w-4 h-4 text-slate-500" />
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-black font-mario text-amber-300 block truncate">
+                          {node.levelNumber}
+                        </span>
+                        <span className="text-xs font-extrabold text-slate-100 block truncate">
+                          {node.worldName}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-black shrink-0 ${
+                        isNodeCleared
+                          ? 'bg-emerald-400 text-slate-950'
+                          : isNodeUnlocked
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'
+                          : 'bg-slate-900 text-slate-500'
+                      }`}
+                    >
+                      {isNodeCleared ? 'CLEARED' : isNodeUnlocked ? 'WARP' : 'LOCKED'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Warp-Pipe Transition Animation Overlay */}
+        {warpPipeTargetNode && (
+          <div
+            data-testid="warp-pipe-transition-overlay"
+            className="fixed inset-0 z-[95] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto"
+          >
+            <div className="bg-gradient-to-b from-emerald-900 via-slate-950 to-slate-950 border-4 border-emerald-400 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-[0_12px_40px_rgba(16,185,129,0.45)] animate-in zoom-in-95 duration-150">
+              <div className="text-[10px] font-black uppercase text-emerald-300 font-mario tracking-wider">
+                ENTERING SUBTERRANEAN WARP PIPE...
+              </div>
+              <div className="relative h-28 flex flex-col items-center justify-end overflow-hidden">
+                <div className="animate-bounce mb-1">
+                  <MarioCharacterAvatar character={equippedAvatar} className="w-10 h-10" />
+                </div>
+                <div className="w-20 h-14 rounded-t-xl bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-700 border-4 border-black shadow-[0_4px_0_#000] flex items-center justify-center">
+                  <MarioPipeIcon className="w-9 h-9" />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-lg font-black text-amber-300 font-display">
+                  {warpPipeTargetNode.levelNumber}: {warpPipeTargetNode.worldName}
+                </h4>
+                <p className="text-xs font-semibold text-slate-300 mt-0.5">
+                  {warpPipeTargetNode.themeDescription}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Visual Mario-Style 6-World Progress Timeline */}
+        <section
+          data-testid="world-map-progress-timeline"
+          aria-label="Mario 6-World Mastery Timeline"
+          className="mb-4 bg-slate-950/95 border-2 border-amber-400/70 rounded-2xl p-3.5 sm:p-4 space-y-3"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <MarioFlagIcon className="w-4 h-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-black uppercase text-amber-300 font-mario">
+                MUSHROOM KINGDOM 6-WORLD STAGE TIMELINE
+              </span>
+            </div>
+            <span className="text-xs font-mono font-black text-emerald-300 tabular-nums">
+              {Math.round(
+                (completedTopicIds.length / Math.max(1, ALL_LAW_TOPICS.length)) * 100
+              )}
+              % Overall Journey ({completedTopicIds.length}/{ALL_LAW_TOPICS.length} Topics)
+            </span>
+          </div>
+
+          <div className="relative pt-1">
+            <div className="hidden sm:block absolute left-6 right-6 top-6 h-2 bg-slate-800 rounded-full border border-slate-700 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 via-emerald-400 to-yellow-300 transition-all duration-500"
+                style={{
+                  width: `${Math.round(
+                    (completedTopicIds.length / Math.max(1, ALL_LAW_TOPICS.length)) * 100
+                  )}%`,
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 relative z-10">
+              {WORLDS_METADATA.map((wMeta) => {
+                const wp = worldProgressMap[wMeta.id];
+                const nodeRef = MAP_NODES.find((n) => n.id === wMeta.id);
+                const cleared = Boolean(wp?.isWorldCleared);
+                const unlocked = wp ? wp.isWorldUnlocked : true;
+                return (
+                  <button
+                    key={`timeline-${wMeta.id}`}
+                    type="button"
+                    onClick={() => {
+                      if (nodeRef && unlocked) {
+                        handleTriggerFastTravelWarp(nodeRef);
+                      } else if (nodeRef) {
+                        handleNodeInspect(nodeRef);
+                      }
+                    }}
+                    className={`p-2 rounded-xl border-2 flex flex-col items-center text-center gap-1 transition-all cursor-pointer ${
+                      cleared
+                        ? 'bg-emerald-950/90 border-emerald-400 text-white shadow-[0_2px_0_#000]'
+                        : unlocked
+                        ? 'bg-slate-900 hover:bg-slate-800 border-amber-400/70 text-slate-100'
+                        : 'bg-slate-950 border-slate-800 text-slate-500'
+                    }`}
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-full border-2 border-black flex items-center justify-center text-[10px] font-mario font-bold ${
+                        cleared
+                          ? 'bg-emerald-400 text-slate-950'
+                          : unlocked
+                          ? 'bg-amber-400 text-slate-950'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {cleared ? <CheckCircle2 className="w-4 h-4 stroke-[3]" /> : `W${wMeta.worldNumber}`}
+                    </span>
+                    <span className="text-[11px] font-black truncate w-full">
+                      {wMeta.shortTitle}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-amber-300 tabular-nums">
+                      {wp ? `${wp.completedCount}/${wp.totalCount}` : '0/0'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
         {/* 1. Full Hero Roster Aligned Grid (Directly beneath Hero Switcher Header) */}
         <div className="mb-4 bg-slate-900/95 border-2 border-slate-700 rounded-2xl p-3">
@@ -757,7 +1068,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
         {/* 3. 24-Hour Refreshing Daily High-Difficulty Bar Exam Challenge */}
         <div
           data-testid="daily-challenge-card"
-          className="mb-4 bg-slate-950 border-3 border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0_#000] text-white space-y-4"
+          className="mb-4 bg-slate-950 border-3 border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0_#000] text-white space-y-4 w-full max-w-full min-w-0 overflow-hidden"
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
             <div className="flex items-start sm:items-center gap-3.5 min-w-0">
@@ -937,41 +1248,48 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               ) : (
                 <div
                   data-testid="daily-challenge-explanation"
-                  className="bg-slate-900 border-2 border-emerald-400/70 rounded-xl p-4 space-y-2.5"
+                  className="bg-slate-900 border-2 border-emerald-400/70 rounded-xl p-4 space-y-3 w-full max-w-full min-w-0 overflow-hidden"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs sm:text-sm font-black text-emerald-300 flex items-center gap-1.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                    <span className="text-xs sm:text-sm font-black text-emerald-300 flex items-start sm:items-center gap-1.5 min-w-0">
                       {dailyRecord.isCorrect ? (
                         <>
-                          <CheckCircle2 className="w-4 h-4 shrink-0" />
-                          <span>Bar-Ready Ruling! You earned +{dailyRecord.coinsAwarded}{superStarActive ? ' (x2 Super Star)' : ''} Gold Coins!</span>
+                          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 sm:mt-0" />
+                          <span className="min-w-0 break-words">
+                            Bar-Ready Ruling! You earned +{dailyRecord.coinsAwarded}
+                            {superStarActive ? ' (x2 Super Star)' : ''} Gold Coins!
+                          </span>
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4 shrink-0 text-amber-300" />
-                          <span>Doctrine Reviewed (+{dailyRecord.coinsAwarded} Review Coins Awarded)</span>
+                          <Sparkles className="w-4 h-4 shrink-0 text-amber-300 mt-0.5 sm:mt-0" />
+                          <span className="min-w-0 break-words">
+                            Doctrine Reviewed (+{dailyRecord.coinsAwarded} Review Coins Awarded)
+                          </span>
                         </>
                       )}
                     </span>
-                    <span className="text-[11px] font-mono font-bold text-amber-300">
+                    <span className="text-[11px] font-mono font-bold text-amber-300 break-words">
                       {todayChallenge.statutoryBasis}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed break-words">
                     {todayChallenge.doctrinalExplanation}
                   </p>
-                  <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 max-w-full min-w-0">
-                    <span className="text-xs font-bold text-amber-200 flex items-start gap-1.5 min-w-0 flex-1">
+                  <div className="pt-3 border-t border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full max-w-full min-w-0">
+                    <div className="text-xs font-bold text-amber-200 flex items-start gap-2 min-w-0 flex-1">
                       <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-400 mt-0.5" />
-                      <span className="break-words">Bar Takeaway: {todayChallenge.barTakeaway}</span>
-                    </span>
+                      <span className="min-w-0 break-words leading-relaxed">
+                        Bar Takeaway: {todayChallenge.barTakeaway}
+                      </span>
+                    </div>
                     <button
                       type="button"
                       data-testid="daily-challenge-review-world-btn"
                       onClick={() => onSelectWorld(todayChallenge.worldId)}
-                      className="min-h-[40px] max-w-full px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-600 inline-flex items-center justify-between gap-1.5 cursor-pointer whitespace-normal break-words text-left leading-snug"
+                      className="min-h-[42px] w-full lg:w-auto lg:max-w-[300px] shrink-0 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-amber-400/50 inline-flex items-center justify-center lg:justify-between gap-2 cursor-pointer whitespace-normal text-center lg:text-left leading-snug"
                     >
-                      <span className="break-words">Review {todayChallenge.worldLabel}</span>
+                      <span className="min-w-0 break-words">Review {todayChallenge.worldLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
@@ -979,6 +1297,197 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               )}
             </div>
           )}
+        </div>
+
+        {/* 3B. Daily Missions Board (3 Unique Daily Tasks + Bonus Coin Rewards) & Toadstool Quest Log */}
+        <div className="mb-5 grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {/* Daily Missions Card */}
+          <section
+            data-testid="world-map-daily-missions"
+            aria-label="Daily Missions"
+            className="bg-slate-950 border-3 border-amber-400 rounded-2xl p-4 shadow-[4px_4px_0_#000] space-y-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+              <div className="flex items-center gap-2">
+                <MarioStarIcon className="w-5 h-5 shrink-0" />
+                <div>
+                  <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                    DAILY MISSIONS · 3 FRESH QUESTS TODAY
+                  </span>
+                  <span className="text-xs font-semibold text-slate-300">
+                    Complete tasks across study modes to claim bonus Gold Coins
+                  </span>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] font-mono font-bold text-emerald-300 tabular-nums">
+                {dailyMissionBundle.missions.filter((m) => m.claimed).length}/3 Claimed
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {dailyMissionBundle.missions.map((mission) => {
+                const isReadyToClaim = mission.progress >= mission.target && !mission.claimed;
+                const pct = Math.min(100, Math.round((mission.progress / Math.max(1, mission.target)) * 100));
+                return (
+                  <div
+                    key={mission.id}
+                    data-testid={`daily-mission-row-${mission.id}`}
+                    className={`rounded-xl border-2 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
+                      mission.claimed
+                        ? 'bg-emerald-950/35 border-emerald-500/60'
+                        : isReadyToClaim
+                        ? 'bg-amber-950/40 border-amber-400'
+                        : 'bg-slate-900/90 border-slate-800'
+                    }`}
+                  >
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs sm:text-sm font-black text-white">
+                          {mission.title}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 text-[10px] font-mono font-black border border-amber-400/40 tabular-nums">
+                          +{mission.rewardCoins}c
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 font-medium leading-snug">
+                        {mission.subtitle}
+                      </p>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <div className="flex-1 h-2 bg-slate-950 rounded-full border border-slate-700 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-slate-300 tabular-nums">
+                          {mission.progress}/{mission.target}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-2">
+                      {mission.claimed ? (
+                        <span className="min-h-[36px] px-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 text-[10px] font-mario font-bold inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>CLAIMED</span>
+                        </span>
+                      ) : isReadyToClaim ? (
+                        <button
+                          type="button"
+                          data-testid={`claim-daily-mission-${mission.id}`}
+                          onClick={() => handleClaimDailyMission(mission.id)}
+                          className="min-h-[38px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                          <span>Claim +{mission.rewardCoins}c</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            marioAudio.playJump();
+                            if (mission.actionView === 'wages_matrix') {
+                              onSelectWorld('wages_matrix');
+                            } else if (mission.actionView === 'statute_lookup') {
+                              window.dispatchEvent(new CustomEvent('mario-open-statute-lookup'));
+                            } else if (mission.actionView) {
+                              window.dispatchEvent(
+                                new CustomEvent('mario-navigate-tab', { detail: mission.actionView })
+                              );
+                            } else {
+                              onSelectWorld('world1');
+                            }
+                          }}
+                          className="min-h-[36px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-600 inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                        >
+                          <span>Go</span>
+                          <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Toadstool Campaign Quest Log */}
+          <section
+            data-testid="world-map-toadstool-quest-log"
+            aria-label="Toadstool Quest Log"
+            className="bg-slate-950 border-3 border-rose-500/80 rounded-2xl p-4 shadow-[4px_4px_0_#000] space-y-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+              <div className="flex items-center gap-2">
+                <MarioBowserIcon className="w-5 h-5 shrink-0" />
+                <div>
+                  <span className="text-[10px] font-black uppercase text-rose-300 font-mario block">
+                    TOADSTOOL CAMPAIGN QUEST LOG
+                  </span>
+                  <span className="text-xs font-semibold text-slate-300">
+                    Long-term Bar Mastery campaign culminating at Bowser&apos;s Final Keep
+                  </span>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-lg bg-rose-950/80 border border-rose-500/50 text-[11px] font-mono font-bold text-amber-300 tabular-nums">
+                {questLogSnapshot.completedSteps}/{questLogSnapshot.steps.length} Stages ({questLogSnapshot.overallPercent}%)
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {questLogSnapshot.steps.map((step, idx) => {
+                const isFinale = idx === questLogSnapshot.steps.length - 1;
+                return (
+                  <div
+                    key={step.id}
+                    className={`rounded-xl border px-3 py-2 flex items-center justify-between gap-2.5 ${
+                      step.completed
+                        ? 'bg-emerald-950/35 border-emerald-500/60'
+                        : isFinale
+                        ? 'bg-rose-950/35 border-rose-500/50'
+                        : 'bg-slate-900/90 border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className={`w-7 h-7 rounded-lg border border-black flex items-center justify-center shrink-0 ${
+                          step.completed
+                            ? 'bg-emerald-400 text-slate-950'
+                            : isFinale
+                            ? 'bg-rose-600 text-white'
+                            : 'bg-slate-800 text-amber-300'
+                        }`}
+                      >
+                        {step.completed ? (
+                          <CheckCircle2 className="w-4 h-4 stroke-[3]" />
+                        ) : isFinale ? (
+                          <MarioBowserIcon className="w-4 h-4" />
+                        ) : (
+                          <span className="text-[10px] font-mario font-bold">{idx + 1}</span>
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="text-xs font-black text-white block truncate">
+                          {step.title}
+                        </span>
+                        <span className="text-[11px] text-slate-400 block truncate">
+                          {step.description}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[11px] font-mono font-black text-amber-300 block tabular-nums">
+                        {step.current}/{step.target}
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-300 block">
+                        {step.rewardLabel}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         </div>
 
         {/* 4. Visual Consecutive Days Studied Tracker (Fire Flower for every 5-day streak + Milestone Progress Bar) */}

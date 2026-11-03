@@ -49,6 +49,7 @@ import {
   Mario1UpIcon,
   MarioCoinIcon,
   MarioQuestionBlockIcon,
+  MarioPipeIcon,
   MarioCharacterAvatar,
 } from './components/MarioIcons';
 import { marioAudio } from './utils/audio';
@@ -197,6 +198,14 @@ import {
   loadLuxuryEquippedState,
   saveLuxuryEquippedState,
 } from './utils/round9Features';
+import { loadRound10VaultState } from './utils/round10Features';
+import {
+  evaluateDailyGoalMilestone,
+  dismissDailyGoalBanner,
+  DAILY_GOAL_BONUS_COINS,
+  getLocalDateKey,
+  dispatchDailyMissionEvent,
+} from './utils/round11Features';
 
 const TOAD_PRO_TIPS = [
   {
@@ -242,16 +251,34 @@ const TOAD_PRO_TIPS = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('map');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('async_battle=')) {
+      return 'quiz';
+    }
+    return 'map';
+  });
   const [activeWorld, setActiveWorld] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
   const [coins, setCoins] = useState<number>(35);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => marioAudio.enabled);
   const [zenMode, setZenMode] = useState<boolean>(false);
 
-  // Warp pipe CSS transition state
+  useEffect(() => {
+    setSoundEnabled(marioAudio.enabled);
+    return marioAudio.subscribe((settings) => {
+      setSoundEnabled(settings.enabled);
+    });
+  }, []);
+
+  // Warp pipe CSS transition state & smooth Modules Stage-Banner
   const [isWarpTransitioning, setIsWarpTransitioning] = useState<boolean>(false);
+  const [modulesStageBanner, setModulesStageBanner] = useState<string | null>(null);
+  const [dailyGoalBannerVisible, setDailyGoalBannerVisible] = useState<boolean>(false);
+  const [dailyGoalMilestoneToast, setDailyGoalMilestoneToast] = useState<boolean>(false);
+  const [clickSparks, setClickSparks] = useState<
+    Array<{ id: number; x: number; y: number; color: string }>
+  >([]);
 
   // Quick Resume session state from localStorage
   const [lastStudiedTopicId, setLastStudiedTopicId] = useState<string>(() => {
@@ -357,6 +384,12 @@ export default function App() {
   } | null>(null);
   const [isWalkthroughOpen, setIsWalkthroughOpen] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
+      if (
+        window.location.search.includes('autostart=1') ||
+        window.location.search.includes('async_battle=')
+      ) {
+        return false;
+      }
       return shouldAutoOpenWalkthrough(window.location.search, window.localStorage);
     }
     return false;
@@ -724,6 +757,16 @@ export default function App() {
       'comp_counsel_toad',
       'comp_chain_chomp',
       'comp_lakitu',
+      'comp_toadsworth',
+      'comp_captain_toad',
+      'comp_pauline',
+      'comp_dry_bones',
+      'comp_shy_guy',
+      'comp_birdo',
+      'comp_dk',
+      'comp_diddy',
+      'comp_kamek',
+      'comp_nabbit',
     ];
     if (typeof window !== 'undefined') {
       try {
@@ -744,6 +787,12 @@ export default function App() {
       'frame_retro_brick',
       'frame_emerald_pipe',
       'frame_supreme_crimson',
+      'frame_koopa_sovereign',
+      'frame_peach_stained_glass',
+      'frame_bowser_obsidian',
+      'frame_yoshi_botanical',
+      'frame_boo_ethereal',
+      'frame_rainbow_prism',
     ];
     if (typeof window !== 'undefined') {
       try {
@@ -1114,8 +1163,9 @@ export default function App() {
 
     if (isNowDone) {
       next = [...completedTopicIds, topicId];
-      // Coin collection SFX when topic is marked complete
-      marioAudio.playCoin();
+      // Equipped Mastery / Coin collection SFX + Daily Mission event when topic is marked complete
+      marioAudio.playCompletionOrMilestoneCoin();
+      dispatchDailyMissionEvent('master_topic', 1);
 
       const levelUpCheck = evaluateWorldLevelUp({
         toggledTopicId: topicId,
@@ -1657,7 +1707,117 @@ export default function App() {
 
   const handleQuizCompleted = (payload: QuizCompletionPayload) => {
     setProfileStats((prev) => recordCompletedQuizRun(prev, payload));
+    if (payload.totalCount > 0 && payload.correctCount / payload.totalCount >= 0.8) {
+      dispatchDailyMissionEvent('quiz_80', 1);
+    }
   };
+
+  // Daily Study Goal Milestone Celebration (1-Up Mushroom + Bonus Coins + Persistent Mario Banner)
+  const handleDailyStudyMilestone = () => {
+    marioAudio.playCompletionOrMilestoneCoin();
+    marioAudio.playOneUp();
+    setCoins((prev) => prev + DAILY_GOAL_BONUS_COINS);
+    setShowCoinConfetti(true);
+    setDailyGoalMilestoneToast(true);
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const todaySecs = getTodayStudiedSeconds(profileStats);
+    const goalMins = readStoredDailyStudyGoal();
+    const res = evaluateDailyGoalMilestone({
+      dateKey: getLocalDateKey(),
+      studiedSeconds: todaySecs,
+      goalMinutes: goalMins,
+      storage: window.localStorage,
+    });
+    setDailyGoalBannerVisible(res.shouldShowBanner);
+    if (res.newlyReached) {
+      handleDailyStudyMilestone();
+    }
+  }, [profileStats]);
+
+  // Smooth Mario Stage-Banner when entering Modules or switching activeWorld + Daily Mission tab triggers
+  useEffect(() => {
+    if (activeTab === 'wages_matrix') {
+      dispatchDailyMissionEvent('inspect_wages', 1);
+    } else if (activeTab === 'flashcards') {
+      dispatchDailyMissionEvent('flashcard_review', 1);
+    } else if (activeTab === 'modules') {
+      const worldMeta = WORLDS_METADATA.find((w) => w.id === activeWorld);
+      const label = worldMeta
+        ? `WORLD ${worldMeta.worldNumber} · ${worldMeta.title.toUpperCase()}`
+        : `ALL 6 WORLDS · ${ALL_LAW_TOPICS.length} STATUTORY DOCTRINES READY`;
+      setModulesStageBanner(label);
+      const timer = window.setTimeout(() => setModulesStageBanner(null), 1100);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [activeTab, activeWorld]);
+
+  useEffect(() => {
+    if (isStatuteLookupOpen) {
+      dispatchDailyMissionEvent('statute_lookup', 1);
+    }
+  }, [isStatuteLookupOpen]);
+
+  // Global Custom Event Bridges (Daily Missions, Koopa Boss Frame Equip, Luxury Sync, Click Spark FX)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onOpenStatute = () => {
+      setIsStatuteLookupOpen(true);
+    };
+    const onNavigateTab = (ev: Event) => {
+      const custom = ev as CustomEvent<{ tab?: string }>;
+      const target = custom.detail?.tab;
+      if (target) {
+        setActiveTab(target === 'arcade' ? 'vault' : target);
+        marioAudio.playTabSwitch();
+      }
+    };
+    const onEquipFrame = (ev: Event) => {
+      const custom = ev as CustomEvent<{ frameId?: CardFrameId }>;
+      if (custom.detail?.frameId) {
+        handleEquipCardFrame(custom.detail.frameId);
+      }
+    };
+    const onLuxuryUpdated = () => {
+      setLuxuryEquipped(loadLuxuryEquippedState(window.localStorage));
+    };
+    const onPointerDownSpark = (e: PointerEvent) => {
+      const vault = loadRound10VaultState();
+      if (!vault.equippedClickFx) return;
+      const colorMap: Record<string, string> = {
+        fx_click_gold_coin: '#fbbf24',
+        fx_click_super_star: '#fde047',
+        fx_click_fire_flower: '#ef4444',
+        fx_click_ice_flower: '#38bdf8',
+        fx_click_1up_emerald: '#22c55e',
+        fx_click_emerald_pipe: '#10b981',
+        fx_click_fireball_amber: '#f97316',
+        fx_click_cosmic_cyan: '#06b6d4',
+      };
+      const color = colorMap[vault.equippedClickFx] || '#fbbf24';
+      const sparkId = Date.now() + Math.random();
+      setClickSparks((prev) => [...prev.slice(-6), { id: sparkId, x: e.clientX, y: e.clientY, color }]);
+      window.setTimeout(() => {
+        setClickSparks((prev) => prev.filter((s) => s.id !== sparkId));
+      }, 460);
+    };
+
+    window.addEventListener('mario-open-statute-lookup', onOpenStatute);
+    window.addEventListener('mario-navigate-tab', onNavigateTab);
+    window.addEventListener('mario-equip-card-frame', onEquipFrame);
+    window.addEventListener('mario-luxury-updated', onLuxuryUpdated);
+    window.addEventListener('pointerdown', onPointerDownSpark, { passive: true });
+    return () => {
+      window.removeEventListener('mario-open-statute-lookup', onOpenStatute);
+      window.removeEventListener('mario-navigate-tab', onNavigateTab);
+      window.removeEventListener('mario-equip-card-frame', onEquipFrame);
+      window.removeEventListener('mario-luxury-updated', onLuxuryUpdated);
+      window.removeEventListener('pointerdown', onPointerDownSpark);
+    };
+  }, []);
 
   const handleUpdatePlayerName = (name: string) => {
     setProfileStats((prev) => ({ ...prev, playerName: name }));
@@ -1971,6 +2131,61 @@ export default function App() {
 
       {/* Main Container with Mobile Bottom Nav Padding */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8 pb-24 lg:pb-8 overflow-x-hidden">
+        {/* Persistent Mario Daily Study Goal Reached Banner + 1-Up Mushroom Bonus Celebration */}
+        {dailyGoalBannerVisible && (
+          <section
+            role="status"
+            data-testid="daily-goal-celebration-banner"
+            aria-label="Daily Study Goal Reached Celebration"
+            className="mb-5 bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-950 text-white rounded-2xl border-3 border-emerald-400 p-3.5 sm:p-4 shadow-[5px_5px_0_#000] flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full max-w-full overflow-hidden print:hidden"
+          >
+            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+                <Mario1UpIcon className="w-7 h-7" />
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase text-emerald-300 font-mario">
+                    1-UP DAILY STUDY GOAL CLEAR!
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-[10px] font-black font-mario tabular-nums">
+                    <MarioCoinIcon className="w-3 h-3 shrink-0" />
+                    <span>+{DAILY_GOAL_BONUS_COINS} BONUS COINS</span>
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-emerald-50">
+                  Mamma Mia! Course Clear on today&apos;s Bar study target ({readStoredDailyStudyGoal()} mins)! Your 1-Up Mushroom &amp; +{DAILY_GOAL_BONUS_COINS} Gold Coin reward have been credited!
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('shop');
+                  marioAudio.playCoin();
+                }}
+                className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+              >
+                Spend in Toad&apos;s Shop
+              </button>
+              <button
+                type="button"
+                data-testid="dismiss-daily-goal-banner-btn"
+                onClick={() => {
+                  dismissDailyGoalBanner(getLocalDateKey(), window.localStorage);
+                  setDailyGoalBannerVisible(false);
+                  setDailyGoalMilestoneToast(false);
+                }}
+                aria-label="Dismiss Daily Study Goal celebration banner"
+                className="min-h-[40px] px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-emerald-500/60 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* 'Review Required' (>14 Days Unaccessed) Spaced-Repetition Notification Banner */}
         {(activeTab === 'map' || activeTab === 'modules') &&
           overdueReviewTopics.length > 0 &&
@@ -2226,7 +2441,7 @@ export default function App() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-black text-slate-950 text-sm sm:text-base font-display truncate">Game Vault</h3>
-                    <p className="text-xs font-bold text-slate-600 truncate">28 Arcade Games</p>
+                    <p className="text-xs font-bold text-slate-600 truncate">46 Arcade Games</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-amber-600 shrink-0" />
@@ -2258,6 +2473,25 @@ export default function App() {
         {/* Tab 1: All Unabridged Modules View */}
         {activeTab === 'modules' && (
           <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
+            {/* Smooth Mario Stage-Banner Indicator on World/Module Entry */}
+            {modulesStageBanner && (
+              <div
+                role="status"
+                data-testid="modules-stage-transition-banner"
+                className="bg-slate-950 text-amber-300 border-2 border-amber-400 rounded-2xl px-4 py-2.5 shadow-[3px_3px_0_#000] flex items-center justify-between gap-3 animate-fade-in"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <MarioPipeIcon className="w-5 h-5 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-black uppercase font-mario truncate">
+                    {modulesStageBanner}
+                  </span>
+                </div>
+                <span className="text-[10px] font-black text-emerald-400 font-mario shrink-0">
+                  STAGE READY
+                </span>
+              </div>
+            )}
+
             {/* Visual Progress Bar with Equipped Avatar */}
             <StageProgressBar
               completedCount={completedTopicIds.length}
@@ -2777,9 +3011,8 @@ export default function App() {
               />
             )}
 
-            {/* Smooth Slide-In Container on World / Topic Filter Switch */}
+            {/* Smooth Container on World / Topic Filter Switch (preserves mounted TopicCards) */}
             <div
-              key={`module-stream-${activeWorld}-${difficultyFilter}-${complexityMode}-${moduleViewMode}-${moduleStatusFilter}-${topicSortBy}`}
               data-testid="module-doctrine-transition"
               className="space-y-5 animate-module-slide-in w-full max-w-full min-w-0"
             >
@@ -3224,7 +3457,7 @@ export default function App() {
                         );
                       })()
                     ) : (
-                      displayedTopics.map((topic) => (
+                      displayedTopics.map((topic, idx) => (
                         <TopicCard
                           key={topic.id}
                           topic={topic}
@@ -3244,6 +3477,12 @@ export default function App() {
                           equippedCardFrame={equippedCardFrame}
                           expandCollapseSignal={expandCollapseSignal}
                           compactView={moduleViewMode === 'outline'}
+                          defaultExpanded={
+                            activeWorld !== 'all' ||
+                            Boolean(searchQuery.trim()) ||
+                            idx < 4 ||
+                            topic.id === lastStudiedTopicId
+                          }
                           onEarnCoins={handleEarnCoins}
                           isBookmarked={bookmarkedTopicIds.includes(topic.id)}
                           onToggleBookmark={() => handleToggleBookmarkTopic(topic.id)}
@@ -3251,8 +3490,8 @@ export default function App() {
                           onToggleSectionMastered={handleToggleSectionMastered}
                           pinnedRuleIds={pinnedRuleIdSet}
                           onTogglePinRuleItem={handleTogglePinRuleItem}
-                          onOpenTopicFlashcardMode={(t) => setActiveTopicFlashcardModal(t)}
-                          onOpenTopicQuickQuiz={(t) => setActiveTopicQuickQuizModal(t)}
+                          onOpenTopicFlashcardMode={setActiveTopicFlashcardModal}
+                          onOpenTopicQuickQuiz={setActiveTopicQuickQuizModal}
                         />
                       ))
                     )}
@@ -3405,6 +3644,7 @@ export default function App() {
               setCoins((prev) => Math.max(0, prev - cost));
               return true;
             }}
+            onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
           />
         )}
 
@@ -3499,6 +3739,55 @@ export default function App() {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* 1-Up Mushroom Daily Study Goal Milestone Celebration Toast */}
+      {dailyGoalMilestoneToast && (
+        <div
+          role="status"
+          data-testid="daily-goal-1up-toast"
+          className="fixed bottom-24 lg:bottom-8 right-3 left-3 sm:left-auto sm:right-6 z-40 sm:max-w-sm bg-emerald-950 text-white rounded-2xl border-3 border-emerald-400 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0">
+              <Mario1UpIcon className="w-6 h-6" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
+                1-UP MILESTONE UNLOCKED!
+              </span>
+              <span className="text-xs font-black text-white block truncate">
+                Daily Goal Reached · +{DAILY_GOAL_BONUS_COINS} Bonus Coins!
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDailyGoalMilestoneToast(false)}
+            aria-label="Dismiss 1-Up Daily Goal Toast"
+            className="text-emerald-200 hover:text-white cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Equipped Click Spark FX Overlay */}
+      {clickSparks.length > 0 && (
+        <div className="pointer-events-none fixed inset-0 z-[130] overflow-hidden print:hidden">
+          {clickSparks.map((spark) => (
+            <span
+              key={spark.id}
+              className="mario-click-spark"
+              style={{
+                left: `${spark.x}px`,
+                top: `${spark.y}px`,
+                borderColor: spark.color,
+                boxShadow: `0 0 10px ${spark.color}`,
+              }}
+            />
+          ))}
         </div>
       )}
 
@@ -3796,12 +4085,24 @@ export default function App() {
                   ? 'goldenyoshi'
                   : equippedCompanion === 'comp_luma'
                   ? 'cosmicrosalina'
-                  : equippedCompanion === 'comp_counsel_toad'
+                  : equippedCompanion === 'comp_counsel_toad' || equippedCompanion === 'comp_toadsworth'
                   ? 'lawyertoad'
+                  : equippedCompanion === 'comp_captain_toad'
+                  ? 'toad'
+                  : equippedCompanion === 'comp_pauline'
+                  ? 'pauline'
                   : equippedCompanion === 'comp_polterpup'
                   ? 'boo'
-                  : equippedCompanion === 'comp_lakitu'
+                  : equippedCompanion === 'comp_lakitu' || equippedCompanion === 'comp_dry_bones'
                   ? 'koopatroopa'
+                  : equippedCompanion === 'comp_shy_guy'
+                  ? 'shyguy'
+                  : equippedCompanion === 'comp_birdo'
+                  ? 'birdo'
+                  : equippedCompanion === 'comp_dk'
+                  ? 'donkeykong'
+                  : equippedCompanion === 'comp_diddy'
+                  ? 'diddykong'
                   : 'bowserjr'
               }
               className="w-6 h-6"
@@ -3927,7 +4228,7 @@ export default function App() {
               }`}
             >
               {tab.icon}
-              <span className="text-[10.5px] sm:text-xs font-black tracking-tight font-sans mt-0.5 [@media(max-height:500px)]:mt-0 leading-none whitespace-nowrap text-center">
+              <span className="text-[8px] sm:text-[9px] font-black tracking-tighter font-mario mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
                 {tab.label}
               </span>
             </button>

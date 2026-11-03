@@ -168,10 +168,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     () =>
       build30DayStudyIntensitySeries({
         dailyPomodoroLogs: stats.dailyPomodoroLogs,
-        todayStudiedSeconds: stats.totalStudySeconds,
+        todayStudiedSeconds: stats.studiedSeconds,
         now: referenceNow,
       }),
-    [stats.dailyPomodoroLogs, stats.totalStudySeconds, todayStr]
+    [stats.dailyPomodoroLogs, stats.studiedSeconds, todayStr]
   );
 
   const completionSparkline30d = React.useMemo(() => {

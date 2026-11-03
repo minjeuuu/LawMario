@@ -4,6 +4,7 @@ import {
   marioAudio,
   SOUND_PACK_DEFINITIONS,
   DEFAULT_AUDIO_SETTINGS,
+  AUDIO_EXPLICIT_OPT_IN_KEY,
 } from './audio';
 import { SOUNDPACK_ITEMS } from '../components/ToadShop';
 import { SoundPackId } from '../types/laborLaw';
@@ -174,4 +175,65 @@ test('marioAudio.toggleToadify and setToadify manage, persist, and broadcast Toa
     (globalThis as any).localStorage = originalStorage;
   }
 });
+
+test('audio starts muted by default and requires explicit user opt-in before enabling from storage', () => {
+  assert.equal(DEFAULT_AUDIO_SETTINGS.enabled, false);
+  assert.equal(DEFAULT_AUDIO_SETTINGS.musicEnabled, false);
+  assert.equal(DEFAULT_AUDIO_SETTINGS.ambianceEnabled, false);
+  assert.ok(DEFAULT_AUDIO_SETTINGS.volume <= 0.4);
+
+  const mock = new MockStorage();
+  // Simulate legacy session where enabled was saved true without explicit opt-in
+  mock.setItem(
+    'mario_audio_settings',
+    JSON.stringify({
+      enabled: true,
+      musicEnabled: true,
+      ambianceEnabled: true,
+      volume: 0.9,
+      musicVolume: 0.8,
+      ambianceVolume: 0.8,
+    })
+  );
+
+  const hadWindow = 'window' in globalThis;
+  const originalWindow = (globalThis as any).window;
+  const originalStorage = (globalThis as any).localStorage;
+  (globalThis as any).window = globalThis;
+  (globalThis as any).localStorage = mock;
+
+  try {
+    marioAudio.loadSettings();
+    assert.equal(
+      marioAudio.enabled,
+      false,
+      'Legacy storage without explicit opt-in must remain muted'
+    );
+    assert.equal(marioAudio.settings.musicEnabled, false);
+    assert.equal(marioAudio.settings.ambianceEnabled, false);
+
+    // Explicit user opt-in via updateSettings / toggleMute
+    marioAudio.updateSettings({ enabled: true });
+    assert.equal(marioAudio.enabled, true);
+    assert.equal(mock.getItem(AUDIO_EXPLICIT_OPT_IN_KEY), 'true');
+
+    // Reloading after explicit opt-in honors enabled=true and clamps excessive volumes
+    marioAudio.loadSettings();
+    assert.equal(marioAudio.enabled, true);
+    assert.ok(marioAudio.settings.volume <= 0.6);
+
+    // Explicit mute resets opt-in flag
+    marioAudio.updateSettings({ enabled: false });
+    assert.equal(marioAudio.enabled, false);
+    assert.equal(mock.getItem(AUDIO_EXPLICIT_OPT_IN_KEY), 'false');
+  } finally {
+    if (!hadWindow) {
+      delete (globalThis as any).window;
+    } else {
+      (globalThis as any).window = originalWindow;
+    }
+    (globalThis as any).localStorage = originalStorage;
+  }
+});
+
 

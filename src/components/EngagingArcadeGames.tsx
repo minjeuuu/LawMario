@@ -19,6 +19,7 @@ import {
   CommissionerMeters,
   applyCommissionerRuling,
 } from '../utils/round10Features';
+import { createFreshShuffledDeck } from '../utils/round11Features';
 import {
   Play,
   Pause,
@@ -883,7 +884,13 @@ export const DolePayrollStampDeskGame: React.FC<SharedEngagingGameProps> = ({
   boosts,
 }) => {
   const [gameState, setGameState] = useState<ShellGameState>('title');
-  const [voucherIdx, setVoucherIdx] = useState(0);
+  const [voucherDeck, setVoucherDeck] = useState<number[]>(() =>
+    createFreshShuffledDeck(
+      Array.from({ length: 24 }, (_, idx) => idx),
+      Date.now()
+    )
+  );
+  const [voucherStep, setVoucherStep] = useState(0);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [mistakesLeft, setMistakesLeft] = useState(3);
@@ -894,10 +901,17 @@ export const DolePayrollStampDeskGame: React.FC<SharedEngagingGameProps> = ({
   }>(null);
   const [radarRevealed, setRadarRevealed] = useState(false);
 
+  const voucherIdx = voucherDeck[voucherStep % voucherDeck.length] ?? 0;
   const currentVoucher: PayrollInspectionVoucher = generatePayrollVoucher(voucherIdx);
 
   const startShift = () => {
-    setVoucherIdx(Math.floor(Math.random() * 5));
+    setVoucherDeck(
+      createFreshShuffledDeck(
+        Array.from({ length: 24 }, (_, idx) => idx),
+        Date.now() + Math.floor(Math.random() * 99999)
+      )
+    );
+    setVoucherStep(0);
     setScore(0);
     setCombo(0);
     setMistakesLeft(boosts?.bonusShieldActive ? 4 : 3);
@@ -936,14 +950,14 @@ export const DolePayrollStampDeskGame: React.FC<SharedEngagingGameProps> = ({
   };
 
   const handleNextPayslip = () => {
-    if (voucherIdx >= 9) {
+    if (voucherStep >= 9) {
       const mult = boosts?.doublePayoutActive ? 2 : 1;
       onEarnCoins(15 * mult);
       marioAudio.playLevelUp();
       setGameState('gameover');
       return;
     }
-    setVoucherIdx((i) => i + 1);
+    setVoucherStep((i) => i + 1);
     setStampedMark(null);
     setRadarRevealed(false);
     marioAudio.playClick();
@@ -997,7 +1011,7 @@ export const DolePayrollStampDeskGame: React.FC<SharedEngagingGameProps> = ({
             AUDIT SHIFT COMPLETE · {score} PTS
           </h4>
           <p className="text-xs sm:text-sm text-slate-300">
-            You audited {voucherIdx + 1} establishment payroll vouchers for Philippine workers!
+            You audited {voucherStep + 1} randomized establishment payroll vouchers for Philippine workers!
           </p>
           <button
             type="button"
@@ -1005,7 +1019,7 @@ export const DolePayrollStampDeskGame: React.FC<SharedEngagingGameProps> = ({
             onClick={startShift}
             className="min-h-[46px] px-6 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-sm border-2 border-black shadow-[0_3px_0_#000] cursor-pointer"
           >
-            Start Next Shift
+            Replay Audit Shift
           </button>
         </div>
       ) : (
@@ -1844,7 +1858,9 @@ export const BarCodalWordHuntGame: React.FC<SharedEngagingGameProps> = ({
   onEarnCoins,
   boosts,
 }) => {
-  const [boardIndex, setBoardIndex] = useState(0);
+  const [boardIndex, setBoardIndex] = useState(() =>
+    Math.floor(Math.random() * 12)
+  );
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [startCell, setStartCell] = useState<{ r: number; c: number } | null>(
     null
@@ -1945,7 +1961,7 @@ export const BarCodalWordHuntGame: React.FC<SharedEngagingGameProps> = ({
           <button
             type="button"
             onClick={() => {
-              setBoardIndex((i) => i + 1);
+              setBoardIndex((i) => i + 1 + Math.floor(Math.random() * 5));
               setFoundWords([]);
               setStartCell(null);
               setHintTier(0);
@@ -1954,7 +1970,7 @@ export const BarCodalWordHuntGame: React.FC<SharedEngagingGameProps> = ({
             }}
             className="min-h-[42px] px-3.5 rounded-xl bg-slate-900 text-white font-black text-xs border-2 border-black cursor-pointer"
           >
-            Switch Board
+            Replay New Grid
           </button>
         </div>
       </div>
@@ -2040,12 +2056,14 @@ export const LaborCommissionerBalanceSimGame: React.FC<
     enterpriseStability: 60,
     publicTrust: 60,
   });
+  const [crisisDeck, setCrisisDeck] = useState(() =>
+    createFreshShuffledDeck(COMMISSIONER_CRISIS_DECK, Date.now())
+  );
   const [cardIdx, setCardIdx] = useState(0);
   const [termComplete, setTermComplete] = useState(false);
   const [collapsedReason, setCollapsedReason] = useState<string | null>(null);
 
-  const currentCard =
-    COMMISSIONER_CRISIS_DECK[cardIdx % COMMISSIONER_CRISIS_DECK.length];
+  const currentCard = crisisDeck[cardIdx % crisisDeck.length];
 
   const handleDecision = (side: 'left' | 'right') => {
     const choice = side === 'left' ? currentCard.leftChoice : currentCard.rightChoice;
@@ -2064,7 +2082,7 @@ export const LaborCommissionerBalanceSimGame: React.FC<
       return;
     }
 
-    if (cardIdx >= COMMISSIONER_CRISIS_DECK.length - 1) {
+    if (cardIdx >= crisisDeck.length - 1) {
       const mult = boosts?.doublePayoutActive ? 2 : 1;
       onEarnCoins(18 * mult);
       setTermComplete(true);
@@ -2085,6 +2103,12 @@ export const LaborCommissionerBalanceSimGame: React.FC<
       enterpriseStability: base,
       publicTrust: base,
     });
+    setCrisisDeck(
+      createFreshShuffledDeck(
+        COMMISSIONER_CRISIS_DECK,
+        Date.now() + Math.floor(Math.random() * 99999)
+      )
+    );
     setCardIdx(0);
     setTermComplete(false);
     setCollapsedReason(null);
@@ -2135,10 +2159,11 @@ export const LaborCommissionerBalanceSimGame: React.FC<
           </p>
           <button
             type="button"
+            data-start="true"
             onClick={resetSim}
             className="min-h-[46px] px-6 py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-sm border-2 border-black cursor-pointer"
           >
-            Serve New Term
+            Replay New Term
           </button>
         </div>
       ) : (

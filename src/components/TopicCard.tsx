@@ -44,12 +44,13 @@ import {
   Mario1UpIcon,
   MarioCoinIcon,
   MarioQuestionBlockIcon,
+  MarioBowserIcon,
 } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
 import { SHORTCUT_MAP_HIGHLIGHTS } from '../utils/engagementFeatures';
 import { InteractiveStudyMatrix } from './InteractiveStudyMatrix';
 import {
-  ALL_GLOSSARY_KEYWORDS,
+  SHARED_GLOSSARY_REGEX,
   findGlossaryTerm,
 } from '../data/quickGlossaryData';
 import { QuickGlossaryModal } from './QuickGlossaryModal';
@@ -83,6 +84,7 @@ interface TopicCardProps {
   equippedCardFrame?: string;
   expandCollapseSignal?: { mode: 'expand' | 'collapse'; seq: number } | null;
   compactView?: boolean;
+  defaultExpanded?: boolean;
   onEarnCoins?: (amount: number) => void;
   isBookmarked?: boolean;
   onToggleBookmark?: () => void;
@@ -94,7 +96,7 @@ interface TopicCardProps {
   onOpenTopicQuickQuiz?: (topic: LawTopic) => void;
 }
 
-export const TopicCard: React.FC<TopicCardProps> = ({
+const TopicCardInner: React.FC<TopicCardProps> = ({
   topic,
   fontSize,
   searchQuery = '',
@@ -108,6 +110,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   equippedCardFrame = 'frame_default',
   expandCollapseSignal = null,
   compactView = false,
+  defaultExpanded = true,
   onEarnCoins,
   isBookmarked = false,
   onToggleBookmark,
@@ -118,12 +121,18 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   onOpenTopicFlashcardMode,
   onOpenTopicQuickQuiz,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(() => !compactView);
+  const [isExpanded, setIsExpanded] = useState(() =>
+    compactView ? false : defaultExpanded
+  );
   const [localMasteredMap, setLocalMasteredMap] = useState<TopicMasteredSectionsMap>(() =>
-    loadTopicMasteredSectionsMap(typeof window !== 'undefined' ? window.localStorage : null)
+    masteredSectionsMap
+      ? {}
+      : loadTopicMasteredSectionsMap(typeof window !== 'undefined' ? window.localStorage : null)
   );
   const [localPinnedBookmarks, setLocalPinnedBookmarks] = useState<PinnedRuleBookmark[]>(() =>
-    loadPinnedRuleBookmarks(typeof window !== 'undefined' ? window.localStorage : null)
+    pinnedRuleIds
+      ? []
+      : loadPinnedRuleBookmarks(typeof window !== 'undefined' ? window.localStorage : null)
   );
 
   const effectiveMasteredMap = masteredSectionsMap ?? localMasteredMap;
@@ -288,12 +297,70 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     }
   });
   const quickCheck = useMemo(() => getTopicQuickCheck(topic), [topic]);
+  const [reactionCounts, setReactionCounts] = useState<{
+    mushroom: number;
+    star: number;
+    flower: number;
+  }>(() => {
+    if (typeof window === 'undefined') return { mushroom: 0, star: 0, flower: 0 };
+    try {
+      const all = JSON.parse(localStorage.getItem('mario_topic_reactions_v1') || '{}');
+      const cur = all?.[topic.id];
+      return {
+        mushroom: Number(cur?.mushroom || 0),
+        star: Number(cur?.star || 0),
+        flower: Number(cur?.flower || 0),
+      };
+    } catch {
+      return { mushroom: 0, star: 0, flower: 0 };
+    }
+  });
+  const [activeReactionBurst, setActiveReactionBurst] = useState<{
+    kind: 'mushroom' | 'star' | 'flower';
+    seq: number;
+  } | null>(null);
+
+  const handleMarioReaction = (kind: 'mushroom' | 'star' | 'flower') => {
+    const prevTotal =
+      reactionCounts.mushroom + reactionCounts.star + reactionCounts.flower;
+    const nextCounts = {
+      ...reactionCounts,
+      [kind]: reactionCounts[kind] + 1,
+    };
+    setReactionCounts(nextCounts);
+    setActiveReactionBurst({ kind, seq: Date.now() });
+    if (kind === 'mushroom') {
+      marioAudio.playPowerUp();
+    } else if (kind === 'star') {
+      marioAudio.playStar();
+    } else {
+      marioAudio.playFireball();
+    }
+    if (prevTotal === 0) {
+      onEarnCoins?.(1);
+    }
+    try {
+      const all = JSON.parse(localStorage.getItem('mario_topic_reactions_v1') || '{}');
+      all[topic.id] = nextCounts;
+      localStorage.setItem('mario_topic_reactions_v1', JSON.stringify(all));
+    } catch {
+      // ignore storage errors
+    }
+  };
   const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressTriggeredRef = useRef(false);
 
+  const prevCompactViewRef = useRef(compactView);
   useEffect(() => {
-    setIsExpanded(!compactView);
-  }, [compactView]);
+    if (prevCompactViewRef.current !== compactView) {
+      prevCompactViewRef.current = compactView;
+      setIsExpanded(compactView ? false : defaultExpanded);
+      return;
+    }
+    if (!compactView && defaultExpanded) {
+      setIsExpanded(true);
+    }
+  }, [compactView, defaultExpanded]);
 
   useEffect(() => {
     if (expandCollapseSignal && expandCollapseSignal.seq > 0) {
@@ -363,48 +430,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Mario level-progression scroll reveal for Topic Card sections
-  useEffect(() => {
-    if (!isExpanded) return;
-    const container = cardBodyRef.current;
-    if (!container) return;
 
-    const targets = Array.from(
-      container.querySelectorAll<HTMLElement>('.mario-reveal-section')
-    );
-    if (targets.length === 0) return;
-
-    if (typeof IntersectionObserver === 'undefined') {
-      targets.forEach((el) => el.classList.add('mario-reveal-visible'));
-      return;
-    }
-
-    const viewportH = typeof window !== 'undefined' ? window.innerHeight : 900;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('mario-reveal-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: '0px 0px -24px 0px' }
-    );
-
-    targets.forEach((el, idx) => {
-      const rect = el.getBoundingClientRect();
-      if (rect.top < viewportH * 0.95) {
-        window.setTimeout(() => {
-          el.classList.add('mario-reveal-visible');
-        }, Math.min(idx * 55, 220));
-      } else {
-        observer.observe(el);
-      }
-    });
-
-    return () => observer.disconnect();
-  }, [isExpanded, studyLens, viewTab, topic.id]);
 
   useEffect(() => {
     return () => {
@@ -651,29 +677,29 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     marioAudio.playPowerUp();
   };
 
-  const glossaryRegex = useMemo(() => {
-    if (!ALL_GLOSSARY_KEYWORDS || ALL_GLOSSARY_KEYWORDS.length === 0) return null;
-    const pattern = ALL_GLOSSARY_KEYWORDS.map(({ keyword }) => {
-      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const leading = /^\w/.test(keyword) ? '\\b' : '';
-      const trailing = /\w$/.test(keyword) ? '\\b' : '';
-      return `${leading}${escaped}${trailing}`;
-    }).join('|');
-    return new RegExp(`(${pattern})`, 'gi');
-  }, []);
+  const formattedRules = useMemo(
+    () =>
+      topic.rules.map((rule) => ({
+        items: rule.items ? formatModuleRuleItems(rule.items) : [],
+        subItems: rule.subSections
+          ? rule.subSections.map((sub) => formatModuleRuleItems(sub.items))
+          : [],
+      })),
+    [topic.rules]
+  );
 
   const renderInteractiveText = (text: string) => {
     if (!text) return text;
-    if (!glossaryRegex) return highlightMatch(text);
+    if (!SHARED_GLOSSARY_REGEX) return highlightMatch(text);
 
-    const parts = text.split(glossaryRegex);
+    const parts = text.split(SHARED_GLOSSARY_REGEX);
     if (parts.length <= 1) return highlightMatch(text);
 
     return (
       <>
         {parts.map((part, idx) => {
           if (!part) return null;
-          const matchedItem = findGlossaryTerm(part);
+          const matchedItem = idx % 2 === 1 ? findGlossaryTerm(part) : undefined;
           if (matchedItem) {
             return (
               <span
@@ -933,6 +959,11 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     return Math.max(1, Math.ceil(wordCount / 175));
   }, [topic]);
 
+  const isBossLevelTopic =
+    topic.difficulty === 'Bar Master' ||
+    (topic.rules?.length || 0) >= 6 ||
+    topic.worldId === 'world5';
+
   const frameClass =
     equippedCardFrame === 'frame_royal_gold'
       ? 'ring-4 ring-amber-400 border-amber-600'
@@ -942,8 +973,20 @@ export const TopicCard: React.FC<TopicCardProps> = ({
       ? 'ring-4 ring-rose-500 border-rose-700'
       : equippedCardFrame === 'frame_retro_brick'
       ? 'ring-4 ring-orange-400 border-orange-700'
-      : equippedCardFrame === 'frame_starlight_prism'
+      : equippedCardFrame === 'frame_starlight_prism' || equippedCardFrame === 'frame_rainbow_prism'
       ? 'ring-4 ring-indigo-400 border-indigo-700'
+      : equippedCardFrame === 'frame_koopa_sovereign'
+      ? 'ring-4 ring-lime-400 border-emerald-800 shadow-[0_0_18px_rgba(132,204,22,0.35)]'
+      : equippedCardFrame === 'frame_peach_stained_glass'
+      ? 'ring-4 ring-pink-400 border-rose-600'
+      : equippedCardFrame === 'frame_bowser_obsidian'
+      ? 'ring-4 ring-red-600 border-amber-500'
+      : equippedCardFrame === 'frame_yoshi_botanical'
+      ? 'ring-4 ring-green-400 border-teal-700'
+      : equippedCardFrame === 'frame_boo_ethereal'
+      ? 'ring-4 ring-cyan-300 border-slate-500'
+      : equippedCardFrame && equippedCardFrame !== 'frame_default'
+      ? 'ring-4 ring-amber-300 border-amber-600'
       : '';
 
   const showDiagrams = viewTab === 'all' || viewTab === 'tables';
@@ -952,7 +995,8 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   return (
     <article
       id={`topic-card-${topic.id}`}
-      className={`mario-card w-full max-w-full min-w-0 rounded-3xl transition-all duration-200 overflow-x-hidden overflow-y-visible bg-white dark:bg-slate-900 ${
+      data-card-frame={equippedCardFrame}
+      className={`mario-card topic-card-perf w-full max-w-full min-w-0 rounded-3xl transition-colors duration-150 overflow-x-hidden overflow-y-visible bg-white dark:bg-slate-900 ${
         isCompleted
           ? 'border-emerald-600 ring-2 ring-emerald-400'
           : frameClass || 'border-slate-900 dark:border-slate-700'
@@ -1050,6 +1094,17 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                 )}
                 <span>{topic.difficulty || 'Intermediate'}</span>
               </span>
+
+              {isBossLevelTopic && (
+                <span
+                  data-testid={`topic-boss-level-badge-${topic.id}`}
+                  title="High-Complexity Bar Topic — Extra Statutory Attention Recommended"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r from-red-900 to-rose-800 text-amber-200 text-[10px] font-mario font-bold border border-amber-400/80 shadow-xs leading-none"
+                >
+                  <MarioBowserIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span>BOSS LEVEL</span>
+                </span>
+              )}
 
               <span aria-hidden="true" className="text-slate-500">·</span>
               <span className="text-[11px] font-bold text-slate-400 uppercase font-mono">
@@ -2140,7 +2195,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
                 {topic.rules.map((rule, rIdx) => {
-                  const formattedItems = rule.items ? formatModuleRuleItems(rule.items) : [];
+                  const formattedItems = formattedRules[rIdx]?.items ?? [];
 
                   return (
                     <div
@@ -2191,7 +2246,8 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                         {rule.subSections && (
                           <div className="pt-1 space-y-3">
                             {rule.subSections.map((sub, sIdx) => {
-                              const formattedSubItems = formatModuleRuleItems(sub.items);
+                              const formattedSubItems =
+                                formattedRules[rIdx]?.subItems[sIdx] ?? [];
                               return (
                                 <div
                                   key={sIdx}
@@ -2415,17 +2471,95 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               </div>
             )}
           </section>
+
+          {/* React with Mario Interactive Power-Up Reaction Bar */}
+          <div
+            data-testid={`topic-mario-reactions-${topic.id}`}
+            className="relative rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/90 px-4 py-3 flex flex-wrap items-center justify-between gap-2.5"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+              <span className="text-xs font-black uppercase tracking-wide text-slate-800 dark:text-amber-300 font-mario">
+                REACT WITH MARIO
+              </span>
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 hidden sm:inline">
+                · Stamp your power-up vibe (+1c first stamp)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap relative">
+              {activeReactionBurst && (
+                <span
+                  key={activeReactionBurst.seq}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 z-20 mario-reaction-burst"
+                >
+                  {activeReactionBurst.kind === 'mushroom' ? (
+                    <MarioMushroomIcon className="w-6 h-6" />
+                  ) : activeReactionBurst.kind === 'star' ? (
+                    <MarioStarIcon className="w-6 h-6" />
+                  ) : (
+                    <MarioFireFlowerIcon className="w-6 h-6" />
+                  )}
+                </span>
+              )}
+
+              <button
+                type="button"
+                data-testid={`react-mushroom-${topic.id}`}
+                onClick={() => handleMarioReaction('mushroom')}
+                className="min-h-[36px] px-3 py-1 rounded-xl bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 text-xs font-black text-slate-900 dark:text-slate-100 inline-flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 tabular-nums"
+              >
+                <MarioMushroomIcon className="w-4 h-4 shrink-0" />
+                <span>Solid</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">
+                  {reactionCounts.mushroom}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                data-testid={`react-star-${topic.id}`}
+                onClick={() => handleMarioReaction('star')}
+                className="min-h-[36px] px-3 py-1 rounded-xl bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 text-xs font-black text-slate-900 dark:text-slate-100 inline-flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 tabular-nums"
+              >
+                <MarioStarIcon className="w-4 h-4 shrink-0" />
+                <span>High-Yield</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">
+                  {reactionCounts.star}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                data-testid={`react-flower-${topic.id}`}
+                onClick={() => handleMarioReaction('flower')}
+                className="min-h-[36px] px-3 py-1 rounded-xl bg-white dark:bg-slate-900 hover:bg-orange-50 dark:hover:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 text-xs font-black text-slate-900 dark:text-slate-100 inline-flex items-center gap-1.5 cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5 tabular-nums"
+              >
+                <MarioFireFlowerIcon className="w-4 h-4 shrink-0" />
+                <span>Tricky</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">
+                  {reactionCounts.flower}
+                </span>
+              </button>
+            </div>
+          </div>
           </>
           )}
         </div>
       )}
 
-      {/* Mario Quick Glossary Modal */}
-      <QuickGlossaryModal
-        isOpen={isGlossaryModalOpen}
-        onClose={() => setIsGlossaryModalOpen(false)}
-        initialTermId={selectedGlossaryTermId}
-      />
+      {/* Mario Quick Glossary Modal — Lazy-mounted only when opened */}
+      {isGlossaryModalOpen && (
+        <QuickGlossaryModal
+          isOpen={isGlossaryModalOpen}
+          onClose={() => setIsGlossaryModalOpen(false)}
+          initialTermId={selectedGlossaryTermId}
+        />
+      )}
     </article>
   );
 };
+
+export const TopicCard = React.memo(TopicCardInner);
+

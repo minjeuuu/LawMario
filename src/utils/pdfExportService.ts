@@ -10,6 +10,7 @@ import { REGIONAL_MINIMUM_WAGES, KASAMBAHAY_MINIMUM_WAGES } from '../data/region
 import { GROUP_MEMBERS, StudyNoteItem } from './engagementFeatures';
 import { cleanRuleText } from './moduleFormatter';
 import { LawTopic } from '../types/laborLaw';
+import { getPdfFontProfile, PdfFontProfile } from './round11Features';
 
 export type PdfColorThemeId =
   | 'executive_navy'
@@ -64,6 +65,7 @@ type RgbTuple = [number, number, number];
 export interface ResolvedPdfPalette {
   id: PdfColorThemeId;
   fontFamily: 'helvetica' | 'times' | 'courier';
+  fontProfile: PdfFontProfile;
   pageBg: RgbTuple;
   primary: RgbTuple;
   primaryText: RgbTuple;
@@ -84,26 +86,29 @@ export interface ResolvedPdfPalette {
   isInkSaver: boolean;
 }
 
+function applyPdfCharSpace(doc: jsPDF, charSpace: number): void {
+  const maybe = doc as unknown as { setCharSpace?: (v: number) => void };
+  if (typeof maybe.setCharSpace === 'function') {
+    maybe.setCharSpace(charSpace);
+  }
+}
+
 export function resolvePdfThemeAndFont(
   colorAccent?: string,
   fontStyle?: string
 ): ResolvedPdfPalette {
-  const fontFamily: 'helvetica' | 'times' | 'courier' =
-    fontStyle === 'editorial_serif' ||
-    fontStyle === 'playfair_royal' ||
-    fontStyle === 'academic_times' ||
-    fontStyle === 'formal_georgia' ||
-    fontStyle === 'warm_charter' ||
-    fontStyle === 'libre_baskerville' ||
-    fontStyle === 'cormorant_chancery' ||
-    fontStyle === 'crimson_juris' ||
-    fontStyle === 'source_serif_codal'
-      ? 'times'
-      : fontStyle === 'classic_monospace' ||
-        fontStyle === 'retro_mario_mono' ||
-        fontStyle === 'ibm_plex_docket'
-      ? 'courier'
-      : 'helvetica';
+  const fontProfile = getPdfFontProfile(fontStyle);
+  const raw = resolveRawPdfPalette(colorAccent, fontProfile.fontFamily);
+  return {
+    ...raw,
+    fontProfile,
+  };
+}
+
+function resolveRawPdfPalette(
+  colorAccent: string | undefined,
+  fontFamily: 'helvetica' | 'times' | 'courier'
+): Omit<ResolvedPdfPalette, 'fontProfile'> {
 
   switch (colorAccent) {
     case 'ink_saver_bw':
@@ -739,6 +744,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
 
   const theme = resolvePdfThemeAndFont(options.colorAccent, options.fontStyle);
   const ff = theme.fontFamily;
+  applyPdfCharSpace(doc, theme.fontProfile.charSpace);
 
   const pageW = 210;
   const pageH = 297;
@@ -1041,6 +1047,7 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     params.fontStyle || 'editorial_serif'
   );
   const ff = theme.fontFamily;
+  applyPdfCharSpace(doc, theme.fontProfile.charSpace);
   const W = orient === 'portrait' ? 210 : 297;
   const H = orient === 'portrait' ? 297 : 210;
 
@@ -1418,6 +1425,8 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
     compress: true,
   });
 
+  const dipFont = getPdfFontProfile(params.fontStyle || 'playfair_royal');
+  applyPdfCharSpace(doc, dipFont.charSpace);
   const W = orient === 'portrait' ? 210 : 297;
   const H = orient === 'portrait' ? 297 : 210;
 
@@ -1780,6 +1789,8 @@ export function buildStudyGuideReviewerPdfBytes(
 
   const theme = resolvePdfThemeAndFont(params.colorAccent, params.fontStyle);
   const ff = theme.fontFamily;
+  const fp = theme.fontProfile;
+  applyPdfCharSpace(doc, fp.charSpace);
 
   const pageW = orientation === 'landscape' ? 297 : 210;
   const pageH = orientation === 'landscape' ? 210 : 297;
@@ -1788,8 +1799,9 @@ export function buildStudyGuideReviewerPdfBytes(
   const marginTop = params.paperMargins === 'compact' ? 11 : 14;
   const marginBottom = 15;
   const contentW = pageW - marginX * 2;
-  const scale =
+  const baseScale =
     params.fontSizeScale === 'small' ? 0.9 : params.fontSizeScale === 'large' ? 1.1 : 1.0;
+  const scale = Number((baseScale * fp.sizeScale).toFixed(3));
 
   paintPageBackground(doc, pageW, pageH, theme.pageBg);
   let y = marginTop;
@@ -1797,6 +1809,7 @@ export function buildStudyGuideReviewerPdfBytes(
   const addThemedPage = () => {
     doc.addPage('a4', orientation);
     paintPageBackground(doc, pageW, pageH, theme.pageBg);
+    applyPdfCharSpace(doc, fp.charSpace);
     y = marginTop;
   };
 
@@ -1819,7 +1832,7 @@ export function buildStudyGuideReviewerPdfBytes(
       doc.rect(marginX, y, contentW, 7.2, 'F');
       doc.setTextColor(...theme.kickerText);
     }
-    doc.setFont(ff, 'bold');
+    doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(8.3 * scale);
     const maxTitleW = rightTag ? contentW - 42 : contentW - 5;
     const clampedTitle = doc.splitTextToSize(sanitizePdfText(title), maxTitleW)[0] || '';
@@ -1928,18 +1941,18 @@ export function buildStudyGuideReviewerPdfBytes(
   );
 
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
-  doc.setFont(ff, 'bold');
-  doc.setFontSize(13.2);
+  doc.setFont(ff, fp.headingStyle);
+  doc.setFontSize(13.2 * fp.sizeScale);
   doc.text('Philippine Labor Standards & Workplace Rights Study Guide', pageW / 2, y + 12, {
     align: 'center',
   });
 
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
-  doc.setFont(ff, 'normal');
-  doc.setFontSize(7.2);
+  doc.setFont(ff, fp.bodyStyle);
+  doc.setFontSize(7.0);
   const coverSub = params.candidateName
-    ? `Prepared for: ${sanitizePdfText(params.candidateName)}  |  Modules Included: ${params.topics.length}  |  Created by Matthew Cesar Corpuz`
-    : `Modules Included: ${params.topics.length}  |  Mastered: ${params.completedTopicIds.length}/${ALL_LAW_TOPICS.length}  |  Created by Matthew Cesar Corpuz`;
+    ? `Prepared for: ${sanitizePdfText(params.candidateName)}  |  Modules: ${params.topics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
+    : `Modules: ${params.topics.length}  |  Mastered: ${params.completedTopicIds.length}/${ALL_LAW_TOPICS.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`;
   const clampedCoverSub = doc.splitTextToSize(coverSub, contentW - 8)[0] || coverSub;
   doc.text(clampedCoverSub, pageW / 2, y + 17.4, { align: 'center' });
   y += 24;
@@ -2131,7 +2144,7 @@ export function buildStudyGuideReviewerPdfBytes(
       y += 4.5;
 
       doc.setTextColor(...theme.bodyText);
-      doc.setFont(ff, 'bold');
+      doc.setFont(ff, fp.headingStyle);
       doc.setFontSize(8.8 * scale);
       const checkPrefix =
         params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
@@ -2145,19 +2158,19 @@ export function buildStudyGuideReviewerPdfBytes(
       doc.setFontSize(6.8 * scale);
       doc.setTextColor(...(isDone ? theme.secondaryAccent : theme.mutedText));
       doc.text(isDone ? '[COMPLETED]' : '[TO STUDY]', pageW - marginX, y, { align: 'right' });
-      y += titleLines.length * (4.1 * scale) + 1;
+      y += titleLines.length * (4.1 * scale * fp.lineHeightMultiplier) + 1;
 
       if (!params.matricesOnlyMode) {
-        doc.setFont(ff, 'normal');
+        doc.setFont(ff, fp.bodyStyle);
         doc.setFontSize(7.2 * scale);
         const sumLines = doc.splitTextToSize(
           sanitizePdfText(`Core Summary: ${cleanRuleText(topic.summary)}`),
           contentW - 2
         );
-        ensureSpace(sumLines.length * (3.6 * scale) + 2);
+        ensureSpace(sumLines.length * (3.6 * scale * fp.lineHeightMultiplier) + 2);
         doc.setTextColor(...theme.bodyText);
         doc.text(sumLines, marginX + 1, y);
-        y += sumLines.length * (3.6 * scale) + 1.5;
+        y += sumLines.length * (3.6 * scale * fp.lineHeightMultiplier) + 1.5;
       }
 
       const rules = params.matricesOnlyMode
@@ -2167,17 +2180,17 @@ export function buildStudyGuideReviewerPdfBytes(
       rules.forEach((rule, rIdx) => {
         ensureSpace(8);
         doc.setTextColor(...theme.primary);
-        doc.setFont(ff, 'bold');
+        doc.setFont(ff, fp.subHeadingStyle);
         doc.setFontSize(7.5 * scale);
         const rHead = doc.splitTextToSize(
           sanitizePdfText(`${rIdx + 1}. ${cleanRuleText(rule.heading)}`),
           contentW - 4
         );
         doc.text(rHead, marginX + 2, y);
-        y += rHead.length * (3.7 * scale);
+        y += rHead.length * (3.7 * scale * fp.lineHeightMultiplier);
 
         if (!params.matricesOnlyMode && rule.description) {
-          doc.setFont(ff, 'normal');
+          doc.setFont(ff, fp.bodyStyle);
           doc.setFontSize(7.0 * scale);
           const descLines = doc.splitTextToSize(
             sanitizePdfText(cleanRuleText(rule.description)),
@@ -2361,6 +2374,9 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
     params.fontStyle || 'modern_sans'
   );
   const ff = useCustomTheme ? theme.fontFamily : 'helvetica';
+  if (useCustomTheme) {
+    applyPdfCharSpace(doc, theme.fontProfile.charSpace);
+  }
 
   if (useCustomTheme) {
     // Theme-tinted A4 Landscape Dossier Canvas

@@ -654,17 +654,19 @@ export interface AudioSettings {
   soundToggles: SoundToggles;
 }
 
+export const AUDIO_EXPLICIT_OPT_IN_KEY = 'mario_audio_explicit_opt_in_v2';
+
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
-  enabled: true,
+  enabled: false,
   sfxEnabled: true,
   toadifyEnabled: false,
   musicEnabled: false,
   soundscape: 'overworld',
   soundPack: 'sound_default',
-  volume: 0.8,
-  musicVolume: 0.42,
+  volume: 0.35,
+  musicVolume: 0.22,
   ambianceEnabled: false,
-  ambianceVolume: 0.28,
+  ambianceVolume: 0.18,
   studyAmbience: 'off',
   tabSfx: 'pipe',
   cardSfx: 'coin',
@@ -1472,14 +1474,35 @@ export class AudioController {
         const legacyPack = localStorage.getItem('mario_active_soundpack');
         const legacyToadify = localStorage.getItem('mario_toadify_enabled');
         const savedModule = localStorage.getItem(ACTIVE_AUDIO_MODULE_KEY);
+        const hasExplicitOptIn = localStorage.getItem(AUDIO_EXPLICIT_OPT_IN_KEY) === 'true';
         if (savedModule && MODULE_AUDIO_PROFILES[savedModule]) {
           this.activeModuleOverride = savedModule;
         }
         if (saved) {
           const parsed = JSON.parse(saved);
+          const rawVol = typeof parsed.volume === 'number' ? parsed.volume : DEFAULT_AUDIO_SETTINGS.volume;
+          const rawMusicVol =
+            typeof parsed.musicVolume === 'number'
+              ? parsed.musicVolume
+              : DEFAULT_AUDIO_SETTINGS.musicVolume;
+          const rawAmbVol =
+            typeof parsed.ambianceVolume === 'number'
+              ? parsed.ambianceVolume
+              : DEFAULT_AUDIO_SETTINGS.ambianceVolume;
           this.settings = {
             ...DEFAULT_AUDIO_SETTINGS,
             ...parsed,
+            enabled: hasExplicitOptIn ? Boolean(parsed.enabled) : false,
+            musicEnabled: hasExplicitOptIn ? Boolean(parsed.musicEnabled) : false,
+            ambianceEnabled: hasExplicitOptIn ? Boolean(parsed.ambianceEnabled) : false,
+            studyAmbience: hasExplicitOptIn ? parsed.studyAmbience || 'off' : 'off',
+            volume: hasExplicitOptIn ? Math.min(1, Math.max(0, rawVol)) : Math.min(0.35, rawVol),
+            musicVolume: hasExplicitOptIn
+              ? Math.min(1, Math.max(0, rawMusicVol))
+              : Math.min(0.24, rawMusicVol),
+            ambianceVolume: hasExplicitOptIn
+              ? Math.min(1, Math.max(0, rawAmbVol))
+              : Math.min(0.2, rawAmbVol),
             toadifyEnabled:
               typeof parsed.toadifyEnabled === 'boolean'
                 ? parsed.toadifyEnabled
@@ -1494,6 +1517,9 @@ export class AudioController {
         } else {
           this.settings = {
             ...DEFAULT_AUDIO_SETTINGS,
+            enabled: false,
+            musicEnabled: false,
+            ambianceEnabled: false,
             soundPack: (legacyPack || 'sound_default') as SoundPackId,
             toadifyEnabled: legacyToadify === 'true',
           };
@@ -1520,8 +1546,8 @@ export class AudioController {
 
   private syncPersistentElementVolume() {
     if (!this.bgmAudioEl) return;
-    const rawVol = Math.max(0, Math.min(1, this.settings.musicVolume ?? 0.42));
-    this.bgmAudioEl.volume = Math.min(1, rawVol * 0.72);
+    const rawVol = Math.max(0, Math.min(1, this.settings.musicVolume ?? 0.22));
+    this.bgmAudioEl.volume = Math.min(0.32, rawVol * 0.24);
     this.bgmAudioEl.muted = !this.settings.enabled || !this.settings.musicEnabled;
   }
 
@@ -1533,6 +1559,14 @@ export class AudioController {
 
     if (partial.soundscape && partial.soundscape !== prevSoundscape) {
       this.activeModuleOverride = null;
+    }
+
+    if (typeof partial.enabled === 'boolean' && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(AUDIO_EXPLICIT_OPT_IN_KEY, String(partial.enabled));
+      } catch {
+        // storage fallback
+      }
     }
 
     this.settings = { ...this.settings, ...partial };
@@ -1573,7 +1607,7 @@ export class AudioController {
       const nextUpdates: Partial<AudioSettings> = {
         studyAmbience: preset,
         ambianceEnabled: true,
-        ambianceVolume: Math.max(0.32, this.settings.ambianceVolume ?? 0.32),
+        ambianceVolume: Math.max(0.16, this.settings.ambianceVolume ?? 0.18),
       };
       if (playChime) {
         nextUpdates.enabled = true;
@@ -1930,9 +1964,9 @@ export class AudioController {
 
     try {
       const ambGain = this.ctx.createGain();
-      const rawVol = Math.max(0.12, this.settings.ambianceVolume ?? 0.34);
-      const vol = Math.min(0.45, rawVol * 0.42);
-      ambGain.gain.setValueAtTime(0.005, this.ctx.currentTime);
+      const rawVol = Math.max(0.04, this.settings.ambianceVolume ?? 0.18);
+      const vol = Math.min(0.14, rawVol * 0.22);
+      ambGain.gain.setValueAtTime(0.002, this.ctx.currentTime);
       ambGain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.35);
       ambGain.connect(this.ctx.destination);
       this.ambianceGainNode = ambGain;
@@ -2343,7 +2377,10 @@ export class AudioController {
   private getMasterGain(now: number, baseLevel: number = 0.2) {
     if (!this.ctx || !this.settings.enabled || this.settings.sfxEnabled === false) return null;
     const gain = this.ctx.createGain();
-    const effectiveVol = Math.max(0.01, (this.settings.volume ?? 0.8) * baseLevel);
+    const effectiveVol = Math.max(
+      0.002,
+      Math.min(0.11, (this.settings.volume ?? 0.35) * baseLevel * 0.24)
+    );
     gain.gain.setValueAtTime(effectiveVol, now);
     gain.connect(this.ctx.destination);
     return gain;
@@ -2457,7 +2494,10 @@ export class AudioController {
       try {
         const now = this.ctx.currentTime;
         const bgmGain = this.ctx.createGain();
-        const vol = Math.max(0.004, (this.settings.musicVolume ?? 0.42) * baseSeq.gainScale);
+        const vol = Math.max(
+          0.002,
+          Math.min(0.08, (this.settings.musicVolume ?? 0.22) * baseSeq.gainScale * 0.3)
+        );
         bgmGain.gain.setValueAtTime(vol, now);
 
         let destinationNode: AudioNode = bgmGain;
@@ -3663,7 +3703,188 @@ export class AudioController {
       // audio fallback
     }
   }
+  private lastHoverJumpAt = 0;
+
+  // Gentle, throttled hover jump sound for Topic Cards and interactive Mario tiles
+  public playHoverJump() {
+    if (!this.settings.enabled || this.settings.sfxEnabled === false) return;
+    if (this.settings.soundToggles?.jump === false) return;
+    const nowMs = Date.now();
+    if (nowMs - this.lastHoverJumpAt < 220) return;
+    this.lastHoverJumpAt = nowMs;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.09);
+      if (!master) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(290, now);
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.075);
+      gain.gain.setValueAtTime(0.55, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(now);
+      osc.stop(now + 0.085);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Bright Starman sparkle chime for Topic Card reactions and power-up triggers
+  public playStar() {
+    if (!this.settings.enabled || this.settings.sfxEnabled === false) return;
+    if (this.settings.soundToggles?.powerup === false) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.35);
+      if (!master) return;
+      const notes = [659.25, 783.99, 987.77, 1318.51, 1567.98];
+      notes.forEach((freq, i) => {
+        const osc = this.ctx!.createOscillator();
+        const g = this.ctx!.createGain();
+        osc.type = 'triangle';
+        const t = now + i * 0.045;
+        osc.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.7, t);
+        g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+        osc.connect(g);
+        g.connect(master);
+        osc.start(t);
+        osc.stop(t + 0.085);
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  // Crisp tactile card-flip synth pop/whoosh for Flashcard study mode
+  public playFlip() {
+    if (!this.settings.enabled || this.settings.sfxEnabled === false) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.09);
+      if (!master) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(760, now + 0.065);
+      gain.gain.setValueAtTime(0.65, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(now);
+      osc.stop(now + 0.075);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Classic Mario stage-clear flagpole slide + triumphant fanfare
+  public playFlagpole() {
+    if (!this.settings.enabled || this.settings.sfxEnabled === false) return;
+    if (this.settings.soundToggles?.fanfare === false) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.25);
+      if (master) {
+        const slideOsc = this.ctx.createOscillator();
+        const slideGain = this.ctx.createGain();
+        slideOsc.type = 'square';
+        slideOsc.frequency.setValueAtTime(880, now);
+        slideOsc.frequency.exponentialRampToValueAtTime(220, now + 0.18);
+        slideGain.gain.setValueAtTime(0.45, now);
+        slideGain.gain.exponentialRampToValueAtTime(0.01, now + 0.19);
+        slideOsc.connect(slideGain);
+        slideGain.connect(master);
+        slideOsc.start(now);
+        slideOsc.stop(now + 0.2);
+      }
+      if (typeof window !== 'undefined') {
+        window.setTimeout(() => {
+          this.playFanfare();
+        }, 180);
+      } else {
+        this.playFanfare();
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Play any Toad Shop Soundboard Mastery SFX by item ID or method key
+  public playSoundboardSfx(sfxIdOrMethod: string) {
+    const key = sfxIdOrMethod.replace(/^sfx_mastery_/, '');
+    switch (key) {
+      case 'powerup':
+        this.playPowerUp();
+        break;
+      case 'oneup':
+        this.playOneUp();
+        break;
+      case 'star':
+        this.playStarTheme();
+        break;
+      case 'levelup':
+        this.playLevelUp();
+        break;
+      case 'flagpole':
+        this.playFanfare();
+        break;
+      case 'pipe':
+        this.playPipe();
+        break;
+      case 'fireball':
+        this.playFireball();
+        break;
+      case 'jump':
+        this.playJump();
+        break;
+      case 'stomp':
+        this.playStomp();
+        break;
+      case 'bowser':
+        this.playWrongAnswer();
+        break;
+      case 'gameover':
+        this.playGameOver();
+        break;
+      case 'coin':
+      default:
+        this.playCoin();
+        break;
+    }
+  }
+
+  // Plays the iconic Mario coin chime (plus equipped Toad Shop Soundboard SFX if customized)
+  // whenever a user completes a topic/section or reaches a daily study milestone.
+  public playCompletionOrMilestoneCoin() {
+    this.playCoin();
+    if (typeof window !== 'undefined') {
+      try {
+        const equippedSfx = localStorage.getItem('mario_equipped_mastery_sfx_v1');
+        if (equippedSfx && equippedSfx !== 'sfx_mastery_coin' && equippedSfx !== 'coin') {
+          window.setTimeout(() => {
+            this.playSoundboardSfx(equippedSfx);
+          }, 120);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
 }
 
 export const audioController = new AudioController();
 export const marioAudio = audioController;
+

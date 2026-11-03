@@ -766,7 +766,7 @@ export const PaulineWageConcertGame: React.FC<RoyalVaultGameProps> = (props) => 
     deckKey="royal_pauline_wage_concert"
     gameTitle="Mayor Pauline's Metro Wage Festival"
     kickerBadge="WORLD 3 • R.A. 11360, P.D. 851, FACILITIES & R.A. 8188"
-    description="Headline New Donk City's Wage Festival! Hit every statutory note on 100% Service Charges, P.D. 851 13th Month Pay, Art. 102 Legal Tender, Purpose Test (Facilities vs. Supplements), and R.A. 8188 Double Indemnity."
+    description="Headline Metro Kingdom's Wage Festival! Hit every statutory note on 100% Service Charges, P.D. 851 13th Month Pay, Art. 102 Legal Tender, Purpose Test (Facilities vs. Supplements), and R.A. 8188 Double Indemnity."
     bannerGradientClass="bg-gradient-to-r from-rose-900 via-red-900 to-purple-950"
     accentButtonClass="bg-rose-300 hover:bg-rose-200 text-slate-950"
     icon={<Music className="w-6 h-6" />}

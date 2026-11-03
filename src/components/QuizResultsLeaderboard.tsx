@@ -160,29 +160,29 @@ export const QuizResultsLeaderboard: React.FC<QuizResultsLeaderboardProps> = ({
       data-testid="quiz-results-leaderboard"
       className="bg-slate-900 border-3 border-amber-400 rounded-3xl p-4 sm:p-6 text-white space-y-4 shadow-xl"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-700 pb-3">
-        <div className="flex items-center gap-2.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b-2 border-slate-700 pb-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black border-2 border-black shadow-[0_2px_0_#000] shrink-0">
             <Trophy className="w-6 h-6" />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mario leading-tight">
                 LEADERBOARD
               </span>
-              <span className="text-[9px] bg-red-600 text-white font-black px-1.5 py-0.2 rounded font-mario">
+              <span className="text-[8px] sm:text-[9px] bg-red-600 text-white font-black px-1.5 py-0.5 rounded font-mario leading-tight whitespace-nowrap">
                 TOP 5 FASTEST
               </span>
             </div>
-            <h4 className="text-sm sm:text-base font-black text-white font-display">
+            <h4 className="text-sm sm:text-base font-black text-white font-display truncate">
               {categoryTitle} Gauntlet Records
             </h4>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 text-xs text-amber-300 font-bold bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-700 self-start sm:self-auto">
-          <Clock className="w-3.5 h-3.5" />
-          <span>Ranked by Accuracy &amp; Speed</span>
+        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-amber-300 font-bold bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-700 self-start sm:self-auto shrink-0 max-w-full">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Ranked by Accuracy &amp; Speed</span>
         </div>
       </div>
 

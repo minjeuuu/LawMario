@@ -45,6 +45,7 @@ import {
   applyPrintPageRule,
   clearPrintPageRule,
 } from '../utils/printHelper';
+import { getPrintFontCssStack } from '../utils/round11Features';
 import {
   ONE_PAGE_LEGAL_FORMULAS,
   ONE_PAGE_LEGAL_DEADLINES,
@@ -1970,6 +1971,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-testid="one-page-summary-sheet"
                     data-theme={formatOptions.colorAccent}
                     data-font={formatOptions.fontStyle}
+                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
                     className={`${summaryPaperBgClass} ${bodyFontClass} p-6 rounded-2xl border-2 shadow-2xl w-full space-y-4 select-text`}
                   >
                     {/* A4 Sheet Header */}
@@ -2099,6 +2101,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-theme={formatOptions.colorAccent}
                     data-font={formatOptions.fontStyle}
                     data-orientation={certOrientation}
+                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
                     className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 ${
                       certOrientation === 'portrait'
                         ? 'px-10 py-12 min-h-[1122px]'
@@ -2126,10 +2129,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           <Scale className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-sans font-bold uppercase tracking-[0.2em] text-slate-600">
+                          <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600">
                             REPUBLIC OF THE PHILIPPINES · PHILIPPINE LABOR STANDARDS GUIDE
                           </p>
-                          <p className="text-[10.5px] font-sans font-semibold tracking-wider text-slate-500 uppercase">
+                          <p className="text-[10.5px] font-semibold tracking-wider text-slate-500 uppercase">
                             Department of Labor and Employment · Executive Statutory Completion Record
                           </p>
                         </div>
@@ -2158,7 +2161,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       >
                         {candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar'}
                       </h3>
-                      <p className={`text-sm font-sans font-black tracking-widest uppercase mt-2 ${certThemeClasses.honors}`}>
+                      <p className={`text-sm font-black tracking-widest uppercase mt-2 ${certThemeClasses.honors}`}>
                         {certificateHonors}
                       </p>
                     </div>
@@ -2173,7 +2176,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       <div
                         className={`grid ${
                           certOrientation === 'portrait' ? 'grid-cols-2 gap-3' : 'grid-cols-6 gap-2'
-                        } pt-1 text-[11px] font-sans font-bold`}
+                        } pt-1 text-[11px] font-bold`}
                       >
                         {WORLDS_METADATA.map((w) => (
                           <div key={w.id} className={`border px-2.5 py-2 rounded-lg text-center min-w-0 ${certThemeClasses.badge}`}>
@@ -2188,14 +2191,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     <div className="pt-4 border-t-2 border-amber-600/60 grid grid-cols-3 items-end gap-4 text-center">
                       <div className="space-y-0.5 min-w-0 px-2">
                         <div className="border-b border-slate-900 mx-auto max-w-[260px] pb-0.5">
-                          <span className="font-serif italic text-base font-bold text-slate-900 block leading-snug">
+                          <span className="italic text-base font-bold text-slate-900 block leading-snug">
                             Matthew Cesar Corpuz
                           </span>
                         </div>
-                        <p className="text-[10.5px] font-sans font-black text-slate-700 uppercase leading-tight">
+                        <p className="text-[10.5px] font-black text-slate-700 uppercase leading-tight">
                           Matthew Cesar Corpuz
                         </p>
-                        <p className="text-[9.5px] font-sans text-slate-500 leading-tight">
+                        <p className="text-[9.5px] text-slate-500 leading-tight">
                           Main Creator &amp; Chief Legal Researcher
                         </p>
                       </div>
@@ -2203,7 +2206,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       <div className="flex flex-col items-center justify-center">
                         <div className="w-16 h-16 rounded-full border-4 border-amber-500 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 flex flex-col items-center justify-center text-slate-950 shadow-md">
                           <Award className="w-7 h-7 text-amber-950" />
-                          <span className="text-[8px] font-sans font-black tracking-tighter uppercase leading-none mt-0.5">
+                          <span className="text-[8px] font-black tracking-tighter uppercase leading-none mt-0.5">
                             SEALED
                           </span>
                         </div>
@@ -2217,14 +2220,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
                       <div className="space-y-0.5 min-w-0 px-2">
                         <div className="border-b border-slate-900 mx-auto max-w-[280px] pb-0.5">
-                          <span className="font-serif italic text-base font-bold text-slate-900 block leading-snug">
+                          <span className="italic text-base font-bold text-slate-900 block leading-snug">
                             Labor Standards Academic Board
                           </span>
                         </div>
-                        <p className="text-[10.5px] font-sans font-black text-slate-700 uppercase leading-tight">
+                        <p className="text-[10.5px] font-black text-slate-700 uppercase leading-tight">
                           Philippine Labor Standards Directorate
                         </p>
-                        <p className="text-[9.5px] font-sans text-slate-500 leading-tight">
+                        <p className="text-[9.5px] text-slate-500 leading-tight">
                           Statutory &amp; Workplace Rights Board
                         </p>
                       </div>
@@ -2237,6 +2240,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-testid="official-scorecard-sheet"
                     data-theme={formatOptions.colorAccent}
                     data-font={formatOptions.fontStyle}
+                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
                     className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 px-10 py-8 border-[8px] rounded-2xl shadow-2xl w-full min-h-[794px] select-text flex flex-col justify-between gap-5 outline outline-2`}
                   >
                     {/* Top Banner */}
@@ -2336,6 +2340,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-orientation={pageOrientation}
                     data-theme={formatOptions.colorAccent}
                     data-font={formatOptions.fontStyle}
+                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
                     className={`${summaryPaperBgClass} text-slate-950 ${marginPaddingClass} ${fontScaleClass} ${
                       isCompact ? 'space-y-4' : 'space-y-7'
                     } w-full ${bodyFontClass} relative overflow-hidden ${
@@ -2383,7 +2388,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   </span>
                 </div>
               )}
-              <div className="pt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-sans">
+              <div className="pt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
                 <span className="inline-flex items-center gap-1 font-semibold text-slate-900">
                   Created by Matthew (Matthew Cesar Corpuz — Main Creator)
                 </span>
@@ -2403,7 +2408,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               <section
                 className={`border ${headingBorderClass} rounded-xl ${
                   isCompact ? 'p-3 space-y-1.5' : 'p-4 space-y-2.5'
-                } ${subtleBoxClass} break-inside-avoid font-sans`}
+                } ${subtleBoxClass} break-inside-avoid`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 pb-1.5">
                   <div className="flex items-center gap-2">
@@ -2437,7 +2442,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               <section
                 className={`border ${headingBorderClass} rounded-xl ${
                   isCompact ? 'p-3 space-y-2' : 'p-4 space-y-3'
-                } bg-white break-inside-avoid font-sans`}
+                } bg-white break-inside-avoid`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 pb-1.5">
                   <div className="flex items-center gap-2">
@@ -2508,7 +2513,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   <span className="text-[10px] font-mono text-slate-600">Arts. 87, 93–94 Labor Code</span>
                 </div>
                 <div className="w-full overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse font-sans tabular-nums">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
                     <colgroup>
                       <col style={{ width: '22%' }} />
                       <col style={{ width: '34%' }} />
@@ -2564,7 +2569,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   <span className="text-[10px] font-mono text-slate-600">R.A. 6727 · R.A. 10361</span>
                 </div>
                 <div className="w-full overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse font-sans tabular-nums">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
                     <colgroup>
                       <col style={{ width: '26%' }} />
                       <col style={{ width: '18%' }} />
@@ -2628,7 +2633,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   <span className="text-[10px] font-mono text-slate-600">Art. 95 &amp; Special Leave Statutes</span>
                 </div>
                 <div className="w-full overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse font-sans tabular-nums">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
                     <colgroup>
                       <col style={{ width: '20%' }} />
                       <col style={{ width: '15%' }} />
@@ -2685,7 +2690,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     ? 'IV. Embedded Module Comparative Matrices (Worlds 1–6)'
                     : 'IV. Codified Provisions, Doctrines, Exceptions & Bar Exam Tips'}
                 </h2>
-                <span className="text-[10.5px] font-sans text-slate-600">
+                <span className="text-[10.5px] text-slate-600">
                   {matricesOnlyMode
                     ? 'Matrices-Only Cheat Sheet'
                     : formatOptions.hideCompletedTopics
@@ -2698,12 +2703,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               {includeFormulasCheatSheet && (
                 <section className={`border ${headingBorderClass} rounded-xl p-3.5 ${subtleBoxClass} break-inside-avoid space-y-2`}>
                   <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
-                    <h3 className="font-black text-xs uppercase tracking-wide text-slate-950 font-sans">
+                    <h3 className="font-black text-xs uppercase tracking-wide text-slate-950">
                       Statutory Wage Multipliers &amp; Overtime Computation Cheat Sheet
                     </h3>
                     <span className="text-[10px] font-mono text-slate-600 font-bold">Labor Code Arts. 86, 87, 93, 94 &amp; P.D. 851</span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-sans">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
                     <div className="bg-white p-2 rounded-lg border border-slate-300">
                       <strong className="block text-slate-950 font-bold">Normal Overtime (Art. 87)</strong>
                       <span className="text-slate-700 font-mono font-bold text-xs">+25%</span>
@@ -2729,7 +2734,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               )}
 
               {/* High-Yield Labor Law Jurisprudence Panels */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-sans">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Four-Fold ER-EE Test Panel */}
                 {includeFourFoldControlTest && (
                   <section className={`border ${headingBorderClass} rounded-xl p-3 ${subtleBoxClass} break-inside-avoid space-y-1.5`}>
@@ -2800,7 +2805,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               </div>
 
               {filteredTopics.length === 0 ? (
-                <div className="border border-slate-300 rounded-xl p-6 text-center space-y-1.5 bg-slate-50 font-sans">
+                <div className="border border-slate-300 rounded-xl p-6 text-center space-y-1.5 bg-slate-50">
                   <BookOpenCheck className="w-6 h-6 text-slate-700 mx-auto" />
                   <p className="font-bold text-xs text-slate-900">
                     All topics in your selected worlds are already marked Mastered!
@@ -2891,7 +2896,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               {/* Mario Executive Takeaway */}
                               {!matricesOnlyMode && includeExecutiveMarioSummary && topic.beginnerSummary && (
                                 <div className="bg-amber-50/80 border border-amber-300 rounded-lg p-2 text-[10.5px] text-amber-950 font-medium break-inside-avoid">
-                                  <strong className="font-bold text-amber-900 uppercase font-sans">Mario Executive Takeaway:</strong>{' '}
+                                  <strong className="font-bold text-amber-900 uppercase">Mario Executive Takeaway:</strong>{' '}
                                   {topic.beginnerSummary}
                                 </div>
                               )}
@@ -2917,7 +2922,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       isCompact ? 'p-2 space-y-0.5' : 'p-2.5 space-y-1'
                                     } break-inside-avoid`}
                                   >
-                                    <span className="font-bold text-slate-950 block text-[10.5px] uppercase tracking-wide font-sans">
+                                    <span className="font-bold text-slate-950 block text-[10.5px] uppercase tracking-wide">
                                       Controlling Jurisprudence &amp; Legal Citations
                                     </span>
                                     <ul className="list-disc pl-4 space-y-0.5 text-slate-900">
@@ -2999,7 +3004,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       ))}
                                     {rule.tableData && (
                                       <div className="w-full overflow-visible pt-0.5">
-                                        <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse font-sans tabular-nums">
+                                        <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
                                           <colgroup>
                                             {getPrintColumnWidths(rule.tableData.headers.length).map(
                                               (widthPct, colIdx) => (
@@ -3062,7 +3067,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                     isCompact ? 'p-2 space-y-1' : 'p-2.5 space-y-1.5'
                                   } break-inside-avoid`}
                                 >
-                                  <span className="font-bold text-slate-950 block text-[10.5px] uppercase tracking-wide font-sans">
+                                  <span className="font-bold text-slate-950 block text-[10.5px] uppercase tracking-wide">
                                     General Rule &amp; Statutory Exceptions
                                   </span>
                                   {topic.exceptions.map((ex, exIdx) => (
@@ -3098,7 +3103,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       isCompact ? 'p-2 space-y-0.5' : 'p-2.5 space-y-1'
                                     } break-inside-avoid`}
                                   >
-                                    <span className="font-bold text-slate-950 flex items-center gap-1 text-[10.5px] uppercase tracking-wide font-sans">
+                                    <span className="font-bold text-slate-950 flex items-center gap-1 text-[10.5px] uppercase tracking-wide">
                                       <Sparkles className="w-3 h-3 shrink-0" />
                                       Memory Traps &amp; High-Yield Takeaways
                                     </span>
@@ -3157,7 +3162,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             {includeHonorPledge && (
               <section
                 id="print-sec-pledge"
-                className={`border ${headingBorderClass} rounded-xl p-4 ${subtleBoxClass} break-inside-avoid font-sans space-y-2 mt-4`}
+                className={`border ${headingBorderClass} rounded-xl p-4 ${subtleBoxClass} break-inside-avoid space-y-2 mt-4`}
               >
                 <div className="flex items-center justify-between border-b border-slate-300 pb-1">
                   <h3 className="font-black text-xs uppercase tracking-wide text-slate-950">

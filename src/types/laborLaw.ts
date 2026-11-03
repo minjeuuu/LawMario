@@ -122,7 +122,17 @@ export type StudyCompanionId =
   | 'comp_polterpup'
   | 'comp_counsel_toad'
   | 'comp_chain_chomp'
-  | 'comp_lakitu';
+  | 'comp_lakitu'
+  | 'comp_toadsworth'
+  | 'comp_captain_toad'
+  | 'comp_pauline'
+  | 'comp_dry_bones'
+  | 'comp_shy_guy'
+  | 'comp_birdo'
+  | 'comp_dk'
+  | 'comp_diddy'
+  | 'comp_kamek'
+  | 'comp_nabbit';
 
 export type CardFrameId =
   | 'frame_default'
@@ -130,7 +140,13 @@ export type CardFrameId =
   | 'frame_starlight_prism'
   | 'frame_retro_brick'
   | 'frame_emerald_pipe'
-  | 'frame_supreme_crimson';
+  | 'frame_supreme_crimson'
+  | 'frame_koopa_sovereign'
+  | 'frame_peach_stained_glass'
+  | 'frame_bowser_obsidian'
+  | 'frame_yoshi_botanical'
+  | 'frame_boo_ethereal'
+  | 'frame_rainbow_prism';
 
 export interface ShopItem {
   id: string;
