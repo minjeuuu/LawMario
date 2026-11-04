@@ -2094,6 +2094,12 @@ export function evaluateStudySprintCompletion(params: {
 
 export type StudyAmbiencePreset =
   | 'off'
+  | 'overworld_breeze'
+  | 'underground_echoes'
+  | 'peach_castle_rain'
+  | 'rosalina_starlight'
+  | 'yoshi_tropic_waves'
+  | 'koopa_library_hearth'
   | 'forest'
   | 'underwater'
   | 'castle'
@@ -2106,6 +2112,12 @@ export const STUDY_AMBIENCE_OPTIONS: readonly {
   subtitle: string;
 }[] = [
   { id: 'off', label: 'Off', subtitle: 'No background ambience' },
+  { id: 'overworld_breeze', label: 'Overworld Breeze', subtitle: 'Mushroom Kingdom meadow breeze & soft coin harmonics' },
+  { id: 'underground_echoes', label: 'Underground Echoes', subtitle: 'Crystal cavern resonance & subterranean droplets' },
+  { id: 'peach_castle_rain', label: 'Peach Castle Rain', subtitle: 'Warm stained-glass library rain pattering' },
+  { id: 'rosalina_starlight', label: 'Starlight Observatory', subtitle: 'Celestial Luma synth pads & calm shimmer' },
+  { id: 'yoshi_tropic_waves', label: 'Yoshi Tropic Shore', subtitle: 'Calm tropical lagoon surf & island breeze' },
+  { id: 'koopa_library_hearth', label: 'Koopa Keep Hearth', subtitle: 'Crackling fireplace embers & amber drone' },
   { id: 'forest', label: 'Forest', subtitle: 'Soft woodland breeze & gentle chimes' },
   { id: 'underwater', label: 'Underwater', subtitle: 'Deep aquatic currents & calm bubbles' },
   { id: 'castle', label: 'Castle', subtitle: 'Warm hearth crackle & stone hall' },

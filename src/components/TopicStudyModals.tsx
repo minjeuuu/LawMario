@@ -20,6 +20,7 @@ import {
   MarioFireFlowerIcon,
 } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
+import { SaveSingleQuizErrorButton } from './SaveSingleQuizErrorButton';
 import {
   X,
   RotateCw,
@@ -692,8 +693,8 @@ export const TopicQuickQuizModal: React.FC<TopicQuickQuizModalProps> = ({
               </div>
 
               {pickedOption !== null && (
-                <div className="rounded-2xl bg-slate-950 border border-slate-700 p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-black">
+                <div className="rounded-2xl bg-slate-950 border border-slate-700 p-4 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-black">
                     <span
                       className={
                         pickedOption === currentQ.correctIndex ? 'text-emerald-400' : 'text-rose-400'
@@ -706,7 +707,25 @@ export const TopicQuickQuizModal: React.FC<TopicQuickQuizModalProps> = ({
                     <span className="text-amber-300 font-mono">{currentQ.legalBasis}</span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">{currentQ.explanation}</p>
-                  <div className="pt-1 flex justify-end">
+                  <div className="pt-1 flex flex-wrap items-center justify-between gap-2">
+                    {pickedOption !== currentQ.correctIndex ? (
+                      <SaveSingleQuizErrorButton
+                        testId="topic-quick-quiz-save-error-btn"
+                        compact
+                        darkSurface
+                        errorItem={{
+                          scenario: currentQ.prompt,
+                          correctOptionText: currentQ.options[currentQ.correctIndex] || '',
+                          chosenOptionText: currentQ.options[pickedOption] || '',
+                          legalBasis: currentQ.legalBasis || topic.badge,
+                          explanation: currentQ.explanation,
+                          worldCode: topic.worldId,
+                          quizModeLabel: 'Topic Quick Quiz',
+                        }}
+                      />
+                    ) : (
+                      <span />
+                    )}
                     <button
                       type="button"
                       data-testid="topic-quick-quiz-next-btn"

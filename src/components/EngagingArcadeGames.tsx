@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MarioAvatar } from '../types/laborLaw';
 import { marioAudio } from '../utils/audio';
 import {
+  stepKoopaPinballBall,
+  PINBALL_PASS_SCORE,
+  PINBALL_JACKPOT_SCORE,
+} from '../utils/round12Features';
+import {
   MarioCoinIcon,
   MarioStarIcon,
   MarioCharacterAvatar,
@@ -1650,81 +1655,80 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         const b = ballRef.current;
 
         if (stateRef.current === 'playing') {
-          b.vy += 420 * dt;
-          b.x += b.vx * dt;
-          b.y += b.vy * dt;
+          const stepRes = stepKoopaPinballBall({
+            x: b.x,
+            y: b.y,
+            vx: b.vx,
+            vy: b.vy,
+            rawDt: dt,
+            leftFlip: flipperRef.current.left,
+            rightFlip: flipperRef.current.right,
+            ballsLeft: b.shells,
+            score: b.score,
+          });
 
-          if (b.x < 22) {
-            b.x = 22;
-            b.vx = Math.abs(b.vx) * 0.96;
-          }
-          if (b.x > W - 22) {
-            b.x = W - 22;
-            b.vx = -Math.abs(b.vx) * 0.96;
-          }
-          if (b.y < 22) {
-            b.y = 22;
-            b.vy = Math.abs(b.vy) * 0.95;
-          }
+          b.x = stepRes.x;
+          b.y = stepRes.y;
+          b.vx = stepRes.vx;
+          b.vy = stepRes.vy;
+          b.shells = stepRes.ballsLeft;
 
-          // Bumper collisions
-          for (const bmp of BUMPERS) {
-            const dx = b.x - bmp.x;
-            const dy = b.y - bmp.y;
-            const dist = Math.hypot(dx, dy);
-            if (dist < bmp.r + 12 && dist > 0.01) {
-              const nx = dx / dist;
-              const ny = dy / dist;
-              b.x = bmp.x + nx * (bmp.r + 13);
-              b.y = bmp.y + ny * (bmp.r + 13);
-              b.vx = nx * 270;
-              b.vy = ny * 270;
-              b.score += bmp.pts;
-              setScore(b.score);
-              setLastBumperNote(`Shattered ${bmp.label} Bumper (+${bmp.pts} pts)!`);
-              marioAudio.playCoin();
-              if (b.score >= 2500) {
-                const mult = boosts?.doublePayoutActive ? 2 : 1;
-                onEarnCoins(16 * mult);
-                setGameState('gameover');
-                marioAudio.playLevelUp();
+          let hitBumper = false;
+          if (!stepRes.drainedThisStep) {
+            for (const bmp of BUMPERS) {
+              const dx = b.x - bmp.x;
+              const dy = b.y - bmp.y;
+              const dist = Math.hypot(dx, dy);
+              const minDist = bmp.r + 10;
+              if (dist < minDist && dist > 0.001) {
+                const nx = dx / dist;
+                const ny = dy / dist;
+                b.x = bmp.x + nx * (minDist + 2);
+                b.y = bmp.y + ny * (minDist + 2);
+                const speed = Math.min(390, Math.max(255, Math.hypot(b.vx, b.vy)));
+                b.vx = nx * speed;
+                b.vy = ny * speed;
+                b.score += bmp.pts;
+                hitBumper = true;
+                setScore(b.score);
+                setLastBumperNote(`Shattered ${bmp.label} Bumper (+${bmp.pts} pts)!`);
+                marioAudio.playCoin();
+                break;
               }
             }
           }
 
-          // Flipper paddles at y = 298
-          const leftPaddleActive = flipperRef.current.left;
-          const rightPaddleActive = flipperRef.current.right;
-          if (b.y >= 282 && b.y <= 312) {
-            // Left paddle zone 95..250, Right paddle zone 270..425, auto-save center when held
-            if (b.x >= 85 && b.x <= 262) {
-              b.y = 281;
-              b.vy = leftPaddleActive ? -390 : -295;
-              b.vx += (b.x - 170) * 1.4;
-              marioAudio.playJump();
-            } else if (b.x > 262 && b.x <= 435) {
-              b.y = 281;
-              b.vy = rightPaddleActive ? -390 : -295;
-              b.vx += (b.x - 350) * 1.4;
-              marioAudio.playJump();
-            }
+          if (!hitBumper && stepRes.bouncedFlipper) {
+            marioAudio.playJump();
           }
 
-          if (b.y > H + 20) {
-            b.shells -= 1;
+          if (stepRes.drainedThisStep) {
             setShellsLeft(b.shells);
-            if (b.shells <= 0) {
-              if (b.score >= 400) {
-                const mult = boosts?.doublePayoutActive ? 2 : 1;
-                onEarnCoins(6 * mult);
-              }
-              setGameState('gameover');
+            setLastBumperNote(
+              b.shells > 0
+                ? `Shell drained down center pit! ${b.shells} Shell${b.shells === 1 ? '' : 's'} remaining.`
+                : b.score >= PINBALL_PASS_SCORE
+                ? `Run Complete — Passed ${PINBALL_PASS_SCORE} target!`
+                : `Game Over — Drained all 3 Shells below ${PINBALL_PASS_SCORE} target!`
+            );
+            marioAudio.playPipe();
+          }
+
+          if (b.score >= PINBALL_JACKPOT_SCORE) {
+            const mult = boosts?.doublePayoutActive ? 2 : 1;
+            onEarnCoins(18 * mult);
+            setScore(b.score);
+            setGameState('gameover');
+            marioAudio.playLevelUp();
+          } else if (stepRes.gameOver) {
+            if (b.score >= PINBALL_PASS_SCORE) {
+              const mult = boosts?.doublePayoutActive ? 2 : 1;
+              onEarnCoins(10 * mult);
+              marioAudio.playLevelUp();
             } else {
-              b.x = 260;
-              b.y = 55;
-              b.vx = (b.shells % 2 === 0 ? 1 : -1) * 175;
-              b.vy = 30;
+              marioAudio.playGameOver();
             }
+            setGameState('gameover');
           }
         }
 
@@ -1734,6 +1738,14 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         ctx.strokeStyle = '#fbbf24';
         ctx.lineWidth = 4;
         ctx.strokeRect(8, 8, W - 16, H - 16);
+
+        // Draw Visible Center Drain Pit Hazard Zone (212..308)
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.22)';
+        ctx.fillRect(212, H - 28, 96, 20);
+        ctx.fillStyle = '#fda4af';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('DRAIN PIT', 260, H - 14);
 
         for (const bmp of BUMPERS) {
           ctx.fillStyle = bmp.color;
@@ -1749,15 +1761,15 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
           ctx.fillText(bmp.label, bmp.x, bmp.y + 3);
         }
 
-        // Flippers
+        // Flippers with Real 96px Center Drain Gap (76..212 and 308..444)
         ctx.fillStyle = flipperRef.current.left ? '#fde047' : '#38bdf8';
         ctx.beginPath();
-        ctx.roundRect(95, flipperRef.current.left ? 286 : 294, 155, 14, 7);
+        ctx.roundRect(76, flipperRef.current.left ? 283 : 295, 136, 13, 7);
         ctx.fill();
 
         ctx.fillStyle = flipperRef.current.right ? '#fde047' : '#38bdf8';
         ctx.beginPath();
-        ctx.roundRect(270, flipperRef.current.right ? 286 : 294, 155, 14, 7);
+        ctx.roundRect(308, flipperRef.current.right ? 283 : 295, 136, 13, 7);
         ctx.fill();
 
         // Koopa Shell Ball
@@ -1788,7 +1800,7 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
           <p className="text-[11px] text-slate-300">{lastBumperNote}</p>
         </div>
         <div className="font-mono text-xs font-black tabular-nums text-emerald-300">
-          SHELLS {shellsLeft} · SCORE {score}/2500
+          SHELLS {shellsLeft} · SCORE {score}/{PINBALL_PASS_SCORE} PASS ({PINBALL_JACKPOT_SCORE} JACKPOT)
         </div>
       </div>
 
@@ -1800,14 +1812,20 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
           className="w-full h-[270px] sm:h-[330px] rounded-2xl border-2 border-slate-800 block"
         />
         {gameState !== 'playing' && (
-          <div className="absolute inset-0 bg-slate-950/80 rounded-2xl flex flex-col items-center justify-center p-5 text-center space-y-3">
+          <div className="absolute inset-0 bg-slate-950/85 rounded-2xl flex flex-col items-center justify-center p-5 text-center space-y-3">
             <h4 className="text-xl font-black text-amber-300">
               {gameState === 'gameover'
-                ? `PINBALL RUN COMPLETE · ${score} PTS`
+                ? score >= PINBALL_PASS_SCORE
+                  ? `VICTORY · ${score} PTS!`
+                  : `GAME OVER · ${score}/${PINBALL_PASS_SCORE} PTS`
                 : 'RICOCHET KOOPA BUMPER ARENA'}
             </h4>
             <p className="text-xs text-slate-300 max-w-sm">
-              Fire the emerald Koopa Shell into 125% OT, 200% Holiday, and 22.5d Retirement bumpers to hit 2,500 Jackpot Points!
+              {gameState === 'gameover'
+                ? score >= PINBALL_PASS_SCORE
+                  ? 'Course Cleared! Coins credited to your Toad Shop vault.'
+                  : `All 3 Shells drained! Press Left/Right Flippers actively to guard the center pit and reach ${PINBALL_PASS_SCORE}+ pts to earn coins.`
+                : `Actively time Left & Right Flippers to guard the center Drain Pit! Score ${PINBALL_PASS_SCORE}+ pts to pass or ${PINBALL_JACKPOT_SCORE} for Jackpot!`}
             </p>
             <button
               type="button"

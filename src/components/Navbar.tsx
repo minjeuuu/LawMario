@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { MarioCoinIcon, MarioCharacterAvatar, MarioStarIcon } from './MarioIcons';
 import { marioAudio, AudioSettings, SOUND_PACK_DEFINITIONS } from '../utils/audio';
+import type { StudyAmbiencePreset } from '../utils/round8Features';
 import { AudioSettingsModal } from './AudioSettingsModal';
 import {
   ComplexityMode,
@@ -53,11 +54,21 @@ import { PWAInstallButton } from './PWAInstallButton';
 import { MARIO_SOUNDSCAPES, MarioSoundscapeId } from '../utils/engagementFeatures';
 import { ColorMode, DailyPomodoroRecord } from '../utils/profileAchievements';
 import {
-  STUDY_AMBIENCE_OPTIONS,
-  StudyAmbiencePreset,
   APP_STUDY_FONTS,
 } from '../utils/round8Features';
 import { computeGoalStreakAndWeeklyConsistency } from '../utils/round9Features';
+import { loadRound10VaultState } from '../utils/round10Features';
+import {
+  MARIO_NAVBAR_AMBIENCE_OPTIONS,
+  resolveEquippedNameplate,
+} from '../utils/round12Features';
+import {
+  DAILY_GOAL_INCREMENTS,
+  cycleNextDailyGoalMinutes,
+  normalizeDailyGoalMinutes,
+  saveDailyGoalMinutes,
+  computeDailyStudyGoalProgress,
+} from '../utils/round13Features';
 
 interface NavbarProps {
   activeTab: string;
@@ -111,6 +122,7 @@ interface NavbarProps {
   onSelectAppStudyFont?: (font: AppStudyFontId) => void;
   dailyPomodoroLogs?: Record<string, DailyPomodoroRecord>;
   dailyGoalMinutes?: number;
+  onChangeDailyGoalMinutes?: (minutes: number) => void;
   todayStudiedSeconds?: number;
   invincibleRemainingLabel?: string | null;
   doubleXpRemainingLabel?: string | null;
@@ -172,6 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectAppStudyFont,
   dailyPomodoroLogs = {},
   dailyGoalMinutes = 30,
+  onChangeDailyGoalMinutes,
   todayStudiedSeconds = 0,
   invincibleRemainingLabel = null,
   doubleXpRemainingLabel = null,
@@ -184,6 +197,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [audioState, setAudioState] = useState<AudioSettings>({ ...marioAudio.settings });
   const [luxuryAvatarFrame, setLuxuryAvatarFrame] = useState<string>('');
   const [luxuryAura, setLuxuryAura] = useState<string>('');
+
+  const effectiveDailyGoal = normalizeDailyGoalMinutes(dailyGoalMinutes);
+  const dailyGoalProgress = computeDailyStudyGoalProgress(
+    todayStudiedSeconds,
+    effectiveDailyGoal
+  );
+
+  const handleSelectDailyGoal = (minutes: number) => {
+    const saved = saveDailyGoalMinutes(
+      minutes,
+      typeof window !== 'undefined' ? window.localStorage : null
+    );
+    onChangeDailyGoalMinutes?.(saved);
+    marioAudio.playCoin();
+  };
+
+  const handleCycleDailyGoal = () => {
+    const nextGoal = cycleNextDailyGoalMinutes(effectiveDailyGoal);
+    handleSelectDailyGoal(nextGoal);
+  };
 
   const mixerRef = useRef<HTMLDivElement | null>(null);
   const moreToolsRef = useRef<HTMLDivElement | null>(null);
@@ -598,6 +631,49 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </button>
 
+              {/* 6B. Inline 'Study Ambience' Selector Directly in Navbar (Overworld Breeze, Underground Echoes, etc.) */}
+              <div
+                className="hidden md:flex items-center gap-1 bg-slate-900 border border-cyan-500/60 rounded-lg px-1.5 h-7 shrink-0 shadow-[0_1px_0_#000]"
+                title="Study Ambience Soundscape Selector (Overworld Breeze, Underground Echoes, Peach Castle Rain...)"
+              >
+                <Headphones className="w-3 h-3 text-cyan-400 shrink-0" />
+                <select
+                  data-testid="navbar-study-ambience-selector"
+                  aria-label="Study Ambience"
+                  value={activeAmbience}
+                  onChange={(e) => {
+                    marioAudio.setStudyAmbience(e.target.value as any, true);
+                  }}
+                  className="bg-transparent text-[10px] font-black text-cyan-200 focus:outline-hidden cursor-pointer max-w-[138px] truncate"
+                >
+                  {MARIO_NAVBAR_AMBIENCE_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id} className="bg-slate-950 text-white">
+                      {opt.id === 'off' ? 'Ambience: Off' : opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Equipped Toad's Shop HUD Nameplate Badge (When Non-Default) */}
+              {(() => {
+                const r10State =
+                  typeof window !== 'undefined' ? loadRound10VaultState(window.localStorage) : null;
+                const plateMeta = resolveEquippedNameplate(r10State?.equippedNameplate);
+                if (!plateMeta) return null;
+                return (
+                  <button
+                    type="button"
+                    data-testid="navbar-equipped-nameplate"
+                    onClick={onOpenProfile}
+                    title={`Equipped HUD Nameplate: ${plateMeta.name}`}
+                    className={`hidden xl:inline-flex h-6 px-2 items-center gap-1 rounded-lg border text-[9px] font-black leading-none shrink-0 cursor-pointer ${plateMeta.badgeClasses}`}
+                  >
+                    <Award className="w-3 h-3 shrink-0" />
+                    <span className="truncate max-w-[110px]">{plateMeta.name}</span>
+                  </button>
+                );
+              })()}
+
               {/* 7. Dedicated Audio Mixer Popover (Inline on sm+ screens; also in mobile drawer) */}
               <div ref={mixerRef} className="relative hidden sm:block shrink-0">
                 <button
@@ -811,16 +887,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                           {ambiencePausedByBgm ? 'Paused by BGM' : activeAmbience.toUpperCase()}
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        {STUDY_AMBIENCE_OPTIONS.map((opt) => {
+                      <div className="grid grid-cols-2 gap-1">
+                        {MARIO_NAVBAR_AMBIENCE_OPTIONS.map((opt) => {
                           const isSel = activeAmbience === opt.id;
                           return (
                             <button
                               key={opt.id}
                               type="button"
                               data-testid={`navbar-ambience-${opt.id}`}
-                              onClick={() => marioAudio.setStudyAmbience(opt.id, true)}
-                              className={`min-h-[30px] px-1.5 rounded-lg text-[10px] font-black border cursor-pointer whitespace-nowrap transition-colors ${
+                              onClick={() => marioAudio.setStudyAmbience(opt.id as any, true)}
+                              className={`min-h-[30px] px-1.5 rounded-lg text-[10px] font-black border cursor-pointer truncate transition-colors ${
                                 isSel
                                   ? 'bg-cyan-400 text-slate-950 border-black'
                                   : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
@@ -836,6 +912,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                           ? 'Ambience is automatically paused while Mario BGM is playing.'
                           : 'Gentle background loop; pauses automatically when Mario BGM plays.'}
                       </p>
+                    </div>
+
+                    {/* Daily Study Goal Quick Toggle (15m to 120m in 15m increments) */}
+                    <div className="pt-2 border-t border-slate-800 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-300">Daily Goal:</span>
+                        <button
+                          type="button"
+                          data-testid="quick-audio-daily-goal-toggle-btn"
+                          onClick={handleCycleDailyGoal}
+                          className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-black border border-black cursor-pointer tabular-nums"
+                        >
+                          {effectiveDailyGoal}m (+15m) · {dailyGoalProgress.completionPercent}%
+                        </button>
+                      </div>
                     </div>
 
                     {/* Legal Citations Quick Toggle */}
@@ -909,7 +1000,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {showMoreToolsMenu && (
                   <div
                     data-testid="navbar-more-tools-popover"
-                    className="absolute right-0 top-full mt-2 w-72 bg-slate-950/95 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[6px_6px_0_#000] z-50 text-white space-y-2.5 backdrop-blur-md"
+                    className="mario-menu-press2p absolute right-0 top-full mt-2 w-80 bg-slate-950/95 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[6px_6px_0_#000] z-50 text-white space-y-2.5 backdrop-blur-md"
                   >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
@@ -943,6 +1034,47 @@ export const Navbar: React.FC<NavbarProps> = ({
                         )}
                         <span>{studyDifficulty === 'exam_prep' ? 'Exam Prep' : 'Casual'}</span>
                       </button>
+                    </div>
+
+                    {/* Daily Study Goal Customizer (15m to 120m in 15-Minute Increments) */}
+                    <div
+                      data-testid="navbar-daily-goal-settings-section"
+                      className="bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-800 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-300">
+                          Daily Goal ({dailyGoalProgress.completionPercent}%):
+                        </span>
+                        <button
+                          type="button"
+                          data-testid="navbar-daily-goal-toggle-btn"
+                          onClick={handleCycleDailyGoal}
+                          title="Cycle Daily Study Goal in 15-minute increments (15m to 120m)"
+                          className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] font-black border border-black cursor-pointer tabular-nums whitespace-nowrap"
+                        >
+                          {effectiveDailyGoal}m (+15m)
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {DAILY_GOAL_INCREMENTS.map((inc) => {
+                          const isCurrent = effectiveDailyGoal === inc;
+                          return (
+                            <button
+                              key={`nav-goal-${inc}`}
+                              type="button"
+                              data-testid={`navbar-daily-goal-${inc}m`}
+                              onClick={() => handleSelectDailyGoal(inc)}
+                              className={`min-h-[28px] px-1.5 py-0.5 rounded-lg text-[10px] font-black border cursor-pointer tabular-nums ${
+                                isCurrent
+                                  ? 'bg-emerald-400 text-slate-950 border-black'
+                                  : 'bg-slate-950 text-slate-300 border-slate-700 hover:bg-slate-800'
+                              }`}
+                            >
+                              {inc}m
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-1.5">
@@ -1321,12 +1453,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <button
               type="button"
+              data-testid="navbar-mobile-menu-btn"
               aria-expanded={isMobileMenuOpen}
               onClick={() => {
                 setIsMobileMenuOpen(!isMobileMenuOpen);
                 marioAudio.playClick();
               }}
-              className="min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[10px] min-[400px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap"
+              className="font-sans min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-1 sm:px-3 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[10px] min-[400px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap"
             >
               <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span className="truncate">Menu</span>
@@ -1430,9 +1563,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu Drawer */}
+        {/* Mobile Dropdown Menu Drawer (All text & buttons inside Menu use Press Start 2P) */}
         {isMobileMenuOpen && (
-          <div className="block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto">
+          <div
+            data-testid="navbar-mobile-menu-drawer"
+            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
+          >
             {/* Active Super Star 2X Banner inside Mobile Drawer when active */}
             {superStarRemainingLabel && (
               <div className="bg-emerald-950/90 border-2 border-emerald-400 rounded-2xl px-3 py-2 flex items-center justify-between gap-2">
@@ -1795,13 +1931,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>STUDY AMBIENCE</span>
                   <span>{ambiencePausedByBgm ? 'PAUSED BY BGM' : activeAmbience.toUpperCase()}</span>
                 </div>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {STUDY_AMBIENCE_OPTIONS.map((opt) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {MARIO_NAVBAR_AMBIENCE_OPTIONS.map((opt) => (
                     <button
                       key={`mob-amb-${opt.id}`}
                       type="button"
-                      onClick={() => marioAudio.setStudyAmbience(opt.id, true)}
-                      className={`min-h-[34px] px-1.5 rounded-lg text-[10px] font-black border cursor-pointer whitespace-nowrap ${
+                      onClick={() => marioAudio.setStudyAmbience(opt.id as any, true)}
+                      className={`min-h-[36px] px-2 rounded-lg text-[9px] font-black border cursor-pointer truncate ${
                         activeAmbience === opt.id
                           ? 'bg-cyan-400 text-slate-950 border-black'
                           : 'bg-slate-900 text-slate-300 border-slate-700'
@@ -1851,6 +1987,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <GraduationCap className="w-4 h-4 shrink-0" />
                   <span>Exam Prep</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Daily Study Goal (15m–120m) inside Mobile Menu Drawer */}
+            <div className="bg-slate-950 p-2.5 rounded-2xl border border-slate-700 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-black uppercase text-emerald-300 font-mario">
+                  DAILY STUDY GOAL ({dailyGoalProgress.completionPercent}%)
+                </span>
+                <button
+                  type="button"
+                  data-testid="mobile-daily-goal-toggle-btn"
+                  onClick={handleCycleDailyGoal}
+                  className="min-h-[34px] px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-[10px] border border-black cursor-pointer tabular-nums"
+                >
+                  {effectiveDailyGoal}m (+15m)
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {DAILY_GOAL_INCREMENTS.map((inc) => (
+                  <button
+                    key={`mob-goal-${inc}`}
+                    type="button"
+                    onClick={() => handleSelectDailyGoal(inc)}
+                    className={`min-h-[36px] px-2 rounded-lg text-[10px] font-black border cursor-pointer tabular-nums ${
+                      effectiveDailyGoal === inc
+                        ? 'bg-emerald-400 text-slate-950 border-black'
+                        : 'bg-slate-900 text-slate-300 border-slate-700'
+                    }`}
+                  >
+                    {inc}m
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -2021,6 +2190,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         showLegalCitations={showLegalCitations}
         setShowLegalCitations={setShowLegalCitations}
         onOpenShop={onOpenShop}
+        dailyGoalMinutes={effectiveDailyGoal}
+        onChangeDailyGoalMinutes={handleSelectDailyGoal}
       />
     </>
   );

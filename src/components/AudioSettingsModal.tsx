@@ -34,6 +34,12 @@ import {
   Mario1UpIcon,
 } from './MarioIcons';
 import { ComplexityMode } from '../types/laborLaw';
+import {
+  DAILY_GOAL_INCREMENTS,
+  cycleNextDailyGoalMinutes,
+  normalizeDailyGoalMinutes,
+  saveDailyGoalMinutes,
+} from '../utils/round13Features';
 
 interface AudioSettingsModalProps {
   isOpen: boolean;
@@ -43,6 +49,8 @@ interface AudioSettingsModalProps {
   showLegalCitations?: boolean;
   setShowLegalCitations?: (show: boolean) => void;
   onOpenShop?: () => void;
+  dailyGoalMinutes?: number;
+  onChangeDailyGoalMinutes?: (minutes: number) => void;
 }
 
 export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
@@ -53,6 +61,8 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
   showLegalCitations = true,
   setShowLegalCitations,
   onOpenShop,
+  dailyGoalMinutes = 30,
+  onChangeDailyGoalMinutes,
 }) => {
   const [settings, setSettings] = useState<AudioSettings>({ ...marioAudio.settings });
 
@@ -810,6 +820,63 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                       )}
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Daily Study Goal Customizer (15m to 120m in 15-Minute Increments) */}
+          <div className="bg-slate-900/90 rounded-2xl p-3.5 border border-slate-700 space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <span className="text-xs font-black text-amber-300 block">
+                  Daily Study Goal Target
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Step in 15-minute increments (15m to 120m)
+                </span>
+              </div>
+              <button
+                type="button"
+                data-testid="settings-modal-daily-goal-toggle-btn"
+                onClick={() => {
+                  const next = cycleNextDailyGoalMinutes(dailyGoalMinutes);
+                  saveDailyGoalMinutes(
+                    next,
+                    typeof window !== 'undefined' ? window.localStorage : null
+                  );
+                  onChangeDailyGoalMinutes?.(next);
+                  marioAudio.playCoin();
+                }}
+                className="min-h-[36px] px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer tabular-nums whitespace-nowrap"
+              >
+                Daily Goal: {normalizeDailyGoalMinutes(dailyGoalMinutes)}m (+15m)
+              </button>
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+              {DAILY_GOAL_INCREMENTS.map((inc) => {
+                const isSelected = normalizeDailyGoalMinutes(dailyGoalMinutes) === inc;
+                return (
+                  <button
+                    key={inc}
+                    type="button"
+                    data-testid={`settings-modal-daily-goal-${inc}m`}
+                    onClick={() => {
+                      saveDailyGoalMinutes(
+                        inc,
+                        typeof window !== 'undefined' ? window.localStorage : null
+                      );
+                      onChangeDailyGoalMinutes?.(inc);
+                      marioAudio.playCoin();
+                    }}
+                    className={`min-h-[34px] rounded-lg text-xs font-black border cursor-pointer tabular-nums ${
+                      isSelected
+                        ? 'bg-emerald-400 text-slate-950 border-black'
+                        : 'bg-slate-950 text-slate-300 hover:text-white border-slate-700'
+                    }`}
+                  >
+                    {inc}m
+                  </button>
                 );
               })}
             </div>

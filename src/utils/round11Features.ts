@@ -1,4 +1,5 @@
 // Pure, deterministic logic & state helpers for Round 11 features (Zero DOM side effects in core reducers)
+import { resolveExtendedPrintFont } from './round12Features';
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -281,7 +282,10 @@ export const PDF_FONT_PROFILES: Record<string, PdfFontProfile> = {
 
 export function getPrintFontCssStack(fontStyle?: string): string {
   if (!fontStyle) return PRINT_FONT_CSS_STACKS.modern_sans;
-  return PRINT_FONT_CSS_STACKS[fontStyle] || PRINT_FONT_CSS_STACKS.modern_sans;
+  if (PRINT_FONT_CSS_STACKS[fontStyle]) {
+    return PRINT_FONT_CSS_STACKS[fontStyle];
+  }
+  return resolveExtendedPrintFont(fontStyle).cssFontFamily;
 }
 
 export function getPdfFontProfile(fontStyle?: string): PdfFontProfile {

@@ -34,9 +34,11 @@ import {
   EyeOff,
   ListChecks,
   Bookmark,
+  Star,
   Zap,
   Pin,
 } from 'lucide-react';
+import { resolveUniversalCardFrame } from '../utils/round12Features';
 import {
   MarioMushroomIcon,
   MarioFireFlowerIcon,
@@ -69,6 +71,11 @@ import {
   savePinnedRuleBookmarks,
   togglePinnedRuleBookmark,
 } from '../utils/round9Features';
+import {
+  resolveTopicDifficultyLevel,
+  getTopicDifficultyAudioCueSpec,
+  TopicDifficultyCueSpec,
+} from '../utils/round13Features';
 
 interface TopicCardProps {
   topic: LawTopic;
@@ -94,6 +101,8 @@ interface TopicCardProps {
   onTogglePinRuleItem?: (candidate: Omit<PinnedRuleBookmark, 'pinnedAt'>) => void;
   onOpenTopicFlashcardMode?: (topic: LawTopic) => void;
   onOpenTopicQuickQuiz?: (topic: LawTopic) => void;
+  restoredOpenSignal?: { openIds: ReadonlySet<string>; seq: number } | null;
+  onOpenStateChange?: (topicId: string, isOpen: boolean) => void;
 }
 
 const TopicCardInner: React.FC<TopicCardProps> = ({
@@ -120,10 +129,31 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
   onTogglePinRuleItem,
   onOpenTopicFlashcardMode,
   onOpenTopicQuickQuiz,
+  restoredOpenSignal = null,
+  onOpenStateChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(() =>
-    compactView ? false : defaultExpanded
+    restoredOpenSignal && restoredOpenSignal.seq > 0
+      ? restoredOpenSignal.openIds.has(topic.id)
+      : compactView
+      ? false
+      : defaultExpanded
   );
+  const [activeAudioCue, setActiveAudioCue] = useState<TopicDifficultyCueSpec | null>(null);
+  const audioCueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerTopicOpenAudioCue = () => {
+    const level = resolveTopicDifficultyLevel(topic.difficulty);
+    const cueSpec = marioAudio.playTopicDifficultyCue(level);
+    setActiveAudioCue(cueSpec);
+    if (audioCueTimeoutRef.current) {
+      clearTimeout(audioCueTimeoutRef.current);
+    }
+    audioCueTimeoutRef.current = setTimeout(() => {
+      setActiveAudioCue(null);
+      audioCueTimeoutRef.current = null;
+    }, cueSpec.durationMs);
+  };
   const [localMasteredMap, setLocalMasteredMap] = useState<TopicMasteredSectionsMap>(() =>
     masteredSectionsMap
       ? {}
@@ -354,19 +384,60 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
   useEffect(() => {
     if (prevCompactViewRef.current !== compactView) {
       prevCompactViewRef.current = compactView;
+      if (restoredOpenSignal && restoredOpenSignal.seq > 0 && !compactView) {
+        setIsExpanded(restoredOpenSignal.openIds.has(topic.id));
+        return;
+      }
       setIsExpanded(compactView ? false : defaultExpanded);
+      return;
+    }
+    if (restoredOpenSignal && restoredOpenSignal.seq > 0) {
       return;
     }
     if (!compactView && defaultExpanded) {
       setIsExpanded(true);
     }
-  }, [compactView, defaultExpanded]);
+  }, [compactView, defaultExpanded, restoredOpenSignal, topic.id]);
 
   useEffect(() => {
     if (expandCollapseSignal && expandCollapseSignal.seq > 0) {
       setIsExpanded(expandCollapseSignal.mode === 'expand');
     }
   }, [expandCollapseSignal]);
+
+  useEffect(() => {
+    if (restoredOpenSignal && restoredOpenSignal.seq > 0) {
+      setIsExpanded(restoredOpenSignal.openIds.has(topic.id));
+    }
+  }, [restoredOpenSignal, topic.id]);
+
+  useEffect(() => {
+    onOpenStateChange?.(topic.id, isExpanded);
+  }, [topic.id, isExpanded, onOpenStateChange]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleExternalOpenCue = (ev: Event) => {
+      const custom = ev as CustomEvent<{ topicId?: string; skipAudio?: boolean }>;
+      if (custom.detail?.topicId === topic.id) {
+        setIsExpanded(true);
+        const level = resolveTopicDifficultyLevel(topic.difficulty);
+        const cueSpec = custom.detail?.skipAudio
+          ? getTopicDifficultyAudioCueSpec(level)
+          : marioAudio.playTopicDifficultyCue(level);
+        setActiveAudioCue(cueSpec);
+        if (audioCueTimeoutRef.current) {
+          clearTimeout(audioCueTimeoutRef.current);
+        }
+        audioCueTimeoutRef.current = setTimeout(() => {
+          setActiveAudioCue(null);
+          audioCueTimeoutRef.current = null;
+        }, cueSpec.durationMs);
+      }
+    };
+    window.addEventListener('mario-topic-opened-cue', handleExternalOpenCue);
+    return () => window.removeEventListener('mario-topic-opened-cue', handleExternalOpenCue);
+  }, [topic.id, topic.difficulty]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const activeChunksRef = useRef<string[]>([]);
   const chunkIndexRef = useRef<number>(0);
@@ -437,6 +508,9 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
       stopAllSpeech();
       if (longPressTimeoutRef.current) {
         clearTimeout(longPressTimeoutRef.current);
+      }
+      if (audioCueTimeoutRef.current) {
+        clearTimeout(audioCueTimeoutRef.current);
       }
     };
   }, []);
@@ -964,30 +1038,8 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
     (topic.rules?.length || 0) >= 6 ||
     topic.worldId === 'world5';
 
-  const frameClass =
-    equippedCardFrame === 'frame_royal_gold'
-      ? 'ring-4 ring-amber-400 border-amber-600'
-      : equippedCardFrame === 'frame_emerald_pipe'
-      ? 'ring-4 ring-emerald-400 border-emerald-700'
-      : equippedCardFrame === 'frame_supreme_crimson'
-      ? 'ring-4 ring-rose-500 border-rose-700'
-      : equippedCardFrame === 'frame_retro_brick'
-      ? 'ring-4 ring-orange-400 border-orange-700'
-      : equippedCardFrame === 'frame_starlight_prism' || equippedCardFrame === 'frame_rainbow_prism'
-      ? 'ring-4 ring-indigo-400 border-indigo-700'
-      : equippedCardFrame === 'frame_koopa_sovereign'
-      ? 'ring-4 ring-lime-400 border-emerald-800 shadow-[0_0_18px_rgba(132,204,22,0.35)]'
-      : equippedCardFrame === 'frame_peach_stained_glass'
-      ? 'ring-4 ring-pink-400 border-rose-600'
-      : equippedCardFrame === 'frame_bowser_obsidian'
-      ? 'ring-4 ring-red-600 border-amber-500'
-      : equippedCardFrame === 'frame_yoshi_botanical'
-      ? 'ring-4 ring-green-400 border-teal-700'
-      : equippedCardFrame === 'frame_boo_ethereal'
-      ? 'ring-4 ring-cyan-300 border-slate-500'
-      : equippedCardFrame && equippedCardFrame !== 'frame_default'
-      ? 'ring-4 ring-amber-300 border-amber-600'
-      : '';
+  const resolvedFrame = resolveUniversalCardFrame(equippedCardFrame);
+  const hasCustomShopFrame = resolvedFrame.id !== 'frame_default';
 
   const showDiagrams = viewTab === 'all' || viewTab === 'tables';
   const showRuleCards = viewTab === 'all' || viewTab === 'cards';
@@ -997,9 +1049,11 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
       id={`topic-card-${topic.id}`}
       data-card-frame={equippedCardFrame}
       className={`mario-card topic-card-perf w-full max-w-full min-w-0 rounded-3xl transition-colors duration-150 overflow-x-hidden overflow-y-visible bg-white dark:bg-slate-900 ${
-        isCompleted
+        hasCustomShopFrame
+          ? resolvedFrame.borderClasses
+          : isCompleted
           ? 'border-emerald-600 ring-2 ring-emerald-400'
-          : frameClass || 'border-slate-900 dark:border-slate-700'
+          : 'border-slate-900 dark:border-slate-700'
       }`}
     >
       {/* Perfectly Aligned Header Banner with Visual Sub-Section Experience Bar & Completion Circle */}
@@ -1016,6 +1070,14 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                 MODULE XP · {sectionProgress.completedSections}/{sectionProgress.totalSections}{' '}
                 Sub-Sections Mastered
               </span>
+              {hasCustomShopFrame && resolvedFrame.badgeText && (
+                <span
+                  data-testid={`topic-equipped-frame-badge-${topic.id}`}
+                  className={`hidden md:inline-flex items-center px-2 py-0.5 rounded-md border text-[9px] font-black uppercase tracking-wider shrink-0 ${resolvedFrame.badgeClasses}`}
+                >
+                  {resolvedFrame.badgeText}
+                </span>
+              )}
             </span>
             <span className="text-slate-300 shrink-0">
               <strong className="text-emerald-300">{sectionProgress.percent}%</strong>
@@ -1094,6 +1156,17 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                 )}
                 <span>{topic.difficulty || 'Intermediate'}</span>
               </span>
+
+              {activeAudioCue && (
+                <span
+                  data-testid={`topic-audio-cue-badge-${topic.id}`}
+                  data-cue-id={activeAudioCue.cueId}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 border border-black text-[10px] font-mono font-black leading-none"
+                >
+                  <Volume2 className="w-3 h-3 shrink-0" />
+                  <span>{activeAudioCue.badgeText}</span>
+                </span>
+              )}
 
               {isBossLevelTopic && (
                 <span
@@ -1216,17 +1289,27 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
           {onToggleBookmark && (
             <button
               type="button"
-              data-testid={`bookmark-topic-${topic.id}`}
+              data-testid={`topic-favorite-toggle-${topic.id}`}
+              aria-pressed={isBookmarked}
+              aria-label={
+                isBookmarked
+                  ? `Remove ${topic.title} from Favorites`
+                  : `Favorite ${topic.title} and pin to World Map Favorites`
+              }
               onClick={onToggleBookmark}
-              title={isBookmarked ? 'Remove topic bookmark' : 'Pin / Bookmark topic for quick access'}
+              title={
+                isBookmarked
+                  ? 'Remove from Favorites (World Map Favorites view)'
+                  : 'Pin to Favorites view on World Map'
+              }
               className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 rounded-xl font-black text-xs border-2 cursor-pointer transition-all whitespace-nowrap leading-none ${
                 isBookmarked
-                  ? 'bg-sky-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                  ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
               }`}
             >
-              <Bookmark className={`w-3.5 h-3.5 shrink-0 ${isBookmarked ? 'fill-current' : ''}`} />
-              <span>{isBookmarked ? 'Bookmarked' : 'Pin Topic'}</span>
+              <Star className={`w-3.5 h-3.5 shrink-0 ${isBookmarked ? 'fill-current' : ''}`} />
+              <span>{isBookmarked ? 'Favorited ★' : 'Favorite'}</span>
             </button>
           )}
 
@@ -1328,7 +1411,10 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (!isExpanded) setIsExpanded(true);
+              if (!isExpanded) {
+                setIsExpanded(true);
+                triggerTopicOpenAudioCue();
+              }
               setStudyLens(studyLens === 'summary' ? 'full' : 'summary');
             }}
             className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-black border-2 border-black cursor-pointer whitespace-nowrap leading-none transition-all ${
@@ -1343,7 +1429,16 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
 
           <button
             type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
+            data-testid={`topic-expand-toggle-${topic.id}`}
+            onClick={() => {
+              const nextExpanded = !isExpanded;
+              setIsExpanded(nextExpanded);
+              if (nextExpanded) {
+                triggerTopicOpenAudioCue();
+              } else {
+                marioAudio.playClick();
+              }
+            }}
             title={isExpanded ? 'Collapse topic' : 'Expand topic'}
             className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap leading-none"
           >

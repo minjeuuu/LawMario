@@ -1,36 +1,62 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Target, Award, Clock, Sparkles, CheckCircle2, ChevronRight, Zap } from 'lucide-react';
-import { MarioCoinIcon, MarioMushroomIcon, MarioStarIcon, MarioFireFlowerIcon } from './MarioIcons';
+import { Target, Clock } from 'lucide-react';
+import { MarioStarIcon } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
 import confetti from 'canvas-confetti';
 import { formatLocalDayKey } from '../utils/studyModes';
+import {
+  DAILY_GOAL_INCREMENTS,
+  loadDailyGoalMinutes,
+  saveDailyGoalMinutes,
+  normalizeDailyGoalMinutes,
+  computeDailyStudyGoalProgress,
+} from '../utils/round13Features';
 
 interface DailyStudyGoalRingProps {
   studiedSeconds: number;
+  targetMinutes?: number;
+  onChangeTargetMinutes?: (minutes: number) => void;
   onEarnCoins?: (amount: number) => void;
   superStarActive?: boolean;
 }
 
-const DAILY_GOAL_STORAGE_KEY = 'mario_daily_study_goal_minutes_v1';
 const GOAL_REWARD_CLAIMED_PREFIX = 'mario_study_goal_reward_claimed_';
 
 export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
   studiedSeconds,
+  targetMinutes: controlledTargetMinutes,
+  onChangeTargetMinutes,
   onEarnCoins,
   superStarActive = false,
 }) => {
-  const [targetMinutes, setTargetMinutes] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(DAILY_GOAL_STORAGE_KEY);
-        const parsed = parseInt(saved || '30', 10);
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
-      } catch {
-        return 30;
-      }
+  const [internalTargetMinutes, setInternalTargetMinutes] = useState<number>(() =>
+    typeof window !== 'undefined' ? loadDailyGoalMinutes(window.localStorage) : 30
+  );
+
+  useEffect(() => {
+    if (typeof controlledTargetMinutes === 'number') {
+      setInternalTargetMinutes(normalizeDailyGoalMinutes(controlledTargetMinutes));
     }
-    return 30;
-  });
+  }, [controlledTargetMinutes]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onGoalUpdated = (ev: Event) => {
+      const custom = ev as CustomEvent<{ targetMinutes?: number }>;
+      if (typeof custom.detail?.targetMinutes === 'number') {
+        setInternalTargetMinutes(normalizeDailyGoalMinutes(custom.detail.targetMinutes));
+      } else {
+        setInternalTargetMinutes(loadDailyGoalMinutes(window.localStorage));
+      }
+    };
+    window.addEventListener('mario-daily-goal-updated', onGoalUpdated);
+    return () => window.removeEventListener('mario-daily-goal-updated', onGoalUpdated);
+  }, []);
+
+  const targetMinutes =
+    typeof controlledTargetMinutes === 'number'
+      ? normalizeDailyGoalMinutes(controlledTargetMinutes)
+      : normalizeDailyGoalMinutes(internalTargetMinutes);
 
   const todayKey = useMemo(() => formatLocalDayKey(new Date()), []);
 
@@ -45,16 +71,12 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
     return false;
   });
 
-  const currentMinutes = useMemo(() => {
-    return Math.floor(Math.max(0, studiedSeconds) / 60);
-  }, [studiedSeconds]);
+  const progress = useMemo(
+    () => computeDailyStudyGoalProgress(studiedSeconds, targetMinutes),
+    [studiedSeconds, targetMinutes]
+  );
 
-  const percent = useMemo(() => {
-    if (targetMinutes <= 0) return 100;
-    return Math.min(100, Math.round((currentMinutes / targetMinutes) * 100));
-  }, [currentMinutes, targetMinutes]);
-
-  const isGoalReached = percent >= 100;
+  const { currentMinutes, remainingMinutes, completionPercent: percent, isGoalReached } = progress;
 
   // Award goal completion bonus once per day
   useEffect(() => {
@@ -79,12 +101,12 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
   }, [isGoalReached, hasCelebrated, onEarnCoins, superStarActive, todayKey]);
 
   const handleSelectTarget = (mins: number) => {
-    setTargetMinutes(mins);
-    try {
-      localStorage.setItem(DAILY_GOAL_STORAGE_KEY, String(mins));
-    } catch {
-      // ignore
-    }
+    const normalized = saveDailyGoalMinutes(
+      mins,
+      typeof window !== 'undefined' ? window.localStorage : null
+    );
+    setInternalTargetMinutes(normalized);
+    onChangeTargetMinutes?.(normalized);
     marioAudio.playCoin();
   };
 
@@ -98,11 +120,13 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
   return (
     <div
       data-testid="daily-study-goal-ring"
+      data-target-minutes={targetMinutes}
+      data-completion-percent={percent}
       className="bg-slate-900/95 border-3 border-amber-400 rounded-3xl p-4 sm:p-5 text-white shadow-[5px_5px_0_#000] relative overflow-hidden"
     >
-      <div className="flex flex-col md:flex-row items-center justify-between gap-5">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-5">
         {/* Left: Interactive Progress Ring */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 w-full lg:w-auto">
           <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
             <svg height={radius * 2 + 16} width={radius * 2 + 16} className="-rotate-90 transform">
               <circle
@@ -118,7 +142,7 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
                 fill="transparent"
                 strokeWidth={stroke}
                 strokeDasharray={`${circumference} ${circumference}`}
-                style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+                style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.45s ease-in-out' }}
                 strokeLinecap="round"
                 r={normalizedRadius}
                 cx={radius + 8}
@@ -131,14 +155,25 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
               {isGoalReached ? (
                 <div className="flex flex-col items-center">
                   <MarioStarIcon className="w-6 h-6 animate-pulse" />
-                  <span className="text-[11px] font-black font-mario text-emerald-400 mt-0.5">100%</span>
+                  <span
+                    data-testid="daily-goal-ring-percent"
+                    className="text-[11px] font-black font-mario text-emerald-400 mt-0.5 tabular-nums"
+                  >
+                    100%
+                  </span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
-                  <span className="text-base sm:text-lg font-black font-mario text-amber-300 leading-none">
+                  <span
+                    data-testid="daily-goal-ring-percent"
+                    className="text-base sm:text-lg font-black font-mario text-amber-300 leading-none tabular-nums"
+                  >
                     {percent}%
                   </span>
-                  <span className="text-[9px] font-mono text-slate-400 font-bold uppercase mt-0.5">
+                  <span
+                    data-testid="daily-goal-ring-minutes"
+                    className="text-[9px] font-mono text-slate-400 font-bold uppercase mt-0.5 tabular-nums"
+                  >
                     {currentMinutes}m / {targetMinutes}m
                   </span>
                 </div>
@@ -146,13 +181,15 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
             </div>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="px-2 py-0.5 rounded-md bg-red-600 text-white font-black font-mario text-[10px] uppercase border border-black leading-none">
-                DAILY GOAL
+                DAILY GOAL · {targetMinutes}M
               </span>
-              <span className="text-[11px] font-mono font-bold text-amber-300">
-                {isGoalReached ? 'Target Accomplished!' : `${Math.max(0, targetMinutes - currentMinutes)} min remaining`}
+              <span className="text-[11px] font-mono font-bold text-amber-300 tabular-nums">
+                {isGoalReached
+                  ? 'Target Accomplished!'
+                  : `${remainingMinutes} min remaining`}
               </span>
             </div>
 
@@ -163,26 +200,26 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
             <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-sm">
               {isGoalReached
                 ? 'Outstanding focus! You earned your +25 Gold Coins daily study milestone.'
-                : 'Duration updates in real-time as you read topics, practice flashcards, and solve quizzes.'}
+                : 'Completion percentage updates dynamically in 15-minute increments (15m to 120m).'}
             </p>
           </div>
         </div>
 
-        {/* Right: Configurable Target Selector */}
-        <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+        {/* Right: Configurable 15m-120m Target Selector */}
+        <div className="flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800">
           <div className="flex items-center gap-1 text-[10px] font-black uppercase text-amber-400 font-mario">
             <Target className="w-3.5 h-3.5" />
-            <span>CONFIGURE DAILY TARGET:</span>
+            <span>DAILY TARGET (15M – 120M):</span>
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap">
-            {[15, 30, 45, 60, 90].map((mins) => (
+            {DAILY_GOAL_INCREMENTS.map((mins) => (
               <button
                 key={mins}
                 type="button"
                 data-testid={`goal-target-${mins}m`}
                 onClick={() => handleSelectTarget(mins)}
-                className={`min-h-[36px] px-3 rounded-xl font-black text-xs border-2 border-black cursor-pointer transition-all ${
+                className={`min-h-[36px] px-2.5 sm:px-3 rounded-xl font-black text-xs border-2 border-black cursor-pointer transition-all tabular-nums ${
                   targetMinutes === mins
                     ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000] -translate-y-0.5'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
@@ -193,9 +230,12 @@ export const DailyStudyGoalRing: React.FC<DailyStudyGoalRingProps> = ({
             ))}
           </div>
 
-          <div className="text-[10px] font-mono text-slate-400 pt-0.5 flex items-center gap-1">
+          <div className="text-[10px] font-mono text-slate-400 pt-0.5 flex items-center gap-1 tabular-nums">
             <Clock className="w-3 h-3 text-emerald-400" />
-            <span>Session: {Math.floor(studiedSeconds / 60)}m {studiedSeconds % 60}s logged today</span>
+            <span>
+              Session: {Math.floor(Math.max(0, studiedSeconds) / 60)}m{' '}
+              {Math.max(0, studiedSeconds) % 60}s logged today
+            </span>
           </div>
         </div>
       </div>

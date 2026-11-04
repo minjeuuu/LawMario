@@ -1,5 +1,9 @@
 import { MarioSoundscapeId } from './engagementFeatures';
 import { SoundPackId } from '../types/laborLaw';
+import {
+  getTopicDifficultyAudioCueSpec,
+  TopicDifficultyCueSpec,
+} from './round13Features';
 
 export type TabSfxType = 'pipe' | 'jump' | 'coin' | 'stomp';
 export type CardSfxType = 'powerup' | 'coin' | 'fireball' | 'oneup';
@@ -617,6 +621,12 @@ export const SOUND_PACK_SYNTH_PROFILES: Record<SoundPackId, SoundPackSynthProfil
 
 export type StudyAmbiencePreset =
   | 'off'
+  | 'overworld_breeze'
+  | 'underground_echoes'
+  | 'peach_castle_rain'
+  | 'rosalina_starlight'
+  | 'yoshi_tropic_waves'
+  | 'koopa_library_hearth'
   | 'forest'
   | 'underwater'
   | 'castle'
@@ -1637,6 +1647,12 @@ export class AudioController {
 
       const chordMap: Record<StudyAmbiencePreset, number[]> = {
         off: [440],
+        overworld_breeze: [392.0, 493.88, 587.33, 783.99],
+        underground_echoes: [220.0, 261.63, 329.63, 440.0],
+        peach_castle_rain: [349.23, 440.0, 523.25, 659.25],
+        rosalina_starlight: [440.0, 554.37, 659.25, 880.0],
+        yoshi_tropic_waves: [329.63, 440.0, 523.25, 659.25],
+        koopa_library_hearth: [293.66, 369.99, 440.0, 587.33],
         forest: [392.0, 493.88, 587.33, 783.99],
         underwater: [329.63, 440.0, 523.25, 659.25],
         castle: [293.66, 369.99, 440.0, 587.33],
@@ -2066,7 +2082,11 @@ export class AudioController {
         };
         starTwinkle();
         this.ambianceIntervalId = window.setInterval(starTwinkle, 2200);
-      } else if (effectiveTheme.includes('castle') || effectiveTheme.includes('bowser_lava')) {
+      } else if (
+        effectiveTheme.includes('castle') ||
+        effectiveTheme.includes('bowser_lava') ||
+        effectiveTheme.includes('hearth')
+      ) {
         // Warm audible hearth + amber study hall drone (midrange 196Hz/293Hz/392Hz instead of sub-audible 55Hz!)
         startWarmChordPad([196.0, 293.66, 369.99, 440.0], 'triangle', 980);
         const hearthNodes = this.createSoftNoiseSource('lowpass', 620, 0.9, 0.35);
@@ -2091,6 +2111,27 @@ export class AudioController {
         };
         crackle();
         this.ambianceIntervalId = window.setInterval(crackle, 1500);
+      } else if (
+        effectiveTheme.includes('peach_castle_rain') ||
+        effectiveTheme.includes('rainy_library')
+      ) {
+        startWarmChordPad([261.63, 329.63, 392.0, 493.88], 'sine', 820);
+        const rainNodes = this.createSoftNoiseSource('bandpass', 920, 0.75, 0.3);
+        this.ambianceActiveNodes.push(...rainNodes);
+      } else if (
+        effectiveTheme.includes('rosalina_starlight') ||
+        effectiveTheme.includes('starry_night')
+      ) {
+        startWarmChordPad([293.66, 369.99, 440.0, 554.37], 'sine', 960);
+        const shimmerNodes = this.createSoftNoiseSource('bandpass', 1100, 1.2, 0.18);
+        this.ambianceActiveNodes.push(...shimmerNodes);
+      } else if (
+        effectiveTheme.includes('yoshi_tropic_waves') ||
+        effectiveTheme.includes('underwater')
+      ) {
+        startWarmChordPad([220.0, 277.18, 329.63, 440.0], 'sine', 760);
+        const waveNodes = this.createSoftNoiseSource('lowpass', 540, 0.85, 0.32);
+        this.ambianceActiveNodes.push(...waveNodes);
       } else if (
         effectiveTheme.includes('underground') ||
         effectiveTheme.includes('pro_study_slate')
@@ -2120,7 +2161,7 @@ export class AudioController {
         drip();
         this.ambianceIntervalId = window.setInterval(drip, 2100);
       } else {
-        // Default / 'forest' / 'overworld' — Lush Mushroom Breeze + Woodland Chirps
+        // Default / 'forest' / 'overworld_breeze' — Lush Mushroom Breeze + Woodland Chirps
         startWarmChordPad([261.63, 329.63, 392.0, 523.25], 'triangle', 1050);
         const breezeNodes = this.createSoftNoiseSource('bandpass', 720, 0.9, 0.28);
         this.ambianceActiveNodes.push(...breezeNodes);
@@ -3882,6 +3923,94 @@ export class AudioController {
         // ignore
       }
     }
+  }
+
+  private activeTopicCueNodes: Array<{ stop: () => void; disconnect: () => void }> = [];
+
+  public stopTopicDifficultyCue() {
+    if (this.activeTopicCueNodes.length === 0) return;
+    for (const node of this.activeTopicCueNodes) {
+      try {
+        node.stop();
+      } catch {
+        // already stopped
+      }
+      try {
+        node.disconnect();
+      } catch {
+        // ignore
+      }
+    }
+    this.activeTopicCueNodes = [];
+  }
+
+  /**
+   * Plays a ~3-second Mario-themed audio cue tailored to a Labor Law topic's difficulty:
+   * - 'Foundation'   -> 3s Mario Coin Cascade cue
+   * - 'Intermediate' -> 3s Mario Fire Flower melody cue
+   * - 'Bar Master'   -> 3s Rising Mario Power-Up fanfare cue
+   * Strictly silent if audio or SFX is disabled.
+   */
+  public playTopicDifficultyCue(
+    difficultyInput?: string | null
+  ): TopicDifficultyCueSpec {
+    const spec = getTopicDifficultyAudioCueSpec(difficultyInput);
+    if (!this.settings.enabled || this.settings.sfxEnabled === false) {
+      return spec;
+    }
+
+    try {
+      this.stopTopicDifficultyCue();
+      this.initCtx();
+      if (!this.ctx) return spec;
+
+      const now = this.ctx.currentTime;
+      const master = this.getMasterGain(now, 0.28);
+      if (!master) return spec;
+
+      const scheduledNodes: Array<{ stop: () => void; disconnect: () => void }> = [];
+
+      for (const step of spec.steps) {
+        const startAt = now + step.startSec;
+        const endAt = startAt + step.durationSec;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = spec.wave;
+        osc.frequency.setValueAtTime(step.freqHz, startAt);
+
+        gain.gain.setValueAtTime(0.001, startAt);
+        gain.gain.linearRampToValueAtTime(step.gain, startAt + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, endAt);
+
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(startAt);
+        osc.stop(endAt + 0.01);
+        scheduledNodes.push(osc);
+
+        if (step.harmonyHz) {
+          const harmOsc = this.ctx.createOscillator();
+          const harmGain = this.ctx.createGain();
+          harmOsc.type = 'sine';
+          harmOsc.frequency.setValueAtTime(step.harmonyHz, startAt);
+          harmGain.gain.setValueAtTime(0.001, startAt);
+          harmGain.gain.linearRampToValueAtTime(step.gain * 0.36, startAt + 0.018);
+          harmGain.gain.exponentialRampToValueAtTime(0.001, endAt);
+          harmOsc.connect(harmGain);
+          harmGain.connect(master);
+          harmOsc.start(startAt);
+          harmOsc.stop(endAt + 0.01);
+          scheduledNodes.push(harmOsc);
+        }
+      }
+
+      this.activeTopicCueNodes = scheduledNodes;
+    } catch {
+      // ignore Web Audio fallback errors
+    }
+
+    return spec;
   }
 }
 

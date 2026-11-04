@@ -397,7 +397,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
           <aside
             aria-label="Floating Pomodoro Study Timer Overlay"
             data-testid="pomodoro-floating-overlay"
-            className="fixed bottom-20 sm:bottom-[max(1.25rem,3dvh)] left-[max(0.75rem,2vw)] z-40 w-[min(calc(100vw-1.5rem),340px)] max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-6rem)] bg-[#0f172a]/95 backdrop-blur-md text-white rounded-2xl border-3 border-slate-950 shadow-[5px_5px_0_#000] overflow-y-auto overflow-x-hidden select-none print:hidden transition-all duration-200"
+            className="fixed bottom-20 lg:bottom-6 left-3 sm:left-5 z-40 w-[min(calc(100vw-1.5rem),396px)] max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-7rem)] bg-[#0f172a]/95 backdrop-blur-md text-white rounded-2xl border-3 border-slate-950 shadow-[5px_5px_0_#000] overflow-y-auto overflow-x-hidden select-none print:hidden transition-all duration-200"
           >
             {/* Progress Strip */}
             <div className="w-full h-1.5 bg-slate-800">
@@ -461,10 +461,10 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
               </div>
             )}
 
-            {/* Compact Overlay Controls */}
-            <div className="p-2 sm:p-2.5 space-y-1.5 sm:space-y-2">
-              <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+            {/* Compact Overlay Controls — Zero Horizontal Clipping on Mobile, Tablet & Desktop */}
+            <div className="p-2.5 sm:p-3 space-y-2">
+              <div className="flex items-center justify-between gap-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <div
                     className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl border-2 border-black flex items-center justify-center shrink-0 ${
                       isBreakMode ? 'bg-emerald-400 text-slate-950' : 'bg-amber-400 text-slate-950'
@@ -476,8 +476,8 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
                       <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     )}
                   </div>
-                  <div className="min-w-0 shrink-0">
-                    <span className="text-[8px] sm:text-[9px] font-black uppercase text-amber-400 font-mario block whitespace-nowrap">
+                  <div className="min-w-0">
+                    <span className="text-[8px] font-black uppercase text-amber-400 font-mario block truncate">
                       {isBreakMode ? '5M BREAK' : '25M FOCUS'}
                     </span>
                     <span className="text-xs sm:text-sm font-black font-mario text-white tabular-nums leading-tight whitespace-nowrap block">
@@ -498,9 +498,9 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
                     }`}
                   >
                     {isRunning ? (
-                      <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" />
+                      <Pause className="w-3 h-3 fill-current shrink-0" />
                     ) : (
-                      <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" />
+                      <Play className="w-3 h-3 fill-current shrink-0" />
                     )}
                     <span>{isRunning ? 'Pause' : 'Start'}</span>
                   </button>
@@ -512,7 +512,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
                     data-testid="overlay-sound-toggle-btn"
                     aria-label={soundAlertsEnabled ? 'Silence Pomodoro Sound Alerts' : 'Enable Pomodoro Sound Alerts'}
                     title={soundAlertsEnabled ? 'Sound Alerts: ON (Click to Silence Mario Chimes)' : 'Sound Alerts: MUTED (Click to Enable)'}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-xl border inline-flex items-center justify-center cursor-pointer transition-colors ${
+                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-xl border inline-flex items-center justify-center cursor-pointer transition-colors shrink-0 ${
                       soundAlertsEnabled
                         ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-600'
                         : 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border-rose-700'
@@ -525,17 +525,16 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
                     )}
                   </button>
 
-                  {/* Quick Reset Button on Floating Overlay (Visible on sm+ screens; on mobile row 2 has 25m Reset) */}
+                  {/* Quick Reset Icon-Compact Button on Floating Overlay */}
                   <button
                     type="button"
                     onClick={handleQuickReset}
                     data-testid="overlay-quick-reset-btn"
                     aria-label="Quick Reset to 25m Focus"
                     title="Quick Reset: Stop session and return to 25m Focus"
-                    className="hidden sm:inline-flex h-8 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 items-center justify-center gap-1 text-[11px] font-bold text-slate-300 hover:text-white cursor-pointer whitespace-nowrap"
+                    className="hidden sm:inline-flex h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 items-center justify-center text-amber-300 hover:text-white cursor-pointer shrink-0"
                   >
-                    <RotateCcw className="w-3 h-3 text-amber-400" />
-                    <span>Reset</span>
+                    <RotateCcw className="w-3.5 h-3.5" />
                   </button>
 
                   <button
@@ -543,7 +542,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
                     onClick={() => setIsExpanded(true)}
                     aria-label="Expand Pomodoro Command Modal"
                     title="Expand Full Timer"
-                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 inline-flex items-center justify-center text-slate-200 cursor-pointer"
+                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 inline-flex items-center justify-center text-slate-200 cursor-pointer shrink-0"
                   >
                     <Maximize2 className="w-3.5 h-3.5" />
                   </button>
@@ -560,7 +559,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
                     }}
                     aria-label="Dock Pomodoro Overlay to Navbar"
                     title="Minimize to Navbar"
-                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 inline-flex items-center justify-center text-slate-300 hover:text-white cursor-pointer"
+                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 inline-flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>

@@ -1412,9 +1412,44 @@ body.printing-scorecard-only {
   object-fit: contain;
 }
 
-/* Ensure chosen Print Studio font cascades into every Reviewer heading, table, and paragraph */
-#printable-study-guide :is(h1, h2, h3, h4, h5, p, li, td, th, span, div, blockquote):not(.font-mono):not(.font-mario) {
-  font-family: inherit;
+/* Ensure chosen Print Studio font cascades into EVERY Reviewer, Summary, Certificate, Diploma, and Scorecard heading, table, formula, and paragraph with zero overflow */
+#printable-study-guide,
+#one-page-summary-sheet,
+#official-labor-certificate,
+#official-scorecard-sheet,
+#master-diploma-printable {
+  font-family: var(--print-active-font, inherit) !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+#printable-study-guide :is(h1, h2, h3, h4, h5, h6, p, li, td, th, span, div, blockquote, code, strong, em, kbd),
+#one-page-summary-sheet :is(h1, h2, h3, h4, h5, h6, p, li, td, th, span, div, blockquote, code, strong, em, kbd),
+#official-labor-certificate :is(h1, h2, h3, h4, h5, h6, p, li, td, th, span, div, blockquote, code, strong, em, kbd),
+#official-scorecard-sheet :is(h1, h2, h3, h4, h5, h6, p, li, td, th, span, div, blockquote, code, strong, em, kbd),
+#master-diploma-printable :is(h1, h2, h3, h4, h5, h6, p, li, td, th, span, div, blockquote, code, strong, em, kbd) {
+  font-family: var(--print-active-font, inherit) !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#printable-study-guide table,
+#one-page-summary-sheet table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Make all texts & buttons inside opened Navbar Menu / Tools popovers render in Press Start 2P (not the Navbar Menu button itself) */
+.mario-menu-press2p,
+.mario-menu-press2p :is(button, span, label, select, option, h3, h4, p, div) {
+  font-family: 'Press Start 2P', monospace !important;
+  letter-spacing: -0.01em;
+}
+
+.mario-menu-press2p :is(button, select) {
+  font-size: 9px !important;
+  line-height: 1.45 !important;
 }
 
 /* 100% Quiz Score Mario Flagpole Slide Keyframe Animation */

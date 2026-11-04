@@ -175,11 +175,14 @@ export const WarpPipeWhackAViolationGame: React.FC<ExpansionArcadeProps> = ({
 
   useEffect(() => {
     if (phase === 'gameover') {
-      const earned = Math.max(4, Math.min(24, Math.round(score / 95)));
+      const passed = score >= 600 && hp > 0;
       const mult = boosts?.doublePayoutActive ? 2 : 1;
-      onEarnCoins(earned * mult);
-      onRecordBestPlay?.('pipe_whack_violation', 'Warp Pipe Whack-a-Violation', score, earned * mult);
-      if (score >= 600) marioAudio.playLevelUp();
+      const earned = passed ? Math.max(6, Math.min(24, Math.round(score / 95))) * mult : 0;
+      if (earned > 0) {
+        onEarnCoins(earned);
+      }
+      onRecordBestPlay?.('pipe_whack_violation', 'Warp Pipe Whack-a-Violation', score, earned);
+      if (passed) marioAudio.playLevelUp();
       else marioAudio.playGameOver();
     }
   }, [phase]);
@@ -266,10 +269,14 @@ export const WarpPipeWhackAViolationGame: React.FC<ExpansionArcadeProps> = ({
       ) : phase === 'gameover' ? (
         <div className="bg-slate-900 border-3 border-amber-400 rounded-2xl p-6 text-center space-y-4">
           <h4 className="text-xl font-black text-amber-300 font-display">
-            PATROL COMPLETE · {score} PTS
+            {score >= 600 && hp > 0
+              ? `PATROL CLEARED · ${score} PTS!`
+              : `PATROL FAILED · ${score}/600 PTS`}
           </h4>
           <p className="text-xs sm:text-sm text-slate-300">
-            Peak Combo x{combo} · Every replay shuffles a brand-new violation wave!
+            {score >= 600 && hp > 0
+              ? `Course Clear! Peak Combo x${combo} · Coins awarded!`
+              : 'Reach 600+ PTS with at least 1 HP remaining to pass and earn coins!'}
           </p>
           <button
             type="button"
@@ -437,10 +444,10 @@ export const YoshiEggCatchDropGame: React.FC<ExpansionArcadeProps> = ({
 
           s.spawnTimer -= dt;
           if (s.spawnTimer <= 0) {
-            s.spawnTimer = Math.max(0.42, 0.82 - s.caught * 0.015);
+            s.spawnTimer = Math.max(0.66, 0.98 - s.caught * 0.014);
             const roll = Math.random();
             const kind: 'egg' | 'coin' | 'spiny' =
-              roll < 0.26 ? 'spiny' : roll < 0.48 ? 'coin' : 'egg';
+              roll < 0.3 ? 'spiny' : roll < 0.5 ? 'coin' : 'egg';
             if (s.cursor >= s.labels.length) {
               s.labels = createFreshShuffledDeck(YOSHI_EGG_LABELS, now);
               s.cursor = 0;
@@ -450,7 +457,7 @@ export const YoshiEggCatchDropGame: React.FC<ExpansionArcadeProps> = ({
             s.drops.push({
               x: 45 + Math.random() * (W - 90),
               y: -18,
-              vy: 135 + Math.random() * 75 + s.caught * 4,
+              vy: 82 + Math.random() * 38 + Math.min(28, s.caught * 2), // Calm 82..148 px/s drop speed
               kind,
               label: lbl,
             });
@@ -552,11 +559,14 @@ export const YoshiEggCatchDropGame: React.FC<ExpansionArcadeProps> = ({
 
   useEffect(() => {
     if (phase === 'gameover') {
-      const earned = Math.max(4, Math.min(24, Math.round(hudScore / 90)));
+      const passed = hudCaught >= 15 && hudHp > 0;
       const mult = boosts?.doublePayoutActive ? 2 : 1;
-      onEarnCoins(earned * mult);
-      onRecordBestPlay?.('yoshi_egg_catch', "Yoshi's Egg-Catch Statutory Drop", hudScore, earned * mult);
-      if (hudCaught >= 15) marioAudio.playLevelUp();
+      const earned = passed ? Math.max(8, Math.min(24, Math.round(hudScore / 90))) * mult : 0;
+      if (earned > 0) {
+        onEarnCoins(earned);
+      }
+      onRecordBestPlay?.('yoshi_egg_catch', "Yoshi's Egg-Catch Statutory Drop", hudScore, earned);
+      if (passed) marioAudio.playLevelUp();
       else marioAudio.playGameOver();
     }
   }, [phase]);

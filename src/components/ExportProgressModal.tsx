@@ -11,7 +11,12 @@ import {
   applyPrintPageRule,
   clearPrintPageRule,
 } from '../utils/printHelper';
-import { downloadScoreCardLandscapePdf } from '../utils/pdfExportService';
+import { downloadTrueFontScoreCardPdfAsync } from '../utils/pdfTrueFontRenderer';
+import {
+  EXTENDED_PRINT_COLOR_THEMES,
+  EXTENDED_PRINT_FONT_CATALOG,
+  resolveExtendedPrintFont,
+} from '../utils/round12Features';
 import confetti from 'canvas-confetti';
 import {
   Download,
@@ -56,7 +61,10 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [downloadedOnce, setDownloadedOnce] = useState(false);
   const [pdfDownloadedOnce, setPdfDownloadedOnce] = useState(false);
+  const [pdfThemeId, setPdfThemeId] = useState<string>('classic_navy');
+  const [pdfFontId, setPdfFontId] = useState<string>('jakarta_sans');
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const activeScoreFont = resolveExtendedPrintFont(pdfFontId);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -552,11 +560,46 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
         </div>
 
         {/* Modal Body: Redesigned Editorial Championship Score Card Preview */}
-        <div className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto min-h-0 bg-[#0b1120] print:p-0 print:overflow-visible print:bg-white">
+        <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto min-h-0 bg-[#0b1120] print:p-0 print:overflow-visible print:bg-white">
+          {/* PDF Theme & Font Selector Strip */}
+          <div className="print:hidden bg-slate-900/90 border border-slate-800 rounded-2xl px-3.5 py-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+            <label className="flex items-center gap-2 min-w-0">
+              <span className="font-black text-amber-300 whitespace-nowrap">PDF Theme:</span>
+              <select
+                aria-label="Score Card PDF Theme"
+                value={pdfThemeId}
+                onChange={(e) => setPdfThemeId(e.target.value)}
+                className="min-h-[36px] flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-2.5 text-white font-bold truncate"
+              >
+                {EXTENDED_PRINT_COLOR_THEMES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-2 min-w-0">
+              <span className="font-black text-amber-300 whitespace-nowrap">PDF Font:</span>
+              <select
+                aria-label="Score Card PDF Font"
+                value={pdfFontId}
+                onChange={(e) => setPdfFontId(e.target.value)}
+                className="min-h-[36px] flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-2.5 text-white font-bold truncate"
+              >
+                {EXTENDED_PRINT_FONT_CATALOG.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           <div
             id="official-player-scorecard"
             data-testid="score-stats-summary-card"
             ref={cardRef}
+            style={{ fontFamily: activeScoreFont.cssFontFamily }}
             className="bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#172036] text-white rounded-3xl p-4 sm:p-6 border-2 border-amber-400/60 shadow-2xl space-y-5 relative overflow-hidden"
           >
             {/* Championship Hero Header */}
@@ -738,9 +781,9 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
             <button
               type="button"
               data-testid="print-scorecard-btn"
-              onClick={() => {
+              onClick={async () => {
                 marioAudio.playCoin();
-                downloadScoreCardLandscapePdf({
+                await downloadTrueFontScoreCardPdfAsync({
                   playerName,
                   heroName: equippedAvatar.toUpperCase(),
                   heroRank: playerRank,
@@ -752,6 +795,8 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                   unlockedAchievementsCount,
                   totalAchievementsCount,
                   quizRunsCompleted,
+                  colorAccent: pdfThemeId,
+                  fontStyle: pdfFontId,
                   worldBreakdown: worldStats.map((ws) => ({
                     worldNumber: ws.worldNumber,
                     shortTitle: ws.shortTitle,

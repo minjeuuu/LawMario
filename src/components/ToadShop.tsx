@@ -33,8 +33,14 @@ import {
 } from '../utils/printHelper';
 import {
   downloadCertificateLandscapePdf,
-  downloadMasterDiplomaPdf,
 } from '../utils/pdfExportService';
+import { downloadTrueFontMasterDiplomaPdfAsync } from '../utils/pdfTrueFontRenderer';
+import {
+  EXTENDED_PRINT_COLOR_THEMES,
+  EXTENDED_PRINT_FONT_CATALOG,
+  resolveExtendedPrintFont,
+  resolveExtendedPrintTheme,
+} from '../utils/round12Features';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
@@ -1286,6 +1292,8 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
   const [diplomaOrientation, setDiplomaOrientation] =
     useState<DocumentOrientation>('landscape');
+  const [diplomaThemeId, setDiplomaThemeId] = useState<string>('nlrc_burgundy');
+  const [diplomaFontId, setDiplomaFontId] = useState<string>('playfair_diploma');
   const [showCoinGuide, setShowCoinGuide] = useState<boolean>(false);
   const [shopSearchQuery, setShopSearchQuery] = useState<string>('');
   const [r10State, setR10State] = useState<Round10VaultState>(() =>
@@ -4489,14 +4497,16 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                     <button
                       type="button"
                       data-testid="print-certificate-btn"
-                      onClick={() => {
+                      onClick={async () => {
                         marioAudio.playQuizComplete();
-                        downloadMasterDiplomaPdf({
+                        await downloadTrueFontMasterDiplomaPdfAsync({
                           recipientName: certRecipientName.trim() || 'Mario Bar Candidate',
                           honors: 'Grand Master of Philippine Labor Standards · Summa Cum Codal',
                           completedCount: ALL_LAW_TOPICS.length,
                           totalCount: ALL_LAW_TOPICS.length,
                           orientation: diplomaOrientation,
+                          colorAccent: diplomaThemeId,
+                          fontStyle: diplomaFontId,
                         });
                         setCertPdfDownloaded(true);
                         window.setTimeout(() => setCertPdfDownloaded(false), 2600);
@@ -4515,10 +4525,10 @@ export const ToadShop: React.FC<ToadShopProps> = ({
               </div>
             </div>
 
-            {/* Recipient Customization */}
-            <div className="print:hidden flex flex-wrap items-center justify-between gap-3 bg-amber-50/70 p-3 rounded-2xl border-2 border-amber-300">
-              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[240px]">
-                <label htmlFor="cert-name" className="text-xs font-black uppercase text-red-950">
+            {/* Recipient, Theme & True-Font Customization */}
+            <div className="print:hidden grid grid-cols-1 md:grid-cols-3 gap-3 bg-amber-50/80 p-3.5 rounded-2xl border-2 border-amber-300">
+              <div className="space-y-1 min-w-0">
+                <label htmlFor="cert-name" className="text-[11px] font-black uppercase text-red-950 block">
                   Conferral Scholar Name:
                 </label>
                 <input
@@ -4527,20 +4537,64 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   value={certRecipientName}
                   onChange={(e) => setCertRecipientName(e.target.value)}
                   maxLength={40}
-                  className="min-h-[44px] px-3 py-2 bg-white border-2 border-black rounded-xl font-bold text-sm text-slate-900 flex-1 min-w-[200px]"
+                  className="min-h-[42px] w-full px-3 py-1.5 bg-white border-2 border-black rounded-xl font-bold text-xs text-slate-900"
                   placeholder="e.g., Atty. Juan Dela Cruz"
                 />
               </div>
-              <span className="text-[11px] font-black text-amber-900 uppercase font-mario">
-                Active Sheet: A4 {diplomaOrientation.toUpperCase()} ({diplomaOrientation === 'portrait' ? '210 × 297 mm' : '297 × 210 mm'})
-              </span>
+
+              <div className="space-y-1 min-w-0">
+                <label htmlFor="diploma-theme-select" className="text-[11px] font-black uppercase text-red-950 block">
+                  Diploma Palette ({EXTENDED_PRINT_COLOR_THEMES.length}):
+                </label>
+                <select
+                  id="diploma-theme-select"
+                  data-testid="diploma-theme-select"
+                  value={diplomaThemeId}
+                  onChange={(e) => setDiplomaThemeId(e.target.value)}
+                  className="min-h-[42px] w-full px-2.5 py-1.5 bg-white border-2 border-black rounded-xl font-bold text-xs text-slate-900 truncate cursor-pointer"
+                >
+                  {EXTENDED_PRINT_COLOR_THEMES.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} ({t.badge})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1 min-w-0">
+                <label htmlFor="diploma-font-select" className="text-[11px] font-black uppercase text-red-950 block">
+                  Diploma Typeface ({EXTENDED_PRINT_FONT_CATALOG.length}):
+                </label>
+                <select
+                  id="diploma-font-select"
+                  data-testid="diploma-font-select"
+                  value={diplomaFontId}
+                  onChange={(e) => setDiplomaFontId(e.target.value)}
+                  className="min-h-[42px] w-full px-2.5 py-1.5 bg-white border-2 border-black rounded-xl font-bold text-xs text-slate-900 truncate cursor-pointer"
+                >
+                  {EXTENDED_PRINT_FONT_CATALOG.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name} ({f.badge})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Distinct Royal Grand Master Juris Diploma & 6-World Transcript Charter */}
             <div
-              id="official-labor-certificate"
+              id="master-diploma-printable"
               data-testid="toadshop-labor-certificate"
               data-orientation={diplomaOrientation}
+              data-font={diplomaFontId}
+              data-theme={diplomaThemeId}
+              style={
+                {
+                  '--print-active-font': resolveExtendedPrintFont(diplomaFontId).cssFontFamily,
+                  fontFamily: resolveExtendedPrintFont(diplomaFontId).cssFontFamily,
+                  backgroundColor: resolveExtendedPrintTheme(diplomaThemeId).accentSoftBgHex || '#FEFAF0',
+                } as React.CSSProperties
+              }
               className={`mx-auto w-full bg-[#fefaf0] border-[10px] border-double border-red-900 ring-4 ring-amber-500 rounded-2xl shadow-xl relative overflow-hidden flex flex-col justify-between transition-all ${
                 diplomaOrientation === 'portrait'
                   ? 'max-w-[760px] p-5 sm:p-8 gap-5 lg:min-h-[1020px]'

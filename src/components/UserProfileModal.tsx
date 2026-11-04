@@ -64,6 +64,8 @@ import {
   loadCoinLedger30d,
   loadLuxuryEquippedState,
 } from '../utils/round9Features';
+import { loadRound10VaultState } from '../utils/round10Features';
+import { resolveEquippedNameplate } from '../utils/round12Features';
 import { marioAudio } from '../utils/audio';
 import {
   ResponsiveContainer,
@@ -409,9 +411,27 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <Award className="w-6 h-6 text-slate-950" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
-                HERO DOSSIER &amp; MILESTONES
-              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
+                  HERO DOSSIER &amp; MILESTONES
+                </span>
+                {(() => {
+                  const r10 =
+                    typeof window !== 'undefined'
+                      ? loadRound10VaultState(window.localStorage)
+                      : null;
+                  const plate = resolveEquippedNameplate(r10?.equippedNameplate);
+                  if (!plate) return null;
+                  return (
+                    <span
+                      data-testid="profile-equipped-nameplate"
+                      className={`px-2 py-0.5 rounded-lg border text-[9px] font-black ${plate.badgeClasses}`}
+                    >
+                      {plate.name}
+                    </span>
+                  );
+                })()}
+              </div>
               <h2 className="text-base sm:text-xl font-black text-white font-display truncate">
                 USER PROFILE &amp; ACHIEVEMENTS
               </h2>

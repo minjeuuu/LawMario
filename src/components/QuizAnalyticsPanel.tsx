@@ -17,6 +17,7 @@ import {
 } from '../utils/round9Features';
 import { QuizHistoryRecord } from '../utils/profileAchievements';
 import { appendQuickTextToStudyNotes } from '../utils/round8Features';
+import { SaveSingleQuizErrorButton } from './SaveSingleQuizErrorButton';
 import { MarioStarIcon, MarioFireFlowerIcon } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
 import {
@@ -378,12 +379,12 @@ export const QuizAnalyticsPanel: React.FC<QuizAnalyticsPanelProps> = ({
                   {savedToNotes ? (
                     <>
                       <Check className="w-3.5 h-3.5" />
-                      <span>Saved to Study Notes!</span>
+                      <span>Saved All to Notes!</span>
                     </>
                   ) : (
                     <>
                       <BookmarkPlus className="w-3.5 h-3.5" />
-                      <span>Save to Notes</span>
+                      <span>Save All to Notes</span>
                     </>
                   )}
                 </button>
@@ -396,18 +397,38 @@ export const QuizAnalyticsPanel: React.FC<QuizAnalyticsPanelProps> = ({
               </p>
             ) : (
               <ul className="space-y-2.5 text-xs">
-                {studySummary.items.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1"
-                  >
-                    <span className="font-mono font-black text-amber-300 block">
-                      {idx + 1}. {item.legalBasis}
-                    </span>
-                    <p className="font-bold text-white">Rule: {item.correctRule}</p>
-                    <p className="text-slate-300 leading-relaxed">{item.doctrinalNote}</p>
-                  </li>
-                ))}
+                {studySummary.items.map((item, idx) => {
+                  const sourceMissed = missedQuestions[idx];
+                  return (
+                    <li
+                      key={idx}
+                      data-testid={`quick-study-summary-item-${idx}`}
+                      className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-mono font-black text-amber-300">
+                          {idx + 1}. {item.legalBasis}
+                        </span>
+                        <SaveSingleQuizErrorButton
+                          testId={`save-summary-error-item-${idx}`}
+                          compact
+                          darkSurface
+                          errorItem={{
+                            scenario: sourceMissed?.scenario || item.correctRule,
+                            correctOptionText: item.correctRule,
+                            chosenOptionText: sourceMissed?.chosenOptionText,
+                            legalBasis: item.legalBasis,
+                            explanation: item.doctrinalNote,
+                            worldCode: sourceMissed?.worldCode,
+                            quizModeLabel: sourceMissed?.quizModeLabel || 'Quiz Summary',
+                          }}
+                        />
+                      </div>
+                      <p className="font-bold text-white">Rule: {item.correctRule}</p>
+                      <p className="text-slate-300 leading-relaxed">{item.doctrinalNote}</p>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

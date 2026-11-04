@@ -42,6 +42,7 @@ import {
   BossDefeatStarShower,
   QuizAnalyticsPanel,
 } from './QuizAnalyticsPanel';
+import { SaveSingleQuizErrorButton } from './SaveSingleQuizErrorButton';
 import {
   Trophy,
   CheckCircle,
@@ -100,6 +101,7 @@ import {
   dispatchDailyMissionEvent,
   createFreshShuffledDeck,
 } from '../utils/round11Features';
+import { resolveUniversalCardFrame } from '../utils/round12Features';
 
 interface DigitalBadge {
   id: string;
@@ -157,6 +159,7 @@ interface BarQuizQuestProps {
   coins?: number;
   onSpendCoins?: (cost: number) => boolean;
   onOpenLeaderboard?: () => void;
+  equippedCardFrame?: string;
 }
 
 export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
@@ -184,7 +187,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   coins = 0,
   onSpendCoins,
   onOpenLeaderboard,
+  equippedCardFrame = 'frame_default',
 }) => {
+  const resolvedQuizFrame = resolveUniversalCardFrame(equippedCardFrame);
   const [activeMode, setActiveMode] = useState<
     | 'quick'
     | 'exam_sim'
@@ -202,6 +207,9 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   });
   const [wrongShakeNonce, setWrongShakeNonce] = useState<number>(0);
   const [practiceMissedDetails, setPracticeMissedDetails] = useState<MissedQuestionBriefInput[]>([]);
+  const [bossMissedDetails, setBossMissedDetails] = useState<MissedQuestionBriefInput[]>([]);
+  const [koopaMissedDetails, setKoopaMissedDetails] = useState<MissedQuestionBriefInput[]>([]);
+  const [asyncMissedDetails, setAsyncMissedDetails] = useState<MissedQuestionBriefInput[]>([]);
   const [r10Vault, setR10Vault] = useState<Round10VaultState>(() =>
     loadRound10VaultState()
   );
@@ -877,8 +885,11 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
         {
           scenario: q.scenario,
           correctOptionText: q.options[q.correctIndex] || '',
+          chosenOptionText: q.options[selectedAnswer] || '',
           legalBasis: q.legalBasis || 'Philippine Labor Code',
           explanation: q.explanation || '',
+          worldCode: q.worldCode || 'w1',
+          quizModeLabel: 'Practice Arena',
         },
       ]);
       triggerWrongAnswerPulse();
@@ -996,6 +1007,20 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     const nextMissed = rawBossQ
       ? [...bossMissedTopics, `${rawBossQ.world} (${rawBossQ.legalBasis})`]
       : bossMissedTopics;
+    if (bossQ) {
+      setBossMissedDetails((prev) => [
+        ...prev,
+        {
+          scenario: bossQ.scenario,
+          correctOptionText: bossQ.options[bossQ.correctIndex] || '',
+          chosenOptionText: 'Timed Out (No answer selected)',
+          legalBasis: bossQ.legalBasis || 'Philippine Labor Code',
+          explanation: bossQ.explanation || '',
+          worldCode: curWorldCode,
+          quizModeLabel: 'Bowser Boss',
+        },
+      ]);
+    }
     setBossRecords(nextRecs);
     setBossMissedTopics(nextMissed);
     setPlayerHearts((h) => {
@@ -1073,6 +1098,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setComboStreak(0);
     setBossRecords([]);
     setBossMissedTopics([]);
+    setBossMissedDetails([]);
     bossStartTimeRef.current = Date.now();
     setTimeLeft(defaultBossSeconds);
     setBossBattleState('combat');
@@ -1096,6 +1122,20 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     const nextMissed = isRight
       ? bossMissedTopics
       : [...bossMissedTopics, `${bossQ.world} (${bossQ.legalBasis})`];
+    if (!isRight) {
+      setBossMissedDetails((prev) => [
+        ...prev,
+        {
+          scenario: bossQ.scenario,
+          correctOptionText: bossQ.options[bossQ.correctIndex] || '',
+          chosenOptionText: bossQ.options[bossSelectedAnswer] || '',
+          legalBasis: bossQ.legalBasis || 'Philippine Labor Code',
+          explanation: bossQ.explanation || '',
+          worldCode: curWorldCode,
+          quizModeLabel: 'Bowser Boss',
+        },
+      ]);
+    }
     setBossRecords(nextRecs);
     setBossMissedTopics(nextMissed);
 
@@ -1233,6 +1273,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setKoopaSelected(null);
     setKoopaSubmitted(false);
     setKoopaState(createInitialKoopaBossState());
+    setKoopaMissedDetails([]);
     setKoopaFrameEquippedFeedback(false);
     setEliminatedOptions([]);
     setRevealedCounselHint(null);
@@ -1284,6 +1325,18 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       marioAudio.playFireball();
       onEarnCoins(10);
     } else {
+      setKoopaMissedDetails((prev) => [
+        ...prev,
+        {
+          scenario: koopaQ.scenario,
+          correctOptionText: koopaQ.options[koopaQ.correctIndex] || '',
+          chosenOptionText: koopaQ.options[koopaSelected] || '',
+          legalBasis: koopaQ.legalBasis || 'Philippine Labor Code',
+          explanation: koopaQ.explanation || '',
+          worldCode: koopaQ.worldCode || 'w1',
+          quizModeLabel: 'Koopa Citadel',
+        },
+      ]);
       triggerWrongAnswerPulse();
       marioAudio.playTryAgain();
     }
@@ -1393,6 +1446,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setAsyncComplete(false);
     setAsyncElapsedSec(0);
     setAsyncCopied(false);
+    setAsyncMissedDetails([]);
     asyncStartRef.current = Date.now();
   };
 
@@ -1408,6 +1462,18 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       marioAudio.playSuccess();
       marioAudio.playCoin();
     } else {
+      setAsyncMissedDetails((prev) => [
+        ...prev,
+        {
+          scenario: asyncQ.scenario,
+          correctOptionText: asyncQ.options[asyncQ.correctIndex] || '',
+          chosenOptionText: asyncQ.options[asyncSelected] || '',
+          legalBasis: asyncQ.legalBasis || 'Philippine Labor Code',
+          explanation: asyncQ.explanation || '',
+          worldCode: asyncQ.worldCode || 'w1',
+          quizModeLabel: 'Async Duel',
+        },
+      ]);
       triggerWrongAnswerPulse();
       marioAudio.playTryAgain();
     }
@@ -1553,7 +1619,12 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     return (
       <div
         data-testid="mario-stage-flag-progress"
-        className="rounded-2xl bg-slate-950 text-white p-3.5 border-3 border-black shadow-[0_3px_0_#000] space-y-2.5"
+        data-card-frame={equippedCardFrame}
+        className={`rounded-2xl bg-slate-950 text-white p-3.5 border-3 ${
+          resolvedQuizFrame.id !== 'frame_default'
+            ? resolvedQuizFrame.borderClasses
+            : 'border-black'
+        } shadow-[0_3px_0_#000] space-y-2.5`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 min-w-0">
@@ -2637,12 +2708,19 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   isCorrect: simAnswers[idx] === item.correctIndex,
                 }))}
                 missedQuestions={simDeck
-                  .filter((item, idx) => simAnswers[idx] !== item.correctIndex)
-                  .map((item) => ({
+                  .map((item, idx) => ({ item, userPick: simAnswers[idx] }))
+                  .filter(({ item, userPick }) => userPick !== item.correctIndex)
+                  .map(({ item, userPick }) => ({
                     scenario: item.scenario,
                     correctOptionText: item.options[item.correctIndex] || '',
+                    chosenOptionText:
+                      typeof userPick === 'number' && userPick >= 0
+                        ? item.options[userPick] || ''
+                        : 'Unanswered',
                     legalBasis: item.legalBasis || 'Philippine Labor Code',
                     explanation: item.explanation || '',
+                    worldCode: item.worldCode,
+                    quizModeLabel: 'Exam Simulation',
                   }))}
                 quizHistory={quizHistory}
                 currentRunCorrect={simFinalSummary.correctCount}
@@ -2767,9 +2845,28 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                           </div>
                         </div>
 
-                        <div className="p-3 rounded-xl bg-white/90 border border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed">
-                          <strong className="font-black text-slate-950">Legal Explanation: </strong>
-                          {item.explanation}
+                        <div className="p-3 rounded-xl bg-white/90 border border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div>
+                            <strong className="font-black text-slate-950">Legal Explanation: </strong>
+                            {item.explanation}
+                          </div>
+                          {!isRight && (
+                            <SaveSingleQuizErrorButton
+                              testId={`exam-sim-save-error-${idx}`}
+                              compact
+                              errorItem={{
+                                scenario: item.scenario,
+                                correctOptionText: item.options[item.correctIndex] || '',
+                                chosenOptionText: hasPick
+                                  ? item.options[userPick as number] || ''
+                                  : 'Unanswered',
+                                legalBasis: item.legalBasis || 'Philippine Labor Code',
+                                explanation: item.explanation || '',
+                                worldCode: item.worldCode,
+                                quizModeLabel: 'Exam Simulation',
+                              }}
+                            />
+                          )}
                         </div>
                       </div>
                     );
@@ -2938,23 +3035,41 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               {/* Instant Item Feedback */}
               {quickSubmitted && (
                 <div
-                  className={`p-4 rounded-2xl border-3 space-y-1.5 ${
+                  className={`p-4 rounded-2xl border-3 space-y-2 ${
                     quickSelected === quickQ.correctIndex
                       ? 'bg-emerald-50 border-emerald-600 text-emerald-950'
                       : 'bg-rose-50 border-rose-600 text-rose-950'
                   }`}
                 >
-                  <div className="flex items-center gap-2 font-black text-sm font-mario">
-                    {quickSelected === quickQ.correctIndex ? (
-                      <>
-                        <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-                        <span>CORRECT!</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
-                        <span>NEEDS REVIEW</span>
-                      </>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 font-black text-sm font-mario">
+                      {quickSelected === quickQ.correctIndex ? (
+                        <>
+                          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                          <span>CORRECT!</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                          <span>NEEDS REVIEW</span>
+                        </>
+                      )}
+                    </div>
+                    {quickSelected !== quickQ.correctIndex && (
+                      <SaveSingleQuizErrorButton
+                        testId="quick-live-save-error-btn"
+                        compact
+                        errorItem={{
+                          scenario: quickQ.scenario,
+                          correctOptionText: quickQ.options[quickQ.correctIndex] || '',
+                          chosenOptionText:
+                            quickSelected !== null ? quickQ.options[quickSelected] || '' : '',
+                          legalBasis: quickQ.legalBasis || 'Philippine Labor Code',
+                          explanation: quickQ.explanation || '',
+                          worldCode: quickQ.worldCode || activeWorldCode,
+                          quizModeLabel: 'Quick Test',
+                        }}
+                      />
                     )}
                   </div>
                   <p className="text-xs sm:text-sm font-semibold leading-relaxed">
@@ -3078,8 +3193,11 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                    .map((r) => ({
                      scenario: r.question.scenario,
                      correctOptionText: r.question.options[r.question.correctIndex] || '',
+                     chosenOptionText: r.question.options[r.chosenIndex] || '',
                      legalBasis: r.question.legalBasis || 'Philippine Labor Code',
                      explanation: r.question.explanation || '',
+                     worldCode: r.question.worldCode || activeWorldCode,
+                     quizModeLabel: 'Quick Test',
                    }))}
                  quizHistory={quizHistory}
                  currentRunCorrect={quickRecords.filter((r) => r.isCorrect).length}
@@ -3094,7 +3212,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   {quickRecords.map((rec, i) => (
                     <div
                       key={`${rec.question.id}-${i}`}
-                      className={`p-3.5 rounded-2xl border-2 text-xs sm:text-sm space-y-1 ${
+                      className={`p-3.5 rounded-2xl border-2 text-xs sm:text-sm space-y-2 ${
                         rec.isCorrect
                           ? 'bg-emerald-50/70 border-emerald-400'
                           : 'bg-rose-50/70 border-rose-400'
@@ -3114,9 +3232,26 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                           {rec.isCorrect ? 'PASS' : 'MISS'}
                         </span>
                       </div>
-                      <p className="text-xs font-bold text-slate-700">
-                        Correct Rule: {rec.question.options[rec.question.correctIndex]}
-                      </p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-bold text-slate-700">
+                          Correct Rule: {rec.question.options[rec.question.correctIndex]}
+                        </p>
+                        {!rec.isCorrect && (
+                          <SaveSingleQuizErrorButton
+                            testId={`quick-review-save-error-${i}`}
+                            compact
+                            errorItem={{
+                              scenario: rec.question.scenario,
+                              correctOptionText: rec.question.options[rec.question.correctIndex] || '',
+                              chosenOptionText: rec.question.options[rec.chosenIndex] || '',
+                              legalBasis: rec.question.legalBasis || 'Philippine Labor Code',
+                              explanation: rec.question.explanation || '',
+                              worldCode: rec.question.worldCode || activeWorldCode,
+                              quizModeLabel: 'Quick Test',
+                            }}
+                          />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3271,8 +3406,24 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   <p className="text-xs sm:text-sm font-semibold leading-relaxed">
                     {flashbackQ.explanation}
                   </p>
-                  <div className="pt-2 border-t border-black/10 flex flex-wrap items-center justify-between text-xs font-bold text-slate-600">
+                  <div className="pt-2 border-t border-black/10 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-600">
                     <span>Statutory Reference: {flashbackQ.legalBasis}</span>
+                    {flashbackSelected !== flashbackQ.correctIndex && (
+                      <SaveSingleQuizErrorButton
+                        testId="flashback-live-save-error-btn"
+                        compact
+                        errorItem={{
+                          scenario: flashbackQ.scenario,
+                          correctOptionText: flashbackQ.options[flashbackQ.correctIndex] || '',
+                          chosenOptionText:
+                            flashbackSelected !== null ? flashbackQ.options[flashbackSelected] || '' : '',
+                          legalBasis: flashbackQ.legalBasis || 'Philippine Labor Code',
+                          explanation: flashbackQ.explanation || '',
+                          worldCode: flashbackQ.worldCode || 'w1',
+                          quizModeLabel: 'Weakness Drill',
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -3373,6 +3524,26 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 }))}
               />
 
+              <QuizAnalyticsPanel
+                records={flashbackRecords.map((r) => ({
+                  worldCode: r.question.worldCode || 'w1',
+                  isCorrect: r.isCorrect,
+                }))}
+                missedQuestions={flashbackRecords
+                  .filter((r) => !r.isCorrect)
+                  .map((r) => ({
+                    scenario: r.question.scenario,
+                    correctOptionText: r.question.options[r.question.correctIndex] || '',
+                    chosenOptionText: r.question.options[r.chosenIndex] || '',
+                    legalBasis: r.question.legalBasis || 'Philippine Labor Code',
+                    explanation: r.question.explanation || '',
+                    worldCode: r.question.worldCode || 'w1',
+                    quizModeLabel: 'Weakness Drill',
+                  }))}
+                quizHistory={quizHistory}
+                currentRunCorrect={flashbackRecords.filter((r) => r.isCorrect).length}
+              />
+
               {/* Detailed Breakdown */}
               <div className="space-y-3 pt-2">
                 <h4 className="text-sm font-black uppercase font-mario text-slate-800">
@@ -3382,7 +3553,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   {flashbackRecords.map((rec, rIdx) => (
                     <div
                       key={rIdx}
-                      className={`p-3.5 rounded-2xl border-2 text-xs space-y-1 ${
+                      className={`p-3.5 rounded-2xl border-2 text-xs space-y-2 ${
                         rec.isCorrect
                           ? 'bg-emerald-50 border-emerald-400 text-emerald-950'
                           : 'bg-rose-50 border-rose-400 text-rose-950'
@@ -3398,9 +3569,26 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                           {rec.isCorrect ? 'PASS' : 'MISS'}
                         </span>
                       </div>
-                      <p className="text-xs font-bold text-slate-700">
-                        Correct Rule: {rec.question.options[rec.question.correctIndex]}
-                      </p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-bold text-slate-700">
+                          Correct Rule: {rec.question.options[rec.question.correctIndex]}
+                        </p>
+                        {!rec.isCorrect && (
+                          <SaveSingleQuizErrorButton
+                            testId={`flashback-review-save-error-${rIdx}`}
+                            compact
+                            errorItem={{
+                              scenario: rec.question.scenario,
+                              correctOptionText: rec.question.options[rec.question.correctIndex] || '',
+                              chosenOptionText: rec.question.options[rec.chosenIndex] || '',
+                              legalBasis: rec.question.legalBasis || 'Philippine Labor Code',
+                              explanation: rec.question.explanation || '',
+                              worldCode: rec.question.worldCode || 'w1',
+                              quizModeLabel: 'Weakness Drill',
+                            }}
+                          />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3726,8 +3914,24 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                     )}
                   </div>
                   <p className={`${bodyTextClass} font-medium`}>{q.explanation}</p>
-                  <div className="pt-2 border-t border-black/20 text-xs font-black uppercase text-slate-700">
-                    Legal Basis: {q.legalBasis}
+                  <div className="pt-2 border-t border-black/20 flex flex-wrap items-center justify-between gap-2 text-xs font-black uppercase text-slate-700">
+                    <span>Legal Basis: {q.legalBasis}</span>
+                    {selectedAnswer !== q.correctIndex && (
+                      <SaveSingleQuizErrorButton
+                        testId="practice-live-save-error-btn"
+                        compact
+                        errorItem={{
+                          scenario: q.scenario,
+                          correctOptionText: q.options[q.correctIndex] || '',
+                          chosenOptionText:
+                            selectedAnswer !== null ? q.options[selectedAnswer] || '' : '',
+                          legalBasis: q.legalBasis || 'Philippine Labor Code',
+                          explanation: q.explanation || '',
+                          worldCode: q.worldCode || 'w1',
+                          quizModeLabel: 'Practice Arena',
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -4023,17 +4227,38 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                       : 'bg-red-950/80 border-red-600 text-red-200'
                   }`}
                 >
-                  <div className="flex items-center gap-2 font-black text-xs sm:text-sm font-mario">
-                    {bossSelectedAnswer === bossQ.correctIndex ? (
-                      <>
-                        <MarioFireballIcon className="w-5 h-5 shrink-0" />
-                        <span>DIRECT HIT! -20 HP!</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-5 h-5 text-red-400 shrink-0" />
-                        <span>LOST 1 HEART!</span>
-                      </>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 font-black text-xs sm:text-sm font-mario">
+                      {bossSelectedAnswer === bossQ.correctIndex ? (
+                        <>
+                          <MarioFireballIcon className="w-5 h-5 shrink-0" />
+                          <span>DIRECT HIT! -20 HP!</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-5 h-5 text-red-400 shrink-0" />
+                          <span>LOST 1 HEART!</span>
+                        </>
+                      )}
+                    </div>
+                    {bossSelectedAnswer !== bossQ.correctIndex && (
+                      <SaveSingleQuizErrorButton
+                        testId="boss-live-save-error-btn"
+                        compact
+                        darkSurface
+                        errorItem={{
+                          scenario: bossQ.scenario,
+                          correctOptionText: bossQ.options[bossQ.correctIndex] || '',
+                          chosenOptionText:
+                            bossSelectedAnswer !== null
+                              ? bossQ.options[bossSelectedAnswer] || 'Timed Out'
+                              : 'Timed Out',
+                          legalBasis: bossQ.legalBasis || 'Philippine Labor Code',
+                          explanation: bossQ.explanation || '',
+                          worldCode: bossQ.worldCode || 'boss',
+                          quizModeLabel: 'Bowser Boss',
+                        }}
+                      />
                     )}
                   </div>
                   <p className="text-xs font-medium text-slate-300">
@@ -4089,8 +4314,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   <span>5-MIN INVINCIBLE STUDY MODE (2X COINS)!</span>
                 </span>
               </div>
-              <div className="relative z-10">
+              <div className="relative z-10 space-y-4">
                 <QuizResultSummaryChart records={bossRecords} darkSurface />
+                <QuizAnalyticsPanel
+                  records={bossRecords}
+                  missedQuestions={bossMissedDetails}
+                  quizHistory={quizHistory}
+                  currentRunCorrect={bossRecords.filter((r) => r.isCorrect).length}
+                />
               </div>
               <button
                 type="button"
@@ -4112,6 +4343,12 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 DEFEATED IN THE LAVA KEEP!
               </h3>
               <QuizResultSummaryChart records={bossRecords} darkSurface />
+              <QuizAnalyticsPanel
+                records={bossRecords}
+                missedQuestions={bossMissedDetails}
+                quizHistory={quizHistory}
+                currentRunCorrect={bossRecords.filter((r) => r.isCorrect).length}
+              />
               <button
                 type="button"
                 onClick={() => handleStartBossBattle(bossTier)}
@@ -4225,16 +4462,34 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
 
               {koopaSubmitted && (
                 <div
-                  className={`p-4 rounded-2xl border-3 space-y-1.5 ${
+                  className={`p-4 rounded-2xl border-3 space-y-2 ${
                     koopaSelected === koopaQ.correctIndex
                       ? 'bg-emerald-50 border-emerald-600 text-emerald-950'
                       : 'bg-rose-50 border-rose-600 text-rose-950'
                   }`}
                 >
-                  <div className="font-mario text-xs font-black">
-                    {koopaSelected === koopaQ.correctIndex
-                      ? 'SHELL CRACKED! +10 COINS!'
-                      : 'WARNING: 1 SHELL SHIELD LOST (0 MISSES LEFT)!'}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-mario text-xs font-black">
+                      {koopaSelected === koopaQ.correctIndex
+                        ? 'SHELL CRACKED! +10 COINS!'
+                        : 'WARNING: 1 SHELL SHIELD LOST (0 MISSES LEFT)!'}
+                    </div>
+                    {koopaSelected !== koopaQ.correctIndex && (
+                      <SaveSingleQuizErrorButton
+                        testId="koopa-live-save-error-btn"
+                        compact
+                        errorItem={{
+                          scenario: koopaQ.scenario,
+                          correctOptionText: koopaQ.options[koopaQ.correctIndex] || '',
+                          chosenOptionText:
+                            koopaSelected !== null ? koopaQ.options[koopaSelected] || '' : '',
+                          legalBasis: koopaQ.legalBasis || 'Philippine Labor Code',
+                          explanation: koopaQ.explanation || '',
+                          worldCode: koopaQ.worldCode || 'w1',
+                          quizModeLabel: 'Koopa Citadel',
+                        }}
+                      />
+                    )}
                   </div>
                   <p className="text-xs sm:text-sm font-semibold">
                     {koopaQ.explanation} ({koopaQ.legalBasis})
@@ -4320,6 +4575,33 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               <h3 className="text-2xl sm:text-3xl font-black font-display">
                 Koopa Citadel Repelled Your Advance at Question {koopaState.answeredCount}
               </h3>
+              {koopaMissedDetails.length > 0 && (
+                <div className="text-left space-y-2.5 max-w-2xl mx-auto">
+                  <span className="text-xs font-black uppercase font-mario text-amber-300 block">
+                    MISSED CITADEL QUESTIONS (SAVE ONE BY ONE):
+                  </span>
+                  {koopaMissedDetails.map((m, mIdx) => (
+                    <div
+                      key={mIdx}
+                      className="p-3.5 rounded-2xl bg-slate-900 border border-slate-700 space-y-2 text-xs"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-mono font-black text-amber-300">{m.legalBasis}</span>
+                        <SaveSingleQuizErrorButton
+                          testId={`koopa-defeat-save-error-${mIdx}`}
+                          compact
+                          darkSurface
+                          errorItem={m}
+                        />
+                      </div>
+                      <p className="font-bold text-white">{m.scenario}</p>
+                      <p className="text-emerald-300 font-semibold">
+                        Correct Rule: {m.correctOptionText}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -4505,6 +4787,33 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                       </div>
                     </div>
                   </div>
+
+                  {asyncMissedDetails.length > 0 && (
+                    <div className="space-y-2.5 text-left">
+                      <span className="text-xs font-black uppercase font-mario text-rose-700 block">
+                        MISSED DUEL ITEMS (SAVE ONE BY ONE):
+                      </span>
+                      {asyncMissedDetails.map((m, aIdx) => (
+                        <div
+                          key={aIdx}
+                          className="p-3.5 rounded-2xl bg-rose-50/70 border-2 border-rose-300 space-y-2 text-xs"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-mono font-black text-rose-900">{m.legalBasis}</span>
+                            <SaveSingleQuizErrorButton
+                              testId={`async-duel-save-error-${aIdx}`}
+                              compact
+                              errorItem={m}
+                            />
+                          </div>
+                          <p className="font-bold text-slate-900">{m.scenario}</p>
+                          <p className="text-emerald-800 font-bold">
+                            Correct Rule: {m.correctOptionText}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <button

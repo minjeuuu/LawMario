@@ -54,6 +54,7 @@ import {
   loadFlashcardMasteryTiers,
   saveFlashcardMasteryTiers,
 } from '../utils/round9Features';
+import { resolveUniversalCardFrame } from '../utils/round12Features';
 
 interface FlashcardsViewProps {
   fontSize: 'normal' | 'large' | 'xlarge';
@@ -70,6 +71,7 @@ interface FlashcardsViewProps {
   quickStudyLaunchId?: number;
   overdueTopicIds?: string[];
   overdueLaunchId?: number;
+  equippedCardFrame?: string;
 }
 
 const WEAK_WORLD_OPTIONS: { id: string; label: string }[] = [
@@ -97,7 +99,9 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
   quickStudyLaunchId = 0,
   overdueTopicIds = [],
   overdueLaunchId = 0,
+  equippedCardFrame = 'frame_default',
 }) => {
+  const resolvedFrame = resolveUniversalCardFrame(equippedCardFrame);
   const [cards, setCards] = useState<Flashcard[]>(FLASHCARDS_DATA);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -1623,9 +1627,14 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
           <div
             onClick={studyDifficulty === 'casual' || isFlipped ? handleFlip : undefined}
             data-testid="flashcard-surface"
+            data-card-frame={equippedCardFrame}
             className={`${
               studyDifficulty === 'casual' || isFlipped ? 'cursor-pointer' : ''
-            } transition-all duration-200 rounded-3xl p-4 sm:p-7 md:p-9 min-h-[300px] sm:min-h-[340px] flex flex-col justify-between border-4 border-slate-950 mario-card select-none ${
+            } transition-all duration-200 rounded-3xl p-4 sm:p-7 md:p-9 min-h-[300px] sm:min-h-[340px] flex flex-col justify-between border-4 ${
+              resolvedFrame.id !== 'frame_default'
+                ? resolvedFrame.borderClasses
+                : 'border-slate-950'
+            } mario-card select-none ${
               isFlipped ? 'bg-white' : 'mario-box'
             }`}
           >

@@ -6,6 +6,11 @@ import { marioAudio } from '../utils/audio';
 import { RotateCcw, Trophy, ArrowLeft, ArrowRight, Heart, Pause, Play, BookOpen, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { drawLawCatcherItem } from '../utils/gameQuestionDeck';
+import {
+  computeCatcherFallDelta,
+  evaluateArcadePassOutcome,
+  LAW_CATCHER_PASS_SCORE,
+} from '../utils/round12Features';
 
 interface LawCatcherGameProps {
   equippedAvatar: MarioAvatar;
@@ -87,8 +92,12 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
     if (!ctx) return;
 
     let animId = 0;
+    let lastTime = performance.now();
 
-    const loop = () => {
+    const loop = (now: number) => {
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastTime) / 1000));
+      lastTime = now;
+
       if (isPausedRef.current) {
         animId = requestAnimationFrame(loop);
         return;
@@ -97,26 +106,26 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
       const width = canvas.width;
       const height = canvas.height;
 
-      // 1. Player Movement
+      // 1. Player Movement (smooth 310 px/s across any monitor Hz)
       if (keysRef.current.left) {
-        playerRef.current.x = Math.max(10, playerRef.current.x - playerRef.current.speed);
+        playerRef.current.x = Math.max(10, playerRef.current.x - 310 * dt);
       }
       if (keysRef.current.right) {
-        playerRef.current.x = Math.min(width - playerRef.current.width - 10, playerRef.current.x + playerRef.current.speed);
+        playerRef.current.x = Math.min(width - playerRef.current.width - 10, playerRef.current.x + 310 * dt);
       }
 
-      // 2. Spawn Items from 26-item non-repeating session decks
-      spawnTimerRef.current++;
-      if (spawnTimerRef.current > 42) {
+      // 2. Calm 0.82s Spawn Cadence from 26-item non-repeating session decks
+      spawnTimerRef.current += dt;
+      if (spawnTimerRef.current >= 0.82) {
         spawnTimerRef.current = 0;
-        const isHazard = Math.random() < 0.35;
+        const isHazard = Math.random() < 0.36;
         const template = drawLawCatcherItem(isHazard);
 
         itemsRef.current.push({
           id: nextItemIdRef.current++,
           x: 20 + Math.random() * (width - 60),
           y: -20,
-          speed: 2.5 + Math.random() * 2.2,
+          speed: 92 + Math.random() * 52, // 92..144 px/sec calm classic pace
           type: template.type,
           label: template.label,
           isBenefit: template.isBenefit,
@@ -129,7 +138,7 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
 
       const remaining: FallingItem[] = [];
       for (const item of itemsRef.current) {
-        item.y += item.speed;
+        item.y += computeCatcherFallDelta(item.speed, dt);
 
         // Collision with player
         if (
@@ -367,25 +376,48 @@ export const LawCatcherGame: React.FC<LawCatcherGameProps> = ({
           </div>
         )}
 
-        {gameState === 'gameover' && (
-          <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-2.5 overflow-y-auto">
-            <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-amber-400 shrink-0" />
-            <h3 className="text-xl sm:text-2xl font-black text-white font-display">GAME OVER!</h3>
-            <p className="text-xs sm:text-sm font-bold text-slate-300 tabular-nums">
-              Total Score: <span className="text-amber-300 text-base sm:text-lg">{score}</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                onEarnCoins(Math.max(5, Math.round(score / 4)));
-                startGame();
-              }}
-              className="min-h-[44px] px-5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-xs font-mario uppercase cursor-pointer shrink-0"
-            >
-              Collect Coins &amp; Play Again
-            </button>
-          </div>
-        )}
+        {gameState === 'gameover' && (() => {
+          const outcome = evaluateArcadePassOutcome({
+            score,
+            passScore: LAW_CATCHER_PASS_SCORE,
+            passCoins: Math.max(6, Math.min(20, Math.round(score / 22))),
+          });
+          return (
+            <div className="absolute inset-0 z-20 bg-slate-950/92 flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-2.5 overflow-y-auto">
+              <Trophy
+                className={`w-10 h-10 sm:w-12 sm:h-12 shrink-0 ${
+                  outcome.passed ? 'text-amber-400' : 'text-rose-400'
+                }`}
+              />
+              <h3 className="text-xl sm:text-2xl font-black text-white font-display">
+                {outcome.passed ? 'STAGE PASSED!' : 'GAME OVER — BELOW TARGET!'}
+              </h3>
+              <p className="text-xs sm:text-sm font-bold text-slate-300 tabular-nums">
+                Score: <span className="text-amber-300 text-base sm:text-lg">{score}</span> /{' '}
+                {LAW_CATCHER_PASS_SCORE} Pass Target
+              </p>
+              <p className="text-[11px] font-bold text-emerald-300">
+                {outcome.passed
+                  ? `Reward Ready: +${outcome.coinsEarned} Coins`
+                  : `Reach ${LAW_CATCHER_PASS_SCORE}+ pts to pass and earn coins!`}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (outcome.passed && outcome.coinsEarned > 0) {
+                    onEarnCoins(outcome.coinsEarned);
+                  }
+                  startGame();
+                }}
+                className="min-h-[44px] px-5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black text-xs font-mario uppercase cursor-pointer shrink-0"
+              >
+                {outcome.passed
+                  ? `Claim +${outcome.coinsEarned}c & Play Again`
+                  : 'Try Again'}
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Ergonomic Mobile Controls */}

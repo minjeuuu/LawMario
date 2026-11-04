@@ -11,6 +11,7 @@ import {
   MarioCoinIcon,
   MarioBowserIcon,
   MarioFlagIcon,
+  MarioQuestionBlockIcon,
 } from './MarioIcons';
 import { MarioAvatar } from '../types/laborLaw';
 import { HERO_ROSTER, getHeroMeta } from '../data/heroesData';
@@ -56,6 +57,8 @@ import {
   XCircle,
   Pin,
   Trash2,
+  Star,
+  BookOpen,
 } from 'lucide-react';
 import { WorldGoalRing } from './TopicStudyModals';
 import { PinnedRuleBookmark } from '../utils/round9Features';
@@ -67,6 +70,11 @@ import {
   DAILY_MISSIONS_STORAGE_KEY,
   computeToadstoolQuestLog,
 } from '../utils/round11Features';
+import {
+  filterFavoriteTopics,
+  computeOwnedChambersAndRelicsSummary,
+  hitMarioMysteryLawBlock,
+} from '../utils/round12Features';
 
 interface WorldMapProps {
   onSelectWorld: (worldId: string) => void;
@@ -97,6 +105,9 @@ interface WorldMapProps {
   onJumpToPinnedRule?: (worldId: string, topicId: string) => void;
   onRemovePinnedRule?: (bookmarkId: string) => void;
   unlockAllModulesActive?: boolean;
+  favoriteTopicIds?: string[];
+  onToggleFavoriteTopic?: (topicId: string) => void;
+  unlockedShopItemIds?: string[];
 }
 
 interface MapNode {
@@ -266,16 +277,33 @@ export const WorldMap: React.FC<WorldMapProps> = ({
   onJumpToPinnedRule,
   onRemovePinnedRule,
   unlockAllModulesActive = false,
+  favoriteTopicIds = [],
+  onToggleFavoriteTopic,
+  unlockedShopItemIds = [],
 }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string>(
     MAP_NODES.some((n) => n.id === activeWorld) ? activeWorld : 'world1'
   );
+  const [mapViewTab, setMapViewTab] = useState<'overworld' | 'favorites'>('overworld');
+  const [mapMysteryBanner, setMapMysteryBanner] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<MapNode | null>(null);
   const [summaryModalNode, setSummaryModalNode] = useState<MapNode | null>(null);
   const [showAllHeroes, setShowAllHeroes] = useState<boolean>(false);
   const [isFastTravelOpen, setIsFastTravelOpen] = useState<boolean>(false);
   const [warpPipeTargetNode, setWarpPipeTargetNode] = useState<MapNode | null>(null);
   const warpTimerRef = useRef<number | null>(null);
+  const favoriteTopics = useMemo(
+    () => filterFavoriteTopics(ALL_LAW_TOPICS, favoriteTopicIds),
+    [favoriteTopicIds]
+  );
+  const prestigeSummary = useMemo(
+    () => computeOwnedChambersAndRelicsSummary(unlockedShopItemIds),
+    [unlockedShopItemIds]
+  );
+  const [mapQBlockState, setMapQBlockState] = useState<{
+    hitCountToday: number;
+    dropCursor: number;
+  }>({ hitCountToday: 0, dropCursor: 0 });
   const [dailyMissionBundle, setDailyMissionBundle] = useState<DailyMissionBundle>(() =>
     loadOrGenerateDailyMissions(
       getLocalDateKey(),
@@ -1577,10 +1605,258 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           </div>
         </div>
 
+        {/* 4B. Overworld Map vs. Favorites View Switcher + Interactive Mario [?] Mystery Law Block */}
+        <div
+          data-testid="world-map-view-switcher"
+          className="mb-3 bg-slate-950/90 border-2 border-slate-800 rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-2"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              data-testid="world-map-overworld-tab"
+              aria-pressed={mapViewTab === 'overworld'}
+              onClick={() => {
+                setMapViewTab('overworld');
+                marioAudio.playClick();
+              }}
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-black border-2 inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                mapViewTab === 'overworld'
+                  ? 'bg-emerald-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
+              }`}
+            >
+              <Compass className="w-4 h-4 shrink-0" />
+              <span>Overworld Map</span>
+            </button>
+
+            <button
+              type="button"
+              data-testid="world-map-favorites-tab"
+              aria-pressed={mapViewTab === 'favorites'}
+              onClick={() => {
+                setMapViewTab('favorites');
+                marioAudio.playCoin();
+              }}
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-black border-2 inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                mapViewTab === 'favorites'
+                  ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
+                  : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-slate-700'
+              }`}
+            >
+              <Star className={`w-4 h-4 shrink-0 ${favoriteTopics.length > 0 ? 'fill-current' : ''}`} />
+              <span>Favorites ({favoriteTopics.length})</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {prestigeSummary.chambersBonusPct > 0 && (
+              <span
+                data-testid="world-map-prestige-badge"
+                className="px-2.5 py-1 rounded-xl bg-purple-950/90 border border-purple-400/70 text-purple-200 text-[10px] font-black font-mario"
+              >
+                CHAMBERS &amp; RELICS: +{prestigeSummary.chambersBonusPct}% PRESTIGE
+              </span>
+            )}
+            <button
+              type="button"
+              data-testid="world-map-mystery-block-btn"
+              onClick={() => {
+                const res = hitMarioMysteryLawBlock(mapQBlockState);
+                setMapQBlockState({
+                  hitCountToday: res.nextHitCountToday,
+                  dropCursor: res.nextDropCursor,
+                });
+                if (res.coinsAwarded > 0) {
+                  onEarnCoins?.(res.coinsAwarded);
+                  marioAudio.playCoin();
+                } else {
+                  marioAudio.playClick();
+                }
+                setMapMysteryBanner(
+                  `${res.drop.mnemonicTitle}: ${res.drop.statutoryRule}${
+                    res.coinsAwarded > 0 ? ` (+${res.coinsAwarded} Coins)` : ''
+                  }`
+                );
+              }}
+              className="min-h-[38px] px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-black shadow-[0_2px_0_#000] text-xs font-black inline-flex items-center gap-1.5 cursor-pointer active:translate-y-0.5"
+            >
+              <MarioQuestionBlockIcon className="w-4 h-4 shrink-0" />
+              <span>Hit [?] Law Block</span>
+            </button>
+          </div>
+        </div>
+
+        {mapMysteryBanner && (
+          <div
+            role="status"
+            data-testid="world-map-mystery-banner"
+            className="mb-3 bg-amber-400/15 border-2 border-amber-400 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs text-amber-100 font-bold"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <MarioQuestionBlockIcon className="w-4 h-4 shrink-0" />
+              <span className="leading-snug">{mapMysteryBanner}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMapMysteryBanner(null)}
+              aria-label="Dismiss Mystery Law Block tip"
+              className="px-2 py-0.5 rounded-lg bg-slate-900 text-amber-300 border border-amber-400/60 text-[10px] font-black cursor-pointer shrink-0"
+            >
+              OK
+            </button>
+          </div>
+        )}
+
+        {/* Owned Toad's Shop Law Chambers & Statutory Relics Showcase Strip */}
+        {(prestigeSummary.ownedChambersCount > 0 || prestigeSummary.ownedRelicsCount > 0) && (
+          <div
+            data-testid="world-map-owned-chambers-relics"
+            className="mb-4 bg-slate-950/90 border-2 border-amber-400/70 rounded-2xl p-3 space-y-2"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-mario text-[10px] text-amber-300 uppercase">
+                UNLOCKED LAW CHAMBERS ({prestigeSummary.ownedChambersCount}) &amp; STATUTORY RELICS ({prestigeSummary.ownedRelicsCount})
+              </span>
+              <span className="text-[11px] font-extrabold text-emerald-300">
+                Active Sanctuary Aura · +{prestigeSummary.chambersBonusPct}% Counsel Prestige
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {prestigeSummary.ownedChamberNames.map((chName) => (
+                <span
+                  key={`ch-${chName}`}
+                  className="px-2.5 py-1 rounded-xl bg-amber-400/15 border border-amber-400/60 text-amber-200 text-[11px] font-bold"
+                >
+                  {chName}
+                </span>
+              ))}
+              {prestigeSummary.ownedRelicNames.map((rlName) => (
+                <span
+                  key={`rl-${rlName}`}
+                  className="px-2.5 py-1 rounded-xl bg-emerald-400/15 border border-emerald-400/60 text-emerald-200 text-[11px] font-bold"
+                >
+                  {rlName}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Favorites View Panel within World Map */}
+        {mapViewTab === 'favorites' && (
+          <div
+            data-testid="world-map-favorites-view"
+            className="mb-5 bg-slate-950 rounded-2xl border-4 border-amber-400 p-4 sm:p-5 space-y-4 shadow-[5px_5px_0_#000]"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" />
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-white font-display">
+                    PINNED FAVORITE LABOR LAW TOPICS ({favoriteTopics.length})
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Quick-launch your pinned Labor Standards modules directly from the World Map.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMapViewTab('overworld')}
+                className="min-h-[36px] px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-black cursor-pointer"
+              >
+                Back to Overworld Map
+              </button>
+            </div>
+
+            {favoriteTopics.length === 0 ? (
+              <div className="bg-slate-900 border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center space-y-3">
+                <Star className="w-8 h-8 text-amber-400 mx-auto" />
+                <p className="text-sm font-black text-white">No Favorite Topics Pinned Yet</p>
+                <p className="text-xs text-slate-300 max-w-md mx-auto">
+                  Open any Labor Law module card and click the <strong className="text-amber-300">Favorite</strong> star button to pin high-yield doctrines here!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onSelectWorld('all')}
+                  className="min-h-[40px] px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <BookOpen className="w-4 h-4 shrink-0" />
+                  <span>Browse All Modules to Pin Favorites</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {favoriteTopics.map((topic) => {
+                  const isMastered = completedTopicIds.includes(topic.id);
+                  const worldMeta = WORLDS_METADATA.find((w) => w.id === topic.worldId);
+                  return (
+                    <div
+                      key={topic.id}
+                      data-testid={`world-map-favorite-card-${topic.id}`}
+                      className="bg-slate-900 border-2 border-slate-700 hover:border-amber-400 rounded-2xl p-3.5 flex flex-col justify-between gap-3 transition-colors"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-600 text-[10px] font-black text-amber-300 uppercase truncate">
+                            {worldMeta ? `${worldMeta.worldNumber} · ${worldMeta.title}` : topic.worldId.toUpperCase()}
+                          </span>
+                          {isMastered && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-400/60 text-[10px] font-black text-emerald-300 shrink-0">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Mastered</span>
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-black text-sm text-white leading-snug">{topic.title}</h4>
+                        <p className="text-xs text-slate-300 line-clamp-2">{topic.summary}</p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                        <button
+                          type="button"
+                          data-testid={`world-map-open-favorite-${topic.id}`}
+                          onClick={() => {
+                            if (onSelectTopic) {
+                              onSelectTopic(topic.worldId, topic.id);
+                            } else if (onJumpToPinnedRule) {
+                              onJumpToPinnedRule(topic.worldId, topic.id);
+                            } else {
+                              onSelectWorld(topic.worldId);
+                            }
+                          }}
+                          className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <span>Study Topic</span>
+                          <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                        </button>
+
+                        {onToggleFavoriteTopic && (
+                          <button
+                            type="button"
+                            data-testid={`world-map-unfavorite-${topic.id}`}
+                            onClick={() => onToggleFavoriteTopic(topic.id)}
+                            className="min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950 text-amber-300 hover:text-rose-200 border border-slate-600 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-current shrink-0" />
+                            <span>Unpin</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 5. 2D Canvas-style Interactive Overworld Map Display with Live Unlocked/Cleared Progress */}
         <div
           data-testid="interactive-world-map"
-          className="relative w-full h-[440px] sm:h-[500px] md:h-[540px] bg-[#064e3b] rounded-2xl border-4 border-slate-950 shadow-inner select-none mb-5 overflow-hidden"
+          className={`${
+            mapViewTab === 'favorites' ? 'hidden' : 'block'
+          } relative w-full h-[440px] sm:h-[500px] md:h-[540px] bg-[#064e3b] rounded-2xl border-4 border-slate-950 shadow-inner select-none mb-5 overflow-hidden`}
         >
           {/* Inner clipped container for background patterns & water gradient */}
           <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">

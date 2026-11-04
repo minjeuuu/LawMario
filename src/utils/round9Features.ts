@@ -1121,8 +1121,11 @@ export function computeBarMasterRankProgress(params: {
 export interface MissedQuestionBriefInput {
   scenario: string;
   correctOptionText: string;
+  chosenOptionText?: string;
   legalBasis: string;
   explanation: string;
+  worldCode?: string;
+  quizModeLabel?: string;
 }
 
 export interface MissedTopicStudySummary {

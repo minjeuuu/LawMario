@@ -71,6 +71,22 @@ import {
   getPrintThemeCatalogItem,
   getPrintFontCatalogItem,
 } from '../utils/round8Features';
+import {
+  EXTENDED_PRINT_COLOR_THEMES,
+  EXTENDED_PRINT_FONT_CATALOG,
+  resolveExtendedPrintTheme,
+  resolveExtendedPrintFont,
+} from '../utils/round12Features';
+import {
+  buildTrueFontOnePageSummaryPdfBytesAsync,
+  buildTrueFontCertificateOrDiplomaPdfBytesAsync,
+  buildTrueFontScoreCardPdfBytesAsync,
+  buildTrueFontStudyReviewerPdfBytesAsync,
+  downloadTrueFontOnePageSummaryPdfAsync,
+  downloadTrueFontCertificatePdfAsync,
+  downloadTrueFontScoreCardPdfAsync,
+  downloadTrueFontStudyReviewerPdfAsync,
+} from '../utils/pdfTrueFontRenderer';
 
 export type PrintModalDocumentMode = 'summary' | 'guide' | 'certificate' | 'scorecard';
 
@@ -372,70 +388,85 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     if (!isOpen || previewRenderMode !== 'pdf') {
       return;
     }
-    let bytes: Uint8Array;
-    if (documentMode === 'summary') {
-      bytes = buildOnePageSummaryPdfBytes({
-        candidateName: candidateName.trim() || undefined,
-        dateLabel: currentDate,
-        colorAccent: formatOptions.colorAccent,
-        fontStyle: formatOptions.fontStyle,
-        includeWatermark,
-        watermarkText: formatOptions.watermarkText,
-      });
-    } else if (documentMode === 'certificate') {
-      bytes = buildCertificatePdfBytes({
-        recipientName: candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
-        honors: certificateHonors,
-        completedCount,
-        totalCount: totalTopics,
-        dateLabel: currentDate,
-        colorAccent: formatOptions.colorAccent,
-        fontStyle: formatOptions.fontStyle,
-        orientation: certOrientation,
-      });
-    } else if (documentMode === 'scorecard') {
-      bytes = buildScoreCardLandscapePdfBytes(buildCurrentScoreCardParams());
-    } else {
-      bytes = buildStudyGuideReviewerPdfBytes({
-        orientation: pageOrientation,
-        candidateName: candidateName.trim() || undefined,
-        completedTopicIds,
-        topics: filteredTopics,
-        selectedWorlds,
-        includeGroupMembers,
-        includeProgress,
-        includeMultipliers,
-        includeRegionalWages,
-        includeLeavesMatrix,
-        includePersonalNotes,
-        includeBarTips: formatOptions.includeBarTips,
-        includeLegalCitations: formatOptions.includeLegalCitations,
-        matricesOnlyMode,
-        studyNotes: resolvedNotes,
-        colorAccent: formatOptions.colorAccent,
-        fontStyle: formatOptions.fontStyle,
-        paperMargins,
-        fontSizeScale,
-        includeCheckboxes,
-        includeWatermark,
-        watermarkText: formatOptions.watermarkText,
-        includeFormulasCheatSheet,
-        includeFourFoldControlTest,
-        includeTwoNoticeChecklist,
-        includeRetirementFormulaBox,
-        includeHonorPledge,
-        blankNoteLinesCount: formatOptions.blankNoteLinesCount,
-      });
-    }
+    let cancelled = false;
+    let activeBlobUrl: string | null = null;
 
-    const pages = countPdfPagesFromBytes(bytes);
-    const kbSize = Math.max(1, Math.round(bytes.byteLength / 1024));
-    const blob = new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' });
-    const blobUrl = URL.createObjectURL(blob);
-    setPdfPreviewState({ url: blobUrl, pages, kbSize });
+    const runPreviewBuild = async () => {
+      let bytes: Uint8Array;
+      if (documentMode === 'summary') {
+        bytes = await buildTrueFontOnePageSummaryPdfBytesAsync({
+          candidateName: candidateName.trim() || undefined,
+          dateLabel: currentDate,
+          colorAccent: formatOptions.colorAccent,
+          fontStyle: formatOptions.fontStyle,
+          includeWatermark,
+          watermarkText: formatOptions.watermarkText,
+        });
+      } else if (documentMode === 'certificate') {
+        bytes = await buildTrueFontCertificateOrDiplomaPdfBytesAsync(
+          {
+            recipientName:
+              candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
+            honors: certificateHonors,
+            completedCount,
+            totalCount: totalTopics,
+            dateLabel: currentDate,
+            colorAccent: formatOptions.colorAccent,
+            fontStyle: formatOptions.fontStyle,
+            orientation: certOrientation,
+          },
+          false
+        );
+      } else if (documentMode === 'scorecard') {
+        bytes = await buildTrueFontScoreCardPdfBytesAsync(buildCurrentScoreCardParams());
+      } else {
+        bytes = await buildTrueFontStudyReviewerPdfBytesAsync({
+          orientation: pageOrientation,
+          candidateName: candidateName.trim() || undefined,
+          completedTopicIds,
+          topics: filteredTopics,
+          selectedWorlds,
+          includeGroupMembers,
+          includeProgress,
+          includeMultipliers,
+          includeRegionalWages,
+          includeLeavesMatrix,
+          includePersonalNotes,
+          includeBarTips: formatOptions.includeBarTips,
+          includeLegalCitations: formatOptions.includeLegalCitations,
+          matricesOnlyMode,
+          studyNotes: resolvedNotes,
+          colorAccent: formatOptions.colorAccent,
+          fontStyle: formatOptions.fontStyle,
+          paperMargins,
+          fontSizeScale,
+          includeCheckboxes,
+          includeWatermark,
+          watermarkText: formatOptions.watermarkText,
+          includeFormulasCheatSheet,
+          includeFourFoldControlTest,
+          includeTwoNoticeChecklist,
+          includeRetirementFormulaBox,
+          includeHonorPledge,
+          blankNoteLinesCount: formatOptions.blankNoteLinesCount,
+        });
+      }
+
+      if (cancelled) return;
+      const pages = countPdfPagesFromBytes(bytes);
+      const kbSize = Math.max(1, Math.round(bytes.byteLength / 1024));
+      const blob = new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' });
+      activeBlobUrl = URL.createObjectURL(blob);
+      setPdfPreviewState({ url: activeBlobUrl, pages, kbSize });
+    };
+
+    void runPreviewBuild();
 
     return () => {
-      URL.revokeObjectURL(blobUrl);
+      cancelled = true;
+      if (activeBlobUrl) {
+        URL.revokeObjectURL(activeBlobUrl);
+      }
     };
   }, [
     isOpen,
@@ -489,10 +520,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     setFormatOptions((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (documentMode === 'summary') {
       marioAudio.playCoin();
-      downloadOnePageSummaryA4Pdf({
+      await downloadTrueFontOnePageSummaryPdfAsync({
         candidateName: candidateName.trim() || undefined,
         dateLabel: currentDate,
         colorAccent: formatOptions.colorAccent,
@@ -502,7 +533,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       });
     } else if (documentMode === 'certificate') {
       marioAudio.playQuizComplete();
-      downloadCertificatePdf({
+      await downloadTrueFontCertificatePdfAsync({
         recipientName:
           candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
         honors: certificateHonors,
@@ -515,10 +546,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       });
     } else if (documentMode === 'scorecard') {
       marioAudio.playQuizComplete();
-      downloadScoreCardLandscapePdf(buildCurrentScoreCardParams());
+      await downloadTrueFontScoreCardPdfAsync(buildCurrentScoreCardParams());
     } else {
       marioAudio.playCoin();
-      downloadStudyGuideReviewerPdf({
+      await downloadTrueFontStudyReviewerPdfAsync({
         orientation: pageOrientation,
         candidateName: candidateName.trim() || undefined,
         completedTopicIds,
@@ -556,6 +587,19 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const isCompact = formatOptions.compactLayout;
   const activeThemeCatalog = getPrintThemeCatalogItem(formatOptions.colorAccent);
   const activeFontCatalog = getPrintFontCatalogItem(formatOptions.fontStyle);
+  const activeExtendedTheme = resolveExtendedPrintTheme(formatOptions.colorAccent);
+  const activeExtendedFont = resolveExtendedPrintFont(formatOptions.fontStyle);
+  const activeCssFontStack = activeExtendedFont.cssFontFamily;
+  const activeSheetDynamicStyle: React.CSSProperties = {
+    '--print-active-font': activeCssFontStack,
+    fontFamily: activeCssFontStack,
+    backgroundColor:
+      activeExtendedTheme.id === 'ink_saver_bw'
+        ? '#FFFFFF'
+        : activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
+    borderColor: activeExtendedTheme.borderHex,
+    color: activeExtendedTheme.bodyTextHex,
+  } as React.CSSProperties;
 
   const bodyFontClass = activeFontCatalog.previewClass;
   const headingBorderClass = activeThemeCatalog.headingBorderClass;
@@ -878,13 +922,13 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 className="text-[11px] font-black text-amber-300 whitespace-nowrap shrink-0 inline-flex items-center gap-1"
               >
                 <Palette className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">Themes ({PRINT_COLOR_THEMES.length}):</span>
+                <span className="hidden sm:inline">Themes ({EXTENDED_PRINT_COLOR_THEMES.length}):</span>
                 <span className="sm:hidden">Theme:</span>
               </label>
               <select
                 id="print-quick-theme-select"
                 data-testid="print-quick-theme-select"
-                value={formatOptions.colorAccent}
+                value={activeExtendedTheme.id}
                 onChange={(e) =>
                   updateFormat(
                     'colorAccent',
@@ -893,10 +937,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 }
                 className="min-h-[38px] flex-1 min-w-0 bg-slate-900 border border-slate-700 text-white text-xs font-bold rounded-xl px-2 py-1 cursor-pointer focus:outline-none focus:border-amber-400 truncate"
               >
-                {PRINT_COLOR_THEMES.map((themeItem) => (
-                  <option key={themeItem.id} value={themeItem.id}>
-                    {themeItem.label}
-                  </option>
+                {(['Legal & Classic', 'Mario Kingdom', 'Editorial & Luxury', 'Pastel & Ink-Saver'] as const).map((cat) => (
+                  <optgroup key={cat} label={cat}>
+                    {EXTENDED_PRINT_COLOR_THEMES.filter((t) => t.category === cat).map((themeItem) => (
+                      <option key={themeItem.id} value={themeItem.id}>
+                        {themeItem.name} ({themeItem.badge})
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
@@ -907,13 +955,13 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 className="text-[11px] font-black text-amber-300 whitespace-nowrap shrink-0 inline-flex items-center gap-1"
               >
                 <Type className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">Fonts ({PRINT_FONT_STYLES.length}):</span>
+                <span className="hidden sm:inline">Fonts ({EXTENDED_PRINT_FONT_CATALOG.length}):</span>
                 <span className="sm:hidden">Font:</span>
               </label>
               <select
                 id="print-quick-font-select"
                 data-testid="print-quick-font-select"
-                value={formatOptions.fontStyle}
+                value={activeExtendedFont.id}
                 onChange={(e) =>
                   updateFormat(
                     'fontStyle',
@@ -922,10 +970,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 }
                 className="min-h-[38px] flex-1 min-w-0 bg-slate-900 border border-slate-700 text-white text-xs font-bold rounded-xl px-2 py-1 cursor-pointer focus:outline-none focus:border-amber-400 truncate"
               >
-                {PRINT_FONT_STYLES.map((fontItem) => (
-                  <option key={fontItem.id} value={fontItem.id}>
-                    {fontItem.label}
-                  </option>
+                {(['Sans-Serif', 'Legal Serif', 'Display & Mario', 'Tabular Mono'] as const).map((fCat) => (
+                  <optgroup key={fCat} label={fCat}>
+                    {EXTENDED_PRINT_FONT_CATALOG.filter((f) => f.category === fCat).map((fontItem) => (
+                      <option key={fontItem.id} value={fontItem.id}>
+                        {fontItem.name} ({fontItem.badge})
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
@@ -1110,26 +1162,31 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             )}
           </div>
 
-          {/* Interactive 24 Color Theme Swatches + 20 Font Preview Pills (Collapsible on Phones) */}
+          {/* Interactive 44 Color Theme Swatches + 36 True-Font Preview Pills */}
           {showVisualSwatches && (
             <div
               data-testid="print-visual-themes-fonts-strip"
               className="pt-2 border-t border-slate-800/90 grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-[26vh] overflow-y-auto pr-1"
             >
-              {/* 24 Color Swatches */}
+              {/* 44 Color Swatches */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] font-black uppercase text-slate-400 mr-0.5">
-                  Palette ({PRINT_COLOR_THEMES.length}):
+                  Palette ({EXTENDED_PRINT_COLOR_THEMES.length}):
                 </span>
-                {PRINT_COLOR_THEMES.map((themeItem) => {
-                  const isSelected = formatOptions.colorAccent === themeItem.id;
+                {EXTENDED_PRINT_COLOR_THEMES.map((themeItem) => {
+                  const isSelected = activeExtendedTheme.id === themeItem.id;
                   return (
                     <button
                       key={themeItem.id}
                       type="button"
                       data-testid={`print-theme-swatch-${themeItem.id}`}
-                      onClick={() => updateFormat('colorAccent', themeItem.id)}
-                      title={themeItem.label}
+                      onClick={() =>
+                        updateFormat(
+                          'colorAccent',
+                          themeItem.id as PrintGuideFormatOptions['colorAccent']
+                        )
+                      }
+                      title={`${themeItem.name} (${themeItem.category})`}
                       className={`min-h-[28px] px-2 py-1 rounded-lg border text-[10px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
@@ -1137,41 +1194,47 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       }`}
                     >
                       <span
-                        className={`w-3 h-3 rounded-full shrink-0 border border-white/40 ${themeItem.swatchSwatchClass}`}
+                        className="w-3 h-3 rounded-full shrink-0 border border-white/40"
+                        style={{ backgroundColor: themeItem.swatchHexes[0] }}
                       />
                       <span
-                        className={`w-2 h-2 rounded-full shrink-0 -ml-1 ${themeItem.accentDotClass}`}
+                        className="w-2 h-2 rounded-full shrink-0 -ml-1"
+                        style={{ backgroundColor: themeItem.swatchHexes[1] }}
                       />
-                      <span>{themeItem.shortLabel}</span>
+                      <span>{themeItem.name}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* 20 Font Style Pills */}
+              {/* 36 True-Font Style Pills */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] font-black uppercase text-slate-400 mr-0.5">
-                  Typeface ({PRINT_FONT_STYLES.length}):
+                  Typeface ({EXTENDED_PRINT_FONT_CATALOG.length}):
                 </span>
-                {PRINT_FONT_STYLES.map((fontItem) => {
-                  const isSelected = formatOptions.fontStyle === fontItem.id;
+                {EXTENDED_PRINT_FONT_CATALOG.map((fontItem) => {
+                  const isSelected = activeExtendedFont.id === fontItem.id;
                   return (
                     <button
                       key={fontItem.id}
                       type="button"
                       data-testid={`print-font-pill-${fontItem.id}`}
-                      onClick={() => updateFormat('fontStyle', fontItem.id)}
-                      title={fontItem.label}
+                      onClick={() =>
+                        updateFormat(
+                          'fontStyle',
+                          fontItem.id as PrintGuideFormatOptions['fontStyle']
+                        )
+                      }
+                      title={`${fontItem.name} — ${fontItem.sampleText}`}
+                      style={{ fontFamily: fontItem.cssFontFamily }}
                       className={`min-h-[28px] px-2 py-1 rounded-lg border text-[10px] inline-flex items-center gap-1 cursor-pointer transition-all ${
-                        fontItem.previewClass
-                      } ${
                         isSelected
                           ? 'bg-emerald-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
                           : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700 font-semibold'
                       }`}
                     >
                       <span>Aa</span>
-                      <span>{fontItem.shortLabel}</span>
+                      <span>{fontItem.name}</span>
                     </button>
                   );
                 })}
@@ -1661,10 +1724,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               {/* Typography Font Family */}
               <div className="bg-slate-950 p-2 rounded-xl border border-slate-700 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-amber-300 block">
-                  Typography Font ({PRINT_FONT_STYLES.length}):
+                  Typography Font ({EXTENDED_PRINT_FONT_CATALOG.length}):
                 </span>
                 <select
-                  value={formatOptions.fontStyle}
+                  value={activeExtendedFont.id}
                   onChange={(e) =>
                     updateFormat(
                       'fontStyle',
@@ -1673,9 +1736,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   }
                   className="w-full bg-slate-900 border border-slate-700 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-400 font-bold cursor-pointer"
                 >
-                  {PRINT_FONT_STYLES.map((fontItem) => (
+                  {EXTENDED_PRINT_FONT_CATALOG.map((fontItem) => (
                     <option key={fontItem.id} value={fontItem.id}>
-                      {fontItem.label}
+                      {fontItem.name} ({fontItem.badge})
                     </option>
                   ))}
                 </select>
@@ -1684,10 +1747,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               {/* Ink & Color Palette */}
               <div className="bg-slate-950 p-2 rounded-xl border border-slate-700 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-amber-300 block">
-                  Color Accent Palette ({PRINT_COLOR_THEMES.length}):
+                  Color Accent Palette ({EXTENDED_PRINT_COLOR_THEMES.length}):
                 </span>
                 <select
-                  value={formatOptions.colorAccent}
+                  value={activeExtendedTheme.id}
                   onChange={(e) =>
                     updateFormat(
                       'colorAccent',
@@ -1696,9 +1759,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   }
                   className="w-full bg-slate-900 border border-slate-700 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-400 font-bold cursor-pointer"
                 >
-                  {PRINT_COLOR_THEMES.map((themeItem) => (
+                  {EXTENDED_PRINT_COLOR_THEMES.map((themeItem) => (
                     <option key={themeItem.id} value={themeItem.id}>
-                      {themeItem.label}
+                      {themeItem.name} ({themeItem.badge})
                     </option>
                   ))}
                 </select>
@@ -1969,10 +2032,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   <div
                     id="one-page-summary-sheet"
                     data-testid="one-page-summary-sheet"
-                    data-theme={formatOptions.colorAccent}
-                    data-font={formatOptions.fontStyle}
-                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
-                    className={`${summaryPaperBgClass} ${bodyFontClass} p-6 rounded-2xl border-2 shadow-2xl w-full space-y-4 select-text`}
+                    data-theme={activeExtendedTheme.id}
+                    data-font={activeExtendedFont.id}
+                    style={activeSheetDynamicStyle}
+                    className={`${summaryPaperBgClass} ${bodyFontClass} p-6 rounded-2xl border-2 shadow-2xl w-full space-y-4 select-text overflow-hidden`}
                   >
                     {/* A4 Sheet Header */}
                     <div className={`border-b-2 ${headingBorderClass} pb-3 flex items-end justify-between gap-3`}>
@@ -2098,15 +2161,15 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   <div
                     id="official-labor-certificate"
                     data-testid="official-labor-certificate"
-                    data-theme={formatOptions.colorAccent}
-                    data-font={formatOptions.fontStyle}
+                    data-theme={activeExtendedTheme.id}
+                    data-font={activeExtendedFont.id}
                     data-orientation={certOrientation}
-                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
+                    style={activeSheetDynamicStyle}
                     className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 ${
                       certOrientation === 'portrait'
                         ? 'px-10 py-12 min-h-[1122px]'
                         : 'px-12 py-8 min-h-[794px]'
-                    } border-[10px] rounded-2xl shadow-2xl w-full relative select-text flex flex-col justify-between gap-3 outline outline-3`}
+                    } border-[10px] rounded-2xl shadow-2xl w-full relative select-text flex flex-col justify-between gap-3 outline outline-3 overflow-hidden`}
                   >
                     {/* Corner Ornaments */}
                     <div className={`absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
@@ -2238,10 +2301,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   <div
                     id="official-scorecard-sheet"
                     data-testid="official-scorecard-sheet"
-                    data-theme={formatOptions.colorAccent}
-                    data-font={formatOptions.fontStyle}
-                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
-                    className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 px-10 py-8 border-[8px] rounded-2xl shadow-2xl w-full min-h-[794px] select-text flex flex-col justify-between gap-5 outline outline-2`}
+                    data-theme={activeExtendedTheme.id}
+                    data-font={activeExtendedFont.id}
+                    style={activeSheetDynamicStyle}
+                    className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 px-10 py-8 border-[8px] rounded-2xl shadow-2xl w-full min-h-[794px] select-text flex flex-col justify-between gap-5 outline outline-2 overflow-hidden`}
                   >
                     {/* Top Banner */}
                     <div className={`${summaryBannerHeaderClass} rounded-2xl p-6 flex items-center justify-between gap-6 border-2 ${headingBorderClass}`}>
@@ -2338,9 +2401,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     id="printable-study-guide"
                     data-compact={isCompact ? 'true' : 'false'}
                     data-orientation={pageOrientation}
-                    data-theme={formatOptions.colorAccent}
-                    data-font={formatOptions.fontStyle}
-                    style={{ fontFamily: getPrintFontCssStack(formatOptions.fontStyle) }}
+                    data-theme={activeExtendedTheme.id}
+                    data-font={activeExtendedFont.id}
+                    style={activeSheetDynamicStyle}
                     className={`${summaryPaperBgClass} text-slate-950 ${marginPaddingClass} ${fontScaleClass} ${
                       isCompact ? 'space-y-4' : 'space-y-7'
                     } w-full ${bodyFontClass} relative overflow-hidden ${

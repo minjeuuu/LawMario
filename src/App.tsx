@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   ALL_LAW_TOPICS,
   WORLDS_METADATA,
@@ -8,6 +8,8 @@ import { Navbar } from './components/Navbar';
 import { WorldMap } from './components/WorldMap';
 import { TopicCard } from './components/TopicCard';
 import { StageProgressBar } from './components/StageProgressBar';
+import { LaborLawProgressBar } from './components/LaborLawProgressBar';
+import { ModuleSessionBookmarksBar } from './components/ModuleSessionBookmarksBar';
 import { BenefitsCalculator } from './components/Calculator';
 import { RegionalWageMatrix } from './components/RegionalWageMatrix';
 import { FlashcardsView } from './components/FlashcardsView';
@@ -102,6 +104,7 @@ import {
   CardFrameId,
   AppStudyFontId,
 } from './types/laborLaw';
+import { resolveCompanionInteraction } from './utils/round12Features';
 import {
   ArrowRight,
   ShoppingBag,
@@ -206,6 +209,13 @@ import {
   getLocalDateKey,
   dispatchDailyMissionEvent,
 } from './utils/round11Features';
+import {
+  loadDailyGoalMinutes,
+  saveDailyGoalMinutes,
+  normalizeDailyGoalMinutes,
+  resolveTopicDifficultyLevel,
+  ModuleSessionBookmarkSlot,
+} from './utils/round13Features';
 
 const TOAD_PRO_TIPS = [
   {
@@ -960,6 +970,39 @@ export default function App() {
     mode: 'expand' | 'collapse';
     seq: number;
   } | null>(null);
+  const [restoredOpenSignal, setRestoredOpenSignal] = useState<{
+    openIds: ReadonlySet<string>;
+    seq: number;
+  } | null>(null);
+  const [openTopicIdsMap, setOpenTopicIdsMap] = useState<Record<string, boolean>>({});
+  const handleTopicOpenStateChange = useCallback((topicId: string, isOpen: boolean) => {
+    setOpenTopicIdsMap((prev) => {
+      if (prev[topicId] === isOpen) return prev;
+      return { ...prev, [topicId]: isOpen };
+    });
+  }, []);
+  const [dailyGoalMinutes, setDailyGoalMinutes] = useState<number>(() =>
+    typeof window !== 'undefined' ? loadDailyGoalMinutes(window.localStorage) : 30
+  );
+  const handleChangeDailyGoalMinutes = useCallback((minutes: number) => {
+    const normalized = saveDailyGoalMinutes(
+      minutes,
+      typeof window !== 'undefined' ? window.localStorage : null
+    );
+    setDailyGoalMinutes(normalized);
+  }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const syncGoal = () => {
+      setDailyGoalMinutes(loadDailyGoalMinutes(window.localStorage));
+    };
+    window.addEventListener('mario-daily-goal-updated', syncGoal);
+    window.addEventListener('storage', syncGoal);
+    return () => {
+      window.removeEventListener('mario-daily-goal-updated', syncGoal);
+      window.removeEventListener('storage', syncGoal);
+    };
+  }, []);
   const [focusTopicIdx, setFocusTopicIdx] = useState<number>(0);
   const [slideStepIdx, setSlideStepIdx] = useState<number>(0);
   const [slideQuizChoice, setSlideQuizChoice] = useState<number | null>(null);
@@ -1166,6 +1209,13 @@ export default function App() {
       // Equipped Mastery / Coin collection SFX + Daily Mission event when topic is marked complete
       marioAudio.playCompletionOrMilestoneCoin();
       dispatchDailyMissionEvent('master_topic', 1);
+      // Passive Study Companion Bonus Coins when a Mario Pet is active
+      if (equippedCompanion && equippedCompanion !== 'comp_none') {
+        const petMeta = resolveCompanionInteraction(equippedCompanion, next.length);
+        if (petMeta.bonusCoinsPerTopic > 0) {
+          setCoins((c) => c + petMeta.bonusCoinsPerTopic);
+        }
+      }
 
       const levelUpCheck = evaluateWorldLevelUp({
         toggledTopicId: topicId,
@@ -1393,6 +1443,57 @@ export default function App() {
     setSlideQuizChoice(null);
   }, [activeWorld, difficultyFilter, moduleStatusFilter, searchQuery, topicSortBy]);
 
+  const openTopicIds = useMemo(() => {
+    const displayedSet = new Set(displayedTopics.map((t) => t.id));
+    return Object.entries(openTopicIdsMap)
+      .filter(([id, isOpen]) => isOpen && displayedSet.has(id))
+      .map(([id]) => id);
+  }, [openTopicIdsMap, displayedTopics]);
+
+  const triggerTopicOpenCueById = useCallback((topicId: string) => {
+    const targetTopic = ALL_LAW_TOPICS.find((t) => t.id === topicId);
+    const level = resolveTopicDifficultyLevel(
+      targetTopic?.difficulty,
+      topicId,
+      TOPIC_DIFFICULTY_MAP
+    );
+    marioAudio.playTopicDifficultyCue(level);
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent('mario-topic-opened-cue', {
+            detail: { topicId, skipAudio: true },
+          })
+        );
+      }, 160);
+    }
+  }, []);
+
+  const handleRestoreModuleSessionSlot = useCallback((slot: ModuleSessionBookmarkSlot) => {
+    setExpandCollapseSignal(null);
+    setActiveWorld(slot.activeWorld);
+    setModuleViewMode(slot.moduleViewMode);
+    setModuleStatusFilter('all');
+    setDifficultyFilter('all');
+    setSearchQuery('');
+    const openSet = new Set(slot.openTopicIds);
+    setRestoredOpenSignal({ openIds: openSet, seq: Date.now() });
+    setOpenTopicIdsMap(() => {
+      const next: Record<string, boolean> = {};
+      ALL_LAW_TOPICS.forEach((t) => {
+        next[t.id] = openSet.has(t.id);
+      });
+      return next;
+    });
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          window.scrollTo({ top: slot.scrollY, behavior: 'auto' });
+        }, 90);
+      });
+    }
+  }, []);
+
   // Quick Jump searchable dropdown items
   const quickJumpFilteredTopics = useMemo(() => {
     if (!quickJumpSearch.trim()) return ALL_LAW_TOPICS;
@@ -1459,6 +1560,7 @@ export default function App() {
 
   const handleWorldSelect = (worldId: string) => {
     triggerWarpTransition(() => {
+      setRestoredOpenSignal(null);
       setActiveWorld(worldId);
       if (worldId !== 'all') {
         marioAudio.syncModuleAudio(worldId, true);
@@ -1487,6 +1589,7 @@ export default function App() {
       });
     } else {
       triggerWarpTransition(() => {
+        setRestoredOpenSignal(null);
         setActiveWorld(worldId);
         setActiveTab('modules');
         marioAudio.syncModuleAudio(worldId, true);
@@ -1724,7 +1827,7 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const todaySecs = getTodayStudiedSeconds(profileStats);
-    const goalMins = readStoredDailyStudyGoal();
+    const goalMins = normalizeDailyGoalMinutes(dailyGoalMinutes);
     const res = evaluateDailyGoalMilestone({
       dateKey: getLocalDateKey(),
       studiedSeconds: todaySecs,
@@ -1735,7 +1838,7 @@ export default function App() {
     if (res.newlyReached) {
       handleDailyStudyMilestone();
     }
-  }, [profileStats]);
+  }, [profileStats, dailyGoalMinutes]);
 
   // Smooth Mario Stage-Banner when entering Modules or switching activeWorld + Daily Mission tab triggers
   useEffect(() => {
@@ -1981,7 +2084,8 @@ export default function App() {
           appStudyFont={appStudyFont}
           onSelectAppStudyFont={handleSelectAppStudyFont}
           dailyPomodoroLogs={profileStats.dailyPomodoroLogs}
-          dailyGoalMinutes={readStoredDailyStudyGoal()}
+          dailyGoalMinutes={dailyGoalMinutes}
+          onChangeDailyGoalMinutes={handleChangeDailyGoalMinutes}
           todayStudiedSeconds={getTodayStudiedSeconds(profileStats)}
           invincibleRemainingLabel={invincibleRemainingLabel}
           doubleXpRemainingLabel={doubleXpRemainingLabel}
@@ -2076,7 +2180,7 @@ export default function App() {
                     const topicId = e.target.value;
                     if (!topicId) return;
                     handleRecordAccessedTopic(topicId);
-                    marioAudio.playPipe();
+                    triggerTopicOpenCueById(topicId);
                     const idxInDisplayed = displayedTopics.findIndex((t) => t.id === topicId);
                     if (
                       (moduleViewMode === 'focus' || moduleViewMode === 'slides') &&
@@ -2154,7 +2258,7 @@ export default function App() {
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm font-bold text-emerald-50">
-                  Mamma Mia! Course Clear on today&apos;s Bar study target ({readStoredDailyStudyGoal()} mins)! Your 1-Up Mushroom &amp; +{DAILY_GOAL_BONUS_COINS} Gold Coin reward have been credited!
+                  Mamma Mia! Course Clear on today&apos;s Bar study target ({dailyGoalMinutes} mins)! Your 1-Up Mushroom &amp; +{DAILY_GOAL_BONUS_COINS} Gold Coin reward have been credited!
                 </p>
               </div>
             </div>
@@ -2283,10 +2387,10 @@ export default function App() {
                     type="button"
                     data-testid="quick-resume-btn"
                     onClick={() => {
-                      marioAudio.playPipe();
                       handleRecordAccessedTopic(lastStudiedTopic.id);
                       setActiveWorld(lastStudiedTopic.worldId);
                       setActiveTab('modules');
+                      triggerTopicOpenCueById(lastStudiedTopic.id);
                       setTimeout(() => {
                         const el = document.getElementById(`topic-card-${lastStudiedTopic.id}`);
                         if (el) {
@@ -2308,6 +2412,8 @@ export default function App() {
             {/* Daily Study Goal Progress Ring Widget */}
             <DailyStudyGoalRing
               studiedSeconds={getTodayStudiedSeconds(profileStats)}
+              targetMinutes={dailyGoalMinutes}
+              onChangeTargetMinutes={handleChangeDailyGoalMinutes}
               onEarnCoins={handleEarnCoins}
               superStarActive={isAny2xCoinActive}
             />
@@ -2319,6 +2425,7 @@ export default function App() {
                 setActiveWorld(worldId);
                 setActiveTab('modules');
                 marioAudio.syncModuleAudio(worldId, true);
+                triggerTopicOpenCueById(topicId);
                 setTimeout(() => {
                   const el = document.getElementById(`topic-card-${topicId}`);
                   el?.scrollIntoView({ behavior: 'smooth' });
@@ -2350,6 +2457,7 @@ export default function App() {
                 setActiveWorld(worldId);
                 setActiveTab('modules');
                 marioAudio.syncModuleAudio(worldId, true);
+                triggerTopicOpenCueById(topicId);
                 setTimeout(() => {
                   const el = document.getElementById(`topic-card-${topicId}`);
                   if (el) {
@@ -2361,6 +2469,19 @@ export default function App() {
               }}
               onRemovePinnedRule={handleRemovePinnedRule}
               unlockAllModulesActive={isUnlockAllActive}
+              favoriteTopicIds={bookmarkedTopicIds}
+              onToggleFavoriteTopic={handleToggleBookmarkTopic}
+              unlockedShopItemIds={(() => {
+                if (typeof window === 'undefined') return [];
+                try {
+                  const baseRaw = window.localStorage.getItem('mario_unlocked_items');
+                  const baseArr: string[] = baseRaw ? JSON.parse(baseRaw) : [];
+                  const r10 = loadRound10VaultState(window.localStorage);
+                  return Array.from(new Set([...baseArr, ...(r10.unlockedIds || [])]));
+                } catch {
+                  return [];
+                }
+              })()}
             />
 
 
@@ -2491,6 +2612,25 @@ export default function App() {
                 </span>
               </div>
             )}
+
+            {/* Overall Labor Law Visual Progress Bar Component at the Very Top of Modules View */}
+            <LaborLawProgressBar
+              allTopics={ALL_LAW_TOPICS}
+              completedTopicIds={completedTopicIds}
+              activeWorld={activeWorld}
+              onSelectWorld={(worldId) => {
+                setActiveWorld(worldId);
+                marioAudio.syncModuleAudio(worldId, true);
+              }}
+              equippedAvatar={equippedAvatar}
+              favoriteCount={bookmarkedTopicIds.length}
+              showFavoritesOnly={moduleStatusFilter === 'bookmarked'}
+              onToggleFavoritesFilter={() => {
+                setModuleStatusFilter((prev) => (prev === 'bookmarked' ? 'all' : 'bookmarked'));
+                marioAudio.playCoin();
+              }}
+              onEarnCoins={handleEarnCoins}
+            />
 
             {/* Visual Progress Bar with Equipped Avatar */}
             <StageProgressBar
@@ -2758,7 +2898,7 @@ export default function App() {
                         const topicId = e.target.value;
                         if (!topicId) return;
                         handleRecordAccessedTopic(topicId);
-                        marioAudio.playPipe();
+                        triggerTopicOpenCueById(topicId);
                         const targetTopic = ALL_LAW_TOPICS.find((t) => t.id === topicId);
                         if (targetTopic) {
                           if (activeWorld !== 'all' && activeWorld !== targetTopic.worldId) {
@@ -2802,6 +2942,16 @@ export default function App() {
                     </select>
                   </div>
                 </div>
+              </div>
+
+              {/* Row 3.5: Named Workspace Session Bookmarks (Scroll Position, Active World & Open Cards) */}
+              <div className="pt-3 border-t border-slate-700/80">
+                <ModuleSessionBookmarksBar
+                  activeWorld={activeWorld}
+                  openTopicIds={openTopicIds}
+                  moduleViewMode={moduleViewMode}
+                  onRestoreSlot={handleRestoreModuleSessionSlot}
+                />
               </div>
 
               {/* Row 4: View Mode, Complexity & Completion Status Controls */}
@@ -2849,6 +2999,7 @@ export default function App() {
                         type="button"
                         data-testid={`module-view-mode-${mode.id}`}
                         onClick={() => {
+                          setRestoredOpenSignal(null);
                           setModuleViewMode(mode.id);
                           if (mode.id === 'outline') {
                             setExpandCollapseSignal((prev) => ({
@@ -2878,6 +3029,7 @@ export default function App() {
                       type="button"
                       data-testid="modules-expand-all-btn"
                       onClick={() => {
+                        setRestoredOpenSignal(null);
                         setExpandCollapseSignal((prev) => ({
                           mode: 'expand',
                           seq: (prev?.seq || 0) + 1,
@@ -2893,6 +3045,7 @@ export default function App() {
                       type="button"
                       data-testid="modules-collapse-all-btn"
                       onClick={() => {
+                        setRestoredOpenSignal(null);
                         setExpandCollapseSignal((prev) => ({
                           mode: 'collapse',
                           seq: (prev?.seq || 0) + 1,
@@ -3451,6 +3604,8 @@ export default function App() {
                                 onTogglePinRuleItem={handleTogglePinRuleItem}
                                 onOpenTopicFlashcardMode={(t) => setActiveTopicFlashcardModal(t)}
                                 onOpenTopicQuickQuiz={(t) => setActiveTopicQuickQuizModal(t)}
+                                restoredOpenSignal={restoredOpenSignal}
+                                onOpenStateChange={handleTopicOpenStateChange}
                               />
                             )}
                           </div>
@@ -3492,6 +3647,8 @@ export default function App() {
                           onTogglePinRuleItem={handleTogglePinRuleItem}
                           onOpenTopicFlashcardMode={setActiveTopicFlashcardModal}
                           onOpenTopicQuickQuiz={setActiveTopicQuickQuizModal}
+                          restoredOpenSignal={restoredOpenSignal}
+                          onOpenStateChange={handleTopicOpenStateChange}
                         />
                       ))
                     )}
@@ -3591,6 +3748,7 @@ export default function App() {
                 : overdueReviewTopics.map((item) => item.topicId)
             }
             overdueLaunchId={overdueFlashcardLaunchId}
+            equippedCardFrame={equippedCardFrame}
           />
         )}
 
@@ -3645,6 +3803,7 @@ export default function App() {
               return true;
             }}
             onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
+            equippedCardFrame={equippedCardFrame}
           />
         )}
 
@@ -3657,6 +3816,7 @@ export default function App() {
                 setActiveWorld(worldId);
                 setActiveTab('modules');
                 marioAudio.syncModuleAudio(worldId, true);
+                triggerTopicOpenCueById(topicId);
                 setTimeout(() => {
                   const el = document.getElementById(`topic-card-${topicId}`);
                   if (el) {
@@ -4063,62 +4223,47 @@ export default function App() {
       {/* Floating Auto-Scroll Speed Controller */}
       <AutoScrollController activeTab={activeTab} />
 
-      {/* Summoned Study Companion Desk Widget (coordinated so it never overlaps Toad's Pro Tip on Map) */}
-      {equippedCompanion !== 'comp_none' && (
-        <button
-          type="button"
-          onClick={handleStartQuickStudy}
-          data-testid="study-companion-widget"
-          title="Study Companion Active — Click to launch a 5-Min Quick Study Sprint!"
-          className={`${
-            activeTab === 'map'
-              ? showToadTip
-                ? 'hidden xl:flex bottom-6 left-[436px]'
-                : 'hidden sm:flex bottom-40 lg:bottom-20 left-6'
-              : 'hidden sm:flex bottom-20 lg:bottom-5 left-4'
-          } fixed z-30 bg-[#0f172a] hover:bg-slate-900 text-white border-2 border-amber-400 rounded-2xl px-3 py-2 shadow-[4px_4px_0_#000] items-center gap-2.5 cursor-pointer transition-transform hover:-translate-y-0.5 print:hidden`}
-        >
-          <div className="w-8 h-8 rounded-xl bg-amber-400 border border-black flex items-center justify-center shrink-0">
-            <MarioCharacterAvatar
-              character={
-                equippedCompanion === 'comp_baby_yoshi'
-                  ? 'goldenyoshi'
-                  : equippedCompanion === 'comp_luma'
-                  ? 'cosmicrosalina'
-                  : equippedCompanion === 'comp_counsel_toad' || equippedCompanion === 'comp_toadsworth'
-                  ? 'lawyertoad'
-                  : equippedCompanion === 'comp_captain_toad'
-                  ? 'toad'
-                  : equippedCompanion === 'comp_pauline'
-                  ? 'pauline'
-                  : equippedCompanion === 'comp_polterpup'
-                  ? 'boo'
-                  : equippedCompanion === 'comp_lakitu' || equippedCompanion === 'comp_dry_bones'
-                  ? 'koopatroopa'
-                  : equippedCompanion === 'comp_shy_guy'
-                  ? 'shyguy'
-                  : equippedCompanion === 'comp_birdo'
-                  ? 'birdo'
-                  : equippedCompanion === 'comp_dk'
-                  ? 'donkeykong'
-                  : equippedCompanion === 'comp_diddy'
-                  ? 'diddykong'
-                  : 'bowserjr'
-              }
-              className="w-6 h-6"
-            />
+      {/* Summoned Study Companion Desk Widget — Interactive Mario Pet Legal Tips + 5-Min Quick Study */}
+      {equippedCompanion !== 'comp_none' && (() => {
+        const petInfo = resolveCompanionInteraction(
+          equippedCompanion,
+          completedTopicIds.length + coins
+        );
+        return (
+          <div
+            data-testid="study-companion-widget"
+            className={`${
+              activeTab === 'map'
+                ? showToadTip
+                  ? 'hidden xl:flex bottom-6 left-[436px]'
+                  : 'hidden sm:flex bottom-40 lg:bottom-20 left-6'
+                : 'hidden sm:flex bottom-20 lg:bottom-5 left-4'
+            } fixed z-30 bg-[#0f172a]/95 text-white border-2 border-amber-400 rounded-2xl p-2.5 shadow-[4px_4px_0_#000] items-center gap-2.5 max-w-[330px] print:hidden`}
+          >
+            <div className="w-9 h-9 rounded-xl bg-amber-400 border border-black flex items-center justify-center shrink-0">
+              <MarioCharacterAvatar character={petInfo.avatarKey as MarioAvatar} className="w-6 h-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[8.5px] font-black uppercase text-amber-300 font-mario truncate">
+                  {petInfo.name} · +{petInfo.bonusCoinsPerTopic}c/TOPIC
+                </span>
+              </div>
+              <p className="text-[10.5px] font-semibold text-slate-200 line-clamp-2 leading-snug mt-0.5">
+                {petInfo.speech}
+              </p>
+              <button
+                type="button"
+                onClick={handleStartQuickStudy}
+                className="mt-1 px-2 py-0.5 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[10px] border border-black inline-flex items-center gap-1 cursor-pointer"
+              >
+                <Zap className="w-3 h-3 shrink-0" />
+                <span>5-Min Quick Study</span>
+              </button>
+            </div>
           </div>
-          <div className="text-left">
-            <span className="text-[9px] font-black uppercase text-amber-300 font-mario block leading-none">
-              STUDY COMPANION
-            </span>
-            <span className="text-xs font-bold text-slate-200 flex items-center gap-1 mt-0.5">
-              <Zap className="w-3 h-3 text-emerald-400" />
-              <span>5-Min Quick Study</span>
-            </span>
-          </div>
-        </button>
-      )}
+        );
+      })()}
 
       {/* Mario Ground Footer with Discreet Official 'Created by Matthew' Credit & Group Members */}
       <footer className="mt-16 bg-[#1e293b] border-t-4 border-black text-amber-100 py-8 px-4 pb-24 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
