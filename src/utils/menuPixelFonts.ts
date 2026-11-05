@@ -5,6 +5,9 @@
  * Press Start 2P) tailored for UI navigation and menu buttons, particularly
  * longer titles like '17 Regions', 'Calculator', and 'Toad\'s Shop' that
  * benefit from compact, high-legibility bitmap typography rather than generic sans.
+ *
+ * Natural mixed-casing (Title Case) is preserved across all styles without forcing
+ * all-uppercase characters.
  */
 
 export type MenuPixelFontId =
@@ -34,7 +37,7 @@ export const MENU_PIXEL_FONTS: readonly MenuPixelFontCatalogItem[] = [
     shortLabel: 'Smart Pixel',
     badge: 'RECOMMENDED',
     subtitle: 'Silkscreen for Regions, Calc & Shop; Press 2P for short tabs',
-    sampleText: '17 REGIONS · CALC',
+    sampleText: '17 Regions · Calc',
     cssClass: 'font-pixel-silkscreen',
   },
   {
@@ -43,7 +46,7 @@ export const MENU_PIXEL_FONTS: readonly MenuPixelFontCatalogItem[] = [
     shortLabel: 'Silkscreen',
     badge: '8-BIT UI',
     subtitle: 'Ultra-crisp 8-bit UI bitmap font by Gunnar Vilhjalmsson',
-    sampleText: 'REGIONS · CALCULATOR',
+    sampleText: 'Regions · Calculator',
     cssClass: 'font-pixel-silkscreen',
   },
   {
@@ -61,7 +64,7 @@ export const MENU_PIXEL_FONTS: readonly MenuPixelFontCatalogItem[] = [
     shortLabel: 'VT323 CRT',
     badge: 'CRT TERMINAL',
     subtitle: 'Classic green-screen and arcade cabinet terminal pixel font',
-    sampleText: 'REGIONS · CALCULATOR',
+    sampleText: 'Regions · Calculator',
     cssClass: 'font-pixel-vt323',
   },
   {
@@ -70,7 +73,7 @@ export const MENU_PIXEL_FONTS: readonly MenuPixelFontCatalogItem[] = [
     shortLabel: 'Press Start 2P',
     badge: 'NES CLASSIC',
     subtitle: 'Authentic 8-bit Mario arcade font with auto-scaling',
-    sampleText: 'WAGES · CALC',
+    sampleText: 'Wages · Calc',
     cssClass: 'font-mario',
   },
   {
@@ -110,8 +113,7 @@ export function saveMenuPixelFont(font: MenuPixelFontId, storage?: Storage): voi
 
 /**
  * Returns the optimal typography styling for desktop navigation tabs.
- * In adaptive mode (default), longer tabs (wages_matrix, calculator, shop, citations)
- * use Silkscreen pixel font for crisp readability without clipping.
+ * Preserves natural title-casing without uppercase forcing.
  */
 export function getMenuButtonTypography(
   itemId: string,
@@ -126,7 +128,7 @@ export function getMenuButtonTypography(
   if (fontSetting === 'silkscreen') {
     return {
       className:
-        'font-pixel-silkscreen font-bold text-[8px] min-[1180px]:text-[9px] xl:text-[10px] tracking-tight uppercase',
+        'font-pixel-silkscreen font-bold text-[8.5px] min-[1180px]:text-[9.5px] xl:text-[10px] tracking-tight',
       fontTag: 'silkscreen',
       isPixel: true,
     };
@@ -144,7 +146,7 @@ export function getMenuButtonTypography(
   if (fontSetting === 'vt323') {
     return {
       className:
-        'font-pixel-vt323 font-normal text-[11px] min-[1180px]:text-xs xl:text-sm tracking-wide uppercase',
+        'font-pixel-vt323 font-normal text-[11px] min-[1180px]:text-xs xl:text-sm tracking-wide',
       fontTag: 'vt323',
       isPixel: true,
     };
@@ -175,7 +177,7 @@ export function getMenuButtonTypography(
   if (isWideTab) {
     return {
       className:
-        'font-pixel-silkscreen font-bold text-[8px] min-[1180px]:text-[8.5px] xl:text-[9.5px] tracking-tight uppercase',
+        'font-pixel-silkscreen font-bold text-[8.5px] min-[1180px]:text-[9px] xl:text-[9.5px] tracking-tight',
       fontTag: 'silkscreen-adaptive',
       isPixel: true,
     };
@@ -191,6 +193,7 @@ export function getMenuButtonTypography(
 
 /**
  * Returns typography styling for mobile full menu drawer items.
+ * Preserves natural title-casing without uppercase forcing.
  */
 export function getMobileDrawerButtonTypography(
   itemId: string,
@@ -204,7 +207,7 @@ export function getMobileDrawerButtonTypography(
 
   if (fontSetting === 'silkscreen') {
     return {
-      className: 'font-pixel-silkscreen font-bold text-[10px] tracking-tight uppercase',
+      className: 'font-pixel-silkscreen font-bold text-[10.5px] tracking-tight',
       fontTag: 'silkscreen',
       isPixel: true,
     };
@@ -220,7 +223,7 @@ export function getMobileDrawerButtonTypography(
 
   if (fontSetting === 'vt323') {
     return {
-      className: 'font-pixel-vt323 font-normal text-sm tracking-wide uppercase',
+      className: 'font-pixel-vt323 font-normal text-sm tracking-wide',
       fontTag: 'vt323',
       isPixel: true,
     };
@@ -247,7 +250,7 @@ export function getMobileDrawerButtonTypography(
   // Default 'adaptive':
   if (isWideTab) {
     return {
-      className: 'font-pixel-silkscreen font-bold text-[10px] tracking-tight uppercase',
+      className: 'font-pixel-silkscreen font-bold text-[10.5px] tracking-tight',
       fontTag: 'silkscreen-adaptive',
       isPixel: true,
     };
@@ -270,7 +273,7 @@ export function getMobileUtilityButtonTypography(
   if (fontSetting === 'silkscreen' || fontSetting === 'adaptive') {
     return {
       className:
-        'font-pixel-silkscreen font-bold text-[8.5px] min-[360px]:text-[9.5px] min-[420px]:text-[10.5px] sm:text-xs tracking-tight uppercase',
+        'font-pixel-silkscreen font-bold text-[8.5px] min-[360px]:text-[9.5px] min-[420px]:text-[10.5px] sm:text-xs tracking-tight',
       fontTag: 'silkscreen',
       isPixel: true,
     };
@@ -288,7 +291,7 @@ export function getMobileUtilityButtonTypography(
   if (fontSetting === 'vt323') {
     return {
       className:
-        'font-pixel-vt323 font-normal text-[11px] min-[360px]:text-xs min-[420px]:text-sm sm:text-base tracking-wide uppercase',
+        'font-pixel-vt323 font-normal text-[11px] min-[360px]:text-xs min-[420px]:text-sm sm:text-base tracking-wide',
       fontTag: 'vt323',
       isPixel: true,
     };

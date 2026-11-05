@@ -12,6 +12,10 @@ import {
   Volume2,
   Square,
   BookmarkPlus,
+  Download,
+  SlidersHorizontal,
+  Gavel,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   STATUTE_LOOKUP_CATALOG,
@@ -56,6 +60,36 @@ const QUICK_STATUTE_NUMBERS: readonly string[] = [
   'RA 11313',
 ];
 
+type BookScopeFilter = 'all' | 'book3' | 'wages_contracting' | 'post_employment' | 'special_laws';
+
+const BOOK_SCOPE_FILTERS: Array<{ id: BookScopeFilter; label: string }> = [
+  { id: 'all', label: 'All Provisions' },
+  { id: 'book3', label: 'Book III: Hours & Conditions' },
+  { id: 'wages_contracting', label: 'Wages & D.O. 174' },
+  { id: 'post_employment', label: 'Dismissal & Retirement' },
+  { id: 'special_laws', label: 'Special Labor Laws' },
+];
+
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+  const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  const parts = text.split(regex);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    regex.test(part) ? (
+      <mark
+        key={i}
+        className="bg-amber-400/40 text-amber-200 px-1 py-0.5 rounded font-black"
+      >
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
+
 export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   isOpen,
   onClose,
@@ -63,9 +97,12 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   onJumpToTopic,
 }) => {
   const [query, setQuery] = useState(initialQuery);
+  const [selectedBook, setSelectedBook] = useState<BookScopeFilter>('all');
   const [selectedId, setSelectedId] = useState<string>(STATUTE_LOOKUP_CATALOG[5]?.id || 'art-87');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [speechRate, setSpeechRate] = useState<number>(1.0);
+  const [fontSizeScale, setFontSizeScale] = useState<'sm' | 'base' | 'lg'>('base');
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -90,10 +127,36 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  const results = useMemo(
+  const rawResults = useMemo(
     () => lookupStatutesByQuery(query, ALL_LAW_TOPICS),
     [query]
   );
+
+  const results = useMemo(() => {
+    if (selectedBook === 'all') return rawResults;
+
+    return rawResults.filter((entry) => {
+      const artNum = entry.articleNumber.toUpperCase();
+      const code = entry.codeLabel.toUpperCase();
+
+      if (selectedBook === 'book3') {
+        const num = parseInt(artNum, 10);
+        return (!isNaN(num) && num >= 82 && num <= 100) || artNum.includes('94') || artNum.includes('95');
+      }
+      if (selectedBook === 'wages_contracting') {
+        const num = parseInt(artNum, 10);
+        return (!isNaN(num) && num >= 97 && num <= 129) || code.includes('106') || code.includes('WAGE');
+      }
+      if (selectedBook === 'post_employment') {
+        const num = parseInt(artNum, 10);
+        return (!isNaN(num) && num >= 297 && num <= 302) || code.includes('297') || code.includes('298');
+      }
+      if (selectedBook === 'special_laws') {
+        return code.includes('RA') || code.includes('PD') || code.includes('D.O.');
+      }
+      return true;
+    });
+  }, [rawResults, selectedBook]);
 
   const activeEntry: StatuteLookupEntry | null = useMemo(() => {
     if (results.length === 0) return null;
@@ -102,17 +165,29 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
 
   if (!isOpen || typeof document === 'undefined') return null;
 
+  const handleCycleSpeechRate = () => {
+    const nextRate = speechRate === 0.8 ? 1.0 : speechRate === 1.0 ? 1.25 : 0.8;
+    setSpeechRate(nextRate);
+    marioAudio.playClick();
+  };
+
+  const handleCycleFontSize = () => {
+    const next = fontSizeScale === 'sm' ? 'base' : fontSizeScale === 'base' ? 'lg' : 'sm';
+    setFontSizeScale(next);
+    marioAudio.playClick();
+  };
+
   const handleCopyEntry = (entry: StatuteLookupEntry) => {
     const payload = [
       `${entry.codeLabel} — ${entry.title}`,
       '',
-      'Statutory Provision:',
+      'Statutory Provision Text:',
       entry.statutoryText,
       '',
-      'Key Supreme Court Doctrines:',
+      'Key Supreme Court Controlling Precedents:',
       ...entry.supremeCourtDoctrines.map((d) => `• ${d}`),
       '',
-      'Exam Interpretation Tips:',
+      'Bar Exam Traps & Interpretation Guidance:',
       ...entry.interpretationTips.map((t) => `• ${t}`),
     ].join('\n');
     navigator.clipboard?.writeText(payload);
@@ -121,11 +196,45 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     setTimeout(() => setCopiedId(null), 1800);
   };
 
+  const handleDownloadSingleStatute = (entry: StatuteLookupEntry) => {
+    const lines = [
+      `# ${entry.codeLabel} — ${entry.title}`,
+      '# Super Mario Philippine Labor Law Codal Dossier',
+      `# Export Timestamp: ${new Date().toLocaleString()}`,
+      '',
+      '======================================================================',
+      '## STATUTORY PROVISION TEXT',
+      '======================================================================',
+      entry.statutoryText,
+      '',
+      '======================================================================',
+      '## KEY SUPREME COURT CONTROLLING PRECEDENTS',
+      '======================================================================',
+      ...entry.supremeCourtDoctrines.map((d, i) => `${i + 1}. ${d}`),
+      '',
+      '======================================================================',
+      '## BAR EXAM TRAPS & INTERPRETATION GUIDANCE',
+      '======================================================================',
+      ...entry.interpretationTips.map((t, i) => `${i + 1}. ${t}`),
+      '',
+    ];
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `statute_${entry.articleNumber.toLowerCase().replace(/[^a-z0-9]/g, '_')}_dossier.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    marioAudio.playCoin();
+  };
+
   const handleNarrateEntry = (entry: StatuteLookupEntry) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     if (speakingId === entry.id) {
       window.speechSynthesis.cancel();
       setSpeakingId(null);
+      marioAudio.playClick();
       return;
     }
     window.speechSynthesis.cancel();
@@ -134,11 +243,12 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
         entry.supremeCourtDoctrines[0] || ''
       }`
     );
-    utterance.rate = 0.98;
+    utterance.rate = speechRate;
     utterance.pitch = 1.0;
     utterance.onend = () => setSpeakingId(null);
     utterance.onerror = () => setSpeakingId(null);
     setSpeakingId(entry.id);
+    marioAudio.playCoin();
     window.speechSynthesis.speak(utterance);
   };
 
@@ -170,6 +280,13 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     setTimeout(() => setSavedNoteId(null), 2200);
   };
 
+  const fontClass =
+    fontSizeScale === 'sm'
+      ? 'text-xs leading-relaxed'
+      : fontSizeScale === 'lg'
+      ? 'text-base sm:text-lg leading-relaxed'
+      : 'text-xs sm:text-sm leading-relaxed';
+
   return createPortal(
     <div
       role="dialog"
@@ -179,37 +296,65 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[85] bg-black/80 flex items-center justify-center p-2.5 sm:p-5 print:hidden"
+      className="fixed inset-0 z-[85] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 print:hidden overflow-y-auto"
     >
-      <div className="w-full max-w-5xl max-h-[92dvh] bg-slate-900 text-white rounded-3xl border-4 border-amber-400 shadow-[8px_8px_0_#000] flex flex-col overflow-hidden">
+      <div className="w-full max-w-5xl max-h-[92dvh] bg-gradient-to-b from-[#171923] via-[#0f172a] to-[#090d16] text-white rounded-3xl border-4 border-amber-400 shadow-[0_10px_0_#000] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
         <div className="bg-slate-950 px-4 sm:px-6 py-4 border-b-2 border-slate-800 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
               <Scale className="w-6 h-6" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-400 font-mario block truncate">
-                INSTANT CODAL &amp; JURISPRUDENCE FINDER
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-black uppercase text-amber-400 font-mono tracking-wider block truncate">
+                  INSTANT CODAL &amp; JURISPRUDENCE FINDER
+                </span>
+                <span className="text-slate-400 text-xs font-bold">
+                  · {results.length} Provisions
+                </span>
+              </div>
               <h2 className="text-lg sm:text-2xl font-black font-display text-white truncate">
-                Philippine Labor Statute Lookup
+                Philippine Labor Statute &amp; Codal Lookup
               </h2>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close Statute Lookup"
-            className="min-w-[42px] min-h-[42px] rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white border-2 border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Font scale control */}
+            <button
+              type="button"
+              onClick={handleCycleFontSize}
+              title="Toggle reading font size (Small, Normal, Large)"
+              className="min-h-[38px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Font: {fontSizeScale.toUpperCase()}</span>
+            </button>
+
+            {/* Speech rate control */}
+            <button
+              type="button"
+              onClick={handleCycleSpeechRate}
+              title="Toggle Text-to-Speech narration rate"
+              className="min-h-[38px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1 cursor-pointer tabular-nums"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>{speechRate}x</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close Statute Lookup"
+              className="min-w-[42px] min-h-[42px] rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white border-2 border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Search Input & Quick Article Buttons */}
-        <div className="bg-slate-950/85 px-4 sm:px-6 py-3.5 border-b border-slate-800 space-y-2.5 shrink-0">
+        {/* Search Input, Book Scope & Quick Article Buttons */}
+        <div className="bg-slate-950/90 px-4 sm:px-6 py-3.5 border-b border-slate-800 space-y-2.5 shrink-0">
           <div className="relative">
             <Search className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -234,7 +379,32 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+          {/* Book Scope Filters */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
+            {BOOK_SCOPE_FILTERS.map((bf) => {
+              const isSelected = selectedBook === bf.id;
+              return (
+                <button
+                  key={bf.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBook(bf.id);
+                    marioAudio.playClick();
+                  }}
+                  className={`min-h-[32px] px-3 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-amber-400 text-slate-950 border-2 border-black font-black'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700'
+                  }`}
+                >
+                  {bf.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Article Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-1 border-t border-slate-800/60">
             <span className="text-[11px] font-bold text-slate-400 shrink-0 mr-1">
               Quick Articles:
             </span>
@@ -250,9 +420,9 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                     setQuery(num);
                     marioAudio.playClick();
                   }}
-                  className={`min-h-[32px] px-2.5 py-1 rounded-lg text-xs font-mono font-black border shrink-0 cursor-pointer transition-colors ${
+                  className={`min-h-[30px] px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold border shrink-0 cursor-pointer transition-colors ${
                     isCurrent
-                      ? 'bg-amber-400 text-slate-950 border-black'
+                      ? 'bg-amber-400 text-slate-950 border-black font-black'
                       : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-slate-700'
                   }`}
                 >
@@ -266,7 +436,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
         {/* Split Results & Detail Pane */}
         <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 min-h-0">
           {/* Left Result List */}
-          <div className="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4 space-y-2 max-h-56 lg:max-h-none overflow-y-auto bg-slate-950/50">
+          <div className="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4 space-y-2 max-h-56 lg:max-h-none overflow-y-auto bg-slate-950/60">
             <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
               <span>Matched Provisions</span>
               <span className="font-mono text-amber-300 tabular-nums">{results.length} found</span>
@@ -279,7 +449,10 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                 </p>
                 <button
                   type="button"
-                  onClick={() => setQuery('')}
+                  onClick={() => {
+                    setQuery('');
+                    setSelectedBook('all');
+                  }}
                   className="px-3 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-black text-xs cursor-pointer"
                 >
                   Show All Core Articles
@@ -297,21 +470,24 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                       setSelectedId(item.id);
                       marioAudio.playClick();
                     }}
-                    className={`w-full text-left p-3 rounded-xl border-2 transition-colors cursor-pointer space-y-1 ${
+                    className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all cursor-pointer space-y-1 ${
                       isSelected
-                        ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'
-                        : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-800'
+                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 border-black shadow-[0_2px_0_#000] -translate-y-0.5'
+                        : 'bg-slate-900 hover:bg-slate-850 text-slate-100 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 text-[11px] font-mono font-black">
                       <span>{item.codeLabel}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-black/20 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+                        {item.articleNumber}
+                      </span>
                     </div>
                     <p
                       className={`text-xs font-extrabold leading-snug line-clamp-2 ${
                         isSelected ? 'text-slate-950' : 'text-white'
                       }`}
                     >
-                      {item.title}
+                      {highlightText(item.title, query)}
                     </p>
                   </button>
                 );
@@ -329,11 +505,12 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                       {activeEntry.codeLabel}
                     </span>
                     <h3 className="text-lg sm:text-xl font-black font-display text-white leading-snug">
-                      {activeEntry.title}
+                      {highlightText(activeEntry.title, query)}
                     </h3>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {/* Read Aloud Button */}
                     <button
                       type="button"
                       onClick={() => handleNarrateEntry(activeEntry)}
@@ -356,6 +533,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                       )}
                     </button>
 
+                    {/* Copy Dossier Button */}
                     <button
                       type="button"
                       onClick={() => handleCopyEntry(activeEntry)}
@@ -374,6 +552,18 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                       )}
                     </button>
 
+                    {/* Download Markdown Dossier Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadSingleStatute(activeEntry)}
+                      title="Download complete statute dossier as Markdown"
+                      className="min-h-[38px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold border border-slate-700 inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export (.md)</span>
+                    </button>
+
+                    {/* Save to Notes Button */}
                     <button
                       type="button"
                       data-testid={`statute-save-notes-btn-${activeEntry.id}`}
@@ -411,51 +601,72 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                   </div>
                 </div>
 
-                {/* 1. Statutory Text */}
-                <section className="bg-slate-950 rounded-2xl p-4 border border-amber-400/50 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-black text-amber-300">
-                    <BookOpen className="w-4 h-4 shrink-0" />
-                    <span>Statutory Provision Text</span>
+                {/* 1. Controlling Statutory Provision Text */}
+                <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-4 sm:p-5 border-2 border-amber-400/60 shadow-[2px_2px_0_#000] space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div className="flex items-center gap-2 text-xs font-black text-amber-300">
+                      <BookOpen className="w-4 h-4 shrink-0 text-amber-400" />
+                      <span className="font-mono uppercase tracking-wider">
+                        CONTROLLING STATUTORY PROVISION TEXT
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      Verbatim Codal Text
+                    </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed font-medium allow-text-select select-text">
-                    {activeEntry.statutoryText}
+                  <p className={`${fontClass} text-slate-100 font-medium allow-text-select select-text whitespace-pre-wrap break-words`}>
+                    {highlightText(activeEntry.statutoryText, query)}
                   </p>
                 </section>
 
-                {/* 2. Key Supreme Court Doctrines */}
+                {/* 2. Controlling Supreme Court Precedents */}
                 {activeEntry.supremeCourtDoctrines.length > 0 && (
-                  <section className="bg-slate-950/80 rounded-2xl p-4 border border-emerald-500/40 space-y-2.5">
-                    <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
-                      <Scale className="w-4 h-4 shrink-0" />
-                      <span>Controlling Supreme Court Doctrines</span>
+                  <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-4 sm:p-5 border-2 border-emerald-500/50 shadow-[2px_2px_0_#000] space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
+                        <Gavel className="w-4 h-4 shrink-0 text-emerald-400" />
+                        <span className="font-mono uppercase tracking-wider">
+                          CONTROLLING SUPREME COURT PRECEDENTS
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                        {activeEntry.supremeCourtDoctrines.length} Precedent{activeEntry.supremeCourtDoctrines.length > 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <ul className="space-y-2 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                    <ul className="space-y-2.5 text-xs sm:text-sm text-slate-200">
                       {activeEntry.supremeCourtDoctrines.map((doc, idx) => (
                         <li
                           key={idx}
-                          className="p-3 rounded-xl bg-slate-900 border border-slate-800 font-medium"
+                          className="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 font-medium leading-relaxed"
                         >
-                          {doc}
+                          {highlightText(doc, query)}
                         </li>
                       ))}
                     </ul>
                   </section>
                 )}
 
-                {/* 3. Interpretation & Exam Tips */}
+                {/* 3. Bar Exam Traps & Interpretation Guidance */}
                 {activeEntry.interpretationTips.length > 0 && (
-                  <section className="bg-slate-950/80 rounded-2xl p-4 border border-sky-400/40 space-y-2.5">
-                    <div className="flex items-center gap-2 text-xs font-black text-sky-300">
-                      <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>Statutory Interpretation &amp; Exam Traps</span>
+                  <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-4 sm:p-5 border-2 border-sky-400/50 shadow-[2px_2px_0_#000] space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <div className="flex items-center gap-2 text-xs font-black text-sky-300">
+                        <ShieldAlert className="w-4 h-4 shrink-0 text-sky-400" />
+                        <span className="font-mono uppercase tracking-wider">
+                          BAR EXAM TRAPS &amp; INTERPRETATION GUIDANCE
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-sky-400 font-mono font-bold">
+                        High-Yield Bar Tips
+                      </span>
                     </div>
-                    <ul className="space-y-2 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                    <ul className="space-y-2.5 text-xs sm:text-sm text-slate-200">
                       {activeEntry.interpretationTips.map((tip, idx) => (
                         <li
                           key={idx}
-                          className="p-3 rounded-xl bg-slate-900 border border-slate-800 font-medium"
+                          className="p-3.5 rounded-xl bg-slate-900/90 border border-sky-400/30 font-medium leading-relaxed"
                         >
-                          {tip}
+                          {highlightText(tip, query)}
                         </li>
                       ))}
                     </ul>

@@ -17,6 +17,10 @@ import {
   BookmarkPlus,
   Volume2,
   VolumeX,
+  Download,
+  LayoutGrid,
+  Table,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { MarioMushroomIcon, MarioCoinIcon, MarioStarIcon } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
@@ -830,11 +834,91 @@ interface CitationsViewProps {
   onOpenPrintGuide?: () => void;
 }
 
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+  const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  const parts = text.split(regex);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    regex.test(part) ? (
+      <mark
+        key={i}
+        className="bg-amber-400/40 text-amber-200 px-1 py-0.5 rounded font-black"
+      >
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
+
+const CATEGORY_THEMES: Record<
+  string,
+  {
+    border: string;
+    bgGlow: string;
+    badgeBg: string;
+    badgeText: string;
+    accentGlow: string;
+  }
+> = {
+  articles: {
+    border: 'border-emerald-500/50 hover:border-emerald-400',
+    bgGlow: 'bg-gradient-to-br from-emerald-950/30 via-slate-900/90 to-slate-900',
+    badgeBg: 'bg-emerald-500/20 border-emerald-500/40',
+    badgeText: 'text-emerald-300',
+    accentGlow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]',
+  },
+  republic_acts: {
+    border: 'border-blue-500/50 hover:border-blue-400',
+    bgGlow: 'bg-gradient-to-br from-blue-950/30 via-slate-900/90 to-slate-900',
+    badgeBg: 'bg-blue-500/20 border-blue-500/40',
+    badgeText: 'text-blue-300',
+    accentGlow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)]',
+  },
+  presidential_decrees: {
+    border: 'border-amber-500/50 hover:border-amber-400',
+    bgGlow: 'bg-gradient-to-br from-amber-950/30 via-slate-900/90 to-slate-900',
+    badgeBg: 'bg-amber-500/20 border-amber-500/40',
+    badgeText: 'text-amber-300',
+    accentGlow: 'shadow-[0_0_15px_rgba(245,158,11,0.15)]',
+  },
+  dept_orders: {
+    border: 'border-cyan-500/50 hover:border-cyan-400',
+    bgGlow: 'bg-gradient-to-br from-cyan-950/30 via-slate-900/90 to-slate-900',
+    badgeBg: 'bg-cyan-500/20 border-cyan-500/40',
+    badgeText: 'text-cyan-300',
+    accentGlow: 'shadow-[0_0_15px_rgba(6,182,212,0.15)]',
+  },
+  landmark_cases: {
+    border: 'border-rose-500/50 hover:border-rose-400',
+    bgGlow: 'bg-gradient-to-br from-rose-950/30 via-slate-900/90 to-slate-900',
+    badgeBg: 'bg-rose-500/20 border-rose-500/40',
+    badgeText: 'text-rose-300',
+    accentGlow: 'shadow-[0_0_15px_rgba(244,63,94,0.15)]',
+  },
+};
+
+const WORLD_FILTER_ITEMS: Array<{ id: string; label: string }> = [
+  { id: 'all', label: 'All Modules' },
+  { id: 'world1', label: 'W1: Hours' },
+  { id: 'world2', label: 'W2: Wages & D.O. 174' },
+  { id: 'world3', label: 'W3: Rest & Holidays' },
+  { id: 'world4', label: 'W4: 13th Mo & Charges' },
+  { id: 'world5', label: 'W5: Special Groups' },
+  { id: 'world6', label: 'W6: Leaves' },
+];
+
 export const CitationsView: React.FC<CitationsViewProps> = ({
   onSelectTopic,
   onOpenPrintGuide,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<CitationCategory>('all');
+  const [selectedWorld, setSelectedWorld] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [savedNoteIds, setSavedNoteIds] = useState<Record<string, boolean>>({});
@@ -855,6 +939,9 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
       const matchCat = selectedCategory === 'all' || item.category === selectedCategory;
       if (!matchCat) return false;
 
+      const matchWorld = selectedWorld === 'all' || item.worldId === selectedWorld;
+      if (!matchWorld) return false;
+
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -867,7 +954,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
         item.worldBadge.toLowerCase().includes(q)
       );
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, selectedWorld, searchQuery]);
 
   const toggleVerbatim = (id: string) => {
     setExpandedVerbatimIds((prev) =>
@@ -889,11 +976,54 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
   };
 
   const handleToggleAllVerbatim = () => {
-    if (expandedVerbatimIds.length === filteredCitations.length) {
+    if (expandedVerbatimIds.length === filteredCitations.length && filteredCitations.length > 0) {
       setExpandedVerbatimIds([]);
     } else {
       setExpandedVerbatimIds(filteredCitations.map((c) => c.id));
     }
+    marioAudio.playClick();
+  };
+
+  const handleDownloadDigest = () => {
+    const lines: string[] = [
+      '# PHILIPPINE LABOR STANDARDS STATUTORY & JURISPRUDENCE REPERTORY',
+      '# Super Mario Labor Adventure Legal Citations Index',
+      `# Total Filtered Entries: ${filteredCitations.length}`,
+      `# Category: ${selectedCategory.toUpperCase()} | World Scope: ${selectedWorld.toUpperCase()}`,
+      `# Export Timestamp: ${new Date().toLocaleString()}`,
+      '',
+      '======================================================================',
+      '',
+    ];
+
+    filteredCitations.forEach((item, idx) => {
+      lines.push(`## [${idx + 1}] ${item.citation} — ${item.title}`);
+      lines.push(`Category: ${item.categoryLabel} | Scope: ${item.worldBadge}`);
+      lines.push(`Codal Summary: ${item.summary}`);
+      lines.push('');
+      lines.push('--- CONTROLLING STATUTORY PRINCIPLE & BAR RULE ---');
+      lines.push(item.keyRule);
+      lines.push('');
+      lines.push('--- EXACT VERBATIM CODAL PROVISION ---');
+      lines.push(item.verbatimProvision);
+      lines.push('');
+      lines.push('======================================================================');
+      lines.push('');
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `philippine_labor_law_citations_digest_${selectedCategory}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    marioAudio.playCoin();
+  };
+
+  const handleCycleSpeechRate = () => {
+    const nextRate = speechRate === 0.8 ? 1.0 : speechRate === 1.0 ? 1.25 : 0.8;
+    setSpeechRate(nextRate);
     marioAudio.playClick();
   };
 
@@ -936,7 +1066,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
     window.speechSynthesis.cancel();
     const textToRead = `${item.citation}. ${item.title}. Key statutory doctrine: ${item.keyRule}`;
     const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.rate = 1.0;
+    utterance.rate = speechRate;
     utterance.pitch = 1.0;
     utterance.onend = () => setSpeakingId(null);
     utterance.onerror = () => setSpeakingId(null);
@@ -947,61 +1077,131 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
 
   return (
     <div data-testid="citations-view-container" className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-slate-900 border-4 border-slate-950 rounded-3xl p-5 sm:p-7 text-white shadow-[6px_6px_0_#000] relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b-2 border-slate-800 pb-4">
+      {/* Regal Judicial Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-[#1e1b4b] to-slate-900 border-4 border-amber-400/90 rounded-3xl p-5 sm:p-7 text-white shadow-[0_8px_0_#000] relative overflow-hidden">
+        {/* Subtle decorative background watermarks */}
+        <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none select-none">
+          <Scale className="w-80 h-80 text-amber-200" />
+        </div>
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b-2 border-slate-700/80 pb-4 relative z-10">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center font-black shadow-[0_2px_0_#000] shrink-0">
+            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-slate-950 border-3 border-black flex items-center justify-center font-black shadow-[0_3px_0_#000] shrink-0">
               <Scale className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-amber-400 font-mario tracking-wider">
-                  STATUTORY CITATIONS REPERTORY
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/50 text-[10px] font-black uppercase text-amber-300 font-mono tracking-wider">
+                  BAR 2026 CODIFIED REPERTORY
                 </span>
-                <span className="text-slate-400 text-xs font-bold">
-                  · {MASTER_LEGAL_CITATIONS.length} Codified Provisions with Exact Verbatim Texts
+                <span className="text-slate-300 text-xs font-bold">
+                  {filteredCitations.length} of {MASTER_LEGAL_CITATIONS.length} Provisions
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white font-display">
-                Philippine Labor Standards Verbatim Provisions Index
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white font-display mt-0.5">
+                Philippine Labor Standards Verbatim Citations Repertory
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Quick Global Action Cluster */}
+          <div className="flex items-center gap-2 flex-wrap relative z-10">
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('cards');
+                  marioAudio.playClick();
+                }}
+                className={`min-h-[34px] px-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+                  viewMode === 'cards'
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-[0_1px_0_#000]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Detailed Cards View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('table');
+                  marioAudio.playClick();
+                }}
+                className={`min-h-[34px] px-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+                  viewMode === 'table'
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-[0_1px_0_#000]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Compact Repertory Table View"
+              >
+                <Table className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Digest Table</span>
+              </button>
+            </div>
+
+            {/* Speech Rate Button */}
+            <button
+              type="button"
+              onClick={handleCycleSpeechRate}
+              title="Toggle Text-to-Speech narration speed"
+              className="min-h-[38px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs border border-slate-700 inline-flex items-center gap-1 cursor-pointer tabular-nums"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>{speechRate}x Speed</span>
+            </button>
+
+            {/* Expand / Collapse All Verbatim */}
             <button
               type="button"
               onClick={handleToggleAllVerbatim}
-              className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              className="min-h-[38px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
-              <BookOpen className="w-4 h-4 text-amber-400" />
-              <span>{expandedVerbatimIds.length === filteredCitations.length && filteredCitations.length > 0 ? 'Collapse All' : 'Expand All Verbatim'}</span>
+              <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                {expandedVerbatimIds.length === filteredCitations.length && filteredCitations.length > 0
+                  ? 'Collapse All'
+                  : 'Expand All'}
+              </span>
             </button>
+
+            {/* Download Digest Button */}
+            <button
+              type="button"
+              onClick={handleDownloadDigest}
+              title="Export all filtered citations as a formatted Markdown digest"
+              className="min-h-[38px] px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download (.md)</span>
+            </button>
+
             {onOpenPrintGuide && (
               <button
                 type="button"
                 onClick={onOpenPrintGuide}
-                className="min-h-[44px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-2 whitespace-nowrap"
+                className="min-h-[38px] px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
               >
-                <FileText className="w-4 h-4" />
-                <span>Export / Print</span>
+                <FileText className="w-3.5 h-3.5" />
+                <span>Print Studio</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="pt-4 space-y-3">
+        <div className="pt-4 space-y-3 relative z-10">
           <div className="relative">
             <Search className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Article (e.g. Art. 83), Republic Act (e.g. RA 11210), case name, or verbatim keyword..."
+              placeholder="Search by Article (e.g. Art. 83), Republic Act (e.g. RA 11210), case name, or keyword..."
               aria-label="Search Legal Citations"
-              className="w-full min-h-[46px] bg-slate-950 border-2 border-slate-700 focus:border-amber-400 rounded-xl pl-10 pr-10 text-xs sm:text-sm text-white placeholder:text-slate-400 font-bold focus:outline-none transition-colors"
+              className="w-full min-h-[46px] bg-slate-950/90 border-2 border-slate-700 focus:border-amber-400 rounded-xl pl-10 pr-10 text-xs sm:text-sm text-white placeholder:text-slate-400 font-bold focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
@@ -1015,10 +1215,14 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
             )}
           </div>
 
-          {/* Category Tabs */}
+          {/* Category Tabs Strip */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat.id;
+              const count =
+                cat.id === 'all'
+                  ? MASTER_LEGAL_CITATIONS.length
+                  : MASTER_LEGAL_CITATIONS.filter((c) => c.category === cat.id).length;
               return (
                 <button
                   key={cat.id}
@@ -1027,7 +1231,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                     setSelectedCategory(cat.id);
                     marioAudio.playClick();
                   }}
-                  className={`min-h-[40px] px-3.5 rounded-xl font-bold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all ${
+                  className={`min-h-[38px] px-3.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-amber-400 text-slate-950 font-black border-2 border-black shadow-[0_2px_0_#000]'
                       : 'bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-700'
@@ -1035,6 +1239,40 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                 >
                   {cat.icon}
                   <span>{cat.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                      isSelected ? 'bg-black/20 text-slate-950 font-black' : 'bg-slate-800 text-slate-400'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* World Modules Filter Strip */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs pt-1 border-t border-slate-800/60">
+            <span className="text-[10px] font-mono text-slate-400 font-bold uppercase shrink-0 mr-1">
+              Module Scope:
+            </span>
+            {WORLD_FILTER_ITEMS.map((wf) => {
+              const isSel = selectedWorld === wf.id;
+              return (
+                <button
+                  key={wf.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedWorld(wf.id);
+                    marioAudio.playClick();
+                  }}
+                  className={`min-h-[30px] px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+                    isSel
+                      ? 'bg-indigo-500 text-white font-bold border border-indigo-400'
+                      : 'bg-slate-950/70 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  {wf.label}
                 </button>
               );
             })}
@@ -1042,187 +1280,345 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
         </div>
       </div>
 
-      {/* Citations List Grid */}
-      <div className="space-y-4">
-        {filteredCitations.length === 0 ? (
-          <div className="p-8 text-center bg-slate-900 border-2 border-slate-800 rounded-2xl text-slate-400 space-y-2">
-            <Scale className="w-10 h-10 mx-auto text-slate-600 mb-2" />
-            <p className="font-bold text-sm">No legal citations found matching your criteria.</p>
-            <p className="text-xs">Try searching for &quot;Art. 83&quot;, &quot;RA 11210&quot;, &quot;Kasambahay&quot;, or &quot;Four-fold&quot;.</p>
+      {/* Main Display: Compact Table vs Detailed Cards */}
+      {viewMode === 'table' ? (
+        <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl overflow-hidden shadow-[4px_4px_0_#000]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-950 border-b-2 border-slate-700 text-slate-300 font-mono text-[11px] uppercase tracking-wider">
+                  <th className="p-3.5 shrink-0">Citation &amp; Scope</th>
+                  <th className="p-3.5">Doctrine Title</th>
+                  <th className="p-3.5">Controlling Statutory Principle &amp; Rule</th>
+                  <th className="p-3.5 text-right shrink-0">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {filteredCitations.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-slate-400 font-bold">
+                      No matching provisions found. Try adjusting your query or filters.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCitations.map((item) => {
+                    const theme = CATEGORY_THEMES[item.category] || CATEGORY_THEMES.articles;
+                    const isExpanded = expandedVerbatimIds.includes(item.id);
+                    return (
+                      <React.Fragment key={item.id}>
+                        <tr className="hover:bg-slate-800/50 transition-colors">
+                          <td className="p-3.5 align-top whitespace-nowrap">
+                            <span className="font-mono font-black text-amber-300 block">
+                              {item.citation}
+                            </span>
+                            <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded border ${theme.badgeBg} ${theme.badgeText}`}>
+                              {item.categoryLabel}
+                            </span>
+                            <span className="block text-[10px] text-slate-400 mt-0.5">
+                              {item.worldBadge}
+                            </span>
+                          </td>
+                          <td className="p-3.5 align-top">
+                            <h4 className="font-bold text-white text-sm">
+                              {highlightText(item.title, searchQuery)}
+                            </h4>
+                            <p className="text-slate-300 text-xs mt-1 leading-relaxed">
+                              {highlightText(item.summary, searchQuery)}
+                            </p>
+                          </td>
+                          <td className="p-3.5 align-top">
+                            <div className="bg-slate-950/80 p-2.5 rounded-xl border border-amber-400/30 text-slate-200 text-xs leading-relaxed font-semibold">
+                              {highlightText(item.keyRule, searchQuery)}
+                            </div>
+                          </td>
+                          <td className="p-3.5 align-top text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => handleReadAloud(item)}
+                                title="Listen to doctrine"
+                                className={`min-h-[32px] px-2 rounded-lg text-xs font-bold border inline-flex items-center gap-1 cursor-pointer ${
+                                  speakingId === item.id
+                                    ? 'bg-amber-400 text-slate-950 border-black'
+                                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                }`}
+                              >
+                                {speakingId === item.id ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveCitationToNotes(item)}
+                                title="Save to Study Notes"
+                                className="min-h-[32px] px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                {savedNoteIds[item.id] ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <BookmarkPlus className="w-3.5 h-3.5" />}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyCitation(item, false)}
+                                title="Copy rule"
+                                className="min-h-[32px] px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleVerbatim(item.id)}
+                                title="Toggle verbatim codal text"
+                                className="min-h-[32px] px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  marioAudio.playPipe();
+                                  onSelectTopic(item.worldId, item.topicId);
+                                }}
+                                title="Jump to Module"
+                                className="min-h-[32px] px-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs border border-black inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>Module</span>
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr className="bg-slate-950/95">
+                            <td colSpan={4} className="p-4 border-t border-b border-emerald-500/30">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-mono text-xs font-black uppercase text-emerald-300">
+                                    EXACT VERBATIM CODAL PROVISION ({item.citation})
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyCitation(item, true)}
+                                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 inline-flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                    <span>Copy Verbatim</span>
+                                  </button>
+                                </div>
+                                <pre className="font-mono text-xs text-slate-200 whitespace-pre-wrap break-words leading-relaxed bg-slate-900/90 p-3 rounded-lg border border-slate-800 select-text">
+                                  {highlightText(item.verbatimProvision, searchQuery)}
+                                </pre>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          filteredCitations.map((item) => {
-            const isExpanded = expandedVerbatimIds.includes(item.id);
-            return (
-              <div
-                key={item.id}
-                data-testid={`citation-card-${item.id}`}
-                className="bg-slate-900/95 border-2 border-slate-800 hover:border-amber-400/80 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-[3px_3px_0_#000] transition-colors text-white"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800 pb-2.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-1 rounded-md bg-amber-400 text-slate-950 font-mono font-black text-xs border border-black shadow-[0_1px_0_#000]">
-                      {item.citation}
-                    </span>
-                    <span className="text-[11px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700">
-                      {item.categoryLabel}
-                    </span>
-                    <span className="text-xs font-bold text-amber-300 shrink-0">
-                      · {item.worldBadge}
-                    </span>
-                  </div>
+        </div>
+      ) : (
+        /* Detailed Cards View */
+        <div className="space-y-4">
+          {filteredCitations.length === 0 ? (
+            <div className="p-8 text-center bg-slate-900 border-2 border-slate-800 rounded-3xl text-slate-400 space-y-2">
+              <Scale className="w-10 h-10 mx-auto text-slate-600 mb-2" />
+              <p className="font-bold text-sm">No legal citations found matching your criteria.</p>
+              <p className="text-xs">
+                Try searching for &quot;Art. 83&quot;, &quot;RA 11210&quot;, &quot;Kasambahay&quot;, or &quot;Four-fold&quot;.
+              </p>
+            </div>
+          ) : (
+            filteredCitations.map((item) => {
+              const theme = CATEGORY_THEMES[item.category] || CATEGORY_THEMES.articles;
+              const isExpanded = expandedVerbatimIds.includes(item.id);
+              return (
+                <div
+                  key={item.id}
+                  data-testid={`citation-card-${item.id}`}
+                  className={`${theme.bgGlow} border-2 ${theme.border} ${theme.accentGlow} rounded-3xl p-5 sm:p-6 space-y-4 shadow-[4px_4px_0_#000] transition-all text-white`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-mono font-black text-xs border border-black shadow-[0_1px_0_#000]">
+                        {item.citation}
+                      </span>
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${theme.badgeBg} ${theme.badgeText} flex items-center gap-1`}>
+                        {item.categoryLabel}
+                      </span>
+                      <span className="text-xs font-bold text-amber-300 shrink-0">
+                        · {item.worldBadge}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2 self-start sm:self-auto shrink-0 flex-wrap">
-                    {/* Read Aloud Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleReadAloud(item)}
-                      title={speakingId === item.id ? 'Stop listening' : 'Listen to statutory doctrine'}
-                      className={`min-h-[36px] px-2.5 rounded-lg text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
-                        speakingId === item.id
-                          ? 'bg-amber-400 text-slate-950 border-black font-black'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-                      }`}
-                    >
-                      {speakingId === item.id ? (
-                        <>
-                          <VolumeX className="w-3.5 h-3.5" />
-                          <span>Stop</span>
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Listen</span>
-                        </>
-                      )}
-                    </button>
-
-                    {/* Save to Notes Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleSaveCitationToNotes(item)}
-                      title="Save statutory provision to Study Notes"
-                      className="min-h-[36px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      {savedNoteIds[item.id] ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-300">Saved!</span>
-                        </>
-                      ) : (
-                        <>
-                          <BookmarkPlus className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Save Note</span>
-                        </>
-                      )}
-                    </button>
-
-                    {/* Copy Rule Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleCopyCitation(item, false)}
-                      title="Copy legal rule to clipboard"
-                      className="min-h-[36px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      {copiedId === item.id ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-300">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Copy Rule</span>
-                        </>
-                      )}
-                    </button>
-
-                    {/* Toggle Verbatim Provision */}
-                    <button
-                      type="button"
-                      onClick={() => toggleVerbatim(item.id)}
-                      className="min-h-[36px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <BookOpen className="w-3.5 h-3.5" />
-                      <span>{isExpanded ? 'Hide Verbatim' : 'View Verbatim'}</span>
-                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    </button>
-
-                    {/* Study Module Button */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        marioAudio.playPipe();
-                        onSelectTopic(item.worldId, item.topicId);
-                      }}
-                      className="min-h-[36px] px-3.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer transition-transform active:translate-y-0.5 whitespace-nowrap"
-                    >
-                      <span>Study Module</span>
-                      <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-white font-display">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 font-medium mt-0.5 leading-relaxed">
-                    {item.summary}
-                  </p>
-                </div>
-
-                {/* Key Legal Rule Callout */}
-                <div className="bg-slate-950/90 rounded-xl p-3 sm:p-4 border-l-4 border-amber-400 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
-                    STATUTORY PRINCIPLE &amp; BAR RULE:
-                  </span>
-                  <p className="text-xs sm:text-sm text-slate-100 font-semibold leading-relaxed">
-                    {item.keyRule}
-                  </p>
-                </div>
-
-                {/* Exact Verbatim Provision Drawer */}
-                {isExpanded && (
-                  <div
-                    data-testid={`verbatim-box-${item.id}`}
-                    className="mt-3 p-4 rounded-xl bg-slate-950 border-2 border-emerald-400/80 text-slate-100 space-y-3 animate-in fade-in duration-150"
-                  >
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="text-[11px] font-black uppercase tracking-wider text-emerald-300 font-mono">
-                          EXACT VERBATIM STATUTORY PROVISION ({item.citation})
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-1.5 sm:gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                      {/* Read Aloud Button */}
                       <button
                         type="button"
-                        onClick={() => handleCopyCitation(item, true)}
-                        className="min-h-[32px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1 cursor-pointer"
+                        onClick={() => handleReadAloud(item)}
+                        title={speakingId === item.id ? 'Stop listening' : `Listen at ${speechRate}x speed`}
+                        className={`min-h-[36px] px-2.5 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+                          speakingId === item.id
+                            ? 'bg-amber-400 text-slate-950 border-black font-black'
+                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
+                        }`}
                       >
-                        {copiedId === `${item.id}-verbatim` ? (
+                        {speakingId === item.id ? (
                           <>
-                            <Check className="w-3 h-3 text-emerald-400" />
-                            <span>Copied Verbatim!</span>
+                            <VolumeX className="w-3.5 h-3.5" />
+                            <span>Stop</span>
                           </>
                         ) : (
                           <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy Verbatim Text</span>
+                            <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Listen</span>
                           </>
                         )}
                       </button>
+
+                      {/* Save to Notes Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleSaveCitationToNotes(item)}
+                        title="Save statutory provision to Study Notes"
+                        className="min-h-[36px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        {savedNoteIds[item.id] ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-300">Saved!</span>
+                          </>
+                        ) : (
+                          <>
+                            <BookmarkPlus className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Save Note</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Copy Rule Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCitation(item, false)}
+                        title="Copy legal rule to clipboard"
+                        className="min-h-[36px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        {copiedId === item.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-300">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Copy Rule</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Toggle Verbatim Provision */}
+                      <button
+                        type="button"
+                        onClick={() => toggleVerbatim(item.id)}
+                        className="min-h-[36px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>{isExpanded ? 'Hide Verbatim' : 'View Verbatim'}</span>
+                        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+
+                      {/* Study Module Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          marioAudio.playPipe();
+                          onSelectTopic(item.worldId, item.topicId);
+                        }}
+                        className="min-h-[36px] px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer transition-transform active:translate-y-0.5 whitespace-nowrap"
+                      >
+                        <span>Study Module</span>
+                        <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                      </button>
                     </div>
-                    <pre className="font-mono text-xs sm:text-[13px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words bg-slate-900/90 p-3.5 rounded-lg border border-slate-800 select-text">
-                      {item.verbatimProvision}
-                    </pre>
                   </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-white font-display">
+                      {highlightText(item.title, searchQuery)}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 leading-relaxed">
+                      {highlightText(item.summary, searchQuery)}
+                    </p>
+                  </div>
+
+                  {/* Dual Legal Principle & Bar Exam Takeaway Chambers */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-slate-950/90 rounded-2xl p-3.5 border-l-4 border-amber-400 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="text-[10px] font-black uppercase text-amber-400 font-mono">
+                          CONTROLLING STATUTORY PRINCIPLE
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-[13px] text-slate-100 font-semibold leading-relaxed">
+                        {highlightText(item.keyRule, searchQuery)}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950/90 rounded-2xl p-3.5 border-l-4 border-emerald-400 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-[10px] font-black uppercase text-emerald-400 font-mono">
+                          BAR EXAMINATION TAKEAWAY
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-[13px] text-emerald-100 font-medium leading-relaxed">
+                        Cross-referenced in {item.worldBadge}. Cited in Philippine Bar Examinations as landmark controlling precedent.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Exact Verbatim Provision Drawer */}
+                  {isExpanded && (
+                    <div
+                      data-testid={`verbatim-box-${item.id}`}
+                      className="mt-3 p-4 sm:p-5 rounded-2xl bg-slate-950 border-2 border-emerald-400/80 text-slate-100 space-y-3 animate-in fade-in duration-150 shadow-inner"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-300 font-mono">
+                            EXACT VERBATIM CODAL TEXT ({item.citation})
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCitation(item, true)}
+                          className="min-h-[32px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {copiedId === `${item.id}-verbatim` ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-400" />
+                              <span>Copied Verbatim!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy Verbatim Text</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <pre className="font-mono text-xs sm:text-[13px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words bg-slate-900/90 p-4 rounded-xl border border-slate-800 select-text">
+                        {highlightText(item.verbatimProvision, searchQuery)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
     </div>
   );
 };
