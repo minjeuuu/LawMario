@@ -764,11 +764,11 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
 
         {/* Modal Footer Controls */}
         <div className="print:hidden bg-[#090d16] px-4 sm:px-6 py-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full min-[540px]:w-auto">
             <button
               type="button"
               onClick={handleCopyText}
-              className="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 active:translate-y-0.5 cursor-pointer whitespace-nowrap"
+              className="w-full min-[400px]:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 active:translate-y-0.5 cursor-pointer whitespace-nowrap"
             >
               {copied ? (
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -807,7 +807,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 });
                 setPdfDownloadedOnce(true);
               }}
-              className="inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+              className="w-full min-[400px]:w-auto inline-flex min-h-[44px] items-center justify-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
               title="Download Score Summary directly as A4 Landscape PDF"
             >
               <FileDown className="w-4 h-4 shrink-0" />
@@ -820,7 +820,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
             data-testid="download-scorecard-png-btn"
             data-downloaded={downloadedOnce ? 'true' : 'false'}
             onClick={handleDownloadImage}
-            className="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer ml-auto whitespace-nowrap"
+            className="w-full min-[540px]:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer ml-0 min-[540px]:ml-auto whitespace-nowrap"
           >
             <Download className="w-4 h-4 shrink-0" />
             <span>{downloadedOnce ? 'Download HD PNG Again' : 'Download HD Image (PNG)'}</span>

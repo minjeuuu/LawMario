@@ -339,7 +339,7 @@ export const DailyMissionModal: React.FC<DailyMissionModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-[#0f172a] px-4 sm:px-6 py-3 border-t-2 border-slate-800 flex items-center justify-between gap-3 shrink-0 text-xs">
+        <div className="bg-[#0f172a] px-4 sm:px-6 py-3 border-t-2 border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0 text-xs">
           <span className="text-slate-400 font-semibold flex items-center gap-1.5">
             <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>Missions reset daily at midnight local time.</span>
@@ -347,7 +347,7 @@ export const DailyMissionModal: React.FC<DailyMissionModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[38px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+            className="w-full sm:w-auto min-h-[38px] px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer text-center"
           >
             Done
           </button>

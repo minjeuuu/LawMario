@@ -889,7 +889,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-600 cursor-pointer"
+            className="w-full min-[420px]:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-600 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5 shrink-0" />
             <span>Reset Defaults</span>
@@ -897,7 +897,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 px-5 sm:px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+            className="w-full min-[420px]:w-auto inline-flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
           >
             <Check className="w-4 h-4 stroke-[3] shrink-0" />
             <span>Save &amp; Return</span>
