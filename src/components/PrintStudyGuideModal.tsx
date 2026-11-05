@@ -104,6 +104,8 @@ interface PrintStudyGuideModalProps {
   totalAchievementsCount?: number;
   quizRunsCompleted?: number;
   studiedSeconds?: number;
+  appStudyFont?: string;
+  activeAppTheme?: string;
 }
 
 function stripInlineLegalCitations(text: string, includeCitations: boolean): string {
@@ -138,6 +140,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   totalAchievementsCount = 12,
   quizRunsCompleted = 0,
   studiedSeconds = 0,
+  appStudyFont,
+  activeAppTheme,
 }) => {
   const [includeGroupMembers, setIncludeGroupMembers] = useState(true);
   const [includeProgress, setIncludeProgress] = useState(true);

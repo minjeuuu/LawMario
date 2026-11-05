@@ -279,8 +279,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         const raw = localStorage.getItem('mario_luxury_equipped_v1');
         if (!raw) return;
         const parsed = JSON.parse(raw) as Record<string, string>;
-        setLuxuryAvatarFrame(parsed.avatar_frames || '');
-        setLuxuryAura(parsed.mushroom_auras || '');
+        setLuxuryAvatarFrame(parsed.avatarFrame || parsed.avatar_frames || '');
+        setLuxuryAura(parsed.mushroomAura || parsed.mushroom_auras || '');
       } catch {
         // ignore
       }
@@ -288,9 +288,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     syncLuxury();
     window.addEventListener('storage', syncLuxury);
     window.addEventListener('mario-luxury-updated', syncLuxury);
+    window.addEventListener('mario-shop-equip-changed', syncLuxury);
     return () => {
       window.removeEventListener('storage', syncLuxury);
       window.removeEventListener('mario-luxury-updated', syncLuxury);
+      window.removeEventListener('mario-shop-equip-changed', syncLuxury);
     };
   }, []);
 

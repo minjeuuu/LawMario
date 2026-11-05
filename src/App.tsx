@@ -929,6 +929,7 @@ export default function App() {
     try {
       localStorage.setItem('mario_equipped_companion', id);
       localStorage.setItem('mario_study_companion_v1', id);
+      window.dispatchEvent(new CustomEvent('mario-shop-equip-changed'));
     } catch {
       // ignore
     }
@@ -939,6 +940,7 @@ export default function App() {
     try {
       localStorage.setItem('mario_equipped_card_frame', id);
       localStorage.setItem('mario_card_frame_v1', id);
+      window.dispatchEvent(new CustomEvent('mario-shop-equip-changed'));
     } catch {
       // ignore
     }
@@ -2098,9 +2100,17 @@ export default function App() {
       }
     };
     const onEquipFrame = (ev: Event) => {
-      const custom = ev as CustomEvent<{ frameId?: CardFrameId }>;
-      if (custom.detail?.frameId) {
-        handleEquipCardFrame(custom.detail.frameId);
+      const custom = ev as CustomEvent<any>;
+      const frameId = typeof custom.detail === 'string' ? custom.detail : custom.detail?.frameId;
+      if (frameId) {
+        handleEquipCardFrame(frameId);
+      }
+    };
+    const onEquipCompanionEvent = (ev: Event) => {
+      const custom = ev as CustomEvent<any>;
+      const compId = typeof custom.detail === 'string' ? custom.detail : custom.detail?.companionId;
+      if (compId) {
+        handleEquipCompanion(compId);
       }
     };
     const onLuxuryUpdated = () => {
@@ -2130,12 +2140,14 @@ export default function App() {
     window.addEventListener('mario-open-statute-lookup', onOpenStatute);
     window.addEventListener('mario-navigate-tab', onNavigateTab);
     window.addEventListener('mario-equip-card-frame', onEquipFrame);
+    window.addEventListener('mario-equip-companion', onEquipCompanionEvent);
     window.addEventListener('mario-luxury-updated', onLuxuryUpdated);
     window.addEventListener('pointerdown', onPointerDownSpark, { passive: true });
     return () => {
       window.removeEventListener('mario-open-statute-lookup', onOpenStatute);
       window.removeEventListener('mario-navigate-tab', onNavigateTab);
       window.removeEventListener('mario-equip-card-frame', onEquipFrame);
+      window.removeEventListener('mario-equip-companion', onEquipCompanionEvent);
       window.removeEventListener('mario-luxury-updated', onLuxuryUpdated);
       window.removeEventListener('pointerdown', onPointerDownSpark);
     };
@@ -4664,6 +4676,8 @@ export default function App() {
         totalAchievementsCount={achievementSync.achievements.length}
         quizRunsCompleted={profileStats.quizzesCompleted}
         studiedSeconds={profileStats.studiedSeconds}
+        appStudyFont={appStudyFont}
+        activeAppTheme={appTheme}
       />
 
       {/* World Completion 'Level Up' Celebration Modal */}

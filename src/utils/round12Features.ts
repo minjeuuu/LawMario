@@ -1186,26 +1186,62 @@ export const EXTENDED_PRINT_FONT_CATALOG: readonly ExtendedPrintFontSpec[] = [
   },
 ];
 
-const LEGACY_PRINT_THEME_ALIASES: Record<string, string> = {
+export const LEGACY_PRINT_THEME_ALIASES: Record<string, string> = {
+  // All 24 IDs from original PRINT_COLOR_THEMES
   executive_navy: 'classic_navy',
   supreme_court_crimson: 'nlrc_burgundy',
   forest_dole_emerald: 'emerald_counsel',
+  vintage_parchment: 'royal_parchment',
   mario_mushroom_red: 'mario_crimson',
-  royal_parchment_gold: 'vintage_parchment',
-  rosalina_cosmic_teal: 'rosalina_comet',
-  peach_royal_blossom: 'peach_blossom',
-  luigi_emerald_manor: 'luigi_mansion',
-  bowser_obsidian_flame: 'bowser_lava',
-  yoshi_spring_meadow: 'yoshi_meadow',
-  toad_royal_sapphire: 'sapphire_counsel',
-  star_cup_amber: 'daisy_sarasaland',
-  daisy_sunflower_ochre: 'daisy_sarasaland',
-  waluigi_amethyst_court: 'waluigi_velvet',
-  wario_bullion_vault: 'wario_treasury',
-  arctic_sherbet_slate: 'ice_flower_frost',
-  mahogany_law_journal: 'espresso_roast',
-  slate_minimalist_pro: 'minimal_slate',
-  midnight_indigo_brief: 'indigo_tribunal',
+  starlight_cobalt: 'rosalina_cobalt',
+  royal_amethyst: 'waluigi_amethyst',
+  yoshi_jade_lime: 'yoshi_island_jade',
+  teal_tribunal: 'dole_teal',
+  terracotta_codal: 'terracotta_codal',
+  bowser_obsidian_gold: 'bowser_fortress_ember',
+  peach_blossom_rose: 'peach_rosewood',
+  luigi_mansion_jade: 'forest_illusion_moss',
+  rosalina_cosmic_ice: 'rosalina_cobalt',
+  golden_crown_ivory: 'charcoal_gold',
+  sakura_editorial: 'peach_rosewood',
+  midnight_espresso: 'espresso_roast_linen',
+  arctic_glacier: 'arctic_slate',
+  solarized_amber: 'daisy_sarasaland_amber',
+  mint_dole_ledger: 'dole_teal',
+  sunset_coral: 'toad_bazaar_vermilion',
+  indigo_jurisprudence: 'oxford_indigo',
+  wario_royal_gold: 'wario_bullion_vault',
+  ink_saver_bw: 'ink_saver_bw',
+
+  // Mario Kingdom & Law Review aliases
+  royal_parchment_gold: 'royal_parchment',
+  rosalina_cosmic_teal: 'rosalina_cobalt',
+  rosalina_comet: 'rosalina_cobalt',
+  peach_royal_blossom: 'peach_rosewood',
+  peach_blossom: 'peach_rosewood',
+  luigi_emerald_manor: 'forest_illusion_moss',
+  luigi_mansion: 'forest_illusion_moss',
+  bowser_obsidian_flame: 'bowser_fortress_ember',
+  bowser_lava: 'bowser_fortress_ember',
+  yoshi_spring_meadow: 'yoshi_island_jade',
+  yoshi_meadow: 'yoshi_island_jade',
+  toad_royal_sapphire: 'vanilla_dome_sapphire',
+  sapphire_counsel: 'vanilla_dome_sapphire',
+  star_cup_amber: 'daisy_sarasaland_amber',
+  daisy_sunflower_ochre: 'daisy_sarasaland_amber',
+  daisy_sarasaland: 'daisy_sarasaland_amber',
+  waluigi_amethyst_court: 'waluigi_amethyst',
+  waluigi_velvet: 'waluigi_amethyst',
+  wario_bullion_vault: 'wario_bullion_vault',
+  wario_treasury: 'wario_bullion_vault',
+  arctic_sherbet_slate: 'arctic_slate',
+  ice_flower_frost: 'arctic_slate',
+  mahogany_law_journal: 'mahogany_bench',
+  espresso_roast: 'espresso_roast_linen',
+  slate_minimalist_pro: 'ink_saver_bw',
+  minimal_slate: 'ink_saver_bw',
+  midnight_indigo_brief: 'midnight_indigo_copper',
+  indigo_tribunal: 'midnight_indigo_copper',
 };
 
 const LEGACY_PRINT_FONT_ALIASES: Record<string, string> = {
@@ -1633,9 +1669,9 @@ export function stepKoopaPinballBall(input: KoopaPinballStepInput): KoopaPinball
       vx += (offsetRatio - 0.35) * 190;
       bouncedFlipper = 'left';
     } else {
-      // Unpressed resting flipper slopes down toward center drain (x=212+)!
-      vx = Math.max(vx + 65 * dt * 60 * 0.12, 95);
-      vy = Math.max(55, vy * 0.55);
+      // Unpressed resting flipper slopes steeply down toward center drain (x=212+)!
+      vx = Math.max(vx + 95 * dt * 60 * 0.18, 120);
+      vy = Math.max(75, vy * 0.75);
     }
   }
 
@@ -1656,9 +1692,9 @@ export function stepKoopaPinballBall(input: KoopaPinballStepInput): KoopaPinball
       vx -= (offsetRatio - 0.35) * 190;
       bouncedFlipper = 'right';
     } else {
-      // Unpressed resting flipper slopes down toward center drain (x=308-)!
-      vx = Math.min(vx - 65 * dt * 60 * 0.12, -95);
-      vy = Math.max(55, vy * 0.55);
+      // Unpressed resting flipper slopes steeply down toward center drain (x=308-)!
+      vx = Math.min(vx - 95 * dt * 60 * 0.18, -120);
+      vy = Math.max(75, vy * 0.75);
     }
   }
 
@@ -1674,9 +1710,9 @@ export function stepKoopaPinballBall(input: KoopaPinballStepInput): KoopaPinball
       gameOver = true;
     } else {
       x = 260;
-      y = 72;
-      vx = 95;
-      vy = 35;
+      y = 35;
+      vx = (Math.random() > 0.5 ? 1 : -1) * 35;
+      vy = 25;
     }
   }
 

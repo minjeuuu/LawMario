@@ -1035,7 +1035,7 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
 
     const isRuleCopied = copiedRuleKey === ruleCopyKey;
     const actionBtns = (
-      <div className="inline-flex items-center gap-1 shrink-0">
+      <div className="rule-action-bar inline-flex items-center gap-1 shrink-0 self-start ml-auto">
         <button
           type="button"
           data-testid="copy-rule-btn"
@@ -1052,14 +1052,14 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
               setCopiedRuleKey((prev) => (prev === ruleCopyKey ? null : prev));
             }, 1500);
           }}
-          className={`min-h-[26px] px-2 py-0.5 rounded-lg border text-[10px] font-black inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 leading-none ${
+          className={`min-h-[24px] px-2 py-0.5 rounded-lg border text-[10px] font-black inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 leading-none ${
             isRuleCopied
               ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_1px_0_#000]'
-              : 'bg-slate-200/80 dark:bg-slate-700/80 hover:bg-emerald-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600'
+              : 'bg-slate-200/90 dark:bg-slate-700/90 hover:bg-emerald-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600'
           }`}
         >
           {isRuleCopied ? <Check className="w-3 h-3 shrink-0" /> : <Copy className="w-3 h-3 shrink-0" />}
-          <span>{isRuleCopied ? 'Copied' : 'Copy'}</span>
+          <span className="hidden sm:inline">{isRuleCopied ? 'Copied' : 'Copy'}</span>
         </button>
         {pinBtn}
       </div>
@@ -1165,21 +1165,19 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
       return (
         <div
           key={idx}
-          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs"
+          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs group relative"
         >
-          <div className="flex items-start justify-between gap-2.5">
-            <div className="flex items-start gap-2.5 flex-1 min-w-0">
-              <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
-                {String(item.number ?? 1).padStart(2, '0')}
-              </span>
-              <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1`}>
-                {item.title && (
-                  <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
-                    {renderInteractiveText(item.title)}:
-                  </span>
-                )}
-                <span>{renderInteractiveText(item.body)}</span>
-              </div>
+          <div className="flex items-start gap-2.5">
+            <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
+              {String(item.number ?? 1).padStart(2, '0')}
+            </span>
+            <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 pr-1`}>
+              {item.title && (
+                <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
+                  {renderInteractiveText(item.title)}:
+                </span>
+              )}
+              <span>{renderInteractiveText(item.body)}</span>
             </div>
             {actionBtns}
           </div>
@@ -1192,19 +1190,17 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
     return (
       <div
         key={idx}
-        className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs"
+        className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs group relative"
       >
-        <div className="flex items-start justify-between gap-2.5">
-          <div className="flex items-start gap-2.5 flex-1 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
-            <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1`}>
-              {item.title && (
-                <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
-                  {renderInteractiveText(item.title)}:
-                </span>
-              )}
-              <span>{renderInteractiveText(item.body)}</span>
-            </div>
+        <div className="flex items-start gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
+          <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 pr-1`}>
+            {item.title && (
+              <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
+                {renderInteractiveText(item.title)}:
+              </span>
+            )}
+            <span>{renderInteractiveText(item.body)}</span>
           </div>
           {actionBtns}
         </div>
@@ -2261,28 +2257,35 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
             </section>
           )}
 
-          {/* Verbatim Statutory Provision Unabridged Codification */}
+          {/* Verbatim Statutory Provision Unabridged Codification — Aesthetic Legal Scroll */}
           {topic.verbatimProvision && (
             <div
               data-testid={`verbatim-provision-section-${topic.id}`}
-              className="mario-reveal-section bg-slate-950 border-3 border-amber-400 rounded-2xl p-4 sm:p-5 text-white space-y-3 shadow-md"
+              className="mario-reveal-section bg-gradient-to-br from-slate-950 via-[#111827] to-[#0b0f19] border-2 border-amber-400/90 rounded-2xl p-4 sm:p-5 text-white space-y-3.5 shadow-[0_6px_24px_rgba(0,0,0,0.45)] relative overflow-hidden"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800 pb-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
-                    <Scale className="w-4 h-4" />
+              {/* Decorative Subtle Background Stamp */}
+              <div className="absolute -right-8 -bottom-8 pointer-events-none opacity-5 select-none">
+                <Scale className="w-48 h-48 text-amber-300" />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-400/30 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center shrink-0 border border-black shadow-[0_2px_0_#000]">
+                    <Scale className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
-                      EXACT VERBATIM STATUTORY PROVISION
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-black text-slate-100 font-display">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[9px] font-black uppercase text-amber-300 font-mario tracking-wider bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/50">
+                        REPUBLIC OF THE PHILIPPINES · CODIFIED STATUTE
+                      </span>
+                    </div>
+                    <h4 className="text-sm sm:text-base font-black text-white font-display mt-0.5">
                       {topic.badge} — Complete Unabridged Text
                     </h4>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => {
@@ -2293,17 +2296,17 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                         setTimeout(() => setVerbatimCopied(false), 2000);
                       }
                     }}
-                    className="min-h-[36px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                    className="min-h-[36px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs"
                   >
                     {verbatimCopied ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-emerald-300">Copied Provision!</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="text-emerald-300">Copied to Clipboard!</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Copy Verbatim</span>
+                        <Copy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span>Copy Provision</span>
                       </>
                     )}
                   </button>
@@ -2311,17 +2314,36 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowVerbatim(!showVerbatim)}
-                    className="min-h-[36px] px-3.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer"
+                    className="min-h-[36px] px-4 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 text-xs font-black border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer font-display transition-all"
                   >
-                    <span>{showVerbatim ? 'Hide Full Text' : 'Read Verbatim Provision'}</span>
-                    {showVerbatim ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span>{showVerbatim ? 'Close Statutory Scroll' : 'Read Verbatim Provision'}</span>
+                    {showVerbatim ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                 </div>
               </div>
 
               {showVerbatim && (
-                <div className="bg-slate-900 border border-amber-400/50 rounded-xl p-3.5 sm:p-4 text-xs sm:text-sm text-slate-100 font-mono leading-relaxed whitespace-pre-wrap select-text allow-text-select animate-in fade-in duration-150">
-                  {topic.verbatimProvision}
+                <div className="space-y-3 animate-in fade-in duration-200">
+                  <div className="bg-[#0c121e] border-2 border-amber-400/50 rounded-xl p-4 sm:p-6 text-sm text-slate-100 font-sans leading-relaxed tracking-wide select-text allow-text-select shadow-inner relative">
+                    {/* Header Ribbon Inside Codex */}
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2 mb-3 text-[11px] font-mono text-amber-300">
+                      <span className="font-bold flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                        <span>OFFICIAL STATUTORY TEXT · LABOR CODE OF THE PHILIPPINES</span>
+                      </span>
+                      <span className="text-slate-400 text-[10px] hidden sm:inline">Unedited Codification</span>
+                    </div>
+
+                    <div className="whitespace-pre-wrap leading-relaxed text-slate-100 text-xs sm:text-sm font-medium">
+                      {topic.verbatimProvision}
+                    </div>
+
+                    {/* Footer citation stamp */}
+                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 font-mono">
+                      <span>Source: Bureau of Working Conditions (DOLE)</span>
+                      <span className="text-amber-400/90 font-bold">Labor Standards Codification</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

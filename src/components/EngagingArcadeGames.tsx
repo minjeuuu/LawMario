@@ -1579,45 +1579,74 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
   const [score, setScore] = useState(0);
   const [shellsLeft, setShellsLeft] = useState(3);
   const [lastBumperNote, setLastBumperNote] = useState(
-    'Launch the Koopa Shell into Statutory Multiplier Bumpers!'
+    'Pull plunger with [SPACE] or Launch button to fire shell into the arena!'
   );
+  const [combo, setCombo] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateRef = useRef(gameState);
   stateRef.current = gameState;
 
-  const flipperRef = useRef({ left: false, right: false });
+  const flipperRef = useRef({ left: false, right: false, space: false });
+  const comboRef = useRef(0);
+  const targetsRef = useRef([
+    { label: 'W', x: 100, y: 38, lit: false, pts: 60 },
+    { label: 'A', x: 170, y: 32, lit: false, pts: 60 },
+    { label: 'G', x: 260, y: 28, lit: false, pts: 100 },
+    { label: 'E', x: 350, y: 32, lit: false, pts: 60 },
+    { label: 'S', x: 420, y: 38, lit: false, pts: 60 },
+  ]);
+  const lastBumperHitTimeRef = useRef<Record<string, number>>({});
+
   const ballRef = useRef({
-    x: 240,
-    y: 80,
-    vx: 165,
-    vy: -90,
+    x: 488,
+    y: 280,
+    vx: 0,
+    vy: 0,
     shells: 3,
     score: 0,
+    inShooter: true,
   });
 
   const BUMPERS = [
-    { x: 140, y: 105, r: 26, pts: 150, label: '125% OT', color: '#f59e0b' },
-    { x: 260, y: 85, r: 28, pts: 250, label: '200% HOL', color: '#ef4444' },
-    { x: 380, y: 105, r: 26, pts: 200, label: '105d MAT', color: '#ec4899' },
-    { x: 200, y: 175, r: 24, pts: 180, label: 'P.D. 851', color: '#10b981' },
-    { x: 320, y: 175, r: 24, pts: 300, label: '22.5d RET', color: '#38bdf8' },
+    { id: 'b_ot', x: 155, y: 115, r: 24, pts: 75, label: '125% OT', color: '#f59e0b' },
+    { id: 'b_hol', x: 260, y: 92, r: 26, pts: 100, label: '200% HOL', color: '#ef4444' },
+    { id: 'b_mat', x: 365, y: 115, r: 24, pts: 75, label: '105d MAT', color: '#ec4899' },
+    { id: 'b_13th', x: 205, y: 175, r: 22, pts: 60, label: 'P.D. 851', color: '#10b981' },
+    { id: 'b_ret', x: 315, y: 175, r: 22, pts: 80, label: '22.5d RET', color: '#38bdf8' },
   ];
+
+  const launchPlunger = () => {
+    if (stateRef.current !== 'playing') return;
+    const b = ballRef.current;
+    if (b.inShooter) {
+      b.inShooter = false;
+      b.vx = -45;
+      b.vy = -490;
+      marioAudio.playPipe();
+      setLastBumperNote('Shell launched! Use flippers to keep it alive.');
+    }
+  };
 
   const startPinball = () => {
     const startShells = boosts?.bonusShieldActive ? 4 : 3;
     ballRef.current = {
-      x: 255,
-      y: 60,
-      vx: (Math.random() > 0.5 ? 1 : -1) * 170,
-      vy: 40,
+      x: 488,
+      y: 280,
+      vx: 0,
+      vy: 0,
       shells: startShells,
       score: 0,
+      inShooter: true,
     };
+    comboRef.current = 0;
+    setCombo(0);
+    targetsRef.current.forEach((t) => (t.lit = false));
     setScore(0);
     setShellsLeft(startShells);
     setGameState('playing');
     marioAudio.playJump();
+    setLastBumperNote('Shell loaded in plunger! Press [SPACE] or Launch to shoot.');
   };
 
   useEffect(() => {
@@ -1626,12 +1655,20 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         flipperRef.current.left = true;
       if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd')
         flipperRef.current.right = true;
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        flipperRef.current.space = true;
+        launchPlunger();
+      }
     };
     const up = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a')
         flipperRef.current.left = false;
       if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd')
         flipperRef.current.right = false;
+      if (e.code === 'Space' || e.key === ' ') {
+        flipperRef.current.space = false;
+      }
     };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
@@ -1655,80 +1692,131 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         const b = ballRef.current;
 
         if (stateRef.current === 'playing') {
-          const stepRes = stepKoopaPinballBall({
-            x: b.x,
-            y: b.y,
-            vx: b.vx,
-            vy: b.vy,
-            rawDt: dt,
-            leftFlip: flipperRef.current.left,
-            rightFlip: flipperRef.current.right,
-            ballsLeft: b.shells,
-            score: b.score,
-          });
+          if (b.inShooter) {
+            // Ball rests in the right-hand shooter chute awaiting player launch
+            b.x = 488;
+            b.y = 280;
+            b.vx = 0;
+            b.vy = 0;
+          } else {
+            const stepRes = stepKoopaPinballBall({
+              x: b.x,
+              y: b.y,
+              vx: b.vx,
+              vy: b.vy,
+              rawDt: dt,
+              leftFlip: flipperRef.current.left,
+              rightFlip: flipperRef.current.right,
+              ballsLeft: b.shells,
+              score: b.score,
+            });
 
-          b.x = stepRes.x;
-          b.y = stepRes.y;
-          b.vx = stepRes.vx;
-          b.vy = stepRes.vy;
-          b.shells = stepRes.ballsLeft;
+            b.x = stepRes.x;
+            b.y = stepRes.y;
+            b.vx = stepRes.vx;
+            b.vy = stepRes.vy;
+            b.shells = stepRes.ballsLeft;
 
-          let hitBumper = false;
-          if (!stepRes.drainedThisStep) {
-            for (const bmp of BUMPERS) {
-              const dx = b.x - bmp.x;
-              const dy = b.y - bmp.y;
-              const dist = Math.hypot(dx, dy);
-              const minDist = bmp.r + 10;
-              if (dist < minDist && dist > 0.001) {
-                const nx = dx / dist;
-                const ny = dy / dist;
-                b.x = bmp.x + nx * (minDist + 2);
-                b.y = bmp.y + ny * (minDist + 2);
-                const speed = Math.min(390, Math.max(255, Math.hypot(b.vx, b.vy)));
-                b.vx = nx * speed;
-                b.vy = ny * speed;
-                b.score += bmp.pts;
-                hitBumper = true;
+            // Rollover Targets (W-A-G-E-S)
+            for (const t of targetsRef.current) {
+              const dx = b.x - t.x;
+              const dy = b.y - t.y;
+              if (Math.hypot(dx, dy) < 16 && !t.lit) {
+                t.lit = true;
+                const bonus = t.pts * Math.max(1, comboRef.current);
+                b.score += bonus;
                 setScore(b.score);
-                setLastBumperNote(`Shattered ${bmp.label} Bumper (+${bmp.pts} pts)!`);
+                setLastBumperNote(`Lit '${t.label}' Rollover Target (+${bonus} pts)!`);
                 marioAudio.playCoin();
+                // Check if all 5 targets are lit
+                if (targetsRef.current.every((tgt) => tgt.lit)) {
+                  b.score += 500;
+                  setScore(b.score);
+                  setLastBumperNote('SUPER W-A-G-E-S JACKPOT BONUS (+500 pts)!');
+                  marioAudio.playPowerUp();
+                  setTimeout(() => {
+                    targetsRef.current.forEach((tgt) => (tgt.lit = false));
+                  }, 800);
+                }
                 break;
               }
             }
-          }
 
-          if (!hitBumper && stepRes.bouncedFlipper) {
-            marioAudio.playJump();
-          }
-
-          if (stepRes.drainedThisStep) {
-            setShellsLeft(b.shells);
-            setLastBumperNote(
-              b.shells > 0
-                ? `Shell drained down center pit! ${b.shells} Shell${b.shells === 1 ? '' : 's'} remaining.`
-                : b.score >= PINBALL_PASS_SCORE
-                ? `Run Complete — Passed ${PINBALL_PASS_SCORE} target!`
-                : `Game Over — Drained all 3 Shells below ${PINBALL_PASS_SCORE} target!`
-            );
-            marioAudio.playPipe();
-          }
-
-          if (b.score >= PINBALL_JACKPOT_SCORE) {
-            const mult = boosts?.doublePayoutActive ? 2 : 1;
-            onEarnCoins(18 * mult);
-            setScore(b.score);
-            setGameState('gameover');
-            marioAudio.playLevelUp();
-          } else if (stepRes.gameOver) {
-            if (b.score >= PINBALL_PASS_SCORE) {
-              const mult = boosts?.doublePayoutActive ? 2 : 1;
-              onEarnCoins(10 * mult);
-              marioAudio.playLevelUp();
-            } else {
-              marioAudio.playGameOver();
+            let hitBumper = false;
+            if (!stepRes.drainedThisStep) {
+              for (const bmp of BUMPERS) {
+                const dx = b.x - bmp.x;
+                const dy = b.y - bmp.y;
+                const dist = Math.hypot(dx, dy);
+                const minDist = bmp.r + 10;
+                const lastHit = lastBumperHitTimeRef.current[bmp.id] || 0;
+                if (dist < minDist && dist > 0.001 && now - lastHit > 160) {
+                  lastBumperHitTimeRef.current[bmp.id] = now;
+                  const nx = dx / dist;
+                  const ny = dy / dist;
+                  b.x = bmp.x + nx * (minDist + 2);
+                  b.y = bmp.y + ny * (minDist + 2);
+                  const speed = Math.min(350, Math.max(220, Math.hypot(b.vx, b.vy)));
+                  b.vx = nx * speed;
+                  b.vy = ny * speed;
+                  const ptsWithCombo = bmp.pts * Math.max(1, comboRef.current);
+                  b.score += ptsWithCombo;
+                  hitBumper = true;
+                  setScore(b.score);
+                  setLastBumperNote(`Hit ${bmp.label} Bumper (+${ptsWithCombo} pts)!`);
+                  marioAudio.playCoin();
+                  break;
+                }
+              }
             }
-            setGameState('gameover');
+
+            if (!hitBumper && stepRes.bouncedFlipper) {
+              comboRef.current += 1;
+              setCombo(comboRef.current);
+              b.score += 25 * comboRef.current;
+              setScore(b.score);
+              setLastBumperNote(`Active Flipper Volley! (${comboRef.current}x Combo)`);
+              marioAudio.playJump();
+            }
+
+            if (stepRes.drainedThisStep) {
+              comboRef.current = 0;
+              setCombo(0);
+              setShellsLeft(b.shells);
+              if (b.shells > 0) {
+                // Next shell returns to plunger lane so player must launch again!
+                b.inShooter = true;
+                b.x = 488;
+                b.y = 280;
+                b.vx = 0;
+                b.vy = 0;
+              }
+              setLastBumperNote(
+                b.shells > 0
+                  ? `Shell drained! Press [SPACE] or Launch Shell (${b.shells} remaining).`
+                  : b.score >= PINBALL_PASS_SCORE
+                  ? `Run Complete — Cleared ${PINBALL_PASS_SCORE} target!`
+                  : `Game Over — All shells drained below ${PINBALL_PASS_SCORE} target!`
+              );
+              marioAudio.playPipe();
+            }
+
+            if (b.score >= PINBALL_JACKPOT_SCORE) {
+              const mult = boosts?.doublePayoutActive ? 2 : 1;
+              onEarnCoins(18 * mult);
+              setScore(b.score);
+              setGameState('gameover');
+              marioAudio.playLevelUp();
+            } else if (stepRes.gameOver) {
+              if (b.score >= PINBALL_PASS_SCORE) {
+                const mult = boosts?.doublePayoutActive ? 2 : 1;
+                onEarnCoins(10 * mult);
+                marioAudio.playLevelUp();
+              } else {
+                marioAudio.playGameOver();
+              }
+              setGameState('gameover');
+            }
           }
         }
 
@@ -1739,14 +1827,45 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         ctx.lineWidth = 4;
         ctx.strokeRect(8, 8, W - 16, H - 16);
 
+        // Shooter Lane Divider (separates right-hand plunger lane x: 472..504)
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(472, 70);
+        ctx.lineTo(472, H - 12);
+        ctx.stroke();
+
+        // Top Curved Shooter Guide
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(440, 70, 32, -Math.PI / 2, 0);
+        ctx.stroke();
+
         // Draw Visible Center Drain Pit Hazard Zone (212..308)
-        ctx.fillStyle = 'rgba(244, 63, 94, 0.22)';
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.28)';
         ctx.fillRect(212, H - 28, 96, 20);
         ctx.fillStyle = '#fda4af';
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
         ctx.fillText('DRAIN PIT', 260, H - 14);
 
+        // Draw Rollover Targets (W-A-G-E-S)
+        for (const t of targetsRef.current) {
+          ctx.fillStyle = t.lit ? '#fde047' : '#334155';
+          ctx.beginPath();
+          ctx.roundRect(t.x - 12, t.y - 12, 24, 24, 6);
+          ctx.fill();
+          ctx.strokeStyle = t.lit ? '#fbbf24' : '#64748b';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = t.lit ? '#0f172a' : '#cbd5e1';
+          ctx.font = 'black 11px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(t.label, t.x, t.y + 4);
+        }
+
+        // Draw Bumpers
         for (const bmp of BUMPERS) {
           ctx.fillStyle = bmp.color;
           ctx.beginPath();
@@ -1756,7 +1875,7 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
           ctx.lineWidth = 2.5;
           ctx.stroke();
           ctx.fillStyle = '#0f172a';
-          ctx.font = 'bold 10px monospace';
+          ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'center';
           ctx.fillText(bmp.label, bmp.x, bmp.y + 3);
         }
@@ -1771,6 +1890,15 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         ctx.beginPath();
         ctx.roundRect(308, flipperRef.current.right ? 283 : 295, 136, 13, 7);
         ctx.fill();
+
+        // Plunger indicator when ball is in shooter
+        if (b.inShooter) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = 'bold 9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('PULL', 488, 320);
+          ctx.fillText('SPACE', 488, 330);
+        }
 
         // Koopa Shell Ball
         ctx.fillStyle = '#22c55e';
@@ -1839,7 +1967,7 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+      <div className="grid grid-cols-3 gap-2 max-w-xl mx-auto">
         <button
           type="button"
           onPointerDown={() => {
@@ -1848,9 +1976,16 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
           onPointerUp={() => {
             flipperRef.current.left = false;
           }}
-          className="min-h-[48px] rounded-xl bg-sky-500 active:bg-amber-400 text-slate-950 font-black text-xs border-2 border-black cursor-pointer"
+          className="min-h-[48px] rounded-xl bg-sky-500 active:bg-amber-400 text-slate-950 font-black text-[11px] sm:text-xs border-2 border-black cursor-pointer shadow-[0_2px_0_#000]"
         >
-          LEFT FLIPPER [A / ←]
+          LEFT FLIP [A / ←]
+        </button>
+        <button
+          type="button"
+          onClick={launchPlunger}
+          className="min-h-[48px] rounded-xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-slate-950 font-black text-[11px] sm:text-xs border-2 border-black cursor-pointer shadow-[0_2px_0_#000]"
+        >
+          LAUNCH [SPACE]
         </button>
         <button
           type="button"
@@ -1860,9 +1995,9 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
           onPointerUp={() => {
             flipperRef.current.right = false;
           }}
-          className="min-h-[48px] rounded-xl bg-sky-500 active:bg-amber-400 text-slate-950 font-black text-xs border-2 border-black cursor-pointer"
+          className="min-h-[48px] rounded-xl bg-sky-500 active:bg-amber-400 text-slate-950 font-black text-[11px] sm:text-xs border-2 border-black cursor-pointer shadow-[0_2px_0_#000]"
         >
-          RIGHT FLIPPER [D / →]
+          RIGHT FLIP [D / →]
         </button>
       </div>
     </div>
