@@ -103,9 +103,10 @@ export const FloatingMarioMysteryBlock: React.FC<{
   const [showCoin, setShowCoin] = useState(false);
   const [showTip, setShowTip] = useState(false);
   const blockBtnRef = useRef<HTMLButtonElement | null>(null);
-  const [bubbleCoords, setBubbleCoords] = useState<{ top: number; left: number }>({
+  const [bubbleCoords, setBubbleCoords] = useState<{ top: number; left: number; width: number }>({
     top: 88,
     left: 16,
+    width: 300,
   });
   const [tip] = useState<MarioLaborProTip>(() => {
     if (tipIndex !== undefined && MARIO_LABOR_PRO_TIPS[tipIndex]) {
@@ -118,8 +119,8 @@ export const FloatingMarioMysteryBlock: React.FC<{
   const updateBubbleCoords = useCallback(() => {
     if (!blockBtnRef.current || typeof window === 'undefined') return;
     const rect = blockBtnRef.current.getBoundingClientRect();
-    const bubbleWidth = Math.min(288, Math.max(240, window.innerWidth - 24));
-    const bubbleHeightEstimate = 156;
+    const bubbleWidth = Math.min(320, Math.max(220, window.innerWidth - 24));
+    const bubbleHeightEstimate = 160;
     const rawLeft = rect.left + rect.width / 2 - bubbleWidth / 2;
     const left = Math.max(12, Math.min(window.innerWidth - bubbleWidth - 12, rawLeft));
     const placeBelow =
@@ -127,7 +128,7 @@ export const FloatingMarioMysteryBlock: React.FC<{
     const top = placeBelow
       ? Math.min(window.innerHeight - bubbleHeightEstimate - 12, rect.bottom + 8)
       : Math.max(12, rect.top - bubbleHeightEstimate - 8);
-    setBubbleCoords({ top, left });
+    setBubbleCoords({ top, left, width: bubbleWidth });
   }, []);
 
   useEffect(() => {
@@ -209,8 +210,9 @@ export const FloatingMarioMysteryBlock: React.FC<{
             style={{
               top: `${bubbleCoords.top}px`,
               left: `${bubbleCoords.left}px`,
+              width: `${bubbleCoords.width}px`,
             }}
-            className="fixed w-[calc(100vw-24px)] max-w-[320px] max-h-[85vh] overflow-y-auto bg-slate-950 border-3 border-amber-400 rounded-2xl p-3.5 text-white shadow-[0_12px_32px_rgba(0,0,0,0.95)] z-[150] animate-fadeIn text-left select-text"
+            className="fixed max-w-[calc(100vw-24px)] max-h-[85vh] overflow-y-auto overscroll-contain bg-slate-950 border-3 border-amber-400 rounded-2xl p-3.5 text-white shadow-[0_12px_32px_rgba(0,0,0,0.95)] z-[150] animate-fadeIn text-left select-text"
           >
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-800 mb-2">
               <div className="flex items-center gap-1.5 min-w-0">

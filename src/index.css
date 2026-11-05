@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
@@ -1363,12 +1363,17 @@ body.printing-scorecard-only {
 
 /* Ensure DM Sans and all print preview sheets are 100% copyable and selectable */
 .print-font-dm-sans-clean,
+.print-font-dm-sans-clean *,
 .app-study-font-dm-sans,
+.app-study-font-dm-sans *,
 .rule-item-text,
 .rule-item-text *,
 [data-font="dm_sans_clean"],
+[data-font="dm_sans_clean"] *,
 [data-font="dm_sans"],
+[data-font="dm_sans"] *,
 [data-font="clean_inter"],
+[data-font="clean_inter"] *,
 #printable-study-guide,
 #printable-study-guide *,
 #one-page-summary-sheet,
@@ -1501,16 +1506,14 @@ body.printing-scorecard-only {
   width: 100%;
 }
 
-/* Make all texts & buttons inside opened Navbar Menu / Tools popovers render in Press Start 2P (not the Navbar Menu button itself) */
-.mario-menu-press2p,
-.mario-menu-press2p :is(button, span, label, select, option, h3, h4, p, div) {
-  font-family: 'Press Start 2P', monospace !important;
-  letter-spacing: -0.01em;
+/* Navbar Menu & Tools Popovers: Clean readable typography with retro Mario headers */
+.mario-menu-press2p {
+  font-family: inherit;
 }
 
-.mario-menu-press2p :is(button, select) {
-  font-size: 9px !important;
-  line-height: 1.45 !important;
+.mario-menu-press2p .font-mario {
+  font-family: 'Press Start 2P', monospace !important;
+  letter-spacing: -0.01em;
 }
 
 /* 100% Quiz Score Mario Flagpole Slide Keyframe Animation */

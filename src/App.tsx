@@ -71,6 +71,7 @@ import {
   MarioQuestionBlockIcon,
   MarioPipeIcon,
   MarioCharacterAvatar,
+  MarioWorldElementBadgeIcon,
 } from './components/MarioIcons';
 import { marioAudio } from './utils/audio';
 import {
@@ -435,6 +436,10 @@ export default function App() {
     loadUserProgression()
   );
   const [isLevelProgressionOpen, setIsLevelProgressionOpen] = useState<boolean>(false);
+  const [isToadsTrainingLogOpen, setIsToadsTrainingLogOpen] = useState<boolean>(false);
+  const [isDailyMissionsOpen, setIsDailyMissionsOpen] = useState<boolean>(false);
+  const [isGoalHistoryOpen, setIsGoalHistoryOpen] = useState<boolean>(false);
+  const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState<boolean>(false);
   const [showCoinConfetti, setShowCoinConfetti] = useState<boolean>(false);
   const [quickStudyLaunchId, setQuickStudyLaunchId] = useState<number>(0);
   const [overdueFlashcardLaunchId, setOverdueFlashcardLaunchId] = useState<number>(0);
@@ -2238,7 +2243,7 @@ export default function App() {
   return (
     <div
       data-study-font={appStudyFont}
-      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-16 antialiased theme-${activeTheme} ${appStudyFontClass} w-full max-w-full overflow-x-clip`}
+      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-16 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
     >
       {/* Main Navigation Container — Safe Top Padding so UI is never cropped on mobile */}
       <div className="sticky top-0 z-40 w-full bg-[#0f172a] safe-top-nav">
@@ -2307,6 +2312,10 @@ export default function App() {
           unlockAllRemainingLabel={unlockAllRemainingLabel}
           userProgression={userProgression}
           onOpenLevelProgression={() => setIsLevelProgressionOpen(true)}
+          onOpenDailyMissions={() => setIsDailyMissionsOpen(true)}
+          onOpenGoalHistory={() => setIsGoalHistoryOpen(true)}
+          onOpenKnowledgeGraph={() => setIsKnowledgeGraphOpen(true)}
+          onOpenToadTrainingLog={() => setIsToadsTrainingLogOpen(true)}
         />
 
         {/* Breadcrumb Navigation Trail directly below Header in 'Modules' View */}
@@ -3274,6 +3283,9 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Ambient Interactive Mario World Elements Sprinkles */}
+              <MarioWorldSprinkles onEarnCoins={handleEarnCoins} className="mb-3" />
+
               {/* Row 3.4: Mario World Elements & Mystery Power-Up Spawner */}
               <div
                 data-testid="mario-elements-powerup-bar"
@@ -3326,13 +3338,13 @@ export default function App() {
                         setActiveMarioWorldElement(elem);
                         marioAudio.playClick();
                       }}
-                      className={`min-h-[32px] px-2 py-1 rounded-lg border text-[11px] font-bold inline-flex items-center gap-1 shrink-0 cursor-pointer transition-all ${
+                      className={`min-h-[32px] px-2 py-1 rounded-lg border text-[11px] font-bold inline-flex items-center gap-1.5 shrink-0 cursor-pointer transition-all ${
                         activeMarioWorldElement?.id === elem.id
                           ? 'bg-amber-400 text-slate-950 border-black font-black'
                           : 'bg-slate-950/80 hover:bg-slate-800 text-slate-200 border-slate-700'
                       }`}
                     >
-                      <span className="text-sm">{elem.icon}</span>
+                      <MarioWorldElementBadgeIcon iconType={elem.iconType} className="w-4 h-4 shrink-0" />
                       <span className="truncate max-w-[120px]">{elem.name}</span>
                     </button>
                   ))}
@@ -3345,9 +3357,9 @@ export default function App() {
                     className="bg-slate-950/90 border border-amber-400/80 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 animate-fadeIn"
                   >
                     <div className="flex items-start gap-2.5 min-w-0">
-                      <span className="text-2xl p-2 rounded-xl bg-amber-400/20 border border-amber-400/40 shrink-0">
-                        {activeMarioWorldElement.icon}
-                      </span>
+                      <div className="w-11 h-11 p-2 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center shrink-0">
+                        <MarioWorldElementBadgeIcon iconType={activeMarioWorldElement.iconType} className="w-6 h-6 shrink-0" />
+                      </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <h4 className="font-black text-xs text-amber-300 font-mario">
@@ -4499,6 +4511,60 @@ export default function App() {
         onEquipAvatar={handleSelectAvatarPersist}
       />
 
+      {/* Toad's Training Log D3 Line Chart Modal */}
+      <ToadsTrainingLogModal
+        isOpen={isToadsTrainingLogOpen}
+        onClose={() => setIsToadsTrainingLogOpen(false)}
+        profileStats={profileStats}
+        onLaunchStudySprint={() => {
+          setIsToadsTrainingLogOpen(false);
+          setActiveTab('modules');
+        }}
+      />
+
+      {/* Daily Missions Modal */}
+      <DailyMissionModal
+        isOpen={isDailyMissionsOpen}
+        onClose={() => setIsDailyMissionsOpen(false)}
+        onClaimCoins={(amt) => handleEarnCoins(amt)}
+        onNavigateTab={(tab) => {
+          setIsDailyMissionsOpen(false);
+          setActiveTab(tab);
+        }}
+      />
+
+      {/* Daily Study Goal History Calendar Modal */}
+      <StudyGoalHistoryModal
+        isOpen={isGoalHistoryOpen}
+        onClose={() => setIsGoalHistoryOpen(false)}
+        stats={profileStats}
+        dailyGoalMinutes={dailyGoalMinutes}
+        onChangeDailyGoalMinutes={handleChangeDailyGoalMinutes}
+        loginStreak={loginStreak}
+      />
+
+      {/* Labor Law Interactive Knowledge Graph Modal */}
+      <LaborLawKnowledgeGraphModal
+        isOpen={isKnowledgeGraphOpen}
+        onClose={() => setIsKnowledgeGraphOpen(false)}
+        completedTopicIds={completedTopicIds}
+        onSelectTopicModule={(topicId, worldId) => {
+          setIsKnowledgeGraphOpen(false);
+          handleRecordAccessedTopic(topicId);
+          setActiveWorld(worldId || 'all');
+          setActiveTab('modules');
+          marioAudio.syncModuleAudio(worldId || 'world1', true);
+          setTimeout(() => {
+            const el = document.getElementById(`topic-card-${topicId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('ring-4', 'ring-amber-400');
+              setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
+            }
+          }, 150);
+        }}
+      />
+
       {/* Global Coin & Quiz Leaderboard Modal */}
       <CoinLeaderboardModal
         isOpen={isLeaderboardOpen}
@@ -4846,6 +4912,7 @@ export default function App() {
         activeWorld={activeWorld}
         activeTab={activeTab}
         onNotesChange={setStudyNotes}
+        coins={coins}
       />
 
       {/* PWA Offline Connectivity Indicator */}

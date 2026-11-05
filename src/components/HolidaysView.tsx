@@ -8,6 +8,7 @@ import {
   MarioFireFlowerIcon,
   Mario1UpIcon,
 } from './MarioIcons';
+import { FloatingMarioMysteryBlock } from './RandomMarioWorldElements';
 import {
   Calendar,
   Calculator,
@@ -370,14 +371,17 @@ export const HolidaysView: React.FC<HolidaysViewProps> = ({ fontSize, onEarnCoin
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 w-full md:w-auto shrink-0">
-            <div className="bg-slate-950/90 border-2 border-amber-400 rounded-2xl px-4 py-3 text-center">
-              <span className="text-2xl font-black text-amber-400 font-mario block leading-none">12</span>
-              <span className="text-[10px] font-black uppercase text-white mt-1 block">Regular Holidays</span>
-            </div>
-            <div className="bg-slate-950/90 border-2 border-cyan-400 rounded-2xl px-4 py-3 text-center">
-              <span className="text-2xl font-black text-cyan-300 font-mario block leading-none">200%–390%</span>
-              <span className="text-[10px] font-black uppercase text-white mt-1 block">Worked Multipliers</span>
+          <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-between md:justify-end">
+            <FloatingMarioMysteryBlock onEarnCoins={onEarnCoins} />
+            <div className="grid grid-cols-2 gap-2.5 shrink-0">
+              <div className="bg-slate-950/90 border-2 border-amber-400 rounded-2xl px-3.5 py-2.5 text-center">
+                <span className="text-xl sm:text-2xl font-black text-amber-400 font-mario block leading-none">12</span>
+                <span className="text-[10px] font-black uppercase text-white mt-1 block">Regular</span>
+              </div>
+              <div className="bg-slate-950/90 border-2 border-cyan-400 rounded-2xl px-3.5 py-2.5 text-center">
+                <span className="text-xl sm:text-2xl font-black text-cyan-300 font-mario block leading-none">390%</span>
+                <span className="text-[10px] font-black uppercase text-white mt-1 block">Max Multi</span>
+              </div>
             </div>
           </div>
         </div>

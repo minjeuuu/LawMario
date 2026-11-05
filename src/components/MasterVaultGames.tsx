@@ -1439,10 +1439,10 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
               {icon}
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-300 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-amber-300 font-mario block break-words">
                 {kickerBadge}
               </span>
-              <h3 className="text-lg sm:text-2xl font-black font-display text-white truncate">
+              <h3 className="text-lg sm:text-2xl font-black font-display text-white break-words">
                 {gameTitle}
               </h3>
             </div>
@@ -1500,7 +1500,7 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
         {phase === 'PLAYING' && currentItem && (
           <div className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-300">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-amber-300">
+              <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-amber-300 max-w-full break-words">
                 Case #{currentIdx + 1}: {currentItem.headline}
               </span>
               {streak >= 2 && (

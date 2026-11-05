@@ -16,6 +16,7 @@ import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
 import { marioAudio } from '../utils/audio';
 import { Calculator, ArrowRight, Zap, RefreshCw, Check, BookOpen } from 'lucide-react';
 import { MarioCoinIcon, MarioMushroomIcon } from './MarioIcons';
+import { FloatingMarioMysteryBlock } from './RandomMarioWorldElements';
 
 interface CalculatorProps {
   fontSize: 'normal' | 'large' | 'xlarge';
@@ -122,8 +123,11 @@ export const BenefitsCalculator: React.FC<CalculatorProps> = ({ fontSize }) => {
               Test regular workdays, rest days, special holidays, regular holidays, double holidays, overtime, and night differentials with step-by-step statutory formulas.
             </p>
           </div>
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-400 border-4 border-black rounded-2xl flex items-center justify-center shadow-[4px_4px_0_#000] shrink-0">
-            <MarioCoinIcon className="w-10 h-10 sm:w-12 sm:h-12" />
+          <div className="flex items-center gap-3 shrink-0">
+            <FloatingMarioMysteryBlock tipIndex={0} />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-400 border-4 border-black rounded-2xl flex items-center justify-center shadow-[4px_4px_0_#000] shrink-0">
+              <MarioCoinIcon className="w-10 h-10 sm:w-12 sm:h-12" />
+            </div>
           </div>
         </div>
       </div>

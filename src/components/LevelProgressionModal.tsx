@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   LEVEL_THRESHOLDS,
   getProgressionForXp,
@@ -53,7 +54,7 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
     return true;
   });
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
@@ -62,9 +63,9 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[120] bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 overflow-hidden animate-fadeIn"
+      className="fixed inset-0 z-[140] bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto overscroll-contain touch-pan-y animate-fadeIn select-none"
     >
-      <div className="bg-slate-950 border-4 border-black rounded-3xl max-w-4xl w-full shadow-[10px_10px_0_#000] text-white max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-slate-950 border-4 border-black rounded-3xl max-w-4xl w-full shadow-[10px_10px_0_#000] text-white max-h-[90vh] my-auto flex flex-col overflow-hidden touch-pan-y">
         {/* Sticky Header */}
         <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b-2 border-slate-800 flex items-center justify-between gap-2 shrink-0 bg-slate-950">
           <div className="flex items-center gap-3 min-w-0">
@@ -72,10 +73,10 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
               <Trophy className="w-6 h-6" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-300 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-amber-300 font-mario block break-words">
                 PLAYER PROGRESSION &amp; CHARACTER AVATARS
               </span>
-              <h2 className="text-base sm:text-xl font-black font-display text-white truncate">
+              <h2 className="text-base sm:text-xl font-black font-display text-white break-words">
                 Level {progression.level}: {progression.title}
               </h2>
             </div>
@@ -93,7 +94,7 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
         {/* Scrollable Modal Body */}
         <div
           data-testid="level-progression-scroll-body"
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 custom-scrollbar"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-3.5 sm:p-6 space-y-4 custom-scrollbar select-text"
         >
           {/* Current Level XP Gauge Card */}
           <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-amber-950 border-2 border-amber-400/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-inner">
@@ -245,18 +246,18 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
                       <Lock className="w-4 h-4 text-slate-500" />
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-black text-white truncate">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-sm font-black text-white break-words">
                         {threshold.title}
                       </h4>
                       {isCurrent && (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[9px] font-mario">
+                        <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[9px] font-mario shrink-0">
                           CURRENT
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-300 font-semibold truncate">
+                    <p className="text-[11px] text-slate-300 font-semibold break-words">
                       {threshold.perkDescription}
                     </p>
                     <span className="text-[10px] font-mono text-amber-300/80">
@@ -313,6 +314,8 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export const LevelUpCelebrationModal: React.FC<{
@@ -325,13 +328,13 @@ export const LevelUpCelebrationModal: React.FC<{
 }> = ({ isOpen, onClose, newLevel, newTitle, newlyUnlockedAvatars, onEquipAvatar }) => {
   if (!isOpen) return null;
 
-  return (
+  const content = (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Level Up Celebration"
       data-testid="level-up-celebration-dialog"
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overscroll-contain animate-fadeIn"
+      className="fixed inset-0 z-[140] bg-black/90 backdrop-blur-md flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overscroll-contain animate-fadeIn"
     >
       <div className="bg-slate-950 border-4 border-amber-400 rounded-3xl max-w-lg w-full max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] overflow-y-auto overscroll-contain p-5 sm:p-6 shadow-[10px_10px_0_#000] text-white text-center space-y-5 my-auto animate-scaleUp">
         {/* Mario Level Complete Star Banner */}
@@ -394,4 +397,6 @@ export const LevelUpCelebrationModal: React.FC<{
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 };

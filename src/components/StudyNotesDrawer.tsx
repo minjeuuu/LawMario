@@ -44,11 +44,13 @@ import {
 } from '../utils/studyPlannerAndNotes';
 import { WORLDS_METADATA, ALL_LAW_TOPICS } from '../data/laborLawData';
 import { marioAudio } from '../utils/audio';
+import { MarioCoinIcon } from './MarioIcons';
 
 interface StudyNotesDrawerProps {
   activeWorld: string;
   activeTab: string;
   onNotesChange?: (notes: StudyNoteItem[]) => void;
+  coins?: number;
 }
 
 const QUICK_MNEMONIC_TEMPLATES: { label: string; worldTag: string; title: string; content: string }[] = [
@@ -88,6 +90,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
   activeWorld,
   activeTab,
   onNotesChange,
+  coins = 0,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [notes, setNotes] = useState<StudyNoteItem[]>(() =>
@@ -443,14 +446,24 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                   </h2>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                aria-label="Close Study Notes Drawer"
-                className="min-w-[44px] min-h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <div
+                  data-testid="study-notes-coin-badge"
+                  title={`Session Rewards: ${coins} Coins Collected`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-400 text-slate-950 font-black text-xs border border-black shadow-[0_1px_0_#000]"
+                >
+                  <MarioCoinIcon className="w-4 h-4" />
+                  <span className="font-mono font-black">{coins}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Close Study Notes Drawer"
+                  className="min-w-[44px] min-h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Mode Tabs: Saved Notes vs. Weekly Study Planner */}

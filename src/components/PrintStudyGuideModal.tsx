@@ -178,9 +178,18 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [candidateName, setCandidateName] = useState('');
   const [pdfDownloadedNotice, setPdfDownloadedNotice] = useState(false);
   const [pdfEngineMode, setPdfEngineMode] = useState<'vector' | 'canvas'>('vector');
-  const [formatOptions, setFormatOptions] = useState<PrintGuideFormatOptions>(
-    DEFAULT_PRINT_FORMAT_OPTIONS
-  );
+  const [formatOptions, setFormatOptions] = useState<PrintGuideFormatOptions>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mario_print_format_options_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return { ...DEFAULT_PRINT_FORMAT_OPTIONS, ...parsed };
+        }
+      } catch {}
+    }
+    return DEFAULT_PRINT_FORMAT_OPTIONS;
+  });
   const [selectedWorlds, setSelectedWorlds] = useState<string[]>(() =>
     WORLDS_METADATA.map((w) => w.id)
   );
@@ -576,7 +585,15 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     value: PrintGuideFormatOptions[K]
   ) => {
     marioAudio.playClick();
-    setFormatOptions((prev) => ({ ...prev, [key]: value }));
+    setFormatOptions((prev) => {
+      const next = { ...prev, [key]: value };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('mario_print_format_options_v1', JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
   };
 
   const handleDownloadPdf = async () => {
@@ -2691,7 +2708,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     style={activeSheetDynamicStyle}
                     className={`${summaryPaperBgClass} text-slate-950 ${marginPaddingClass} ${fontScaleClass} ${
                       isCompact ? 'space-y-4' : 'space-y-7'
-                    } w-full ${bodyFontClass} relative overflow-hidden ${
+                    } w-full ${bodyFontClass} relative overflow-hidden select-text allow-text-select ${
                       isLivePreviewMode
                         ? 'rounded-md border-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
                         : 'rounded-2xl shadow-2xl'

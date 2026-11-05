@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   marioAudio,
   AudioSettings,
@@ -142,14 +143,14 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
   const isMusicActive = settings.enabled && settings.musicEnabled;
 
-  return (
+  const modal = (
     <div
       role="dialog"
       aria-label="Mushroom Sound Settings"
       data-testid="audio-settings-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/75 backdrop-blur-xs select-none print:hidden"
+      className="fixed inset-0 z-[140] flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-xs overflow-y-auto overscroll-contain touch-pan-y select-none print:hidden"
     >
-      <div className="bg-[#1e293b] text-white w-full max-w-lg rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-x-hidden overflow-y-hidden flex flex-col max-h-[92dvh]">
+      <div className="bg-[#1e293b] text-white w-full max-w-lg rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden flex flex-col max-h-[90vh] my-auto">
         {/* Modal Header */}
         <div className="bg-[#0f172a] p-3.5 sm:p-5 border-b-3 border-slate-700 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -177,7 +178,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-3.5 sm:p-6 space-y-5 overflow-y-auto overflow-x-hidden flex-1">
+        <div className="p-3.5 sm:p-6 space-y-5 overflow-y-auto overscroll-contain touch-pan-y flex-1 min-h-0">
           {/* Master Sound Switch */}
           <div className="bg-slate-900/90 rounded-2xl p-3.5 sm:p-4 border-2 border-slate-700 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -827,8 +828,8 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
 
           {/* Daily Study Goal Customizer (15m to 120m in 15-Minute Increments) */}
           <div className="bg-slate-900/90 rounded-2xl p-3.5 border border-slate-700 space-y-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
                 <span className="text-xs font-black text-amber-300 block">
                   Daily Study Goal Target
                 </span>
@@ -848,7 +849,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                   onChangeDailyGoalMinutes?.(next);
                   marioAudio.playCoin();
                 }}
-                className="min-h-[36px] px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer tabular-nums whitespace-nowrap"
+                className="min-h-[36px] px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer tabular-nums max-w-full leading-tight text-center"
               >
                 Daily Goal: {normalizeDailyGoalMinutes(dailyGoalMinutes)}m (+15m)
               </button>
@@ -905,4 +906,6 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 };

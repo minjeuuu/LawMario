@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Download, Smartphone, Share, PlusSquare, CheckCircle2, X, WifiOff } from 'lucide-react';
 import { usePWAInstall, useOnlineStatus } from '../utils/usePWAInstall';
 import { marioAudio } from '../utils/audio';
@@ -51,84 +52,87 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         </span>
       </button>
 
-      {showGuideModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs select-none print:hidden">
-          <div className="w-full max-w-md rounded-3xl bg-[#1e293b] text-white border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden">
-            <div className="bg-[#0f172a] p-4 border-b-2 border-slate-700 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-cyan-400 border-2 border-black flex items-center justify-center text-slate-950">
-                  <Smartphone className="w-5 h-5" />
+      {showGuideModal &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xs overflow-y-auto overscroll-contain touch-pan-y select-none print:hidden">
+            <div className="w-full max-w-md my-auto rounded-3xl bg-[#1e293b] text-white border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden flex flex-col max-h-[90vh] font-sans">
+              <div className="bg-[#0f172a] p-4 border-b-2 border-slate-700 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-cyan-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-black uppercase text-cyan-300 font-sans tracking-wider block">
+                      OFFLINE-READY PWA
+                    </span>
+                    <h3 className="text-base sm:text-lg font-black text-white font-display truncate">
+                      Install Super Mario Labor Adventure
+                    </h3>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase text-cyan-300 font-mario block">
-                    OFFLINE-READY PWA
-                  </span>
-                  <h3 className="text-base sm:text-lg font-black text-white font-display">
-                    Install Super Mario Labor Adventure
-                  </h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowGuideModal(false)}
-                aria-label="Close Install Guide"
-                className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4 text-xs sm:text-sm">
-              <div className="bg-emerald-950/60 border border-emerald-500/40 rounded-2xl p-3 flex items-start gap-2.5">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                <p className="text-emerald-100 font-semibold leading-relaxed">
-                  Service Worker &amp; Offline Cache active! Once installed, all 5 Worlds, Holidays, Calculators, Flashcards, and Study Notes work offline.
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowGuideModal(false)}
+                  aria-label="Close Install Guide"
+                  className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              {isIOS ? (
-                <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 space-y-2.5">
-                  <h4 className="font-black text-amber-300 uppercase text-xs font-mario">
-                    iPhone / iPad Safari Steps
-                  </h4>
-                  <ol className="space-y-2 text-slate-200 font-semibold">
-                    <li className="flex items-center gap-2">
-                      <Share className="w-4 h-4 text-cyan-400 shrink-0" />
-                      <span>1. Tap the <strong>Share</strong> icon in your Safari toolbar.</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <PlusSquare className="w-4 h-4 text-amber-400 shrink-0" />
-                      <span>2. Scroll down and tap <strong>Add to Home Screen</strong>.</span>
-                    </li>
-                  </ol>
+              <div className="p-4 sm:p-5 space-y-4 text-xs sm:text-sm overflow-y-auto overscroll-contain touch-pan-y flex-1 font-sans">
+                <div className="bg-emerald-950/60 border border-emerald-500/40 rounded-2xl p-3 flex items-start gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <p className="text-emerald-100 font-semibold leading-relaxed">
+                    Service Worker &amp; Offline Cache active! Once installed, all 6 Worlds, Holidays, Calculators, Flashcards, and Study Notes work offline.
+                  </p>
                 </div>
-              ) : (
-                <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 space-y-2.5">
-                  <h4 className="font-black text-amber-300 uppercase text-xs font-mario">
-                    Chrome / Edge / Android Steps
-                  </h4>
-                  <ol className="space-y-2 text-slate-200 font-semibold list-decimal pl-4">
-                    <li>
-                      Open this app in its full browser tab (if viewing inside an embedded preview frame).
-                    </li>
-                    <li>
-                      Click the <strong>Install MarioLaw</strong> icon in your browser&apos;s address bar or browser menu (<strong>Install app / Add to Home screen</strong>).
-                    </li>
-                  </ol>
-                </div>
-              )}
 
-              <button
-                type="button"
-                onClick={() => setShowGuideModal(false)}
-                className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs font-mario border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
-              >
-                GOT IT!
-              </button>
+                {isIOS ? (
+                  <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 space-y-2.5 font-sans">
+                    <h4 className="font-black text-amber-300 uppercase text-xs tracking-wider">
+                      iPhone / iPad Safari Steps
+                    </h4>
+                    <ol className="space-y-2 text-slate-200 font-semibold">
+                      <li className="flex items-center gap-2">
+                        <Share className="w-4 h-4 text-cyan-400 shrink-0" />
+                        <span>1. Tap the <strong>Share</strong> icon in your Safari toolbar.</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <PlusSquare className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>2. Scroll down and tap <strong>Add to Home Screen</strong>.</span>
+                      </li>
+                    </ol>
+                  </div>
+                ) : (
+                  <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 space-y-2.5 font-sans">
+                    <h4 className="font-black text-amber-300 uppercase text-xs tracking-wider">
+                      Chrome / Edge / Android Steps
+                    </h4>
+                    <ol className="space-y-2 text-slate-200 font-semibold list-decimal pl-4">
+                      <li>
+                        Open this app in its full browser tab (if viewing inside an embedded preview frame).
+                      </li>
+                      <li>
+                        Click the <strong>Install MarioLaw</strong> icon in your browser&apos;s address bar or browser menu (<strong>Install app / Add to Home screen</strong>).
+                      </li>
+                    </ol>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowGuideModal(false)}
+                  className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs font-sans tracking-wider border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+                >
+                  GOT IT!
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };

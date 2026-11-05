@@ -7,6 +7,7 @@ import { Game3D } from './Game3D';
 import { CourtroomBossBattle } from './CourtroomBossBattle';
 import { WarpPipeSorter } from './WarpPipeSorter';
 import { LawCatcherGame } from './LawCatcherGame';
+import { CoinRushArcadeGame } from './CoinRushArcadeGame';
 import {
   WhackAGoombaGame,
   MultiplierMemoryGame,
@@ -137,6 +138,7 @@ interface GameVaultProps {
 }
 
 export type VaultGameId =
+  | 'coin_rush'
   | 'pipe_whack_violation'
   | 'yoshi_egg_catch'
   | 'luigi_ghost_clause'
@@ -458,6 +460,15 @@ export const GameVault: React.FC<GameVaultProps> = ({
     icon: React.ReactNode;
     category: GameVaultCategory;
   }[] = [
+    {
+      id: 'coin_rush',
+      title: 'Mario Coin Rush: Labor Obstacle Run',
+      genre: 'Interactive Platformer Runner',
+      desc: 'Navigate your hero across floating brick platforms to collect statutory coins and Star Power while dodging Labor Violations and Thwomps! Features Race Against Your Ghost!',
+      badge: 'COIN RUSH',
+      icon: <MarioCoinIcon className="w-6 h-6 text-amber-400" />,
+      category: 'action_reflex',
+    },
     {
       id: 'pipe_whack_violation',
       title: 'Warp Pipe Whack-a-Violation',
@@ -1284,6 +1295,12 @@ export const GameVault: React.FC<GameVaultProps> = ({
         className="relative z-10 select-none w-full max-w-full min-w-0"
         onContextMenu={(e) => e.preventDefault()}
       >
+        {activeGame === 'coin_rush' && (
+          <CoinRushArcadeGame
+            equippedAvatar={equippedAvatar}
+            onEarnCoins={handleEarnCoins}
+          />
+        )}
         {activeGame === 'pipe_whack_violation' && (
           <WarpPipeWhackAViolationGame
             equippedAvatar={equippedAvatar}

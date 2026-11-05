@@ -675,7 +675,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
         createPortal(
           <div
             data-testid="fullscreen-flashcards-exam-overlay"
-            className="fixed inset-0 z-[120] w-full min-h-screen overflow-y-auto bg-[#070b14] text-white flex flex-col justify-between p-3 sm:p-6 select-none"
+            className="fixed inset-0 z-[130] w-full max-w-full overflow-y-auto overscroll-contain touch-pan-y bg-[#070b14] text-white flex flex-col p-3 sm:p-6 select-none"
           >
             {/* Compact Top Focus Bar */}
             <div className="max-w-3xl w-full mx-auto flex items-center justify-between gap-2 border-b-2 border-slate-800 pb-3 shrink-0">
@@ -742,7 +742,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             </div>
 
             {/* Centered Single-Viewport Stage */}
-            <div className="max-w-3xl w-full mx-auto my-auto flex-1 flex flex-col justify-center py-4">
+            <div className="max-w-3xl w-full mx-auto my-auto flex-1 flex flex-col justify-center py-4 min-w-0">
               {isExamTimerPaused ? (
                 <div className="bg-slate-900 border-4 border-slate-800 rounded-3xl p-6 text-center space-y-4">
                   <div className="w-14 h-14 rounded-2xl bg-amber-400 text-slate-950 mx-auto flex items-center justify-center border-2 border-black">
@@ -796,7 +796,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
                   </div>
                 </div>
               ) : activeCard ? (
-                <div className="bg-white text-slate-950 rounded-3xl border-4 border-slate-950 p-4 sm:p-6 space-y-3.5 shadow-2xl max-h-full overflow-y-auto overscroll-contain">
+                <div className="bg-white text-slate-950 rounded-3xl border-4 border-slate-950 p-4 sm:p-6 space-y-3.5 shadow-2xl w-full min-w-0">
                   <div className="flex items-center justify-between gap-2 border-b-2 border-slate-200 pb-2.5">
                     <span className="text-xs font-black uppercase text-amber-700 font-mario tabular-nums">
                       CARD {currentIndex + 1} OF {filteredCards.length} · WORLD {activeCard.world}

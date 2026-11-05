@@ -43,6 +43,7 @@ import {
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
 import { resolveUniversalCardFrame } from '../utils/round12Features';
+import { MarioWorldCardBackdrop } from './MarioWorldCardBackdrop';
 import {
   MarioMushroomIcon,
   MarioFireFlowerIcon,
@@ -1272,6 +1273,9 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
           : 'border-4 border-slate-900 dark:border-slate-700'
       }`}
     >
+      {/* Subtle Mario World background elements (clouds/stars) clamped inside card */}
+      <MarioWorldCardBackdrop worldId={topic.worldId} />
+
       {/* Green Mario 'Level Complete' Star Burst Micro-Animation */}
       <AnimatePresence>
         {showLevelCompleteBurst && (
@@ -1803,10 +1807,10 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
               </div>
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-black uppercase text-amber-300 font-mario truncate">
+                  <span className="text-[10px] font-black uppercase text-amber-300 font-mario break-words">
                     MARIO DOCTRINE ANALOGY · {marioElement.name}
                   </span>
-                  <span className="text-[9px] font-mono text-cyan-300 font-bold">
+                  <span className="text-[9px] font-mono text-cyan-300 font-bold break-words">
                     {marioElement.statuteCitation}
                   </span>
                 </div>
