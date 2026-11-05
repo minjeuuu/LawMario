@@ -219,7 +219,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   onRecordSectionAnswer,
 }) => {
   const resolvedQuizFrame = resolveUniversalCardFrame(equippedCardFrame);
-  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(false);
   const [activeMode, setActiveMode] = useState<
     | 'quick'
     | 'exam_sim'
@@ -2428,7 +2428,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           }}
           className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase rounded-xl border border-black shadow cursor-pointer transition-all shrink-0 whitespace-nowrap"
         >
-          {showHeatmap ? 'Hide 30d Heatmap' : 'View 30d Heatmap'}
+          {showHeatmap ? 'Hide 30d Heatmap' : 'Show 30d Heatmap'}
         </button>
       </div>
 

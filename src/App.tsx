@@ -303,6 +303,94 @@ const TOAD_PRO_TIPS = [
     title: 'Two-Notice Rule in Just Cause Dismissals',
     tip: 'King of Kings rule: 1st notice (specific acts with at least 5 calendar days to explain), hearing/conference, and 2nd notice (decision indicating grounds). Failure gives P30,000 nominal damages.',
   },
+  {
+    title: 'Separation Pay Distinctions (Art. 298)',
+    tip: 'Redundancy pays at least ONE MONTH salary per year of service. Retrenchment to prevent losses, closure, and disease pay at least ONE-HALF MONTH salary per year of service (minimum 1 month). Memorize this 1-month vs 1/2-month split!',
+  },
+  {
+    title: 'Service Incentive Leave (SIL) Cash Commutation',
+    tip: 'Employees with at least 1 year of service get 5 days SIL. Crucial bar tip: Unused SIL is legally commutable to its cash equivalent at the end of the year or upon separation from employment!',
+  },
+  {
+    title: 'Service Charges Distribution (R.A. 11360)',
+    tip: '100% of all service charges collected by hotels and restaurants must be distributed completely and equally among all rank-and-file and supervisory workers. Management is strictly excluded!',
+  },
+  {
+    title: 'Floating Status 6-Month Ceiling (Art. 301)',
+    tip: 'Bona fide suspension of business operations or temporary off-detail cannot exceed 6 months. If work does not resume after 6 months, the worker is considered constructively illegally dismissed!',
+  },
+  {
+    title: 'Bona Fide Occupational Qualification (BFOQ)',
+    tip: 'To justify discriminatory employment requirements (like age, marital status, or gender), the employer must prove: (1) The job demand requires it, and (2) There is no reasonable alternative (Star Paper Corp. v. Simbol).',
+  },
+  {
+    title: 'Wage Distortion Restoration Formula',
+    tip: 'When a wage order raises minimum wage and obliterates the wage gap between higher and lower salary grades, the statutory formula is: (Minimum Wage Increase / Old Wage) x Previous Wage Difference!',
+  },
+  {
+    title: 'Overtime on Scheduled Rest Day',
+    tip: 'Work on a scheduled rest day pays 130%. If the employee performs OVERTIME work on that rest day, each OT hour pays an additional 30% of the rest day hourly rate (130% x 1.30 = 169% of basic hourly rate)!',
+  },
+  {
+    title: 'Paternity Leave Conditions (R.A. 8187)',
+    tip: '7 days with full pay for the first 4 deliveries or miscarriages of the legitimate spouse with whom the husband cohabits. It cannot be converted to cash if unused.',
+  },
+  {
+    title: 'VAWC 10-Day Paid Leave (R.A. 9262)',
+    tip: 'Victims of physical, psychological, sexual, or economic violence are entitled to 10 days paid leave to attend medical, legal, and counseling needs. Extendible upon court certification!',
+  },
+  {
+    title: 'Special Leave for Women (R.A. 9710)',
+    tip: 'Female employees who undergo surgery caused by gynecological disorders are entitled to up to 2 months paid leave following surgery, provided they rendered at least 6 months continuous aggregate service.',
+  },
+  {
+    title: 'Labor-Only Contracting vs Permissible (D.O. 174)',
+    tip: 'Labor-only contracting exists if contractor lacks substantial capital (P5M paid-up capital/net worth) OR the workers perform activities directly related to principal business. Result: Principal is deemed direct employer!',
+  },
+  {
+    title: 'In Dubio Pro Operario (Art. 4, Labor Code)',
+    tip: 'All doubts in the implementation and interpretation of labor laws, including implementing rules and employment contracts, must be resolved in favor of labor. The scales of justice tip toward the working person!',
+  },
+  {
+    title: 'Substantial Evidence Standard (Art. 227)',
+    tip: 'The quantum of proof in labor and administrative proceedings is Substantial Evidence: that amount of relevant evidence which a reasonable mind might accept as adequate to justify a conclusion.',
+  },
+  {
+    title: 'Thirty-Day Advance Written Notice (Jaka Doctrine)',
+    tip: 'For authorized-cause dismissals (retrenchment, redundancy, closure), written notice must be served to BOTH the employee and the DOLE Regional Office at least 30 calendar days prior. Failure yields P50,000 nominal damages!',
+  },
+  {
+    title: 'Preventive Suspension 30-Day Limit',
+    tip: 'An employee under investigation may be placed on preventive suspension if their continued presence poses a threat to life or property, capped strictly at 30 days. Beyond 30 days, payroll reinstatement is mandatory!',
+  },
+  {
+    title: 'Strained Relations Doctrine',
+    tip: 'When illegal dismissal is found but animosity between employer and employee is so deep that harmonious relations are impossible, separation pay of 1 month per year of service is awarded IN LIEU OF reinstatement.',
+  },
+  {
+    title: 'Meal Period Rules (Art. 85)',
+    tip: 'Regular meal period must be not less than 60 minutes time-off without pay. If shortened to not less than 20 minutes under emergency/hazardous conditions, the entire 20 minutes MUST be counted as compensable hours worked!',
+  },
+  {
+    title: 'Telecommuting Equal Treatment (R.A. 11165)',
+    tip: 'Telecommuting / work-from-home employees must receive equal treatment: same rate of pay, overtime entitlements, leave benefits, promotion opportunities, and collective bargaining rights as on-site workers.',
+  },
+  {
+    title: 'Constructive Dismissal Test',
+    tip: 'Constructive dismissal is an involuntary resignation when continued employment is rendered impossible, unreasonable, or unlikely, or involves a clear demotion in rank or diminution in pay (Globe Telecom v. Florendo).',
+  },
+  {
+    title: 'Union Security Clauses',
+    tip: 'A CBA Closed-Shop clause requires the employer to hire only union members who must maintain membership in good standing. An Agency-Fee clause requires non-union members who accept CBA benefits to pay agency fees.',
+  },
+  {
+    title: 'Going and Coming Rule & Proximity Exception',
+    tip: 'Injuries sustained traveling to or from work are generally non-compensable under ECC, EXCEPT when within the premises proximity, on a special errand for the boss, or riding company-provided transportation.',
+  },
+  {
+    title: 'Doctrine of Immutability of Final Labor Judgments',
+    tip: 'Once an NLRC or Court of Appeals labor judgment attains finality, it becomes immutable and unalterable even by the highest court, barring supervening events or nunc pro tunc clerical corrections.',
+  },
 ];
 
 export default function App() {

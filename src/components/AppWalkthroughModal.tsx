@@ -19,21 +19,30 @@ import {
   Gamepad2,
   Award,
   Volume2,
+  VolumeX,
   Search,
   Layers,
   ChevronDown,
   ChevronUp,
   RotateCcw,
-  VolumeX,
-  Volume1,
-  Printer,
   Sparkles,
   MousePointerClick,
   Sliders,
-  Share2,
-  ShieldAlert,
-  Music,
   MapPin,
+  Music,
+  Scale,
+  BookmarkPlus,
+  Eye,
+  EyeOff,
+  Flame,
+  Zap,
+  Hammer,
+  Shield,
+  Coins,
+  FileText,
+  Printer,
+  Shuffle,
+  Check,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -41,6 +50,9 @@ import {
   MarioCoinIcon,
   MarioMushroomIcon,
   MarioStarIcon,
+  Mario1UpIcon,
+  MarioFireFlowerIcon,
+  MarioBowserIcon,
 } from './MarioIcons';
 import { MarioAvatar, StudyDifficulty } from '../types/laborLaw';
 import { HERO_ROSTER } from '../data/heroesData';
@@ -75,7 +87,227 @@ interface ButtonDirectoryItem {
   targetTab?: string;
 }
 
-const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
+interface ModalGuideItem {
+  id: string;
+  name: string;
+  category: string;
+  badge: string;
+  summary: string;
+  primaryFeatures: string[];
+  keyButtons: { name: string; role: string; shortcut?: string }[];
+  proTip: string;
+}
+
+export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
+  {
+    id: 'modal_print_studio',
+    name: 'Print Studio & High-DPI Reviewer',
+    category: 'Study Tools & Offline',
+    badge: 'A4 PDF Builder',
+    summary:
+      'Generates publication-quality single-page A4 memory aids, multi-page comprehensive reviewers, portrait diplomas, and score cards with true embedded fonts.',
+    primaryFeatures: [
+      'Choose from 24 studio color themes (Classic NES, Emerald Pipe, Royal Gold, Super Star, Cyberpunk, etc.)',
+      'Select from 20 professional and accessibility fonts (Press Start 2P, Playfair Display, Cinzel, Lexend, Atkinson Hyperlegible)',
+      'Responsive zoom preview: Fit Width, 100% Crisp, or Whole Page view',
+      '100% offline generation with zero network requirement',
+    ],
+    keyButtons: [
+      { name: 'Download PDF', role: 'Exports clean binary PDF file directly to device storage' },
+      { name: 'Copy Plain Text', role: 'Copies complete formatted codal text to clipboard' },
+      { name: 'Print Page', role: 'Opens system browser print dialog for paper printing' },
+      { name: 'Theme Palettes', role: 'Instantly applies custom color styling across preview and export' },
+    ],
+    proTip: 'For the ultimate one-sheet exam cramming, pick the 1-Page Summary layout with Atkinson Hyperlegible font!',
+  },
+  {
+    id: 'modal_statute_lookup',
+    name: 'Statute & Codal Jurisprudence Lookup',
+    category: 'Codal Repertory',
+    badge: 'Search Engine',
+    summary:
+      'Instant search engine for all Philippine Labor Code articles, Republic Acts, and Supreme Court landmark rulings with exact verbatim text and bar tips.',
+    primaryFeatures: [
+      'Search by article number (e.g., "83", "87"), law ("RA 11210"), or doctrine keywords ("control test")',
+      'Listen aloud to statutory provisions with Web Speech synthesis',
+      'One-tap Save Note integration directly into Study Notes Drawer',
+      'Quick jump to corresponding module study deck',
+    ],
+    keyButtons: [
+      { name: 'Quick Statute Chips', role: 'Instant one-click shortcuts to top-tested articles (Art. 82, 87, 94, 100, 297)' },
+      { name: 'Save Note', role: 'Saves complete codal provision and SC doctrines into your personal notebook' },
+      { name: 'Listen / Stop', role: 'Reads aloud the statutory doctrine using natural speech synthesis' },
+      { name: 'Study Module', role: 'Transports you directly to the relevant world learning deck' },
+    ],
+    proTip: 'Press ESC anytime to quickly close the lookup modal and resume your current study session.',
+  },
+  {
+    id: 'modal_study_notes',
+    name: 'Study Notes & Doctrine Drawer',
+    category: 'Personal Notebook',
+    badge: 'Notebook',
+    summary:
+      'Your persistent personal legal notebook for saving missed quiz doctrines, verbatim statutory provisions, pinned rules, and custom study notes.',
+    primaryFeatures: [
+      'Filter by category tags: Key Doctrine, Statutory Limit, Memorize, or Quiz Errors',
+      'Organized markdown and plain-text note editor with instant local persistence',
+      'Export All Notes (.txt) with automated clipboard copy and file download',
+      'Visual badge markers for missed codal review doctrines and rule citations',
+    ],
+    keyButtons: [
+      { name: 'New Note', role: 'Opens editor to draft custom study insights and rule summaries' },
+      { name: 'Quiz Errors Filter', role: 'Filters notebook strictly to review takeaways from missed quiz items' },
+      { name: 'Export Notes (.txt)', role: 'Downloads complete study notebook as a clean organized study reviewer' },
+      { name: 'Pin Note', role: 'Pins crucial bar doctrines to the top of your notebook list' },
+    ],
+    proTip: 'Whenever you miss an answer in any quiz, click "Save Error to Notes" to build an automatic weakness notebook!',
+  },
+  {
+    id: 'modal_toads_training_log',
+    name: 'Toad’s Training Log & Milestone Streaks',
+    category: 'Telemetry & Habits',
+    badge: 'Analytics',
+    summary:
+      'Visualizes your weekly study time and daily quiz accuracy in an interactive Mario-themed D3 line chart with 5-day flagpole bonuses.',
+    primaryFeatures: [
+      'Interactive D3 dual-axis line chart tracking daily minutes studied and quiz completion rates',
+      'Visual Flagpole streak indicator awarding bonus XP and badge multipliers on 5-day streaks',
+      'Historical daily study calendar tracking all milestone achievement days',
+      'Weekly performance rank appraisal with custom Mario guidance',
+    ],
+    keyButtons: [
+      { name: 'Flagpole Streak', role: 'Displays active consecutive study days and next milestone bonus' },
+      { name: '7-Day D3 Points', role: 'Hover or tap chart points to view exact minutes and quiz accuracy for that day' },
+      { name: 'History Calendar', role: 'Opens calendar view of all completed daily study goal days' },
+      { name: 'Close Training Log', role: 'Returns to the main dashboard' },
+    ],
+    proTip: 'Hit a 5-day quiz streak to unlock the Fire Flower badge and earn a permanent 1.5x coin multiplier!',
+  },
+  {
+    id: 'modal_daily_missions',
+    name: 'Daily Mission & Bounty Board',
+    category: 'Quests & Goals',
+    badge: 'Bounties',
+    summary:
+      'Refreshes every 24 hours with three targeted study tasks like mastering a topic, performing quick quizzes, or logging focus time.',
+    primaryFeatures: [
+      '3 randomized daily study missions with real-time percentage progress bars',
+      'Gold coin and XP bounties awarded instantly upon completing each task',
+      'Midnight countdown timer indicating when fresh bounties arrive',
+      'Visual mission completion stamps with celebratory audio',
+    ],
+    keyButtons: [
+      { name: 'Claim Bounty', role: 'Collects gold coins and experience points for completed missions' },
+      { name: 'Go To Mission', role: 'Directly navigates to the relevant world, quiz arena, or timer' },
+      { name: 'Close Bounties', role: 'Closes board to resume studying' },
+    ],
+    proTip: 'Complete all 3 missions in a single day to claim the Super Star 2x Coin Rush bonus for 10 minutes!',
+  },
+  {
+    id: 'modal_audio_synthesizer',
+    name: 'Sound Synthesizer & Audio Packs',
+    category: 'Audio Controls',
+    badge: 'Chiptune Synthesizer',
+    summary:
+      'Controls the 15 distinct Mario audio packs, ambient focus soundscapes, volume mixers, and Toadify voice synthesizer.',
+    primaryFeatures: [
+      'Choose from 15 custom sound packs: NES 1985, Super Mario World 16-bit, N64, Mario Kart, Galaxy, and Lo-Fi Study Chiptune',
+      'Toggle Toadify synthesizer to convert notifications into playful Toad chattered sound effects',
+      'Select from 4 ambient study soundscapes (Mushroom Kingdom Rain, Lo-Fi Castle Fire, Pipe Ambience, Star Road Drone)',
+      'Independent volume sliders for background BGM and sound effects (SFX)',
+    ],
+    keyButtons: [
+      { name: 'Mute / Unmute All', role: 'Global mute toggle (can also press M on physical keyboards)' },
+      { name: 'Equip Audio Pack', role: 'Activates selected sound pack and persists preference in storage' },
+      { name: 'Toadify Voice Toggle', role: 'Toggles Toad voice modulation on study notifications and alerts' },
+      { name: 'Preview SFX', role: 'Plays sample jump, coin, and power-up sounds for the selected pack' },
+    ],
+    proTip: 'Turn on the Star Road Drone soundscape while reading long verbatim codal provisions to stay deeply focused.',
+  },
+  {
+    id: 'modal_player_progression',
+    name: 'Player Progression & Level Roadmap',
+    category: 'Progression & Heroes',
+    badge: 'Levels 1–35',
+    summary:
+      'Complete progression roadmap mapping your total XP to 35 character levels, unlocking new Mario avatars and titles along the way.',
+    primaryFeatures: [
+      'Real-time level progress bar displaying XP earned vs XP needed for next level',
+      'Hero roster of 34 Mario characters (Mario, Luigi, Peach, Bowser, Yoshi, Toadette, Rosalina, Geno, etc.)',
+      'Level title roadmap from Level 1 Novice Toad to Level 35 Supreme Chief Justice of the Mushroom Court',
+      'Instant equip hero button for unlocked character avatars',
+    ],
+    keyButtons: [
+      { name: 'Equip Hero Avatar', role: 'Equips unlocked character as your active profile and quiz avatar' },
+      { name: 'Filter Unlocked / Locked', role: 'Filters character roadmap by unlock status' },
+      { name: 'Close Roadmap', role: 'Returns to current screen' },
+    ],
+    proTip: 'Playing Practice Arena quizzes and completing unbroken 25-minute Pomodoro sessions award the highest XP rates!',
+  },
+  {
+    id: 'modal_courtroom_boss',
+    name: 'Courtroom Bowser Boss Battle',
+    category: 'Combat Quizzes',
+    badge: 'Tribunal Boss',
+    summary:
+      'Turn-based legal battle against Employer Bowser where you file statutory objections and motions to dismantle his labor violations.',
+    primaryFeatures: [
+      'Turn-based courtroom combat featuring Player HP vs Bowser HP (200 HP)',
+      'Four distinct statutory legal moves: 8-Hour Fireball, Maternity Hammer, Non-Diminution Shield, and D.O. 174 Ultra Stomp',
+      'Counter-motion bonus damage when targeting Bowser’s specific statutory weakness',
+      'Equipped Toad Shop items (1-Up Life Ring, Star Shield, Double Coin Mushroom) activate automatically',
+    ],
+    keyButtons: [
+      { name: 'Statutory Attack Moves', role: 'Fires statutory legal actions inflicting direct damage on Bowser' },
+      { name: 'Non-Diminution Shield', role: 'Deploys protective shield restoring HP and blocking illegal deductions' },
+      { name: 'Reset Trial', role: 'Restarts the boss battle gauntlet from Round 1' },
+    ],
+    proTip: 'Equip the 1-Up Life Ring from Toad’s Shop to enter the battle with 130 HP instead of 100 HP!',
+  },
+  {
+    id: 'modal_exam_focus_mode',
+    name: 'Exam Focus Mode',
+    category: 'Deep Study',
+    badge: 'Distraction-Free',
+    summary:
+      'Stripped-down, full-screen reading environment eliminating navigation bars and sidebars for pure legal immersion.',
+    primaryFeatures: [
+      'Full-screen centered viewport (fixed inset-0 with clean overflow-y-auto)',
+      'Adjustable typography sizing with zero horizontal scrolling or clipping',
+      'Clean statutory provision viewer with high-contrast text',
+      'Instant quick-exit button returning to the standard module deck',
+    ],
+    keyButtons: [
+      { name: 'Exit Focus Mode', role: 'Exits full-screen focus and restores navigation bars' },
+      { name: 'Text Size (A- / A+)', role: 'Enlarges or reduces font size for comfortable reading' },
+      { name: 'Toggle Cloze Words', role: 'Toggles fill-in-the-blank hiding for memory testing' },
+    ],
+    proTip: 'Use Exam Focus Mode during final study sprints to eliminate visual noise and build deep memory retention.',
+  },
+  {
+    id: 'modal_user_profile',
+    name: 'User Profile & Hero Card',
+    category: 'Profile & Telemetry',
+    badge: 'Player Card',
+    summary:
+      'Your comprehensive bar candidate dossier with avatar customization, 30-day performance heatmap, achievement trophies, and boss rank records.',
+    primaryFeatures: [
+      'Editable player name with active Mario title and equipped companion badge',
+      'Collapsible 30-day quiz performance heatmap visualizing missed Labor Code provisions',
+      'World Boss Rank competitive card tracking total completion time and accuracy across worlds',
+      'Achievement trophy room showcasing unlocked badges and milestones',
+    ],
+    keyButtons: [
+      { name: 'Switch Hero Avatar', role: 'Opens hero character picker to change your profile avatar' },
+      { name: 'Show 30-Day Heatmap', role: 'Expands the interactive diagnostic heatmap of labor provisions' },
+      { name: 'Export Progress (JSON)', role: 'Backs up your complete study records, coins, and notes to a file' },
+      { name: 'Reset All Data', role: 'Clears saved progress with confirmation safeguard' },
+    ],
+    proTip: 'Check your World Boss Rank card to compare your completion times against top Mushroom Kingdom benchmarks!',
+  },
+];
+
+export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
   // 1. Header & Global Controls
   {
     id: 'btn-mario-logo',
@@ -158,314 +390,124 @@ const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     targetTab: 'map',
   },
   {
-    id: 'btn-font-and-theme',
-    name: 'Theme Switch (Light / Dark) & Font Size Scaler (A / A+ / A++)',
-    part: 'Top Navigation Bar & Mobile Menu',
+    id: 'btn-toad-pro-tips',
+    name: 'Toad’s Pro Tip Floating Pill',
+    part: 'Floating Screen Bottom (Overworld Map)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Switches between bright Daylight Sky and restful Dark Night mode, and scales lesson text across 3 comfort sizes.',
-    howToUse: 'Click the Sun/Moon toggle or cycle A / A+ / A++ until text feels effortless to read.',
-    proTip: 'Your chosen theme and font scale persist automatically across reloads.',
-    targetTab: 'modules',
+    whatItDoes: 'Cycles through 32 high-yield Philippine Labor Law bar exam tips and memory analogies.',
+    howToUse: 'Click the Toad pill on the map to cycle next tip, share, or copy tip text to clipboard.',
+    proTip: 'Hovering over the tip pauses the auto-hide timer so you can read at your own pace.',
+    targetTab: 'map',
   },
   {
-    id: 'btn-walkthrough-guide',
-    name: 'Interactive Walkthrough & Control Atlas ("Guide")',
-    part: 'Top Navigation Bar & Mobile Menu',
+    id: 'btn-statute-lookup-modal',
+    name: 'Statute & Codal Jurisprudence Finder Button',
+    part: 'Top Bar & Modules Header',
     category: 'Header & Global Controls',
-    whatItDoes: 'Opens this 14-step guided walkthrough and searchable button-by-button reference atlas.',
-    howToUse: 'Step through all 14 chapters in order or search any specific button/tool here in the Control Atlas.',
-    proTip: 'Completing the guide for the first time awards +25 Gold Coins!',
-    targetTab: 'map',
+    whatItDoes: 'Launches the instant search modal covering all Labor Code provisions, Republic Acts, and Supreme Court rulings.',
+    howToUse: 'Click the Scales / Statute Lookup button, type an article number or keyword, and click Copy or Save Note.',
+    proTip: 'Features a text-to-speech listener to read the statutory doctrine aloud.',
+    targetTab: 'modules',
   },
   {
-    id: 'btn-user-profile',
-    name: 'User Profile, Streak Calendar & Badges (Avatar Button)',
-    part: 'Top Navigation Bar (Far Right)',
+    id: 'btn-study-notes-drawer',
+    name: 'Study Notes & Doctrine Drawer Toggle',
+    part: 'Top Right Navigation Bar',
     category: 'Header & Global Controls',
-    whatItDoes: 'Opens your personal learner profile featuring your Monthly Streak Calendar, 7-day study chart, World Badges, and Achievements.',
-    howToUse: 'Click your character avatar in the top-right corner to inspect your stats, edit your display name, or export your Score Card PDF.',
-    proTip: 'Complete all lessons inside any World to earn thematic badges like Overtime Guru and Wage Expert!',
-    targetTab: 'map',
-  },
-
-  // 2. Overworld Map & Floating Helpers
-  {
-    id: 'btn-world-nodes',
-    name: 'Overworld Map Stage Nodes (Worlds 1 to 6)',
-    part: 'World Map Canvas',
-    category: 'Map & Floating Tools',
-    whatItDoes: 'Shows visual progress across all 6 Labor Standards worlds and lets you open stage checklists or jump to lessons.',
-    howToUse: 'Click any World node on the map to inspect its topics or warp directly to that World in Modules.',
-    proTip: 'Finishing 100% of a World triggers a celebratory fanfare, +50 Bonus Coins, and a World Mastery Badge!',
-    targetTab: 'map',
-  },
-  {
-    id: 'btn-fire-flower-streak',
-    name: 'Daily Streak Tracker & 5-Min Quick Study Launcher',
-    part: 'World Map Top Banner',
-    category: 'Map & Floating Tools',
-    whatItDoes: 'Tracks consecutive study days, displays your daily minute goal, and launches a 5-minute flashcard sprint.',
-    howToUse: 'Click 5-Min Quick Study on the banner for a fast review session, or Leaderboard to compare Gold Coins.',
-    proTip: 'Studying even 5–15 minutes a day lights up your Profile’s visual calendar grid.',
-    targetTab: 'map',
-  },
-  {
-    id: 'btn-floating-autoscroll',
-    name: 'Floating Auto-Scroll Controller ("SCROLL")',
-    part: 'Bottom-Right Floating Button (Reading Tabs)',
-    category: 'Map & Floating Tools',
-    whatItDoes: 'Scrolls module lessons, holidays, and regional tables smoothly hands-free at 1x, 2x, 3x, or 4x speed.',
-    howToUse: 'Tap SCROLL in the bottom-right corner, press READ to start or PAUSE to stop, and tap the speed badge (1x–4x) to adjust pace.',
-    proTip: 'Tap the X icon on the expanded bar anytime to fold it back into the compact SCROLL pill.',
+    whatItDoes: 'Slides open your persistent legal notebook with category tags, quiz errors filter, and plain text export.',
+    howToUse: 'Click the Notes button to draft new notes or review pinned rules and missed quiz items.',
+    proTip: 'Use the "Export Notes (.txt)" button to bundle all your notes into an offline study sheet.',
     targetTab: 'modules',
   },
   {
-    id: 'btn-floating-study-notes',
-    name: 'Floating Study Notes Drawer ("NOTES") & Category Selector',
-    part: 'Right-Edge / Bottom-Right Floating Button',
-    category: 'Map & Floating Tools',
-    whatItDoes: 'Opens your persistent personal Study Notes Pad from any reading tab with World tags, voice dictation, and 1-tap templates.',
-    howToUse: 'Tap NOTES, pick "General / All Worlds" or Worlds 1–6 in the category dropdown, type or dictate your note, and click SAVE NOTE.',
-    proTip: 'All saved notes are stored locally and can be included automatically inside your downloaded Study Guide PDF!',
-    targetTab: 'modules',
-  },
-
-  // 3. Modules Deck & Topic Cards
-  {
-    id: 'btn-module-world-selector',
-    name: 'World Selector Cards (Worlds 1–6 + All 19 Modules)',
-    part: 'Modules Tab Top Grid',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Filters the Module Deck to a single World (W1–W6) or displays all 19 modules together.',
-    howToUse: 'Click any World card at the top of the Modules tab, or click All 19 to browse the entire syllabus.',
-    proTip: 'Each World card shows a live completion bar so you always see which World is closest to 100%.',
+    id: 'btn-exam-focus-mode',
+    name: 'Exam Focus Mode Fullscreen Button',
+    part: 'Modules Command Deck Header',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Switches the reading environment into an ultra-clean, distraction-free full-screen layout.',
+    howToUse: 'Click "Exam Focus Mode" at the top of the modules view. Click Exit Focus Mode to return.',
+    proTip: 'Keeps content perfectly centered with zero horizontal scrollbars or clipping.',
     targetTab: 'modules',
   },
   {
-    id: 'btn-module-sort-dropdown',
-    name: 'Sort Topics Dropdown Menu',
-    part: 'Module Deck Bar (Directly Above Topic Cards)',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Reorders the displayed module cards by Stage Order, Alphabetical (A → Z), Difficulty (Easiest First), or Difficulty (Hardest First).',
-    howToUse: 'Click the "Sort Topics" dropdown right above the topic cards and select your preferred order.',
-    proTip: 'Choose "Difficulty (Easiest First)" when starting out so foundational concepts build naturally into advanced rules!',
+    id: 'btn-save-codal-to-notes',
+    name: '1-Tap Save Codal to Study Notes Button',
+    part: 'Topic Card Statutory Provision Drawer',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Saves the complete unabridged statutory text of any Labor Code article directly into Study Notes.',
+    howToUse: 'Open "Read Provision" in any topic card and click "Save Note".',
+    proTip: 'Automatically tags the note as "Statutory Text" with official DOLE citations.',
     targetTab: 'modules',
   },
   {
-    id: 'btn-module-view-modes',
-    name: '5 Module View Modes (Stream, Grid, Outline, Focus, Slide Deck)',
-    part: 'Modules Command Deck Toolbar',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Transforms how lessons are presented — from full scrollable cards to a 2-column grid, compact outline, single-topic reader, or interactive Slide Deck.',
-    howToUse: 'Click Stream, Grid, Outline, Focus, or Slides in the View bar, and optionally toggle Split Notes on desktop.',
-    proTip: 'Slide Deck mode breaks every module into clean, bite-sized presentation slides you can step through with Left/Right arrows!',
+    id: 'btn-copy-rule-btn',
+    name: 'Copy Rule to Clipboard Button',
+    part: 'Every Numbered, Definition & Bullet Rule Item',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Copies the exact rule wording cleanly to clipboard without narrowing or squeezing the text.',
+    howToUse: 'Click the "Copy" button located at the bottom-right of any rule item card.',
+    proTip: 'Gives visual green "Copied" feedback and plays a pleasant coin chime.',
     targetTab: 'modules',
   },
   {
-    id: 'btn-module-status-filters',
-    name: 'Status Filter Buttons (All, Unread, Mastered, Flagged, Pinned) & Depth Switch',
-    part: 'Modules Command Deck Toolbar',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Filters topics by completion/bookmark status and switches between Beginner takeaways and Unabridged depth.',
-    howToUse: 'Click Unread to focus on remaining lessons, Pinned to see saved favorites, or Beginner/Unabridged to adjust detail.',
-    proTip: 'Combine "Unread" + "Difficulty (Easiest First)" for an effortless step-by-step study queue.',
+    id: 'btn-pin-rule-btn',
+    name: 'Pin Rule Bookmark Button',
+    part: 'Every Numbered, Definition & Bullet Rule Item',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Bookmarks the specific statutory rule so it appears at the top of your quick review list.',
+    howToUse: 'Click the Bookmark ribbon next to the Copy button on any rule item.',
+    proTip: 'Pinned rules sync instantly to your Study Notes Drawer.',
     targetTab: 'modules',
   },
   {
-    id: 'btn-topic-study-lenses',
-    name: 'Inside-Card Study Lenses (Full, Key Rules, Cloze Recall, Checklist)',
-    part: 'Inside Every Expanded Topic Card',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Lets you study each topic four ways: full reading, condensed summary, fill-in-the-blank active recall, or interactive rule checklist.',
-    howToUse: 'Click the Study Lens buttons near the top of any expanded Topic Card.',
-    proTip: 'Cloze Recall hides key numbers and rates behind tap-to-reveal blanks so you can test yourself as you read!',
+    id: 'btn-verbatim-theme-toggle',
+    name: 'Statute Codex / Parchment Theme Toggle',
+    part: 'Topic Card Statutory Provision Header',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Switches between antique warm legal Parchment vellum mode and deep Midnight Codex mode.',
+    howToUse: 'Click the Sparkles / Theme button inside the verbatim provision box.',
+    proTip: 'Parchment mode uses classic legal serif typography with warm gold leaf borders.',
     targetTab: 'modules',
   },
   {
-    id: 'btn-topic-tts-glossary',
-    name: 'Voice Reader (Listen 0.8x–1.5x) & Clickable Glossary Highlights',
-    part: 'Inside Every Topic Card',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Reads module rules aloud via speech synthesis and opens plain-English popups when you click underlined terms.',
-    howToUse: 'Click Listen in the card header to play/pause narration, or tap any dotted-underlined keyword in the text.',
-    proTip: 'Great for auditory learners or reviewing lessons hands-free while commuting.',
-    targetTab: 'modules',
-  },
-  {
-    id: 'btn-topic-quick-check',
-    name: 'Quick Knowledge Check Mini-Quiz (+3 Coins) & Mark Studied',
-    part: 'Bottom of Every Expanded Topic Card',
-    category: 'Modules & Study Lenses',
-    whatItDoes: 'Tests the core concept of each module with an instant 4-choice check, clear explanation, and a one-time +3 Coin bonus.',
-    howToUse: 'Pick an answer at the bottom of the card to verify understanding, then click Mark Studied (+2 Coins) and Pin if desired!',
-    proTip: 'Answering the Quick Knowledge Check right after reading locks key percentages and deadlines into memory.',
-    targetTab: 'modules',
-  },
-
-  // 4. Holidays, Wages & Calculator
-  {
-    id: 'btn-holidays-controls',
-    name: 'Holiday Category Filters & Day-Before Absence Simulator',
-    part: 'Holidays Hub Tab',
-    category: 'Holidays, Wages & Calculator',
-    whatItDoes: 'Separates Regular Holidays (200%) from Special Days (130%) and simulates consecutive-holiday absence scenarios.',
-    howToUse: 'Filter holiday cards at the top and toggle employee status in the interactive Holiday Eligibility Simulator.',
-    proTip: 'Remember: Regular Holidays pay 100% even when unworked, whereas Special Non-Working Days follow "No Work, No Pay".',
-    targetTab: 'holidays',
-  },
-  {
-    id: 'btn-regional-wages-controls',
-    name: '17-Region Search, Island Filters & Kasambahay Matrix',
-    part: 'Regions Wage Directory Tab',
-    category: 'Holidays, Wages & Calculator',
-    whatItDoes: 'Searches and filters daily minimum wages across Luzon, Visayas, and Mindanao for Non-Agri, Agri, and Kasambahay workers.',
-    howToUse: 'Type a region/city in the search input or click All, Luzon, Visayas, or Mindanao filter buttons.',
-    proTip: 'Compare NCR vs. regional rates to understand how local Wage Boards adjust regional minimums.',
-    targetTab: 'wages_matrix',
-  },
-  {
-    id: 'btn-calculator-modes',
-    name: 'Pay Calculator Inputs, Day-Type Multipliers & Sub-Calculators',
-    part: 'Calculator Tab',
-    category: 'Holidays, Wages & Calculator',
-    whatItDoes: 'Computes regular shift pay, overtime, night shift differential (+10%), 13th month pay, SIL cash value, and 22.5-day retirement pay.',
-    howToUse: 'Enter a daily wage, pick the day type (Ordinary, Rest Day, Special, Regular, Double), adjust OT/NSD hours, and copy the formula breakdown.',
-    proTip: 'Switch between the Shift Pay, 13th Month, Retirement, and Wage Distortion tabs to explore every statutory formula.',
-    targetTab: 'calculator',
-  },
-
-  // 5. Flashcards, Quizzes & 22-Game Vault
-  {
-    id: 'btn-flashcard-controls',
-    name: 'Flashcard Flip, World Filter, Shuffle Deck & 5-Min Quick Study',
-    part: 'Flashcards Tab',
-    category: 'Flashcards, Quizzes & Games',
-    whatItDoes: 'Flips 240+ question-and-answer cards, shuffles card order, and tracks Mastered vs. Need Review cards.',
-    howToUse: 'Click Shuffle to randomize the current deck, click the card (or press Space) to flip, and rate your recall.',
-    proTip: 'Shuffling before each study session prevents memorizing answers by card order!',
-    targetTab: 'flashcards',
-  },
-  {
-    id: 'btn-quiz-modes',
-    name: '5-Item Quick Test, 10-Item Timed Exam Simulation, Practice Bank & Bowser Boss',
-    part: 'Quiz & Boss Tab',
-    category: 'Flashcards, Quizzes & Games',
-    whatItDoes: 'Offers untimed World checkups, a timed 10-question randomized Exam Simulation with score breakdown, 65+ item practice sets, and Bowser combat.',
-    howToUse: 'Pick your mode in the Quiz tab, select answers (with optional Lakitu 50/50 hint), and read the full explanation screen at the end.',
-    proTip: 'Timed Exam Simulation draws fresh randomized questions across all topics and breaks down every answer afterward!',
+    id: 'btn-quiz-save-error-btn',
+    name: 'Save Error to Notes Button',
+    part: 'Quiz Review, Practice Arena & Exam Sim',
+    category: 'Quizzes, Games & Shop Controls',
+    whatItDoes: 'Converts any missed quiz scenario into a cohesive legal doctrine study note without repetitive colon clutter.',
+    howToUse: 'Whenever you miss a quiz item, click "Save Error to Notes" on the result card.',
+    proTip: 'Notes are saved with clean legal titles and review takeaways in the Study Notes Drawer.',
     targetTab: 'quiz',
   },
   {
-    id: 'btn-vault-games',
-    name: '46-Game Mario Arcade Vault (Catcher, Koopa Pinball, Kart GP, 2D/3D & More)',
-    part: 'Game Vault Tab',
-    category: 'Flashcards, Quizzes & Games',
-    whatItDoes: 'Launches 46 playable Mario Labor Law mini-games with balanced speed, real center-drain pinball hazard physics, pass targets, and non-repeating decks.',
-    howToUse: 'Filter games by category or click any game card to play. Reach the target score with remaining lives/shells to claim Coin rewards!',
-    proTip: 'In Koopa Shell Pinball, actively press Left & Right Flippers to guard the center Drain Pit and reach 1,800+ points (or 2,600 Jackpot)!',
-    targetTab: 'vault',
-  },
-  {
-    id: 'btn-navbar-study-ambience',
-    name: 'Inline Study Ambience Soundscape Selector (Overworld Breeze, Underground Echoes)',
-    part: 'Top Header Navbar (Audio Zone)',
-    category: 'Top Header & Audio',
-    whatItDoes: 'Lets you toggle soothing Mario-themed background study soundscapes (Overworld Breeze, Underground Echoes, Peach Castle Rain, Starlight Observatory, Yoshi Tropic Shore, Koopa Keep Hearth) directly from the Navbar.',
-    howToUse: 'Use the Headphones Study Ambience dropdown in the top bar (or inside the Audio Mixer / Mobile Menu) to pick an ambient soundscape.',
-    proTip: 'Study Ambience stays gently balanced for reading and automatically pauses whenever upbeat Mario BGM is playing!',
-    targetTab: 'modules',
-  },
-  {
-    id: 'btn-modules-overall-progress-bar',
-    name: 'Overall Labor Law Progress Bar, Power-Up Milestones & [?] Mystery Law Block',
-    part: 'Top of Modules View',
-    category: 'Modules & Topic Cards',
-    whatItDoes: 'Displays your live completion percentage across all Labor Law topics, tracks 25%/50%/75%/100% Mario Power-Up milestones, filters Favorites, and lets you hit a [?] Law Block for daily coins & Bar tips.',
-    howToUse: 'Open the Modules tab to view your overall flagpole progress bar at the top, click any W1–W6 chip to jump worlds, or click Hit [?] Law Block.',
-    proTip: 'Click the Favorites (N) button inside the top progress bar to filter the stream down to your starred Labor Law topics!',
-    targetTab: 'modules',
-  },
-  {
-    id: 'btn-topic-card-favorite-star',
-    name: 'Topic Card Favorite Pin Button',
-    part: 'Each Topic Card Action Toolbar',
-    category: 'Modules & Topic Cards',
-    whatItDoes: 'Pins or unpins any specific Labor Law module card directly into your World Map Favorites view and Modules Favorites filter.',
-    howToUse: 'Click the Star "Favorite" button on any Topic Card header toolbar; it turns gold ("Favorited") when pinned.',
-    proTip: 'Pin tricky Bar topics (like D.O. 174 Contracting or Double Holiday OT) so you can launch them in one click from the World Map!',
-    targetTab: 'modules',
-  },
-  {
-    id: 'btn-world-map-favorites-view',
-    name: 'World Map "Overworld Map | Favorites (N)" View Switcher & [?] Block',
-    part: 'World Map Stage Header',
-    category: 'World Map & Progression',
-    whatItDoes: 'Switches the World Map between the interactive 2D Overworld Map and your dedicated Favorites view showing all starred Labor Law modules.',
-    howToUse: 'Click "Favorites (N)" above the Overworld Map to view, open ("Study Topic"), or unpin your favorite modules.',
-    proTip: 'You can also hit the gold [?] Law Block right beside the Favorites switcher for daily bonus coins and Supreme Court doctrines!',
-    targetTab: 'map',
-  },
-  {
-    id: 'btn-world-map-fast-travel-missions',
-    name: 'Fast-Travel Warp Pipe Menu & Daily Mission Claim Buttons',
-    part: 'World Map Command Bar & Daily Mission Log',
-    category: 'World Map & Progression',
-    whatItDoes: 'Teleports directly to any unlocked World node with a classic Warp-Pipe transition and awards bonus Mario Coins for completing 3 daily study missions.',
-    howToUse: 'Click Fast-Travel Warp Pipe to jump to an unlocked world, and click Claim +Coins once any Daily Mission bar reaches 100%.',
-    proTip: 'Completing all 3 Daily Missions in a single day unlocks an extra Mario milestone coin bonus!',
-    targetTab: 'map',
-  },
-  {
-    id: 'btn-quiz-lives-async-leaderboard',
-    name: 'Mario 3-Lives Recovery Block, Quick Study Summary, Async Battle & Leaderboard',
-    part: 'Quiz & Boss Tab',
-    category: 'Flashcards, Quizzes & Games',
-    whatItDoes: 'Tracks 3 Mario 1-Up Lives (with a 1-Up Block recovery mini-game at 0 lives), generates missed-topic Quick Study Summaries, shares 3Q Async Boss Battle links, and ranks Boss Correct Answers.',
-    howToUse: 'Play Bar Master or Boss Battle mode; if you lose 3 lives, hit the lucky [?] Block to win a life back, or click Quick Study Summary on the results screen.',
-    proTip: 'Defeating Bowser triggers a celebratory Star Shower and activates 5 minutes of Invincible Study Mode (2X Coins)!',
+    id: 'btn-courtroom-boss-moves',
+    name: 'Courtroom Bowser Boss Legal Actions',
+    part: 'Courtroom Boss Battle Modal',
+    category: 'Quizzes, Games & Shop Controls',
+    whatItDoes: 'Executes turn-based legal objections: 8-Hour Fireball, Maternity Hammer, Non-Diminution Shield, and D.O. 174 Stomp.',
+    howToUse: 'Click any legal move on your turn to inflict damage or heal HP.',
+    proTip: 'Check Bowser’s statutory violation prompt to trigger a 1.5x critical damage hit!',
     targetTab: 'quiz',
   },
-
-  // 6. Toad's Shop, Profile & Theme-Aware PDF Studio
   {
-    id: 'btn-shop-bazaar',
-    name: 'Toad’s Shop Categories (Heroes, Power-Ups, Companions, Frames, Nameplates, Soundboard, Wheel, Chambers & Relics)',
-    part: 'Toad’s Shop Tab',
-    category: 'Shop, Profile & PDF Prints',
-    whatItDoes: 'Unlocks and equips 34+ heroes, active Mario Pets (with live legal tips & +coin/topic perks), universal Card Frames (applied on Modules, Flashcards & Quizzes), HUD Nameplates, Soundboard SFX, Lucky Wheel spins, Law Chambers, and Relics.',
-    howToUse: 'Select any non-scrolling category button in Toad’s Shop and click Buy or Equip. Equipped frames, pets, and nameplates apply live across the app!',
-    proTip: 'Unlocked Law Chambers & Statutory Relics display a Prestige Sanctuary banner right on your World Map!',
+    id: 'btn-toad-shop-perks',
+    name: 'Toad Shop 1-Up Life Ring & Star Shield',
+    part: 'Toad’s Item Shop',
+    category: 'Quizzes, Games & Shop Controls',
+    whatItDoes: 'Equips combat bonuses: 1-Up Life Ring (+30 HP in Boss Fight) and Star Shield (-8 damage taken).',
+    howToUse: 'Unlock and equip perks in Toad’s Shop using accumulated Gold Coins.',
+    proTip: 'Equipped perks display active status badges in the Boss Battle HUD automatically!',
     targetTab: 'shop',
   },
   {
-    id: 'btn-master-diploma-export',
-    name: 'Master Diploma Portrait/Landscape Toggle, 44 Themes & 36 True-Font PDF Export',
-    part: 'Toad’s Shop -> Master Diploma View',
-    category: 'Shop, Profile & PDF Prints',
-    whatItDoes: 'Renders a distinct, double-bordered Royal Gold Seal Juris Doctor / Bar Master Diploma (separate from the standard Certificate) with Portrait/Landscape orientation, 44 themes, and 36 embedded fonts.',
-    howToUse: 'Open Master Diploma in Toad’s Shop, choose Landscape or Portrait, pick any of the 44 themes & 36 fonts, and click Download Diploma PDF.',
-    proTip: 'Every chosen typeface (Press Start 2P, Playfair Display, Cinzel, Caveat, Lexend, etc.) is rendered directly into the downloaded PDF!',
-    targetTab: 'shop',
-  },
-  {
-    id: 'btn-profile-calendar-stats',
-    name: 'Visual Monthly Streak Calendar, 7-Day Bar Chart, Nameplate & World Badges',
-    part: 'User Profile Modal',
-    category: 'Shop, Profile & PDF Prints',
-    whatItDoes: 'Visualizes daily study streaks, equipped HUD Nameplates, completed goal days on a monthly calendar grid, a 7-day rolling bar graph, and earned badges.',
-    howToUse: 'Open your Profile from the top-right avatar button, browse months on the Streak Calendar, and export your Hero Score Card PDF.',
-    proTip: 'Green calendar cells mark days you hit your daily study goal; gold highlights today’s live progress!',
-    targetTab: 'map',
-  },
-  {
-    id: 'btn-print-pdf-studio',
-    name: '44-Theme & 36-Font True-Font Print & Direct A4 PDF Studio (Summary, Reviewer, Certificate, Score Card)',
-    part: 'Print / PDF Studio Modal',
-    category: 'Shop, Profile & PDF Prints',
-    whatItDoes: 'Customizes and directly downloads 1-Page A4 Summaries, Multi-Page Study Reviewers, Portrait/Landscape Mastery Certificates, and Score Cards with 44 color themes and 36 true-rendered fonts.',
-    howToUse: 'Pick your document tab, choose Portrait or Landscape (for Certificates), select any of the 44 Color Themes and 36 Fonts, preview live on Paper Sheet or PDF File, and click Download PDF.',
-    proTip: 'Our True-Font high-DPI A4 renderer embeds your exact chosen typeface and theme colors into every page of the Reviewer PDF with zero text clipping or overflow!',
-    targetTab: 'map',
+    id: 'btn-koopa-pinball-flippers',
+    name: 'Koopa Pinball Manual Flippers & Plunger',
+    part: 'GameVault Arcade -> Koopa Pinball',
+    category: 'Quizzes, Games & Shop Controls',
+    whatItDoes: 'Interactive pinball arcade table with left and right flippers, center drain pit, and target bumpers.',
+    howToUse: 'Hold Plunger to launch the ball; tap Left/Right flipper buttons (or press Z and / on keyboard) to keep the ball alive.',
+    proTip: 'Hitting the Labor Code Question Blocks triggers multiball coin frenzy!',
+    targetTab: 'arcade',
   },
 ];
 
@@ -481,11 +523,23 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
   onSelectAvatar,
   alreadyGraduated,
 }) => {
-  const [activeMode, setActiveMode] = useState<'chapters' | 'directory'>('chapters');
+  const [activeMode, setActiveMode] = useState<'chapters' | 'modals' | 'directory'>('chapters');
   const [stepIdx, setStepIdx] = useState<number>(0);
+  const [selectedModalGuideId, setSelectedModalGuideId] = useState<string>('modal_print_studio');
   const [directorySearch, setDirectorySearch] = useState<string>('');
   const [selectedDirectoryCategory, setSelectedDirectoryCategory] = useState<string>('All');
   const [expandedButtonId, setExpandedButtonId] = useState<string | null>(null);
+
+  // Chapter interactive visualization demo states
+  const [demoWorld, setDemoWorld] = useState<number>(1);
+  const [demoViewTab, setDemoViewTab] = useState<'all' | 'cards' | 'tables' | 'verbatim'>('cards');
+  const [demoClozeRevealed, setDemoClozeRevealed] = useState<boolean>(false);
+  const [demoSpeed, setDemoSpeed] = useState<number>(1.0);
+  const [demoHolidayMultiplier, setDemoHolidayMultiplier] = useState<number>(200);
+  const [demoWageRegion, setDemoWageRegion] = useState<string>('NCR');
+  const [demoOtHours, setDemoOtHours] = useState<number>(2);
+  const [demoCardFlipped, setDemoCardFlipped] = useState<boolean>(false);
+  const [demoLifeline5050, setDemoLifeline5050] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -535,6 +589,9 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
   const isFirst = stepIdx === 0;
   const isLast = stepIdx === WALKTHROUGH_CHAPTERS.length - 1;
   const progressPct = Math.round(((stepIdx + 1) / WALKTHROUGH_CHAPTERS.length) * 100);
+
+  const selectedModal =
+    MODAL_GUIDE_ITEMS.find((m) => m.id === selectedModalGuideId) || MODAL_GUIDE_ITEMS[0];
 
   const renderChapterIcon = (id: string, cls = 'w-5 h-5') => {
     switch (id) {
@@ -603,7 +660,9 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
               <h2 className="text-base sm:text-lg font-black text-white font-display truncate">
                 {activeMode === 'chapters'
                   ? `STEP-BY-STEP TOUR · CHAPTER ${stepIdx + 1} OF ${WALKTHROUGH_CHAPTERS.length}`
-                  : `BUTTON-BY-BUTTON MASTER ATLAS (${BUTTON_DIRECTORY.length} CONTROLS)`}
+                  : activeMode === 'modals'
+                  ? `MODAL-BY-MODAL GUIDE · ${selectedModal.name}`
+                  : `CONTROL ATLAS (${BUTTON_DIRECTORY.length} CONTROLS)`}
               </h2>
             </div>
           </div>
@@ -625,6 +684,22 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
               >
                 <Compass className="w-3.5 h-3.5 shrink-0" />
                 <span>14-Step Tour</span>
+              </button>
+              <button
+                type="button"
+                data-testid="walkthrough-modal-guide-tab"
+                onClick={() => {
+                  setActiveMode('modals');
+                  marioAudio.playTabSwitch();
+                }}
+                className={`min-h-[38px] px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
+                  activeMode === 'modals'
+                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span>Modal Guide</span>
               </button>
               <button
                 type="button"
@@ -679,7 +754,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
           </div>
         )}
 
-        {/* MODE 1: 10-CHAPTER GUIDED TOUR */}
+        {/* MODE 1: 14-CHAPTER GUIDED TOUR */}
         {activeMode === 'chapters' && (
           <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 min-h-0">
             {/* Left Chapter Rail */}
@@ -766,15 +841,14 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   ))}
                 </div>
 
-                {/* Step 1 Setup Playground */}
-                {stepIdx === 0 && (
-                  <div className="bg-slate-950/90 rounded-2xl p-4 border-2 border-amber-400/60 space-y-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
-                        LIVE QUICK SETUP — PERSONALIZE YOUR EXPERIENCE NOW
-                      </span>
-                    </div>
+                {/* ==================== INTERACTIVE VISUALIZATION STAGES ==================== */}
 
+                {/* Step 1 Setup Playground */}
+                {chapter.id === 'welcome_setup' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border-2 border-amber-400/60 space-y-4">
+                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
+                      LIVE QUICK SETUP — PERSONALIZE YOUR EXPERIENCE
+                    </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Theme Toggle */}
                       <div className="bg-slate-900 rounded-xl p-3 border border-slate-700 space-y-2">
@@ -883,32 +957,12 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                         ))}
                       </div>
                     </div>
-
-                    {/* Official Creator Attribution inside App Information / Walkthrough Modal */}
-                    <div
-                      data-testid="walkthrough-matthew-credit-card"
-                      className="bg-slate-900/95 rounded-xl px-3.5 py-2.5 border border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <MarioStarIcon className="w-4 h-4 shrink-0" />
-                        <span className="font-black text-amber-300">
-                          {MAIN_CREATOR_AUTHOR.shortBadge}
-                        </span>
-                        <span className="text-slate-400 hidden sm:inline">·</span>
-                        <span className="text-slate-200 font-semibold">
-                          Matthew Cesar Corpuz — Main Creator of this Memory Aid
-                        </span>
-                      </div>
-                      <span className="text-[11px] font-semibold text-emerald-300">
-                        Worlds 1–6 Unabridged Edition
-                      </span>
-                    </div>
                   </div>
                 )}
 
-                {/* Step 2 Audio Preview */}
+                {/* Step 2 Audio & Header Navigation Preview */}
                 {chapter.id === 'header_navigation' && (
-                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-2.5">
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
                         TRY SOUND ALERTS &amp; AMBIENT SOUNDSCAPES
@@ -943,6 +997,448 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   </div>
                 )}
 
+                {/* Step 3 World Map Progression Preview */}
+                {chapter.id === 'world_map_progression' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-emerald-400 font-mario block">
+                      OVERWORLD MAP STAGE SIMULATOR — 6 LABOR STANDARDS WORLDS
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        { num: 1, name: 'Hours & Overtime', badge: 'Arts. 82-90', pct: 100 },
+                        { num: 2, name: 'Rest & Holidays', badge: 'Arts. 91-96', pct: 85 },
+                        { num: 3, name: 'Wages & D.O. 174', badge: 'Arts. 97-130', pct: 60 },
+                        { num: 4, name: 'Special Groups', badge: 'Arts. 131-155', pct: 40 },
+                        { num: 5, name: 'Tenure & Dismissal', badge: 'Arts. 297-302', pct: 20 },
+                        { num: 6, name: 'Statutory Leaves', badge: 'Special Laws', pct: 90 },
+                      ].map((w) => (
+                        <button
+                          key={w.num}
+                          type="button"
+                          onClick={() => {
+                            setDemoWorld(w.num);
+                            marioAudio.playCoin();
+                          }}
+                          className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                            demoWorld === w.num
+                              ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_2px_0_#000]'
+                              : 'bg-slate-900 text-slate-200 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-[10px] font-mono font-bold">
+                            <span>WORLD {w.num}</span>
+                            <span>{w.pct}%</span>
+                          </div>
+                          <span className="text-xs font-display font-bold block truncate mt-0.5">
+                            {w.name}
+                          </span>
+                          <span className="text-[9px] text-slate-400 block mt-0.5">
+                            {w.badge}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4 Modules Command Deck Preview */}
+                {chapter.id === 'modules_command_deck' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                      MODULE VIEW FILTER SWITCHER SIMULATOR
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {(['all', 'cards', 'tables', 'verbatim'] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => {
+                            setDemoViewTab(tab);
+                            marioAudio.playTabSwitch();
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase border cursor-pointer transition-all ${
+                            demoViewTab === tab
+                              ? 'bg-amber-400 text-slate-950 border-black'
+                              : 'bg-slate-900 text-slate-300 border-slate-800'
+                          }`}
+                        >
+                          {tab === 'all'
+                            ? 'Complete View'
+                            : tab === 'cards'
+                            ? 'Rule Cards'
+                            : tab === 'tables'
+                            ? 'Comparison Tables'
+                            : 'Verbatim Provision'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 leading-relaxed font-semibold">
+                      {demoViewTab === 'cards' &&
+                        'Filtered strictly to clean, numbered statutory rules and unnumbered definition cards.'}
+                      {demoViewTab === 'tables' &&
+                        'Filtered to side-by-side matrices like Regular vs Special Holiday rates, and Facility vs Supplement criteria.'}
+                      {demoViewTab === 'verbatim' &&
+                        'Displays unabridged statutory codifications with antique parchment mode and 1-tap notes saving.'}
+                      {demoViewTab === 'all' &&
+                        'Displays the complete module: summary, key doctrines, matrices, checklists, and statutory scrolls.'}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 5 Topic Card Lenses Preview */}
+                {chapter.id === 'topic_card_lenses' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-red-400 font-mario block">
+                      TOPIC CARD INTERACTION LENS SIMULATOR
+                    </span>
+                    <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-black text-amber-300">CLOZE ACTIVE RECALL LENS:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDemoClozeRevealed((prev) => !prev);
+                            marioAudio.playPowerUp();
+                          }}
+                          className="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[10px] border border-black cursor-pointer inline-flex items-center gap-1"
+                        >
+                          {demoClozeRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                          <span>{demoClozeRevealed ? 'Hide Answer' : 'Reveal Word'}</span>
+                        </button>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-100 font-medium leading-relaxed">
+                        Under Article 83, the normal hours of work shall not exceed{' '}
+                        <span
+                          className={`font-black px-1.5 py-0.5 rounded ${
+                            demoClozeRevealed
+                              ? 'bg-emerald-500 text-slate-950 font-mario'
+                              : 'bg-slate-800 text-slate-500 border border-slate-700'
+                          }`}
+                        >
+                          {demoClozeRevealed ? 'EIGHT (8) HOURS' : '[ CLICK REVEAL ]'}
+                        </span>{' '}
+                        a day, exclusive of meal intervals.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 6 Scroller & Notes Preview */}
+                {chapter.id === 'scroller_and_notes' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-cyan-300 font-mario block">
+                      FLOATING AUTO-SCROLL CONTROLLER &amp; NOTE TAGS
+                    </span>
+                    <div className="flex items-center justify-between gap-2 bg-slate-900 p-3 rounded-xl border border-slate-800 flex-wrap">
+                      <span className="text-xs font-bold text-slate-300">Auto-Scroll Speed:</span>
+                      <div className="flex items-center gap-1">
+                        {[0.5, 1.0, 1.5, 2.0].map((spd) => (
+                          <button
+                            key={spd}
+                            type="button"
+                            onClick={() => {
+                              setDemoSpeed(spd);
+                              marioAudio.playClick();
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-black border cursor-pointer ${
+                              demoSpeed === spd
+                                ? 'bg-cyan-400 text-slate-950 border-black'
+                                : 'bg-slate-800 text-slate-300 border-slate-700'
+                            }`}
+                          >
+                            {spd}x
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                      <span className="text-slate-400 font-bold">Category Tags:</span>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-600 font-bold">
+                        Key Doctrine
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-950 text-amber-300 border border-amber-600 font-bold">
+                        Statutory Limit
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-rose-950 text-rose-300 border border-rose-600 font-bold">
+                        Quiz Errors
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 7 Holidays Hub Preview */}
+                {chapter.id === 'holidays_hub' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-rose-400 font-mario block">
+                      HOLIDAY PAY MULTIPLIER SIMULATOR (P645 DAILY WAGE BASE)
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { label: 'Unworked Reg. Holiday', rate: 100, mult: '100%' },
+                        { label: 'Worked Special Day', rate: 130, mult: '130%' },
+                        { label: 'Worked Reg. Holiday', rate: 200, mult: '200%' },
+                        { label: 'Double Holiday', rate: 300, mult: '300%' },
+                      ].map((h) => (
+                        <button
+                          key={h.rate}
+                          type="button"
+                          onClick={() => {
+                            setDemoHolidayMultiplier(h.rate);
+                            marioAudio.playCoin();
+                          }}
+                          className={`p-2 rounded-xl border text-center cursor-pointer ${
+                            demoHolidayMultiplier === h.rate
+                              ? 'bg-rose-600 text-white border-black font-black'
+                              : 'bg-slate-900 text-slate-300 border-slate-800'
+                          }`}
+                        >
+                          <span className="text-[10px] block truncate">{h.label}</span>
+                          <span className="text-sm font-black font-mono block mt-0.5">{h.mult}</span>
+                          <span className="text-[10px] text-amber-300 font-mono block">
+                            P{((645 * h.rate) / 100).toFixed(2)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 8 Regional Wages Preview */}
+                {chapter.id === 'regional_wages' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
+                      REGIONAL MINIMUM WAGE MATRIX &amp; WAGE DISTORTION
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { reg: 'NCR', rate: 'P645.00', desc: 'National Capital Region' },
+                        { reg: 'Region IV-A', rate: 'P520.00', desc: 'Calabarzon' },
+                        { reg: 'Region VII', rate: 'P468.00', desc: 'Central Visayas' },
+                        { reg: 'BARMM', rate: 'P361.00', desc: 'Bangsamoro' },
+                      ].map((r) => (
+                        <button
+                          key={r.reg}
+                          type="button"
+                          onClick={() => {
+                            setDemoWageRegion(r.reg);
+                            marioAudio.playClick();
+                          }}
+                          className={`p-2.5 rounded-xl border text-left cursor-pointer ${
+                            demoWageRegion === r.reg
+                              ? 'bg-emerald-500 text-slate-950 border-black font-black'
+                              : 'bg-slate-900 text-slate-300 border-slate-800'
+                          }`}
+                        >
+                          <span className="text-[10px] block font-mono">{r.reg}</span>
+                          <span className="text-sm font-black font-mono block text-amber-300">
+                            {r.rate}
+                          </span>
+                          <span className="text-[9px] text-slate-400 block truncate">{r.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 9 Statutory Calculator Preview */}
+                {chapter.id === 'statutory_calculator' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-cyan-400 font-mario block">
+                      INTERACTIVE OVERTIME PAY CALCULATOR PREVIEW
+                    </span>
+                    <div className="flex items-center justify-between gap-3 bg-slate-900 p-3 rounded-xl border border-slate-800 flex-wrap">
+                      <div className="space-y-0.5">
+                        <span className="text-xs text-slate-300 font-bold">Overtime Hours Worked:</span>
+                        <div className="text-sm font-black text-amber-300 font-mono">
+                          {demoOtHours} Hours OT = +P{((645 / 8) * 1.25 * demoOtHours).toFixed(2)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {[1, 2, 3, 4].map((hrs) => (
+                          <button
+                            key={hrs}
+                            type="button"
+                            onClick={() => {
+                              setDemoOtHours(hrs);
+                              marioAudio.playCoin();
+                            }}
+                            className={`w-9 h-9 rounded-xl text-xs font-black border cursor-pointer ${
+                              demoOtHours === hrs
+                                ? 'bg-cyan-400 text-slate-950 border-black'
+                                : 'bg-slate-800 text-slate-300 border-slate-700'
+                            }`}
+                          >
+                            {hrs}h
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 10 Mystery Flashcards Preview */}
+                {chapter.id === 'mystery_flashcards' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-yellow-300 font-mario block">
+                      3D FLIP FLASHCARD &amp; LEITNER MASTERY
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDemoCardFlipped((prev) => !prev);
+                        marioAudio.playJump();
+                      }}
+                      className="w-full p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-indigo-950 border-2 border-amber-400 text-left cursor-pointer transition-transform active:scale-[0.99] shadow-lg"
+                    >
+                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-amber-300 pb-2 border-b border-slate-800">
+                        <span>{demoCardFlipped ? 'CARD REVERSE · STATUTORY DOCTRINE' : 'CARD FRONT · HYPOTHETICAL'}</span>
+                        <span className="underline">Click to Flip</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white font-semibold leading-relaxed pt-2">
+                        {demoCardFlipped
+                          ? 'Article 87 requires an additional compensation equivalent to the regular wage plus at least twenty-five percent (25%) thereof for overtime performed on an ordinary day.'
+                          : 'Mario works 10 hours on an ordinary Wednesday in the Mushroom Factory. How much additional compensation is he entitled to receive for the 2 excess hours?'}
+                      </p>
+                    </button>
+                  </div>
+                )}
+
+                {/* Step 11 Quizzes & Bowser Boss Preview */}
+                {chapter.id === 'quizzes_and_boss' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                      BAR QUIZ BATTLE HUD WITH 50/50 LIFELINE
+                    </span>
+                    <div className="flex items-center justify-between gap-2 pb-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDemoLifeline5050((prev) => !prev);
+                          marioAudio.playPowerUp();
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-xs border border-black cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>{demoLifeline5050 ? 'Reset Choices' : 'Use 50/50 Glasses'}</span>
+                      </button>
+                      <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                        Bowser HP: 200 / 200
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+                      <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200">
+                        A. 100% of basic wage
+                      </div>
+                      <div
+                        className={`p-2 rounded-xl border ${
+                          demoLifeline5050
+                            ? 'opacity-25 line-through bg-slate-950 border-slate-800 text-slate-500'
+                            : 'bg-slate-900 border-slate-800 text-slate-200'
+                        }`}
+                      >
+                        B. 110% of basic wage
+                      </div>
+                      <div className="p-2 rounded-xl bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold">
+                        C. 125% of regular wage (Correct!)
+                      </div>
+                      <div
+                        className={`p-2 rounded-xl border ${
+                          demoLifeline5050
+                            ? 'opacity-25 line-through bg-slate-950 border-slate-800 text-slate-500'
+                            : 'bg-slate-900 border-slate-800 text-slate-200'
+                        }`}
+                      >
+                        D. 150% of regular wage
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 12 Arcade GameVault Preview */}
+                {chapter.id === 'arcade_game_vault' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
+                      6 ENGAGING RETRO ARCADE GAMES (NOT JUST QUIZZES)
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                      {[
+                        { title: 'Koopa Pinball Arena', desc: 'Manual flippers & drain pit' },
+                        { title: 'Coin Rush Obstacle Dash', desc: 'Dodge labor violations' },
+                        { title: 'Mushroom Union Tower Defense', desc: 'Defend picket line' },
+                        { title: 'DOLE Payroll Stamping Desk', desc: 'Inspect & approve compliance' },
+                        { title: 'Lakitu Skybridge Dash', desc: 'Sprint & leap across bridges' },
+                        { title: 'Bar Codal Word Hunt', desc: 'Find statutory terms on grid' },
+                      ].map((g) => (
+                        <div
+                          key={g.title}
+                          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1"
+                        >
+                          <span className="font-bold text-amber-300 block truncate font-display">
+                            {g.title}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block">{g.desc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 13 Toad Shop Preview */}
+                {chapter.id === 'toad_shop_and_perks' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-pink-300 font-mario block">
+                      TOAD’S ITEM SHOP PERKS, PETS &amp; CUSTOM FRAMES
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      {[
+                        { name: '1-Up Life Ring', role: '+30 HP in Boss Combat' },
+                        { name: 'Star Shield', role: 'Absorbs -8 Boss DMG' },
+                        { name: 'Yoshi Companion', role: '+10 Coins per Topic' },
+                        { name: 'Royal Gold Frame', role: 'Gilded Card Border' },
+                      ].map((item) => (
+                        <div
+                          key={item.name}
+                          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1"
+                        >
+                          <span className="font-black text-amber-400 block font-display">
+                            {item.name}
+                          </span>
+                          <span className="text-[10px] text-slate-300 block">{item.role}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 14 Print Studio Preview */}
+                {chapter.id === 'profile_pdf_offline' && (
+                  <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
+                      HIGH-DPI A4 PRINT STUDIO &amp; OFFLINE PWA
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                        <span className="font-black text-white block">1-Page Summary A4</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          Formulas, caps &amp; deadlines on single page
+                        </span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                        <span className="font-black text-white block">24 Color Themes</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          From Classic NES to Royal Gold
+                        </span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                        <span className="font-black text-white block">20 True-Font Styles</span>
+                        <span className="text-[10px] text-slate-400 block">
+                          True embedded fonts in PDF binary
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Helpful Study Tip Box */}
                 <div className="bg-slate-900/90 rounded-2xl p-3 border border-slate-700 flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-amber-400/15 border border-amber-400/40 flex items-center justify-center shrink-0">
@@ -962,7 +1458,129 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
           </div>
         )}
 
-        {/* MODE 2: BUTTON-BY-BUTTON & PART-BY-PART MASTER DIRECTORY */}
+        {/* MODE 2: DEDICATED MODAL-BY-MODAL GUIDE */}
+        {activeMode === 'modals' && (
+          <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 min-h-0">
+            {/* Left Rail: 10 Modals Selector */}
+            <aside className="lg:col-span-4 bg-slate-950/90 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4">
+              <span className="text-[10px] font-black uppercase text-slate-400 font-mario block mb-2.5">
+                SELECT APP MODAL ({MODAL_GUIDE_ITEMS.length})
+              </span>
+              <div className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible no-scrollbar">
+                {MODAL_GUIDE_ITEMS.map((m) => {
+                  const isActive = m.id === selectedModalGuideId;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedModalGuideId(m.id);
+                        marioAudio.playJump();
+                      }}
+                      className={`px-3 py-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer shrink-0 lg:w-full ${
+                        isActive
+                          ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_2px_0_#000]'
+                          : 'bg-slate-900 text-slate-200 border-slate-800 hover:bg-slate-850'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <span className="text-xs font-display font-bold block truncate">
+                          {m.name}
+                        </span>
+                        <span className={`text-[10px] font-mono block ${isActive ? 'text-slate-800' : 'text-slate-400'}`}>
+                          {m.category}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[9px] font-black px-1.5 py-0.5 rounded border uppercase shrink-0 font-mario ${
+                          isActive
+                            ? 'bg-slate-950 text-amber-300 border-black'
+                            : 'bg-slate-800 text-amber-400 border-slate-700'
+                        }`}
+                      >
+                        {m.badge}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            {/* Right Detailed Modal Stage */}
+            <div className="lg:col-span-8 p-4 sm:p-6 space-y-4 overflow-y-auto">
+              <div className="space-y-4">
+                <div className="border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase font-mario">
+                    <span>{selectedModal.category}</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="text-emerald-300">{selectedModal.badge}</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white font-display mt-0.5">
+                    {selectedModal.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed mt-1">
+                    {selectedModal.summary}
+                  </p>
+                </div>
+
+                {/* Primary Features */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-black uppercase text-amber-400 font-mario block">
+                    KEY CAPABILITIES &amp; HIGHLIGHTS:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedModal.primaryFeatures.map((feat, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-start gap-2 text-xs text-slate-200"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Key Buttons & Roles */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-black uppercase text-amber-400 font-mario block">
+                    BUTTON-BY-BUTTON MASTER ROLES:
+                  </span>
+                  <div className="space-y-1.5">
+                    {selectedModal.keyButtons.map((btn, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs"
+                      >
+                        <span className="font-black text-amber-300 font-display">
+                          {btn.name}
+                        </span>
+                        <span className="text-slate-300 font-medium">{btn.role}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Modal Pro Tip */}
+                <div className="bg-slate-900/90 rounded-2xl p-3 border border-slate-700 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-400/15 border border-amber-400/40 flex items-center justify-center shrink-0">
+                    <MarioStarIcon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                      PRO TIP FOR THIS MODAL
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-200 font-semibold leading-relaxed">
+                      {selectedModal.proTip}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODE 3: BUTTON-BY-BUTTON MASTER DIRECTORY */}
         {activeMode === 'directory' && (
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 min-h-0">
             {/* Search & Filter Header */}
@@ -1058,29 +1676,13 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
 
                         <div className="space-y-0.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700">
                           <span className="text-[10px] font-black uppercase text-emerald-300 font-mario flex items-center gap-1">
-                            <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                            <span>SMART STUDY TIP</span>
+                            <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
+                            <span>BAR EXAM PRO TIP</span>
                           </span>
-                          <p className="text-slate-300 leading-relaxed font-medium">
+                          <p className="text-slate-200 leading-relaxed font-semibold">
                             {btn.proTip}
                           </p>
                         </div>
-
-                        {btn.targetTab && (
-                          <div className="flex justify-end pt-0.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onCompleteWalkthrough(btn.targetTab);
-                                marioAudio.playTabSwitch();
-                              }}
-                              className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                            >
-                              <span>Jump &amp; Try This Part</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -1090,53 +1692,37 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
           </div>
         )}
 
-        {/* Pinned Bottom Navigation Footer + Discreet Official Creator Credit */}
-        <div className="bg-[#0f172a] px-4 sm:px-6 py-3 border-t-2 border-slate-700 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+        {/* Modal Bottom Footer Navigation */}
+        <div className="bg-[#0f172a] px-4 sm:px-6 py-3 border-t-2 border-slate-700 flex flex-wrap items-center justify-between gap-3 shrink-0">
           {activeMode === 'chapters' ? (
             <>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  disabled={isFirst}
-                  onClick={() => {
-                    setStepIdx((prev) => Math.max(0, prev - 1));
-                    marioAudio.playJump();
-                  }}
-                  className="min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white font-black text-xs border-2 border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Previous</span>
-                </button>
-                <span
-                  data-testid="walkthrough-matthew-credit"
-                  className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400"
-                >
-                  <span className="text-amber-300">{MAIN_CREATOR_AUTHOR.shortBadge}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>Main Creator of this Memory Aid</span>
-                </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setStepIdx((prev) => Math.max(0, prev - 1));
+                  marioAudio.playCoin();
+                }}
+                disabled={isFirst}
+                className={`min-h-[44px] px-4 rounded-xl text-xs font-black inline-flex items-center gap-2 border transition-all ${
+                  isFirst
+                    ? 'opacity-30 border-slate-800 text-slate-600 cursor-not-allowed'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-600 cursor-pointer'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+
+              <div className="text-xs font-mono font-bold text-amber-300 text-center hidden sm:block">
+                Chapter {stepIdx + 1} of {WALKTHROUGH_CHAPTERS.length} · {progressPct}% Complete
               </div>
 
-              <div className="flex items-center gap-2 ml-auto">
-                {!isLast && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onCompleteWalkthrough(chapter.targetTab);
-                      marioAudio.playTabSwitch();
-                    }}
-                    className="hidden sm:inline-flex min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-600 items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <span>{chapter.ctaLabel}</span>
-                  </button>
-                )}
-
+              <div className="flex items-center gap-2">
                 {isLast ? (
                   <button
                     type="button"
-                    data-testid="walkthrough-finish-btn"
-                    onClick={() => handleFinishTour('map')}
-                    className="min-h-[44px] px-5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                    onClick={() => handleFinishTour(chapter.targetTab)}
+                    className="min-h-[44px] px-5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap animate-pulse"
                   >
                     <MarioStarIcon className="w-4 h-4" />
                     <span>
@@ -1161,6 +1747,22 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 )}
               </div>
             </>
+          ) : activeMode === 'modals' ? (
+            <div className="w-full flex items-center justify-between gap-2">
+              <span className="text-xs text-slate-400 font-semibold truncate">
+                {selectedModal.name} · {selectedModal.keyButtons.length} Primary Controls Documented
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  onCompleteWalkthrough();
+                  marioAudio.playPipe();
+                }}
+                className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+              >
+                Close Modal Guide
+              </button>
+            </div>
           ) : (
             <div className="w-full flex items-center justify-between gap-2">
               <span className="text-xs text-slate-400 font-semibold">

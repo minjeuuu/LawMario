@@ -23,6 +23,7 @@ import {
   Star,
   Trash2,
   Copy,
+  BarChart3,
 } from 'lucide-react';
 import {
   MarioCharacterAvatar,
@@ -211,6 +212,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [nameInput, setNameInput] = useState(safeStats.playerName);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showAllTopicsChecklist, setShowAllTopicsChecklist] = useState(false);
+  const [showProfileHeatmap, setShowProfileHeatmap] = useState<boolean>(false);
   const [dailyGoalTarget, setDailyGoalTarget] = useState<number>(() => readStoredDailyStudyGoal());
   const [referenceNow, setReferenceNow] = useState<Date>(() => new Date());
   const [weekOffset, setWeekOffset] = useState<number>(0);
@@ -1159,23 +1161,51 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </div>
 
           {/* Section 1.23: 30-Day Quiz Performance Insights & Labor Law Section Heatmap */}
-          <div data-testid="profile-quiz-heatmap-section">
-            <QuizPerformanceInsightsPanel
-              attemptsLog={sectionAttemptsLog}
-              onStartTargetedDrill={(topicId) => {
-                onClose();
-                if (onStartTargetedDrill) {
-                  onStartTargetedDrill(topicId);
-                } else {
-                  onNavigateAction('quiz');
-                }
-              }}
-              onOpenStudyNotes={(topicId) => {
-                onClose();
-                const matchedTopic = ALL_LAW_TOPICS.find((t) => t.id === topicId);
-                onNavigateAction('modules', matchedTopic?.worldId);
-              }}
-            />
+          <div data-testid="profile-quiz-heatmap-section" className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/95 border-2 border-slate-800 rounded-2xl p-3 sm:p-4">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 border border-black flex items-center justify-center font-black shrink-0">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs sm:text-sm font-black text-white font-display truncate">
+                    30-Day Quiz Miss &amp; Accuracy Heatmap
+                  </h4>
+                  <p className="text-[10px] text-slate-400 truncate">
+                    Interactive diagnostic heatmap of Philippine Labor Law provisions and codal sections
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileHeatmap((prev) => !prev);
+                  marioAudio.playPipe();
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap shrink-0 transition-all self-start sm:self-auto"
+              >
+                {showProfileHeatmap ? 'Hide 30-Day Heatmap' : 'Show 30-Day Heatmap'}
+              </button>
+            </div>
+
+            {showProfileHeatmap && (
+              <QuizPerformanceInsightsPanel
+                attemptsLog={sectionAttemptsLog}
+                onStartTargetedDrill={(topicId) => {
+                  onClose();
+                  if (onStartTargetedDrill) {
+                    onStartTargetedDrill(topicId);
+                  } else {
+                    onNavigateAction('quiz');
+                  }
+                }}
+                onOpenStudyNotes={(topicId) => {
+                  onClose();
+                  const matchedTopic = ALL_LAW_TOPICS.find((t) => t.id === topicId);
+                  onNavigateAction('modules', matchedTopic?.worldId);
+                }}
+              />
+            )}
           </div>
 
           {/* Section 1.25: 'Need Improvement' Focus Areas & 5-Min Quick Study Mode */}

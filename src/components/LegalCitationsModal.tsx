@@ -14,9 +14,17 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  BookmarkPlus,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { MarioMushroomIcon, MarioCoinIcon, MarioStarIcon } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
+import {
+  loadStudyNotes,
+  saveStudyNotes,
+  createStudyNote,
+} from '../utils/engagementFeatures';
 
 export type CitationCategory =
   | 'all'
@@ -829,6 +837,8 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<CitationCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [savedNoteIds, setSavedNoteIds] = useState<Record<string, boolean>>({});
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [expandedVerbatimIds, setExpandedVerbatimIds] = useState<string[]>([]);
 
   const categories: { id: CitationCategory; label: string; icon: React.ReactNode }[] = [
@@ -878,6 +888,63 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
     }, 2000);
   };
 
+  const handleToggleAllVerbatim = () => {
+    if (expandedVerbatimIds.length === filteredCitations.length) {
+      setExpandedVerbatimIds([]);
+    } else {
+      setExpandedVerbatimIds(filteredCitations.map((c) => c.id));
+    }
+    marioAudio.playClick();
+  };
+
+  const handleSaveCitationToNotes = (item: LegalCitationItem) => {
+    if (typeof window === 'undefined') return;
+    const existing = loadStudyNotes(window.localStorage);
+    const title = `${item.citation} — ${item.title}`;
+    const alreadySaved = existing.some(
+      (n) =>
+        n.title === title ||
+        (typeof n.content === 'string' && n.content.includes(item.citation))
+    );
+    if (!alreadySaved) {
+      const updated = createStudyNote(existing, {
+        title,
+        content: `[Philippine Labor Law Statutory Repertory]\n\nCitation: ${item.citation} (${item.categoryLabel})\n\nTitle: ${item.title}\n\nSummary:\n${item.summary}\n\nStatutory Principle & Bar Rule:\n${item.keyRule}\n\n[Exact Verbatim Text]:\n${item.verbatimProvision}`,
+        worldTag: item.worldId || 'all',
+        categoryTag: 'Statutory Text',
+      });
+      saveStudyNotes(updated, window.localStorage);
+      window.dispatchEvent(new CustomEvent('mario-study-notes-updated'));
+      marioAudio.playCoin();
+    } else {
+      marioAudio.playClick();
+    }
+    setSavedNoteIds((prev) => ({ ...prev, [item.id]: true }));
+    setTimeout(() => {
+      setSavedNoteIds((prev) => ({ ...prev, [item.id]: false }));
+    }, 2400);
+  };
+
+  const handleReadAloud = (item: LegalCitationItem) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (speakingId === item.id) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      marioAudio.playClick();
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const textToRead = `${item.citation}. ${item.title}. Key statutory doctrine: ${item.keyRule}`;
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setSpeakingId(null);
+    utterance.onerror = () => setSpeakingId(null);
+    setSpeakingId(item.id);
+    marioAudio.playCoin();
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
     <div data-testid="citations-view-container" className="space-y-6">
       {/* Header Banner */}
@@ -902,12 +969,20 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={handleToggleAllVerbatim}
+              className="min-h-[44px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+            >
+              <BookOpen className="w-4 h-4 text-amber-400" />
+              <span>{expandedVerbatimIds.length === filteredCitations.length && filteredCitations.length > 0 ? 'Collapse All' : 'Expand All Verbatim'}</span>
+            </button>
             {onOpenPrintGuide && (
               <button
                 type="button"
                 onClick={onOpenPrintGuide}
-                className="min-h-[44px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-2"
+                className="min-h-[44px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs border border-black shadow-[0_2px_0_#000] cursor-pointer inline-flex items-center gap-2 whitespace-nowrap"
               >
                 <FileText className="w-4 h-4" />
                 <span>Export / Print</span>
@@ -997,7 +1072,52 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                  <div className="flex items-center gap-1.5 sm:gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                    {/* Read Aloud Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleReadAloud(item)}
+                      title={speakingId === item.id ? 'Stop listening' : 'Listen to statutory doctrine'}
+                      className={`min-h-[36px] px-2.5 rounded-lg text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+                        speakingId === item.id
+                          ? 'bg-amber-400 text-slate-950 border-black font-black'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
+                      }`}
+                    >
+                      {speakingId === item.id ? (
+                        <>
+                          <VolumeX className="w-3.5 h-3.5" />
+                          <span>Stop</span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Listen</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Save to Notes Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleSaveCitationToNotes(item)}
+                      title="Save statutory provision to Study Notes"
+                      className="min-h-[36px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      {savedNoteIds[item.id] ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-300">Saved!</span>
+                        </>
+                      ) : (
+                        <>
+                          <BookmarkPlus className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Save Note</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Copy Rule Button */}
                     <button
                       type="button"
                       onClick={() => handleCopyCitation(item, false)}
@@ -1007,7 +1127,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                       {copiedId === item.id ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-300">Copied Rule!</span>
+                          <span className="text-emerald-300">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -1017,6 +1137,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                       )}
                     </button>
 
+                    {/* Toggle Verbatim Provision */}
                     <button
                       type="button"
                       onClick={() => toggleVerbatim(item.id)}
@@ -1027,6 +1148,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
 
+                    {/* Study Module Button */}
                     <button
                       type="button"
                       onClick={() => {

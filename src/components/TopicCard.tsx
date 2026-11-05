@@ -1198,13 +1198,13 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
       return (
         <div
           key={idx}
-          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs group relative"
+          className="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs group relative"
         >
           <div className="flex items-start gap-2.5">
             <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
               {String(item.number ?? 1).padStart(2, '0')}
             </span>
-            <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 pr-1`}>
+            <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 leading-relaxed`}>
               {item.title && (
                 <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
                   {renderInteractiveText(item.title)}:
@@ -1212,9 +1212,11 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
               )}
               <span>{renderInteractiveText(item.body)}</span>
             </div>
-            {actionBtns}
           </div>
           {item.subClauses && <div className="pl-8">{renderSubClauses(item.subClauses)}</div>}
+          <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+            {actionBtns}
+          </div>
         </div>
       );
     }
@@ -1223,11 +1225,11 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
     return (
       <div
         key={idx}
-        className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs group relative"
+        className="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs group relative"
       >
         <div className="flex items-start gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
-          <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 pr-1`}>
+          <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 leading-relaxed`}>
             {item.title && (
               <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
                 {renderInteractiveText(item.title)}:
@@ -1235,9 +1237,11 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
             )}
             <span>{renderInteractiveText(item.body)}</span>
           </div>
-          {actionBtns}
         </div>
         {item.subClauses && <div className="pl-5">{renderSubClauses(item.subClauses)}</div>}
+        <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+          {actionBtns}
+        </div>
       </div>
     );
   };
