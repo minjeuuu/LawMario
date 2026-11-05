@@ -23,6 +23,7 @@ import {
   Heart,
   Award,
   Swords,
+  Coins,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -104,7 +105,25 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
   onEarnCoins,
   onQuizCompleted,
 }) => {
-  const [playerHp, setPlayerHp] = useState<number>(100);
+  const unlockedPerks = React.useMemo(() => {
+    if (typeof window === 'undefined') {
+      return { hasLifeRing: false, hasStarShield: false, hasDoubleCoin: false };
+    }
+    try {
+      const raw = window.localStorage.getItem('mario_unlocked_items');
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      return {
+        hasLifeRing: list.includes('perk_life'),
+        hasStarShield: list.includes('perk_star'),
+        hasDoubleCoin: list.includes('perk_double'),
+      };
+    } catch {
+      return { hasLifeRing: false, hasStarShield: false, hasDoubleCoin: false };
+    }
+  }, []);
+
+  const maxPlayerHp = unlockedPerks.hasLifeRing ? 130 : 100;
+  const [playerHp, setPlayerHp] = useState<number>(() => (typeof window !== 'undefined' && window.localStorage.getItem('mario_unlocked_items')?.includes('perk_life') ? 130 : 100));
   const [bowserHp, setBowserHp] = useState<number>(200);
   const [turn, setTurn] = useState<'player' | 'bowser' | 'gameover' | 'victory'>('player');
   const [battleLog, setBattleLog] = useState<string[]>([
@@ -135,7 +154,7 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
     }
 
     const nextBowserHp = Math.max(0, bowserHp - finalDamage);
-    const nextPlayerHp = Math.min(100, playerHp + move.heal);
+    const nextPlayerHp = Math.min(maxPlayerHp, playerHp + move.heal);
 
     setBowserHp(nextBowserHp);
     setPlayerHp(nextPlayerHp);
@@ -151,7 +170,8 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
         setTurn('victory');
         setIsAnimating(false);
         marioAudio.playQuizComplete();
-        onEarnCoins(75);
+        const bonusCoins = unlockedPerks.hasDoubleCoin ? 100 : 75;
+        onEarnCoins(bonusCoins);
         onQuizCompleted?.({
           worldCode: 'BOSS',
           correctCount: 4,
@@ -181,11 +201,16 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
 
     marioAudio.playBowserHit();
 
-    const nextPlayerHp = Math.max(0, currentPlayerHp - randomAttack.damage);
+    const actualDamage = unlockedPerks.hasStarShield
+      ? Math.max(8, randomAttack.damage - 8)
+      : randomAttack.damage;
+    const nextPlayerHp = Math.max(0, currentPlayerHp - actualDamage);
     setPlayerHp(nextPlayerHp);
 
     setBattleLog((prev) => [
-      `Bowser unleashes ${randomAttack.title} (-${randomAttack.damage} HP)! "${randomAttack.dialogue}"`,
+      `Bowser unleashes ${randomAttack.title} (-${actualDamage} HP${
+        unlockedPerks.hasStarShield ? ', Star Shield blocked 8 DMG' : ''
+      })! "${randomAttack.dialogue}"`,
       ...prev.slice(0, 5),
     ]);
 
@@ -205,7 +230,7 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
   };
 
   const handleRestart = () => {
-    setPlayerHp(100);
+    setPlayerHp(maxPlayerHp);
     setBowserHp(200);
     setTurn('player');
     setLastBowserAttack(null);
@@ -265,7 +290,7 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
             </div>
             <div className="text-right">
               <span className="text-xs font-black text-emerald-400 font-mono tabular-nums">
-                {playerHp} / 100 HP
+                {playerHp} / {maxPlayerHp} HP
               </span>
             </div>
           </div>
@@ -274,11 +299,35 @@ export const CourtroomBossBattle: React.FC<CourtroomBossBattleProps> = ({
           <div className="w-full bg-slate-800 h-4 rounded-full overflow-hidden border border-slate-700 p-0.5">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                playerHp > 50 ? 'bg-emerald-500' : playerHp > 25 ? 'bg-amber-400' : 'bg-red-500'
+                playerHp > maxPlayerHp * 0.5 ? 'bg-emerald-500' : playerHp > maxPlayerHp * 0.25 ? 'bg-amber-400' : 'bg-red-500'
               }`}
-              style={{ width: `${Math.max(0, playerHp)}%` }}
+              style={{ width: `${Math.max(0, Math.min(100, (playerHp / maxPlayerHp) * 100))}%` }}
             />
           </div>
+
+          {/* Active Equipped Perks from Toad Shop */}
+          {(unlockedPerks.hasLifeRing || unlockedPerks.hasStarShield || unlockedPerks.hasDoubleCoin) && (
+            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              {unlockedPerks.hasLifeRing && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-600 text-[10px] font-black">
+                  <Heart className="w-3 h-3 text-red-400" />
+                  <span>1-Up Ring (+30 HP)</span>
+                </span>
+              )}
+              {unlockedPerks.hasStarShield && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-950 text-amber-300 border border-amber-600 text-[10px] font-black">
+                  <Shield className="w-3 h-3 text-amber-400" />
+                  <span>Star Shield (-8 DMG)</span>
+                </span>
+              )}
+              {unlockedPerks.hasDoubleCoin && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-yellow-950 text-yellow-300 border border-yellow-600 text-[10px] font-black">
+                  <Coins className="w-3 h-3 text-yellow-400" />
+                  <span>Double Mushroom (+25c)</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bowser Boss Side */}

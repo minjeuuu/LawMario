@@ -439,29 +439,46 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
 } {
   const fingerprint = computeQuizErrorFingerprint(input);
   const basis = (input.legalBasis || 'Philippine Labor Code').trim();
-  const modePrefix = input.quizModeLabel ? `[${input.quizModeLabel}] ` : '';
   const scenarioClean = (input.scenario || '').trim();
   const shortScenario =
     scenarioClean.length > 56 ? `${scenarioClean.slice(0, 53).trim()}...` : scenarioClean;
 
-  const title = `${modePrefix}Missed Rule: ${basis}${
-    shortScenario ? ` — ${shortScenario}` : ''
-  }`.slice(0, 110);
+  // Real, natural study note title without bracketed mode prefixes like [Quick Test]
+  const title = shortScenario ? `${basis} — ${shortScenario}` : `${basis} Statutory Review`;
 
-  const lines: string[] = [
-    `Scenario: ${scenarioClean}`,
-    ...(input.chosenOptionText
-      ? [`Your Answer (Missed): ${input.chosenOptionText.trim()}`]
-      : []),
-    `Correct Statutory Rule: ${(input.correctOptionText || '').trim()}`,
-    `Legal Basis: ${basis}`,
-    `Doctrinal Explanation: ${(input.explanation || '').trim()}`,
-    `Ref: ${fingerprint}`,
-  ];
+  const explanationClean = (input.explanation || '').trim();
+  const correctRuleClean = (input.correctOptionText || '').trim();
+  const chosenClean = (input.chosenOptionText || '').trim();
+
+  // Natural legal study note prose without repetitive colon prefix clutter
+  const sections: string[] = [];
+
+  if (scenarioClean) {
+    sections.push(scenarioClean);
+  }
+
+  if (explanationClean) {
+    sections.push(explanationClean);
+  }
+
+  const ruleSummaryParts: string[] = [];
+  if (correctRuleClean) {
+    ruleSummaryParts.push(`Controlling statutory doctrine: ${correctRuleClean}.`);
+  }
+  if (chosenClean && chosenClean !== correctRuleClean) {
+    ruleSummaryParts.push(
+      `Takeaway distinction: Your Answer (Missed): ${chosenClean}. Always apply the controlling codal rule above in Bar exam problems.`
+    );
+  }
+  if (ruleSummaryParts.length > 0) {
+    sections.push(ruleSummaryParts.join(' '));
+  }
+
+  sections.push(`${basis} · Ref: ${fingerprint}`);
 
   return {
-    title,
-    content: lines.join('\n\n'),
+    title: title.slice(0, 110),
+    content: sections.join('\n\n'),
     worldTag: normalizeQuizWorldToNoteWorldTag(input.worldCode),
     fingerprint,
   };

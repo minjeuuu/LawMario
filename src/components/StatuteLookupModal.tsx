@@ -11,12 +11,18 @@ import {
   X,
   Volume2,
   Square,
+  BookmarkPlus,
 } from 'lucide-react';
 import {
   STATUTE_LOOKUP_CATALOG,
   StatuteLookupEntry,
   lookupStatutesByQuery,
 } from '../utils/round8Features';
+import {
+  loadStudyNotes,
+  createStudyNote,
+  saveStudyNotes,
+} from '../utils/engagementFeatures';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import { marioAudio } from '../utils/audio';
 
@@ -60,6 +66,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   const [selectedId, setSelectedId] = useState<string>(STATUTE_LOOKUP_CATALOG[5]?.id || 'art-87');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialQuery) {
@@ -133,6 +140,34 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     utterance.onerror = () => setSpeakingId(null);
     setSpeakingId(entry.id);
     window.speechSynthesis.speak(utterance);
+  };
+
+  const handleSaveStatuteToNotes = (entry: StatuteLookupEntry) => {
+    if (typeof window === 'undefined') return;
+    const existing = loadStudyNotes(window.localStorage);
+    const title = `${entry.codeLabel} — ${entry.title}`;
+    const sections: string[] = [
+      `${entry.title} (${entry.codeLabel})`,
+      `Controlling Statutory Text:\n${entry.statutoryText}`,
+      ...(entry.supremeCourtDoctrines.length > 0
+        ? [`Supreme Court Controlling Doctrines:\n${entry.supremeCourtDoctrines.map((d) => `• ${d}`).join('\n')}`]
+        : []),
+      ...(entry.interpretationTips.length > 0
+        ? [`Bar Exam Interpretation Tips:\n${entry.interpretationTips.map((t) => `• ${t}`).join('\n')}`]
+        : []),
+      `Ref: statute_${entry.articleNumber.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+    ];
+    const updated = createStudyNote(existing, {
+      title: title.slice(0, 110),
+      content: sections.join('\n\n'),
+      worldTag: entry.worldId || 'all',
+      categoryTag: 'Key Doctrine' as any,
+    });
+    saveStudyNotes(updated, window.localStorage);
+    window.dispatchEvent(new CustomEvent('mario-study-notes-updated'));
+    setSavedNoteId(entry.id);
+    marioAudio.playCoin();
+    setTimeout(() => setSavedNoteId(null), 2200);
   };
 
   return createPortal(
@@ -335,6 +370,25 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                         <>
                           <Copy className="w-3.5 h-3.5" />
                           <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      data-testid={`statute-save-notes-btn-${activeEntry.id}`}
+                      onClick={() => handleSaveStatuteToNotes(activeEntry)}
+                      className="min-h-[38px] px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer active:translate-y-0.5"
+                    >
+                      {savedNoteId === activeEntry.id ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>Saved to Notes</span>
+                        </>
+                      ) : (
+                        <>
+                          <BookmarkPlus className="w-3.5 h-3.5" />
+                          <span>Save to Notes</span>
                         </>
                       )}
                     </button>

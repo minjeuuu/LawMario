@@ -16,6 +16,7 @@ import {
   Star,
   Calendar,
   GripVertical,
+  FileDown,
 } from 'lucide-react';
 import {
   StudyNoteItem,
@@ -250,10 +251,25 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
     }
   }, [weeklySchedule]);
 
-  const visibleNotes = useMemo(
-    () => filterStudyNotes(notes, worldFilter, searchQuery, categoryFilter),
-    [notes, worldFilter, searchQuery, categoryFilter]
+  const [copiedAllNotes, setCopiedAllNotes] = useState(false);
+
+  const quizErrorNotesCount = useMemo(
+    () => notes.filter((n) => typeof n.content === 'string' && n.content.includes('Ref: qerr_')).length,
+    [notes]
   );
+
+  const visibleNotes = useMemo(() => {
+    let result = filterStudyNotes(
+      notes,
+      worldFilter,
+      searchQuery,
+      categoryFilter === 'quiz_errors' ? 'all' : (categoryFilter as any)
+    );
+    if (categoryFilter === 'quiz_errors') {
+      result = result.filter((n) => typeof n.content === 'string' && n.content.includes('Ref: qerr_'));
+    }
+    return result;
+  }, [notes, worldFilter, searchQuery, categoryFilter]);
 
   const worldTagOptions = [
     { id: 'all', label: 'General / All Worlds' },
@@ -349,6 +365,46 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
     setCopiedId(note.id);
     marioAudio.playCoin();
     setTimeout(() => setCopiedId(null), 1600);
+  };
+
+  const handleExportAllNotes = () => {
+    if (notes.length === 0) return;
+    const lines = [
+      '# PHILIPPINE LABOR LAW STUDY NOTES & CODALS',
+      `# Compiled by: ${typeof window !== 'undefined' ? localStorage.getItem('mario_player_name') || 'Mario Scholar' : 'Mario Scholar'}`,
+      `# Date: ${new Date().toLocaleDateString()}`,
+      `# Total Notes: ${notes.length}`,
+      '==================================================\n',
+      ...notes.map((n, i) => [
+        `## [${i + 1}] ${n.title}`,
+        `World: ${getWorldBadgeLabel(n.worldTag)} | Tag: ${n.categoryTag || 'General'}${
+          typeof n.content === 'string' && n.content.includes('Ref: qerr_') ? ' | Type: Codal Review Doctrine' : ''
+        }`,
+        `Updated: ${new Date(n.updatedAt).toLocaleDateString()}`,
+        '',
+        n.content,
+        '\n--------------------------------------------------',
+      ].join('\n')),
+      '\nSuper Mario Labor Adventure · Philippine Labor Standards Memory Aid',
+    ];
+    const fullText = lines.join('\n');
+    navigator.clipboard?.writeText(fullText);
+    setCopiedAllNotes(true);
+    marioAudio.playPowerUp();
+
+    try {
+      const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Mario-Labor-Law-Study-Notes-${Date.now()}.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // ignore
+    }
+
+    setTimeout(() => setCopiedAllNotes(false), 2200);
   };
 
   const handleToggleHighlightLine = (noteId: string, lineIndex: number) => {
@@ -909,8 +965,66 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                       </button>
                     );
                   })}
+
+                  {quizErrorNotesCount > 0 && (
+                    <button
+                      type="button"
+                      data-testid="notes-filter-tag-quiz-errors"
+                      onClick={() => {
+                        setCategoryFilter(categoryFilter === 'quiz_errors' ? 'all' : 'quiz_errors');
+                        marioAudio.playClick();
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border cursor-pointer transition-colors inline-flex items-center gap-1 ${
+                        categoryFilter === 'quiz_errors'
+                          ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
+                          : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-500/50'
+                      }`}
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                      <span>Quiz Errors ({quizErrorNotesCount})</span>
+                    </button>
+                  )}
+
+                  {notes.length > 0 && (
+                    <button
+                      type="button"
+                      data-testid="export-all-notes-btn"
+                      onClick={handleExportAllNotes}
+                      title="Export all saved study notes as text/markdown document and copy to clipboard"
+                      className="ml-auto px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 cursor-pointer inline-flex items-center gap-1.5 transition-colors"
+                    >
+                      {copiedAllNotes ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                          <span className="text-emerald-300">Exported!</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileDown className="w-3 h-3 text-amber-400 shrink-0" />
+                          <span>Export Notes (.txt)</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Quiz Errors Callout Banner when available */}
+              {quizErrorNotesCount > 0 && categoryFilter === 'quiz_errors' && (
+                <div className="bg-amber-950/40 border-2 border-amber-400/80 rounded-2xl p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[9px] font-mario border border-black">
+                      SAVED CODAL DOCTRINES
+                    </span>
+                    <span className="text-xs font-bold text-amber-200">
+                      {quizErrorNotesCount} Missed Questions Converted to Notes
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                    These notes represent rules you previously missed in quizzes. Each note is saved as a complete, self-contained codal doctrine note for targeted retention.
+                  </p>
+                </div>
+              )}
 
               {/* Notes List */}
               {visibleNotes.length === 0 ? (
@@ -944,6 +1058,14 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                             <span className="text-emerald-300">
                               {note.categoryTag || 'Quick Reference'}
                             </span>
+                            {typeof note.content === 'string' && note.content.includes('Ref: qerr_') && (
+                              <>
+                                <span aria-hidden="true">·</span>
+                                <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[9px] font-mario border border-black shadow-[0_1px_0_#000]">
+                                  CODAL REVIEW DOCTRINE
+                                </span>
+                              </>
+                            )}
                             {note.pinned && (
                               <>
                                 <span aria-hidden="true">·</span>
@@ -1009,6 +1131,9 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                           const ann = lineAnnotations[note.id];
                           const isHighlighted = ann?.highlightedLines?.includes(lineIdx) ?? false;
                           const isStarred = ann?.starredLines?.includes(lineIdx) ?? false;
+                          const isControlling = line.startsWith('Controlling statutory doctrine:');
+                          const isTakeaway = line.startsWith('Takeaway distinction:');
+                          const isRef = line.includes('Ref: qerr_') || line.includes('Ref: statute_');
                           return (
                             <div
                               key={`${note.id}-line-${lineIdx}`}
@@ -1016,6 +1141,10 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                               className={`flex items-start justify-between gap-2 rounded-xl px-2 py-1 transition-colors ${
                                 isStarred
                                   ? 'bg-amber-950/60 border-l-3 border-amber-400 pl-2'
+                                  : isControlling
+                                  ? 'bg-emerald-950/40 border-l-2 border-emerald-400'
+                                  : isTakeaway
+                                  ? 'bg-amber-950/30 border-l-2 border-amber-400'
                                   : ''
                               }`}
                             >
@@ -1023,6 +1152,12 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                                 className={`text-xs sm:text-sm font-medium whitespace-pre-wrap leading-relaxed break-words flex-1 min-w-0 ${
                                   isHighlighted
                                     ? 'bg-yellow-200 text-slate-950 font-bold px-1.5 py-0.5 rounded'
+                                    : isControlling
+                                    ? 'text-emerald-300 font-semibold'
+                                    : isTakeaway
+                                    ? 'text-amber-200 font-medium'
+                                    : isRef
+                                    ? 'text-[11px] font-mono text-slate-400'
                                     : 'text-slate-200'
                                 }`}
                               >

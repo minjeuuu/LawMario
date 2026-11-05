@@ -898,7 +898,21 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   const [practiceRecords, setPracticeRecords] = useState<QuizCategoryAnswerInput[]>([]);
   const [practiceMissedTopics, setPracticeMissedTopics] = useState<string[]>([]);
   const practiceStartTimeRef = useRef<number>(Date.now());
-  const [practiceLives, setPracticeLives] = useState<number>(INITIAL_QUIZ_LIVES);
+  const hasLifeRing = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const raw = window.localStorage.getItem('mario_unlocked_items');
+      return raw ? JSON.parse(raw).includes('perk_life') : false;
+    } catch {
+      return false;
+    }
+  }, []);
+  const initialPracticeLives = hasLifeRing ? INITIAL_QUIZ_LIVES + 1 : INITIAL_QUIZ_LIVES;
+  const [practiceLives, setPracticeLives] = useState<number>(() =>
+    typeof window !== 'undefined' && window.localStorage.getItem('mario_unlocked_items')?.includes('perk_life')
+      ? INITIAL_QUIZ_LIVES + 1
+      : INITIAL_QUIZ_LIVES
+  );
   const [oneUpBlocks, setOneUpBlocks] = useState<OneUpBlockOption[] | null>(null);
   const [oneUpPickedIdx, setOneUpPickedIdx] = useState<number | null>(null);
   const [oneUpRecoveryBanner, setOneUpRecoveryBanner] = useState<string | null>(null);
@@ -912,13 +926,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setIsQuizComplete(false);
     setPracticeRecords([]);
     setPracticeMissedTopics([]);
-    setPracticeLives(INITIAL_QUIZ_LIVES);
+    setPracticeLives(initialPracticeLives);
     setOneUpBlocks(null);
     setOneUpPickedIdx(null);
     setOneUpRecoveryBanner(null);
     setPracticeGameOver(false);
     practiceStartTimeRef.current = Date.now();
-  }, [studyDifficulty]);
+  }, [studyDifficulty, initialPracticeLives]);
 
   // ==================== MODE 2: BOWSER BOSS ====================
   const [bossTier, setBossTier] = useState<'standard' | 'mega'>('standard');
@@ -1487,7 +1501,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     }
     setKoopaSubmitted(true);
     const isCorrect = koopaSelected === koopaQ.correctIndex;
-    const nextState = stepKoopaBossAnswer(koopaState, isCorrect, koopaDeck.length);
+    const koopaMaxAllowedMisses = KOOPA_BOSS_MAX_MISSES + (hasLifeRing ? 1 : 0);
+    const nextState = stepKoopaBossAnswer(
+      koopaState,
+      isCorrect,
+      koopaDeck.length,
+      koopaMaxAllowedMisses
+    );
     setKoopaState(nextState);
 
     if (isCorrect) {
@@ -4082,7 +4102,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 stageTitle: q.world,
                 rightLabel: `Score: ${score}/${currentIdx + (isAnswerSubmitted ? 1 : 0)}`,
                 lives: practiceLives,
-                maxLives: INITIAL_QUIZ_LIVES,
+                maxLives: initialPracticeLives,
               })}
 
               {oneUpRecoveryBanner && (
@@ -4748,9 +4768,14 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 currentStep: koopaIdx + 1,
                 totalSteps: koopaDeck.length,
                 stageTitle: koopaQ.world,
-                rightLabel: `Misses: ${koopaState.missCount}/${KOOPA_BOSS_MAX_MISSES} Max`,
-                lives: Math.max(0, KOOPA_BOSS_MAX_MISSES + 1 - koopaState.missCount),
-                maxLives: KOOPA_BOSS_MAX_MISSES + 1,
+                rightLabel: `Misses: ${koopaState.missCount}/${
+                  KOOPA_BOSS_MAX_MISSES + (hasLifeRing ? 1 : 0)
+                } Max${hasLifeRing ? ' (1-Up Ring +1)' : ''}`,
+                lives: Math.max(
+                  0,
+                  KOOPA_BOSS_MAX_MISSES + 1 + (hasLifeRing ? 1 : 0) - koopaState.missCount
+                ),
+                maxLives: KOOPA_BOSS_MAX_MISSES + 1 + (hasLifeRing ? 1 : 0),
               })}
 
               <div className="bg-slate-50 border-3 border-slate-900 rounded-2xl p-4 sm:p-6 space-y-2">

@@ -71,7 +71,10 @@ import {
   loadLuxuryEquippedState,
 } from '../utils/round9Features';
 import { loadRound10VaultState } from '../utils/round10Features';
-import { resolveEquippedNameplate } from '../utils/round12Features';
+import {
+  resolveEquippedNameplate,
+  resolveCompanionInteraction,
+} from '../utils/round12Features';
 import { marioAudio } from '../utils/audio';
 import {
   ResponsiveContainer,
@@ -643,6 +646,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                         · {localStorage.getItem('mario_equipped_title')}
                       </span>
                     )}
+                    {typeof window !== 'undefined' && (() => {
+                      const compId = localStorage.getItem('mario_equipped_companion');
+                      if (!compId || compId === 'comp_none') return null;
+                      const compMeta = resolveCompanionInteraction(compId);
+                      return (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span className="inline-flex items-center gap-1 text-pink-300 font-bold">
+                            <span>Pet: {compMeta.name}</span>
+                          </span>
+                        </>
+                      );
+                    })()}
                     <span aria-hidden="true">·</span>
                     <span>Hero: {heroMeta.name}</span>
                   </div>

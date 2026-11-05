@@ -1189,14 +1189,15 @@ export function createInitialKoopaBossState(): KoopaBossState {
 export function stepKoopaBossAnswer(
   state: KoopaBossState,
   isCorrect: boolean,
-  totalQuestions: number = KOOPA_BOSS_TOTAL_QUESTIONS
+  totalQuestions: number = KOOPA_BOSS_TOTAL_QUESTIONS,
+  maxMisses: number = KOOPA_BOSS_MAX_MISSES
 ): KoopaBossState {
   if (state.status !== 'active') return state;
   const nextAnswered = state.answeredCount + 1;
   const nextCorrect = state.correctCount + (isCorrect ? 1 : 0);
   const nextMiss = state.missCount + (isCorrect ? 0 : 1);
 
-  if (nextMiss > KOOPA_BOSS_MAX_MISSES) {
+  if (nextMiss > maxMisses) {
     return {
       answeredCount: nextAnswered,
       correctCount: nextCorrect,

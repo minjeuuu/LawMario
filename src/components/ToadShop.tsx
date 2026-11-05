@@ -2033,6 +2033,10 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     const extFrameMap: Record<string, CardFrameId> = {
       ext_gear_gold_embosser: 'frame_royal_gold',
       ext_gear_latin_laurel: 'frame_supreme_crimson',
+      ext_gear_wax_signet: 'frame_royal_gold',
+      ext_gear_ivory_vellum: 'frame_retro_brick',
+      ext_gear_scra_bookmark: 'frame_emerald_pipe',
+      ext_gear_fountain_pen: 'frame_starlight_prism',
       gear_frame_supreme_crimson: 'frame_supreme_crimson',
       gear_frame_sakura_blossom: 'frame_peach_stained_glass',
       gear_frame_warp_emerald: 'frame_emerald_pipe',
@@ -2229,6 +2233,10 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     const extFrmMap: Record<string, CardFrameId> = {
       ext_gear_gold_embosser: 'frame_royal_gold',
       ext_gear_latin_laurel: 'frame_supreme_crimson',
+      ext_gear_wax_signet: 'frame_royal_gold',
+      ext_gear_ivory_vellum: 'frame_retro_brick',
+      ext_gear_scra_bookmark: 'frame_emerald_pipe',
+      ext_gear_fountain_pen: 'frame_starlight_prism',
       gear_frame_supreme_crimson: 'frame_supreme_crimson',
       gear_frame_sakura_blossom: 'frame_peach_stained_glass',
       gear_frame_warp_emerald: 'frame_emerald_pipe',
