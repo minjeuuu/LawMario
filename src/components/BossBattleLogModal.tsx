@@ -37,7 +37,7 @@ function formatDurationLabel(totalSeconds: number): string {
 export const BossBattleLogModal: React.FC<BossBattleLogModalProps> = ({
   isOpen,
   onClose,
-  entries,
+  entries = [],
   quickQuizEntries = [],
   initialTab = 'boss',
   onLaunchWeaknessDrill,

@@ -4677,7 +4677,7 @@ export default function App() {
         quizRunsCompleted={profileStats.quizzesCompleted}
         studiedSeconds={profileStats.studiedSeconds}
         appStudyFont={appStudyFont}
-        activeAppTheme={appTheme}
+        activeAppTheme={activeTheme}
       />
 
       {/* World Completion 'Level Up' Celebration Modal */}

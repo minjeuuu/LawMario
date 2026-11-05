@@ -99,7 +99,7 @@ import { SectionQuestionAttempt } from '../utils/quizPerformanceInsights';
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  stats: PlayerProfileStats;
+  stats?: PlayerProfileStats | null;
   onUpdatePlayerName: (name: string) => void;
   achievements: EvaluatedAchievement[];
   equippedAvatar: MarioAvatar;
@@ -177,10 +177,35 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onStartTargetedDrill,
   onStartDailyQuiz,
 }) => {
+  const safeStats: PlayerProfileStats = React.useMemo(() => stats || {
+    playerName: 'Mario Scholar',
+    studiedSeconds: 0,
+    studyTimeMinutes: 0,
+    totalStudySessions: 0,
+    quizzesCompleted: 0,
+    perfectQuizzesCount: 0,
+    consecutiveDaysStreak: 1,
+    bestStreak: 1,
+    firstActivityDate: '',
+    lastActivityDate: '',
+    accuracyPercentage: 0,
+    coinsSpentTotal: 0,
+    totalQuestionsAnswered: 0,
+    totalCorrectAnswers: 0,
+    needsImprovementTopicIds: [],
+    needsImprovementWorlds: [],
+    unlockedAchievementDates: {},
+    dailyPomodoroLogs: {},
+    quizHistory: [],
+    perfectAnyQuizzes: 0,
+    perfectWageQuizzes: 0,
+    bestWageQuizPercent: 0,
+  }, [stats]);
+
   const progressionStats = getProgressionForXp(userProgression?.totalXp || 0);
   const [filterTab, setFilterTab] = useState<'all' | 'unlocked' | 'locked'>('all');
   const [isEditingName, setIsEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState(stats.playerName);
+  const [nameInput, setNameInput] = useState(safeStats.playerName);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showAllTopicsChecklist, setShowAllTopicsChecklist] = useState(false);
   const [dailyGoalTarget, setDailyGoalTarget] = useState<number>(() => readStoredDailyStudyGoal());
@@ -188,7 +213,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [chartMetric, setChartMetric] = useState<'minutes' | 'sessions'>('minutes');
   const todayStr = formatDateKey(referenceNow);
-  const goalStatus = computeDailyStudyGoalStatus(stats, dailyGoalTarget, todayStr);
+  const goalStatus = computeDailyStudyGoalStatus(safeStats, dailyGoalTarget, todayStr);
 
   const fallbackLuxury = React.useMemo(
     () =>
@@ -203,11 +228,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const studyIntensity30d = React.useMemo(
     () =>
       build30DayStudyIntensitySeries({
-        dailyPomodoroLogs: stats.dailyPomodoroLogs,
-        todayStudiedSeconds: stats.studiedSeconds,
+        dailyPomodoroLogs: safeStats.dailyPomodoroLogs,
+        todayStudiedSeconds: safeStats.studiedSeconds,
         now: referenceNow,
       }),
-    [stats.dailyPomodoroLogs, stats.studiedSeconds, todayStr]
+    [safeStats.dailyPomodoroLogs, safeStats.studiedSeconds, todayStr]
   );
 
   const completionSparkline30d = React.useMemo(() => {
@@ -293,14 +318,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const monthlyCalendar = React.useMemo(
     () =>
       buildMonthlyStudyCalendar({
-        stats,
+        stats: safeStats,
         year: calYear,
         month: calMonth,
         loginStreak,
         dailyGoalTarget,
         referenceToday: referenceNow,
       }),
-    [stats, calYear, calMonth, loginStreak, dailyGoalTarget, todayStr]
+    [safeStats, calYear, calMonth, loginStreak, dailyGoalTarget, todayStr]
   );
 
   const selectedCalendarCell: MonthlyCalendarDayCell | null = React.useMemo(
@@ -313,8 +338,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   );
 
   const weeklyChartData = React.useMemo(
-    () => getWeeklyPomodoroChartData(stats, referenceNow, weekOffset),
-    [stats, referenceNow, weekOffset]
+    () => getWeeklyPomodoroChartData(safeStats, referenceNow, weekOffset),
+    [safeStats, referenceNow, weekOffset]
   );
 
   const weeklyTotalMinutes = React.useMemo(
@@ -337,9 +362,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       computeWorldMasteryBadges(
         completedTopicIds,
         ALL_LAW_TOPICS,
-        stats.unlockedAchievementDates
+        safeStats.unlockedAchievementDates
       ),
-    [completedTopicIds, stats.unlockedAchievementDates]
+    [completedTopicIds, safeStats.unlockedAchievementDates]
   );
 
   const unlockedWorldBadgesCount = React.useMemo(
@@ -373,8 +398,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     Math.round((completedTopicsCount / Math.max(1, totalTopicsCount)) * 100)
   );
 
-  const weakTopicIds = stats.needsImprovementTopicIds || [];
-  const weakWorlds = stats.needsImprovementWorlds || [];
+  const weakTopicIds = safeStats.needsImprovementTopicIds || [];
+  const weakWorlds = safeStats.needsImprovementWorlds || [];
   const totalWeakCount = weakTopicIds.length + weakWorlds.length;
 
   const heroRank =
@@ -398,7 +423,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     if (cleaned) {
       onUpdatePlayerName(cleaned);
     } else {
-      setNameInput(stats.playerName);
+      setNameInput(safeStats.playerName);
     }
     setIsEditingName(false);
     marioAudio.playCoin();
@@ -580,12 +605,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   ) : (
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl sm:text-2xl font-black text-white font-display truncate">
-                        {stats.playerName}
+                        {safeStats.playerName}
                       </h3>
                       <button
                         type="button"
                         onClick={() => {
-                          setNameInput(stats.playerName);
+                          setNameInput(safeStats.playerName);
                           setIsEditingName(true);
                         }}
                         aria-label="Edit Player Name"
@@ -735,7 +760,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   data-testid="profile-stat-study-time"
                   className="text-base sm:text-lg font-black text-sky-300 tabular-nums mt-0.5 block"
                 >
-                  {formatStudyDuration(stats.studiedSeconds)}
+                  {formatStudyDuration(safeStats.studiedSeconds)}
                 </span>
                 <span className="text-[11px] text-slate-400">Goal: 5h 00m</span>
               </div>
@@ -748,7 +773,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   data-testid="profile-stat-quizzes"
                   className="text-base sm:text-lg font-black text-amber-300 tabular-nums mt-0.5 block"
                 >
-                  {stats.quizzesCompleted}
+                  {safeStats.quizzesCompleted}
                 </span>
                 <span className="text-[11px] text-slate-400">Goal: 10 Runs</span>
               </div>
@@ -761,7 +786,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   data-testid="profile-stat-wage-best"
                   className="text-base sm:text-lg font-black text-emerald-300 tabular-nums mt-0.5 block"
                 >
-                  {stats.perfectWageQuizzes >= 1 ? '100%' : `${stats.bestWageQuizPercent}%`}
+                  {safeStats.perfectWageQuizzes >= 1 ? '100%' : `${safeStats.bestWageQuizPercent}%`}
                 </span>
                 <span className="text-[11px] text-slate-400">World 3 Wages</span>
               </div>
@@ -1440,12 +1465,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
               <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-300">
                 <span className="bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 text-amber-300 font-mono">
-                  Total Runs: {stats.quizzesCompleted}
+                  Total Runs: {safeStats.quizzesCompleted}
                 </span>
-                {stats.perfectAnyQuizzes > 0 && (
+                {safeStats.perfectAnyQuizzes > 0 && (
                   <span className="bg-emerald-950 px-2.5 py-1 rounded-xl border border-emerald-700 text-emerald-300 font-mono flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    {stats.perfectAnyQuizzes} Perfect
+                    {safeStats.perfectAnyQuizzes} Perfect
                   </span>
                 )}
                 {onOpenBossBattleLog && (
@@ -1469,7 +1494,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               Review your last 5 completed quiz runs across all Worlds and Boss battles. Track accuracy trends and pinpoint areas for improvement.
             </p>
 
-            {(!stats.quizHistory || stats.quizHistory.length === 0) ? (
+            {(!safeStats.quizHistory || safeStats.quizHistory.length === 0) ? (
               <div className="bg-slate-950/80 rounded-xl p-5 border border-slate-800 text-center space-y-2.5">
                 <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto text-amber-400">
                   <Trophy className="w-5 h-5" />
@@ -1494,7 +1519,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               </div>
             ) : (
               <div className="space-y-2.5">
-                {stats.quizHistory.slice(0, 5).map((attempt, idx) => {
+                {safeStats.quizHistory.slice(0, 5).map((attempt, idx) => {
                   const isHigh = attempt.scorePercent >= 80;
                   const isMid = attempt.scorePercent >= 60 && attempt.scorePercent < 80;
                   const scoreColor = isHigh

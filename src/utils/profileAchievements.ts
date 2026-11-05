@@ -347,7 +347,7 @@ export function getTodayStudiedSeconds(
   stats: PlayerProfileStats,
   dateKey: string = getTodayDateKey()
 ): number {
-  const logs = stats.dailyPomodoroLogs || {};
+  const logs = stats?.dailyPomodoroLogs || {};
   const dayRecord = logs[dateKey];
   if (dayRecord) {
     return Math.max(dayRecord.activeSeconds || 0, (dayRecord.minutes || 0) * 60);
@@ -428,18 +428,18 @@ export function saveStoredDailyStudyGoal(
 }
 
 export function computeDailyStudyGoalStatus(
-  stats: PlayerProfileStats,
-  targetMinutes: number,
+  stats?: PlayerProfileStats | null,
+  targetMinutes: number = 30,
   dateKey: string = getTodayDateKey()
 ): DailyStudyGoalStatus {
-  const currentLogs = stats.dailyPomodoroLogs || {};
+  const currentLogs = stats?.dailyPomodoroLogs || {};
   const dayRecord = currentLogs[dateKey];
   const hasAnyDailyLogs = Object.keys(currentLogs).length > 0;
   const minutesToday = dayRecord
     ? dayRecord.minutes
     : hasAnyDailyLogs
     ? 0
-    : Math.min(targetMinutes, Math.floor((stats.studiedSeconds % 86400) / 60));
+    : Math.min(targetMinutes, Math.floor(((stats?.studiedSeconds || 0) % 86400) / 60));
   const progressPercent = Math.min(
     100,
     Math.round((minutesToday / Math.max(1, targetMinutes)) * 100)
@@ -501,7 +501,7 @@ export function getWeeklyPomodoroChartData(
   referenceDate: Date = new Date(),
   weekOffset: number = 0
 ): WeeklyPomodoroDayData[] {
-  const logs = stats.dailyPomodoroLogs || {};
+  const logs = stats?.dailyPomodoroLogs || {};
   const result: WeeklyPomodoroDayData[] = [];
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -1774,7 +1774,7 @@ export function buildMonthlyStudyCalendar({
     const dateKey = formatDateKey(cellDate);
     const isToday = dateKey === todayKey;
     const isFuture = cellDate.getTime() > todayMidnight.getTime();
-    const log = stats.dailyPomodoroLogs?.[dateKey];
+    const log = stats?.dailyPomodoroLogs?.[dateKey];
 
     const sessions = Math.max(0, log?.sessions || 0);
     const loggedMinutes = Math.max(0, log?.minutes || 0);
