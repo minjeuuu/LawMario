@@ -81,25 +81,27 @@ export const StudyGoalHistoryModal: React.FC<StudyGoalHistoryModalProps> = ({
   const todayKey = formatDateKey(now);
   const todayStatus = computeDailyStudyGoalStatus(stats, goalTarget, todayKey);
 
-  // Build calendar cells for selected month (pad leading weekdays so day-of-week columns align)
-  const rawMonthCells = useMemo(() => {
+  // Build calendar cells for selected month
+  const calendarModel = useMemo(() => {
     return buildMonthlyStudyCalendar({
       year: viewYear,
-      monthIndex0: viewMonthIndex,
-      dailyGoalMinutes: goalTarget,
-      stats,
-      referenceNow: now,
+      month: viewMonthIndex,
+      loginStreak: loginStreak || stats?.loginStreak || 1,
+      dailyGoalTarget: goalTarget,
+      stats: stats || ({} as PlayerProfileStats),
+      referenceToday: now,
     });
-  }, [viewYear, viewMonthIndex, goalTarget, stats, now]);
+  }, [viewYear, viewMonthIndex, goalTarget, stats, loginStreak, now]);
+
+  const rawMonthCells = calendarModel?.cells || [];
 
   const leadingEmptyCells = useMemo(() => {
-    const firstDow = new Date(viewYear, viewMonthIndex, 1).getDay();
-    return Array.from({ length: firstDow }, (_, idx) => idx);
-  }, [viewYear, viewMonthIndex]);
+    return Array.from({ length: calendarModel?.firstDayOffset || 0 }, (_, idx) => idx);
+  }, [calendarModel?.firstDayOffset]);
 
-  const goalsMetInMonth = rawMonthCells.filter((c) => c.goalMet).length;
-  const activeStudyDaysInMonth = rawMonthCells.filter((c) => c.minutes > 0).length;
-  const totalMinutesInMonth = rawMonthCells.reduce((acc, c) => acc + c.minutes, 0);
+  const goalsMetInMonth = calendarModel?.completedGoalDaysCount || 0;
+  const activeStudyDaysInMonth = calendarModel?.activeDaysCount || 0;
+  const totalMinutesInMonth = rawMonthCells.reduce((acc, c) => acc + (c.minutesStudied || 0), 0);
 
   const selectedCell =
     rawMonthCells.find((c) => c.dateKey === selectedDayKey) ||
@@ -314,9 +316,9 @@ export const StudyGoalHistoryModal: React.FC<StudyGoalHistoryModalProps> = ({
                       marioAudio.playClick();
                     }}
                     className={`min-h-[54px] sm:min-h-[60px] p-1.5 rounded-xl border-2 flex flex-col items-center justify-between transition-all cursor-pointer tabular-nums ${
-                      cell.goalMet
+                      cell.isGoalCompleted
                         ? 'bg-emerald-950/85 border-emerald-400 text-emerald-100 shadow-[0_2px_0_#000]'
-                        : cell.minutes > 0
+                        : (cell.minutesStudied || 0) > 0
                         ? 'bg-amber-950/45 border-amber-500/70 text-amber-100'
                         : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:border-slate-600'
                     } ${cell.isToday ? 'ring-2 ring-cyan-400' : ''} ${
@@ -324,11 +326,11 @@ export const StudyGoalHistoryModal: React.FC<StudyGoalHistoryModalProps> = ({
                     }`}
                   >
                     <div className="w-full flex items-center justify-between text-[11px] font-black">
-                      <span>{cell.dayOfMonth}</span>
-                      {cell.goalMet && <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />}
+                      <span>{cell.dayNum}</span>
+                      {cell.isGoalCompleted && <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />}
                     </div>
                     <span className="text-[10px] font-mono font-bold">
-                      {cell.minutes > 0 ? `${cell.minutes}m` : '—'}
+                      {(cell.minutesStudied || 0) > 0 ? `${cell.minutesStudied}m` : '—'}
                     </span>
                   </button>
                 );
@@ -350,8 +352,8 @@ export const StudyGoalHistoryModal: React.FC<StudyGoalHistoryModalProps> = ({
 
               {selectedCell && (
                 <span className="font-mono text-amber-300 font-bold">
-                  Selected {selectedCell.dateKey}: {selectedCell.minutes}m studied (
-                  {selectedCell.goalMet ? 'Goal Cleared' : `${Math.max(0, goalTarget - selectedCell.minutes)}m to goal`})
+                  Selected {selectedCell.dateKey}: {selectedCell.minutesStudied || 0}m studied (
+                  {selectedCell.isGoalCompleted ? 'Goal Cleared' : `${Math.max(0, goalTarget - (selectedCell.minutesStudied || 0))}m to goal`})
                 </span>
               )}
             </div>

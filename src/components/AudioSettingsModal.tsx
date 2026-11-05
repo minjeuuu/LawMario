@@ -907,5 +907,5 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
     </div>
   );
 
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
+  return typeof document !== 'undefined' && document.body ? createPortal(modal, document.body) : modal;
 };

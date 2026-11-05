@@ -315,7 +315,7 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
     </div>
   );
 
-  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
+  return typeof document !== 'undefined' && document.body ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export const LevelUpCelebrationModal: React.FC<{
@@ -398,5 +398,5 @@ export const LevelUpCelebrationModal: React.FC<{
     </div>
   );
 
-  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
+  return typeof document !== 'undefined' && document.body ? createPortal(content, document.body) : content;
 };
