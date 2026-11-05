@@ -1,0 +1,1692 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-primary: 'Plus Jakarta Sans', 'Inter', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mario: 'Press Start 2P', monospace;
+    --font-display: 'Fredoka', 'Plus Jakarta Sans', 'Noto Sans', sans-serif;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  body {
+    font-family: var(--font-primary);
+    font-size: 16px;
+    line-height: 1.6;
+    color: #0f172a;
+    background-color: #38bdf8;
+    background-image: 
+      radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.45) 0, rgba(255, 255, 255, 0.45) 30px, transparent 31px),
+      radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.4) 0, rgba(255, 255, 255, 0.4) 45px, transparent 46px),
+      radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0.35) 35px, transparent 36px),
+      linear-gradient(180deg, #38bdf8 0%, #60a5fa 55%, #93c5fd 100%);
+    background-attachment: fixed;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.dark body {
+    color: #f1f5f9;
+    background-color: #090d16;
+    background-image:
+      radial-gradient(#38bdf8 1px, transparent 1px),
+      radial-gradient(#fbbf24 1px, transparent 1px),
+      linear-gradient(180deg, #060911 0%, #0f172a 60%, #1e293b 100%);
+    background-size: 48px 48px, 72px 72px, 100% 100%;
+    background-position: 0 0, 24px 24px, 0 0;
+  }
+
+  /* High-Contrast Pro Study Zen Reading Mode */
+  html.pro-study-zen body {
+    color: #f8fafc !important;
+    background-color: #020617 !important;
+    background-image:
+      linear-gradient(180deg, #020617 0%, #0b0f19 50%, #020617 100%) !important;
+    background-attachment: fixed !important;
+  }
+
+  html.pro-study-zen .pro-zen-card {
+    background-color: #0b1120 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  p, li, td, th, input, select, textarea, button {
+    font-size: 16px;
+  }
+
+  /* Native App Touch & Game Surface Protection: Prevent OS Cut/Copy Popups Blocking Gameplay */
+  button,
+  nav,
+  header,
+  footer,
+  canvas,
+  svg,
+  [role="button"],
+  .glossary-term,
+  #active-vault-game-stage,
+  #active-vault-game-stage * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  #active-vault-game-stage canvas {
+    touch-action: none;
+  }
+
+  /* Full Text Selectability for Study Content, Citations, Notes, and Print Preview */
+  input,
+  textarea,
+  select,
+  p,
+  article,
+  blockquote,
+  .rule-item-text,
+  .topic-card-body,
+  .topic-card-body *,
+  #print-guide-modal-backdrop,
+  #print-guide-modal-backdrop *,
+  .print-page-sheet,
+  .print-page-sheet *,
+  .study-notes-drawer,
+  .study-notes-drawer *,
+  [contenteditable="true"],
+  [data-selectable="true"],
+  [data-selectable="true"] *,
+  .allow-text-select,
+  .allow-text-select * {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+  }
+}
+
+table {
+  border-collapse: collapse;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+th, td {
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: manual;
+}
+
+/* 10 Unlockable Mario Themes */
+.theme-overworld {
+  background-color: #38bdf8;
+  background-image: 
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.45) 0, rgba(255, 255, 255, 0.45) 30px, transparent 31px),
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.4) 0, rgba(255, 255, 255, 0.4) 45px, transparent 46px),
+    radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0.35) 35px, transparent 36px),
+    linear-gradient(180deg, #38bdf8 0%, #60a5fa 55%, #93c5fd 100%);
+  background-attachment: fixed;
+}
+
+.theme-underground {
+  background-color: #1e293b;
+  background-image: 
+    radial-gradient(#334155 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background-size: 28px 28px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-castle {
+  background-color: #7f1d1d;
+  background-image: 
+    radial-gradient(#991b1b 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #450a0a 0%, #7f1d1d 70%, #991b1b 100%);
+  background-size: 24px 24px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-galaxy {
+  background-color: #1e1b4b;
+  background-image: 
+    radial-gradient(#818cf8 1px, transparent 1px),
+    radial-gradient(#c084fc 1px, transparent 1px),
+    linear-gradient(180deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
+  background-size: 32px 32px, 48px 48px, 100% 100%;
+  background-position: 0 0, 16px 16px, 0 0;
+  background-attachment: fixed;
+}
+
+.theme-rainbow {
+  background-color: #fdf4ff;
+  background-image: 
+    linear-gradient(135deg, #fecdd3 0%, #fef08a 25%, #bbf7d0 50%, #bae6fd 75%, #e9d5ff 100%);
+  background-attachment: fixed;
+}
+
+.theme-bowser_lava {
+  background-color: #450a0a;
+  background-image: 
+    radial-gradient(#ea580c 2px, transparent 2px),
+    linear-gradient(180deg, #180303 0%, #7c2d12 60%, #c2410c 100%);
+  background-size: 28px 28px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-retro_nes {
+  background-color: #14532d;
+  background-image: 
+    radial-gradient(#15803d 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #052e16 0%, #14532d 60%, #166534 100%);
+  background-size: 20px 20px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-neon_synth {
+  background-color: #2e1065;
+  background-image: 
+    radial-gradient(#06b6d4 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #0f051d 0%, #3b0764 50%, #701a75 100%);
+  background-size: 30px 30px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-desert_oasis {
+  background-color: #d97706;
+  background-image: 
+    radial-gradient(#fde68a 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+  background-size: 26px 26px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-aurora {
+  background-color: #042f2e;
+  background-image: 
+    radial-gradient(#2dd4bf 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #022c22 0%, #064e3b 50%, #0f766e 100%);
+  background-size: 32px 32px, 100% 100%;
+  background-attachment: fixed;
+}
+
+/* Pro Study Theme Pack: Minimalist, High-Contrast, Zero-Eye-Strain Reading Skins */
+.theme-pro_study_paper {
+  background-color: #f5f2eb;
+  background-image: none;
+  color: #18181b;
+}
+
+.theme-pro_study_slate {
+  background-color: #131924;
+  background-image: none;
+  color: #f1f5f9;
+}
+
+.theme-pro_study_sage {
+  background-color: #eaf2ec;
+  background-image: none;
+  color: #14261c;
+}
+
+.theme-peach_castle {
+  background-color: #fce7f3;
+  background-image:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.55) 0, rgba(255, 255, 255, 0.55) 34px, transparent 35px),
+    linear-gradient(180deg, #fbcfe8 0%, #fce7f3 50%, #fef3c7 100%);
+  background-attachment: fixed;
+}
+
+.theme-yoshi_island {
+  background-color: #bbf7d0;
+  background-image:
+    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0.5) 36px, transparent 37px),
+    linear-gradient(180deg, #6ee7b7 0%, #a7f3d0 55%, #fef9c3 100%);
+  background-attachment: fixed;
+}
+
+.theme-rosalina_comet {
+  background-color: #0b172a;
+  background-image:
+    radial-gradient(#38bdf8 1px, transparent 1px),
+    radial-gradient(#fde047 1px, transparent 1px),
+    linear-gradient(180deg, #060d1a 0%, #0f2537 55%, #164e63 100%);
+  background-size: 36px 36px, 56px 56px, 100% 100%;
+  background-position: 0 0, 18px 18px, 0 0;
+  background-attachment: fixed;
+}
+
+.theme-royal_parchment {
+  background-color: #faf5e8;
+  background-image: none;
+  color: #1c1917;
+}
+
+.theme-luigi_mansion {
+  background-color: #06281e;
+  background-image:
+    radial-gradient(#34d399 1.25px, transparent 1.25px),
+    linear-gradient(180deg, #041b14 0%, #063729 60%, #115e59 100%);
+  background-size: 28px 28px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-sakura_garden {
+  background-color: #fdf2f8;
+  background-image: none;
+  color: #1f1218;
+}
+
+.theme-arctic_ice_world {
+  background-color: #cffafe;
+  background-image:
+    radial-gradient(#ffffff 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #67e8f9 0%, #bae6fd 55%, #e0f2fe 100%);
+  background-size: 30px 30px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.theme-espresso_tribunal {
+  background-color: #1c1410;
+  background-image: none;
+  color: #f5f5f4;
+}
+
+/* Pro Study Shared Typography & Minimalist Hairline Card Elevation */
+@media screen {
+  :is(.theme-pro_study_paper, .theme-pro_study_slate, .theme-pro_study_sage, .theme-royal_parchment, .theme-sakura_garden, .theme-espresso_tribunal) main :is(p, li, td) {
+    line-height: 1.74;
+    letter-spacing: 0.006em;
+  }
+
+  :is(.theme-pro_study_paper, .theme-pro_study_slate, .theme-pro_study_sage, .theme-royal_parchment, .theme-sakura_garden, .theme-espresso_tribunal) :is(.mario-card, .mario-card-sm) {
+    border-width: 1.5px;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  :is(.theme-pro_study_paper, .theme-pro_study_slate, .theme-pro_study_sage, .theme-royal_parchment, .theme-sakura_garden, .theme-espresso_tribunal) .mario-box {
+    background: #fcfaf5;
+    border: 1.5px solid #94a3b8;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    color: #0f172a;
+  }
+
+  :is(.theme-pro_study_paper, .theme-pro_study_slate, .theme-pro_study_sage, .theme-royal_parchment, .theme-sakura_garden, .theme-espresso_tribunal) .mario-btn {
+    border-width: 1.5px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14);
+  }
+
+  /* Pro Study Midnight Slate & Espresso Tribunal: Automatic Matte Dark Reading Surfaces */
+  :is(.theme-pro_study_slate, .theme-espresso_tribunal) main .bg-white:not(#printable-study-guide):not(#printable-study-guide *),
+  :is(.theme-pro_study_slate, .theme-espresso_tribunal) main .bg-\[\#fcfbf7\] {
+    background-color: #1a2230 !important;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  .theme-pro_study_slate main .bg-slate-50:not(#printable-study-guide *) {
+    background-color: #212b3d !important;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  .theme-pro_study_slate main .bg-slate-100:not(button):not(#printable-study-guide *) {
+    background-color: #151d2a !important;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  .theme-pro_study_slate :is(.mario-card, .mario-card-sm) {
+    border-color: #334155;
+    box-shadow: 0 2px 10px rgba(2, 6, 23, 0.35);
+  }
+
+  .theme-pro_study_slate .mario-box {
+    background: #1e293b;
+    border-color: #475569;
+    color: #f8fafc;
+  }
+
+  .theme-pro_study_slate main :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-\[\#fcfbf7\])
+    :is(.text-slate-950, .text-slate-900, .text-slate-800):not(
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100
+      ),
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100
+      ) *
+    ) {
+    color: #f1f5f9 !important;
+  }
+
+  .theme-pro_study_slate main :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-\[\#fcfbf7\])
+    :is(.text-slate-700, .text-slate-600, .text-slate-500):not(
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100
+      ),
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100
+      ) *
+    ) {
+    color: #cbd5e1 !important;
+  }
+}
+
+/* Late-Night Dark Mode Overrides for Bright Sky & Light Pro Study Themes */
+html.dark .theme-overworld,
+html.dark .theme-rainbow,
+html.dark .theme-desert_oasis,
+html.dark .theme-pro_study_paper,
+html.dark .theme-pro_study_sage,
+html.dark .theme-peach_castle,
+html.dark .theme-yoshi_island,
+html.dark .theme-royal_parchment,
+html.dark .theme-sakura_garden,
+html.dark .theme-arctic_ice_world {
+  background-color: #090d16;
+  background-image:
+    radial-gradient(rgba(56, 189, 248, 0.25) 1px, transparent 1px),
+    radial-gradient(rgba(251, 191, 36, 0.22) 1px, transparent 1px),
+    linear-gradient(180deg, #060911 0%, #0f172a 60%, #1e293b 100%);
+  background-size: 48px 48px, 72px 72px, 100% 100%;
+  background-position: 0 0, 24px 24px, 0 0;
+}
+
+/* Late-Night Dark Mode Study Surface Adaptation (Non-Print Only) */
+@media screen {
+  html.dark main .bg-white:not(#printable-study-guide):not(#printable-study-guide *) {
+    background-color: #111827 !important;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  html.dark main .bg-slate-50:not(#printable-study-guide *) {
+    background-color: #1e293b !important;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  html.dark main .bg-slate-100:not(button):not(#printable-study-guide *) {
+    background-color: #0f172a !important;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  html.dark main button.bg-slate-100 {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #475569;
+  }
+
+  html.dark main button.bg-slate-100:hover {
+    background-color: #334155 !important;
+  }
+
+  /* Readable typography on dark study surfaces while keeping yellow/amber/emerald/sky badge & button text dark */
+  html.dark main :is(.bg-white, .bg-slate-50, .bg-slate-100)
+    :is(.text-slate-950, .text-slate-900, .text-slate-800):not(
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100,
+        .mario-box
+      ),
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100,
+        .mario-box
+      ) *
+    ) {
+    color: #f8fafc !important;
+  }
+
+  html.dark main :is(.bg-white, .bg-slate-50, .bg-slate-100)
+    :is(.text-slate-700, .text-slate-600, .text-slate-500):not(
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100,
+        .mario-box
+      ),
+      :is(
+        .bg-amber-400, .bg-amber-300, .bg-amber-200, .bg-amber-100, .bg-amber-50,
+        .bg-yellow-300, .bg-yellow-200, .bg-yellow-100, .bg-yellow-50,
+        .bg-emerald-400, .bg-emerald-300, .bg-emerald-200, .bg-emerald-100, .bg-emerald-50,
+        .bg-red-100, .bg-rose-100, .bg-blue-100, .bg-sky-100, .bg-indigo-100, .bg-purple-100, .bg-orange-100,
+        .mario-box
+      ) *
+    ) {
+    color: #cbd5e1 !important;
+  }
+
+  html.dark main :is(.border-slate-200, .border-slate-300) {
+    border-color: #334155 !important;
+  }
+
+  html.dark main input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  html.dark main select,
+  html.dark main textarea {
+    background-color: #0f172a;
+    color: #f8fafc;
+    border-color: #475569;
+  }
+
+  html.dark .mario-box {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-color: #fbbf24;
+    box-shadow: inset 2px 2px 0 rgba(251, 191, 36, 0.25), 6px 6px 0px #020617;
+    color: #f8fafc;
+  }
+
+  html.dark .mario-box:hover {
+    background: linear-gradient(180deg, #273549 0%, #0f172a 100%);
+  }
+
+  html.dark .mario-card {
+    border-color: #020617;
+    box-shadow: 6px 6px 0px #020617;
+  }
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none,
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.safe-top-nav {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-bottom-dock {
+  padding-bottom: max(0.375rem, env(safe-area-inset-bottom, 0px));
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.font-mario {
+  font-family: var(--font-mario);
+  overflow-wrap: break-word;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* High-contrast, Readable Flashcard Box */
+.mario-box {
+  background: linear-gradient(180deg, #fef9c3 0%, #fef08a 50%, #fde047 100%);
+  border: 4px solid #0f172a;
+  box-shadow: inset 4px 4px 0 #ffffff, inset -4px -4px 0 #ca8a04, 6px 6px 0px #0f172a;
+  color: #0f172a;
+  max-width: 100%;
+}
+
+.mario-box:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #fef08a 50%, #fde047 100%);
+}
+
+/* Authentic Super Mario Blocks & Pipes */
+.mario-question-block {
+  background: linear-gradient(180deg, #fcd34d 0%, #f59e0b 60%, #d97706 100%);
+  border: 4px solid #1e293b;
+  box-shadow: inset 4px 4px 0 #fef3c7, inset -4px -4px 0 #b45309, 0 5px 0 #0f172a;
+}
+
+.mario-question-block:hover {
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 60%, #d97706 100%);
+}
+
+.mario-brick-block {
+  background: linear-gradient(180deg, #c2410c 0%, #9a3412 70%, #7c2d12 100%);
+  border: 4px solid #1e293b;
+  box-shadow: inset 3px 3px 0 #fb923c, inset -3px -3px 0 #431407, 0 5px 0 #0f172a;
+}
+
+.mario-green-pipe {
+  background: linear-gradient(90deg, #15803d 0%, #22c55e 35%, #86efac 55%, #22c55e 75%, #14532d 100%);
+  border: 4px solid #0f172a;
+  box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.4), 0 5px 0 #0f172a;
+}
+
+.mario-card {
+  border: 4px solid #0f172a;
+  box-shadow: 6px 6px 0px #0f172a;
+  max-width: 100%;
+}
+
+.mario-card-sm {
+  border: 3px solid #0f172a;
+  box-shadow: 4px 4px 0px #0f172a;
+  max-width: 100%;
+}
+
+@media (max-width: 639px) {
+  .mario-card {
+    border-width: 3px;
+    box-shadow: 4px 4px 0px #0f172a;
+  }
+
+  .mario-box {
+    border-width: 3px;
+    box-shadow: inset 3px 3px 0 #ffffff, inset -3px -3px 0 #ca8a04, 4px 4px 0px #0f172a;
+  }
+}
+
+.mario-btn {
+  border: 3px solid #0f172a;
+  box-shadow: 0 4px 0 #0f172a;
+  transition: all 0.1s ease;
+}
+
+.mario-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #0f172a;
+}
+
+.mario-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0f172a;
+}
+
+/* Custom crisp scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-left: 2px solid #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #dc2626;
+  border: 2px solid #0f172a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b91c1c;
+}
+
+/* Custom Mario Themed List Markers & Provision Callouts */
+.mario-rules-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .mario-rules-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mario-list-coin {
+  position: relative;
+  padding-left: 1.75rem;
+}
+.mario-list-coin::before {
+  content: '•';
+  position: absolute;
+  left: 0.15rem;
+  top: -0.1rem;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #f59e0b;
+}
+
+.mario-list-mushroom {
+  position: relative;
+  padding-left: 1.5rem;
+}
+.mario-list-mushroom::before {
+  content: '';
+  position: absolute;
+  left: 0.2rem;
+  top: 0.45rem;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid #ef4444;
+}
+
+.mario-list-star {
+  position: relative;
+  padding-left: 1.5rem;
+}
+.mario-list-star::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0.45rem;
+  width: 6px;
+  height: 6px;
+  background-color: #f59e0b;
+  transform: rotate(45deg);
+}
+
+.mario-list-flower {
+  position: relative;
+  padding-left: 1.5rem;
+}
+.mario-list-flower::before {
+  content: '';
+  position: absolute;
+  left: 0.2rem;
+  top: 0.45rem;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 6px solid #ea580c;
+}
+
+/* Warp Pipe World Transition Animation */
+@keyframes warpPipeCurtain {
+  0% {
+    transform: translateY(-100%);
+  }
+  35% {
+    transform: translateY(0%);
+  }
+  65% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+.warp-pipe-transition-active {
+  animation: warpPipeCurtain 1.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Game-like smooth tab view fade-in transition (resolves to transform: none so fixed descendants anchor to viewport) */
+@keyframes marioViewFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  99% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mario-view-enter {
+  animation: marioViewFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Publication-Grade Printer & PDF Study Guide Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  html,
+  body,
+  #root {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
+  @media print {
+    * {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
+  }
+
+  /* Universal Chrome Suppression in Print */
+  header:not(#printable-study-guide header),
+  footer:not(#printable-study-guide footer),
+  nav,
+  aside,
+  .print\:hidden,
+  #floating-autoscroll,
+  [data-testid="mobile-bottom-nav"],
+  [data-testid="toad-pro-tip-dialog"],
+  [data-testid="reopen-toad-tip-btn"],
+  [data-testid="study-companion-widget"],
+  [data-testid="pomodoro-floating-overlay"],
+  [data-testid="study-notes-drawer"],
+  [data-testid="global-search-modal"] {
+    display: none !important;
+  }
+
+  /* 1. STUDY GUIDE ISOLATION: Hide non-ancestor siblings so <main> never creates blank trailing pages */
+  body:has(#printable-study-guide) *:not(:has(#printable-study-guide)):not(#printable-study-guide):not(#printable-study-guide *) {
+    display: none !important;
+  }
+
+  body:has(#printable-study-guide) *:has(#printable-study-guide) {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  #printable-study-guide {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10.5pt !important;
+    line-height: 1.48 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #printable-study-guide[data-compact="true"] {
+    font-size: 9.5pt !important;
+    line-height: 1.38 !important;
+  }
+
+  /* Universal ink-friendly styling for cards, dark matrix blocks & tables inside Study Guide */
+  #printable-study-guide .mario-card,
+  #printable-study-guide .mario-card-sm,
+  #printable-study-guide .mario-box,
+  #printable-study-guide .print-matrix-card {
+    box-shadow: none !important;
+    border-width: 1px !important;
+    border-color: #334155 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  #printable-study-guide .print-matrix-card * {
+    background: transparent !important;
+    color: #0f172a !important;
+  }
+
+  /* Prevent horizontal clipping on any scrollable matrix wrapper when printing */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  /* Never put article in break-inside:avoid — multi-page legal modules otherwise leave huge blank half-pages */
+  .break-inside-avoid,
+  tr,
+  blockquote {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-break-before,
+  .print-module-break {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  h1, h2, h3, h4, h5 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  table,
+  .print-friendly-matrix {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border: 1.5px solid #0f172a !important;
+    font-size: 9.25pt !important;
+    line-height: 1.36 !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  #printable-study-guide[data-compact="true"] table,
+  #printable-study-guide[data-compact="true"] .print-friendly-matrix {
+    font-size: 8.5pt !important;
+    line-height: 1.3 !important;
+  }
+
+  thead tr,
+  thead th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    border: 1px solid #334155 !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding: 5pt 6pt !important;
+    white-space: normal !important;
+    min-width: 0 !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  tbody td {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #64748b !important;
+    padding: 4.5pt 6pt !important;
+    white-space: normal !important;
+    min-width: 0 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    vertical-align: top !important;
+  }
+}
+
+/* AutoScroll Floating Controller Mobile/Tablet Coordination with Bottom Nav, Pomodoro Overlay & Modal */
+@media (max-width: 1023px) {
+  html[data-pomodoro-active="true"] #floating-autoscroll {
+    bottom: 11rem !important;
+  }
+  html[data-pomodoro-notice="true"] #floating-autoscroll {
+    bottom: 18rem !important;
+  }
+  html[data-pomodoro-modal="true"] #floating-autoscroll {
+    display: none !important;
+  }
+}
+
+/* 2. ISOLATED CERTIFICATE & SCORECARD PRINT RULES (1 SINGLE A4 LANDSCAPE PAGE, ZERO BLANK SPACE) */
+body.printing-certificate-only,
+body.printing-scorecard-only {
+  background: #ffffff !important;
+}
+
+@media print {
+  /* Certificate Isolation: Works both via Print button (.printing-certificate-only) and Ctrl+P when Certificate is visible, while never colliding with Scorecard, Study Guide, or Weak Flashcards modals */
+  body:has(#print-guide-modal-backdrop #official-labor-certificate) main {
+    display: none !important;
+  }
+
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) *:not(:has(#official-labor-certificate)):not(#official-labor-certificate):not(#official-labor-certificate *) {
+    display: none !important;
+  }
+
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) *:has(#official-labor-certificate) {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate,
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* A4 Landscape is 297mm x 210mm; with 6mm margins printable box is 285mm x 198mm -> 193mm fits 100% on 1 page! */
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 193mm !important;
+    min-height: 193mm !important;
+    max-height: 193mm !important;
+    aspect-ratio: auto !important;
+    margin: 0 auto !important;
+    padding: 7mm 12mm !important;
+    box-sizing: border-box !important;
+    border: 8px double #d97706 !important;
+    outline: none !important;
+    border-radius: 14px !important;
+    background: #fffdfa !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate button,
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate input,
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate label,
+  body:has(#official-labor-certificate):not(:has(#official-player-scorecard)):not(:has(#printable-study-guide)):not(:has(#printable-weak-flashcards-sheet)) #official-labor-certificate .print\:hidden {
+    display: none !important;
+  }
+
+  /* Championship Score Card Isolation: 1 Single Landscape Page */
+  body.printing-scorecard-only *:not(:has(#official-player-scorecard)):not(#official-player-scorecard):not(#official-player-scorecard *),
+  body:has(#official-player-scorecard) *:not(:has(#official-player-scorecard)):not(#official-player-scorecard):not(#official-player-scorecard *) {
+    display: none !important;
+  }
+
+  body:has(#official-player-scorecard) *:has(#official-player-scorecard) {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body:has(#official-player-scorecard) #official-player-scorecard,
+  body:has(#official-player-scorecard) #official-player-scorecard * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body:has(#official-player-scorecard) #official-player-scorecard {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 190mm !important;
+    margin: 0 auto !important;
+    padding: 7mm 10mm !important;
+    box-sizing: border-box !important;
+    border: 3px solid #0f172a !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+}
+
+/* Responsive Game Viewport & Canvas Scaling */
+.arcade-viewport-scaled {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.arcade-canvas-scaled {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+/* Toad's Pro Tip Bounce / Pop Entrance Animation */
+@keyframes toadPopEntrance {
+  0% {
+    transform: scale(0.82) translateY(24px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateY(-6px);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.98) translateY(2px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-toad-pop {
+  animation: toadPopEntrance 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* LevelUpModal Bouncy Entry & Exit Animations */
+@keyframes levelUpBounceIn {
+  0% {
+    transform: scale(0.52) translate3d(0, 42px, 0);
+    opacity: 0;
+  }
+  52% {
+    transform: scale(1.07) translate3d(0, -10px, 0);
+    opacity: 1;
+  }
+  74% {
+    transform: scale(0.96) translate3d(0, 4px, 0);
+    opacity: 1;
+  }
+  88% {
+    transform: scale(1.02) translate3d(0, -2px, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes levelUpBounceOut {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1.05) translate3d(0, -8px, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.68) translate3d(0, 32px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes levelUpBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes levelUpBackdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-levelup-bounce-in {
+  animation: levelUpBounceIn 0.52s cubic-bezier(0.22, 1.28, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-levelup-bounce-out {
+  animation: levelUpBounceOut 0.26s cubic-bezier(0.4, 0, 0.85, 0.25) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-levelup-backdrop-in {
+  animation: levelUpBackdropFadeIn 0.22s ease-out forwards;
+}
+
+.animate-levelup-backdrop-out {
+  animation: levelUpBackdropFadeOut 0.25s ease-in forwards;
+}
+
+/* Smooth Slide-In Transition When Switching Worlds / Doctrines in Module View */
+@keyframes moduleDoctrineSlideIn {
+  0% {
+    transform: translate3d(26px, 0, 0);
+    opacity: 0;
+  }
+  99% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.animate-module-slide-in {
+  animation: fadeInModuleStream 0.16s ease-out forwards;
+}
+
+@keyframes fadeInModuleStream {
+  from {
+    opacity: 0.92;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-levelup-bounce-in,
+  .animate-levelup-bounce-out,
+  .animate-module-slide-in {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
+/* 3. ISOLATED PRINT RULES FOR 'NEEDS IMPROVEMENT' FLASHCARDS PDF (UNCLIPPED MULTI-PAGE FLOW) */
+@media print {
+  body:has(#printable-weak-flashcards-sheet) *:not(:has(#printable-weak-flashcards-sheet)):not(#printable-weak-flashcards-sheet):not(#printable-weak-flashcards-sheet *) {
+    display: none !important;
+  }
+
+  body:has(#printable-weak-flashcards-sheet) *:has(#printable-weak-flashcards-sheet) {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body:has(#printable-weak-flashcards-sheet) #printable-weak-flashcards-sheet,
+  body:has(#printable-weak-flashcards-sheet) #printable-weak-flashcards-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body:has(#printable-weak-flashcards-sheet) #printable-weak-flashcards-sheet {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  .weak-flashcard-print-item {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+/* Mobile-enhanced readability for Topic Card content body text during long study sessions */
+@media (max-width: 640px) {
+  .topic-card-body,
+  .topic-card-body-text,
+  .topic-card-content,
+  .topic-card-content p,
+  .topic-card-content li,
+  .topic-card-content .rule-item-text,
+  .topic-card-content .doctrine-text,
+  [id^="topic-card-"] p,
+  [id^="topic-card-"] li,
+  [id^="topic-card-"] span:not(.font-mario) {
+    line-height: 1.88 !important;
+    letter-spacing: 0.025em !important;
+  }
+}
+
+/* 20 Print Studio Font Style Families */
+.print-font-modern-sans {
+  font-family: 'Plus Jakarta Sans', 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.print-font-editorial-serif {
+  font-family: 'Merriweather', Georgia, Cambria, serif;
+}
+.print-font-playfair-royal {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+.print-font-academic-times {
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  letter-spacing: -0.005em;
+}
+.print-font-formal-georgia {
+  font-family: Georgia, 'Palatino Linotype', 'Book Antiqua', serif;
+}
+.print-font-warm-charter {
+  font-family: 'Lora', Charter, Cambria, Georgia, serif;
+}
+.print-font-clean-inter {
+  font-family: 'Public Sans', 'DM Sans', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+}
+.print-font-space-grotesk {
+  font-family: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+}
+.print-font-condensed-narrow {
+  font-family: 'Noto Sans', 'Arial Narrow', sans-serif;
+  letter-spacing: -0.025em;
+}
+.print-font-dyslexic-sans {
+  font-family: 'Lexend', Verdana, Tahoma, 'Noto Sans', sans-serif;
+  letter-spacing: 0.025em;
+  word-spacing: 0.06em;
+}
+.print-font-classic-monospace {
+  font-family: 'JetBrains Mono', 'Courier New', ui-monospace, monospace;
+}
+.print-font-retro-mario-mono {
+  font-family: 'Fira Code', 'Courier New', 'JetBrains Mono', monospace;
+  letter-spacing: 0.015em;
+}
+.print-font-libre-baskerville {
+  font-family: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+}
+.print-font-cormorant-chancery {
+  font-family: 'Cormorant Garamond', Garamond, Georgia, serif;
+  letter-spacing: 0.01em;
+}
+.print-font-crimson-juris {
+  font-family: 'Crimson Pro', Georgia, Cambria, serif;
+}
+.print-font-source-serif-codal {
+  font-family: 'Source Serif 4', Charter, Georgia, serif;
+}
+.print-font-outfit-geometric {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+.print-font-dm-sans-clean {
+  font-family: 'DM Sans', 'Public Sans', sans-serif;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+.print-font-bricolage-editorial {
+  font-family: 'Bricolage Grotesque', 'Outfit', sans-serif;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+.print-font-ibm-plex-docket {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Ensure DM Sans and all print preview sheets are 100% copyable and selectable */
+.print-font-dm-sans-clean,
+.app-study-font-dm-sans,
+.rule-item-text,
+.rule-item-text *,
+[data-font="dm_sans_clean"],
+[data-font="dm_sans"],
+[data-font="clean_inter"],
+#printable-study-guide,
+#printable-study-guide *,
+#one-page-summary-sheet,
+#one-page-summary-sheet *,
+#official-labor-certificate,
+#official-labor-certificate *,
+#official-scorecard-sheet,
+#official-scorecard-sheet *,
+#executive-certificate-sheet,
+#executive-certificate-sheet *,
+#hero-score-card-sheet,
+#hero-score-card-sheet *,
+#master-diploma-printable,
+#master-diploma-printable *,
+[data-testid="print-scaled-stage-inner"],
+[data-testid="print-scaled-stage-inner"] * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* 8 App-Wide Reading & Study Fonts */
+.app-study-font-jakarta {
+  --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-editorial-serif {
+  --font-primary: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-lexend {
+  --font-primary: 'Lexend', 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-outfit {
+  --font-primary: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-crimson {
+  --font-primary: 'Crimson Pro', 'Lora', Georgia, serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-dm-sans {
+  --font-primary: 'DM Sans', 'Public Sans', sans-serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-bricolage {
+  --font-primary: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-primary);
+}
+.app-study-font-jetbrains-mono {
+  --font-primary: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--font-primary);
+}
+
+:is(
+  .app-study-font-jakarta,
+  .app-study-font-editorial-serif,
+  .app-study-font-lexend,
+  .app-study-font-outfit,
+  .app-study-font-crimson,
+  .app-study-font-dm-sans,
+  .app-study-font-bricolage,
+  .app-study-font-jetbrains-mono
+) main :is(p, li, td, th, blockquote, h3, h4):not(.font-mario):not(.font-mono) {
+  font-family: var(--font-primary);
+}
+
+/* Topic Card Zero-Latency Section Rendering & Offscreen Content Visibility */
+.mario-reveal-section {
+  opacity: 1;
+  transform: none;
+}
+
+.topic-card-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
+}
+
+@media print {
+  .mario-reveal-section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .topic-card-perf {
+    content-visibility: visible !important;
+    contain-intrinsic-size: none !important;
+  }
+}
+
+/* Uncropped Responsive Arcade Game Stage & Canvas Containment (Never cap height so touch controls remain 100% clickable on phones) */
+.arcade-viewport-scaled {
+  max-width: 100%;
+  height: auto;
+}
+
+.arcade-canvas-scaled {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Ensure chosen Print Studio font cascades into EVERY Reviewer, Summary, Certificate, Diploma, and Scorecard heading, table, formula, and paragraph with zero overflow */
+#printable-study-guide,
+#one-page-summary-sheet,
+#official-labor-certificate,
+#official-scorecard-sheet,
+#master-diploma-printable {
+  font-family: var(--print-active-font, inherit) !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+#printable-study-guide *,
+#one-page-summary-sheet *,
+#official-labor-certificate *,
+#official-scorecard-sheet *,
+#master-diploma-printable * {
+  font-family: var(--print-active-font, inherit) !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#printable-study-guide table,
+#one-page-summary-sheet table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Make all texts & buttons inside opened Navbar Menu / Tools popovers render in Press Start 2P (not the Navbar Menu button itself) */
+.mario-menu-press2p,
+.mario-menu-press2p :is(button, span, label, select, option, h3, h4, p, div) {
+  font-family: 'Press Start 2P', monospace !important;
+  letter-spacing: -0.01em;
+}
+
+.mario-menu-press2p :is(button, select) {
+  font-size: 9px !important;
+  line-height: 1.45 !important;
+}
+
+/* 100% Quiz Score Mario Flagpole Slide Keyframe Animation */
+@keyframes marioFlagpoleSlide {
+  0% {
+    top: 6%;
+    transform: translateX(-50%) scale(1.08);
+  }
+  20% {
+    top: 12%;
+    transform: translateX(-50%) scale(1.12);
+  }
+  75% {
+    top: 76%;
+    transform: translateX(-50%) scale(1);
+  }
+  90% {
+    top: 78%;
+    transform: translateX(6px) scale(1.08);
+  }
+  100% {
+    top: 76%;
+    transform: translateX(12px) scale(1);
+  }
+}
+
+.mario-flagpole-slider {
+  animation: marioFlagpoleSlide 1.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Subtle Topic Card Hover Jump */
+.mario-topic-hover-jump {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.mario-topic-hover-jump:hover {
+  transform: translateY(-3px);
+}
+
+/* Floating Mario Reaction Burst on Topic Cards */
+@keyframes marioReactionFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.75);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-42px) scale(0.95);
+  }
+}
+
+.mario-reaction-burst {
+  animation: marioReactionFloat 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Click Spark FX from Toad Shop Luxury Equip */
+@keyframes marioClickSparkPop {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -85%) scale(1.35);
+  }
+}
+
+.mario-click-spark {
+  animation: marioClickSparkPop 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Dynamic World-Themed Main Application Backgrounds */
+.world-bg-all,
+.world-bg-world1,
+.world-bg-world2,
+.world-bg-world3,
+.world-bg-world4,
+.world-bg-world5,
+.world-bg-world6 {
+  position: relative;
+  transition: background 0.55s ease, background-color 0.55s ease, box-shadow 0.55s ease;
+}
+
+.world-bg-world1 {
+  background-image:
+    radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 42%),
+    radial-gradient(circle at 88% 82%, rgba(34, 197, 94, 0.14) 0%, rgba(34, 197, 94, 0) 46%);
+}
+
+.world-bg-world2 {
+  background-image:
+    radial-gradient(circle at 18% 20%, rgba(56, 189, 248, 0.16) 0%, rgba(15, 23, 42, 0.24) 65%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.18) 0%, rgba(30, 41, 59, 0.28) 100%);
+}
+
+.world-bg-world3 {
+  background-image:
+    radial-gradient(circle at 24% 16%, rgba(192, 132, 252, 0.20) 0%, transparent 45%),
+    radial-gradient(circle at 80% 75%, rgba(56, 189, 248, 0.18) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(30, 27, 75, 0.22) 0%, rgba(49, 46, 129, 0.26) 100%);
+}
+
+.world-bg-world4 {
+  background-image:
+    radial-gradient(circle at 15% 18%, rgba(74, 222, 128, 0.20) 0%, transparent 44%),
+    radial-gradient(circle at 84% 80%, rgba(16, 185, 129, 0.22) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(6, 78, 59, 0.20) 0%, rgba(20, 83, 45, 0.24) 100%);
+}
+
+.world-bg-world5 {
+  background-image:
+    radial-gradient(circle at 18% 15%, rgba(249, 115, 22, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 82% 85%, rgba(220, 38, 38, 0.25) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(69, 10, 10, 0.24) 0%, rgba(127, 29, 29, 0.22) 100%);
+}
+
+.world-bg-world6 {
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(125, 211, 252, 0.26) 0%, transparent 45%),
+    radial-gradient(circle at 82% 20%, rgba(249, 168, 212, 0.24) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(14, 165, 233, 0.14) 0%, rgba(236, 72, 153, 0.12) 100%);
+}
+
+/* Subtle Mario Jump Hover Animation for TopicCards in Modules View */
+@keyframes marioTopicCardJump {
+  0% {
+    transform: translateY(0);
+  }
+  45% {
+    transform: translateY(-6px);
+  }
+  75% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(-4px);
+  }
+}
+
+.mario-topic-jump-hover {
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease;
+}
+
+.mario-topic-jump-hover:hover {
+  animation: marioTopicCardJump 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mario-topic-jump-hover:hover {
+    animation: none;
+    transform: translateY(-2px);
+  }
+}
+
+/* Subtle Pop Scale-Up Animation for Pinned Rule Bookmarks */
+@keyframes pinnedBookmarkPop {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.8;
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pinned-bookmark-pop {
+  animation: pinnedBookmarkPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+
+
