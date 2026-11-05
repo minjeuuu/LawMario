@@ -66,9 +66,7 @@ import {
 } from '../utils/round8Features';
 import {
   MENU_PIXEL_FONTS,
-  getMenuButtonTypography,
   getMobileDrawerButtonTypography,
-  getMobileUtilityButtonTypography,
   type MenuPixelFontId,
 } from '../utils/menuPixelFonts';
 import { computeGoalStreakAndWeeklyConsistency } from '../utils/round9Features';
@@ -1629,26 +1627,30 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between"
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => {
-              const typo = getMenuButtonTypography(item.id, menuPixelFont);
+              const isSansTab =
+                item.id === 'wages_matrix' || item.id === 'calculator' || item.id === 'shop';
+              const labelTypography = isSansTab
+                ? 'font-sans font-black text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs'
+                : 'font-mario font-bold text-[7px] min-[1180px]:text-[7.5px] xl:text-[8.5px] 2xl:text-[9.5px] tracking-tighter';
               return (
                 <button
                   key={item.id}
                   type="button"
-                  data-nav-font={typo.fontTag}
+                  data-nav-font={isSansTab ? 'sans' : 'mario'}
                   onClick={() => handleTabClick(item.id)}
                   title={item.label}
-                  className={`h-9 px-1 min-[1180px]:px-1.5 xl:px-2.5 inline-flex items-center justify-center gap-0.5 xl:gap-1.5 rounded-xl border-2 transition-all cursor-pointer leading-none whitespace-nowrap shrink ${typo.className} ${
+                  className={`h-9 px-1 min-[1180px]:px-1.5 xl:px-2.5 inline-flex items-center justify-center gap-0.5 xl:gap-1.5 rounded-xl border-2 transition-all cursor-pointer leading-none whitespace-nowrap shrink ${labelTypography} ${
                     activeTab === item.id
                       ? 'bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 border-black shadow-[0_2px_0_#000] -translate-y-0.5'
                       : 'bg-slate-900/90 hover:bg-slate-800 text-slate-100 border-slate-700/90 hover:border-amber-400/60 shadow-[0_2px_0_#020617]'
                   }`}
                 >
                   {item.icon}
-                  <span className="xl:hidden">{item.shortLabel}</span>
+                  <span className="xl:hidden text-[7px] min-[1180px]:text-[7.5px]">{item.shortLabel}</span>
                   <span className="hidden xl:inline 2xl:hidden">{item.shortLabel}</span>
                   <span className="hidden 2xl:inline">{item.label}</span>
                   {item.badge && (
-                    <span className="hidden 2xl:inline-block text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded font-pixel-silkscreen font-bold leading-none">
+                    <span className="hidden 2xl:inline-block text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded font-mario font-bold leading-none">
                       {item.badge}
                     </span>
                   )}
@@ -1670,7 +1672,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setIsMobileMenuOpen(!isMobileMenuOpen);
                 marioAudio.playClick();
               }}
-              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black cursor-pointer leading-none whitespace-nowrap overflow-hidden ${getMobileUtilityButtonTypography('menu', menuPixelFont).className}`}
+              className="font-sans min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap overflow-hidden"
             >
               <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span className="truncate block max-w-full text-center">Menu</span>
@@ -1691,7 +1693,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 aria-label="Search Philippine Labor Law (Ctrl+K)"
                 title="Search topics, articles, and doctrines (Ctrl+K)"
-                className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl border-2 border-amber-400 cursor-pointer leading-none whitespace-nowrap shadow-[0_1px_0_#000] overflow-hidden ${getMobileUtilityButtonTypography('search', menuPixelFont).className}`}
+                className="min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl border-2 border-amber-400 font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap shadow-[0_1px_0_#000] overflow-hidden"
               >
                 <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span className="truncate block max-w-full text-center">Search</span>
@@ -1706,7 +1708,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onOpenOnePageSummary();
                   marioAudio.playCoin();
                 }}
-                className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl border-2 border-black cursor-pointer leading-none whitespace-nowrap overflow-hidden ${getMobileUtilityButtonTypography('print', menuPixelFont).className}`}
+                className="min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl border-2 border-black font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap overflow-hidden"
               >
                 <Printer className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate block max-w-full text-center">Print</span>
@@ -1719,7 +1721,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => handleTabClick('calculator')}
               aria-label="Open Wage, Overtime & 13th Month Pay Calculator"
               title="Open Wage, Overtime & 13th Month Pay Calculator"
-              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl border-2 border-black leading-none whitespace-nowrap cursor-pointer transition-colors overflow-hidden ${getMobileUtilityButtonTypography('calculator', menuPixelFont).className} ${
+              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer transition-colors overflow-hidden ${
                 activeTab === 'calculator'
                   ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
                   : 'bg-cyan-950/90 text-cyan-100 hover:bg-cyan-900 border-cyan-400/70'
@@ -1737,7 +1739,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={() => handleTabClick('shop')}
-              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl border-2 border-black leading-none whitespace-nowrap cursor-pointer overflow-hidden ${getMobileUtilityButtonTypography('shop', menuPixelFont).className} ${
+              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer overflow-hidden ${
                 activeTab === 'shop'
                   ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
                   : 'bg-slate-800 text-slate-200 hover:bg-slate-700'

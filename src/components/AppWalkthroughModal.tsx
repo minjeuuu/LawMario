@@ -324,9 +324,9 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     name: 'Primary Section Tabs (Map, Modules, Holidays, Regions, Cards, Quiz, Arcade, Shop)',
     part: 'Top Navigation Bar (Desktop) & Bottom Dock (Mobile)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Switches cleanly between all major study hubs, reference tables, quizzes, 47 Arcade Games, and Toad’s Shop with custom Pixel Fonts.',
+    whatItDoes: 'Switches cleanly between all major study hubs, reference tables, quizzes, 47 Arcade Games, and Toad’s Shop.',
     howToUse: 'Click any section tab on desktop, or use the 5-button bottom dock + Menu button on mobile.',
-    proTip: 'Your progress, active Pomodoro timer, and saved notes stay synced across every single tab. Customize your Menu Pixel Font anytime in Tools.',
+    proTip: 'Your progress, active Pomodoro timer, and saved notes stay synced across every single tab.',
     targetTab: 'modules',
   },
   {
@@ -334,9 +334,9 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     name: 'Menu Pixel Font Selector (Silkscreen, Pixelify, VT323, Press 2P)',
     part: 'Navbar Settings & Tools Popover (Desktop & Mobile Drawer)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Customizes the retro pixel typography applied to menu and navigation buttons like 17 Regions, Calculator, and Toad’s Shop.',
+    whatItDoes: 'Customizes the retro pixel typography applied to menu buttons (such as 17 Regions, Calculator, and Toad’s Shop inside the Menu drawer).',
     howToUse: 'Open the Tools (Sliders icon) menu, find Menu Pixel Font, and choose from Smart Pixel (Silkscreen + Press 2P), Silkscreen 8-Bit, Pixelify Sans, VT323 CRT, or NES Classic.',
-    proTip: 'Smart Adaptive mode automatically pairs compact Silkscreen typography for multi-word tabs like Regions and Calculator with classic Press Start 2P for short tabs, ensuring zero text clipping.',
+    proTip: 'Smart Adaptive mode automatically applies compact Silkscreen typography to multi-word menu items like Regions and Calculator while preserving classic Press Start 2P for short menu items.',
     targetTab: 'map',
   },
   {
