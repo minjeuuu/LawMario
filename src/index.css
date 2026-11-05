@@ -7,6 +7,10 @@
     --font-primary: 'Plus Jakarta Sans', 'Inter', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mario: 'Press Start 2P', monospace;
     --font-display: 'Fredoka', 'Plus Jakarta Sans', 'Noto Sans', sans-serif;
+    --font-pixel-silkscreen: 'Silkscreen', 'Press Start 2P', monospace;
+    --font-pixel-pixelify: 'Pixelify Sans', 'Silkscreen', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-pixel-vt323: 'VT323', 'Press Start 2P', monospace;
+    --font-pixel-dotgothic: 'DotGothic16', monospace;
   }
 
   html, body {
@@ -544,6 +548,29 @@ html.dark .theme-arctic_ice_world {
 
 .font-mario {
   font-family: var(--font-mario);
+  overflow-wrap: break-word;
+}
+
+.font-pixel-silkscreen {
+  font-family: var(--font-pixel-silkscreen);
+  letter-spacing: -0.01em;
+  overflow-wrap: break-word;
+}
+
+.font-pixel-pixelify {
+  font-family: var(--font-pixel-pixelify);
+  letter-spacing: -0.01em;
+  overflow-wrap: break-word;
+}
+
+.font-pixel-vt323 {
+  font-family: var(--font-pixel-vt323);
+  letter-spacing: 0.02em;
+  overflow-wrap: break-word;
+}
+
+.font-pixel-dotgothic {
+  font-family: var(--font-pixel-dotgothic);
   overflow-wrap: break-word;
 }
 

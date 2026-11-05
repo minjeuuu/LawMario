@@ -1654,7 +1654,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
         )}
       </div>
 
-      {/* Genre Category Filter Strip for All 46 Playable Games */}
+      {/* Genre Category Filter Strip for All 47 Playable Games */}
       <div
         data-testid="arcade-genre-filter-strip"
         className="flex flex-wrap items-center gap-2 bg-slate-900 p-2.5 rounded-2xl border-2 border-slate-800"

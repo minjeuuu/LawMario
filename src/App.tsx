@@ -222,7 +222,11 @@ import {
   APP_STUDY_FONT_STORAGE_KEY,
 } from './utils/round8Features';
 import {
-  TopicMasteredSectionsMap,
+  loadMenuPixelFont,
+  saveMenuPixelFont,
+  type MenuPixelFontId,
+} from './utils/menuPixelFonts';
+import {
   loadTopicMasteredSectionsMap,
   saveTopicMasteredSectionsMap,
   toggleTopicSectionMastered,
@@ -739,6 +743,20 @@ export default function App() {
       localStorage.setItem(APP_STUDY_FONT_STORAGE_KEY, nextFont);
     } catch {
       // ignore storage errors
+    }
+  };
+
+  const [menuPixelFont, setMenuPixelFont] = useState<MenuPixelFontId>(() => {
+    if (typeof window !== 'undefined') {
+      return loadMenuPixelFont(window.localStorage);
+    }
+    return 'adaptive';
+  });
+
+  const handleSelectMenuPixelFont = (nextFont: MenuPixelFontId) => {
+    setMenuPixelFont(nextFont);
+    if (typeof window !== 'undefined') {
+      saveMenuPixelFont(nextFont, window.localStorage);
     }
   };
 
@@ -2403,6 +2421,8 @@ export default function App() {
           onSelectTheme={handleSelectActiveTheme}
           appStudyFont={appStudyFont}
           onSelectAppStudyFont={handleSelectAppStudyFont}
+          menuPixelFont={menuPixelFont}
+          onSelectMenuPixelFont={handleSelectMenuPixelFont}
           dailyPomodoroLogs={profileStats.dailyPomodoroLogs}
           dailyGoalMinutes={dailyGoalMinutes}
           onChangeDailyGoalMinutes={handleChangeDailyGoalMinutes}
@@ -2935,7 +2955,7 @@ export default function App() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-black text-slate-950 text-sm sm:text-base font-display truncate">Game Vault</h3>
-                    <p className="text-xs font-bold text-slate-600 truncate">46 Arcade Games</p>
+                    <p className="text-xs font-bold text-slate-600 truncate">47 Arcade Games</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-amber-600 shrink-0" />

@@ -732,7 +732,13 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                         <span className="text-[10px] font-black font-mario text-amber-300 block truncate">
                           {node.levelNumber}
                         </span>
-                        <span className="text-xs font-extrabold text-slate-100 block truncate">
+                        <span
+                          className={`text-xs font-extrabold text-slate-100 block truncate ${
+                            node.id === 'wages_matrix' || node.id === 'warp_calc'
+                              ? 'font-pixel-silkscreen text-[11px] uppercase tracking-tight text-cyan-300'
+                              : ''
+                          }`}
+                        >
                           {node.worldName}
                         </span>
                       </div>
@@ -1998,7 +2004,13 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                       )}
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-white font-display">
+                      <h4
+                        className={`text-xs sm:text-sm font-black text-white ${
+                          node.id === 'wages_matrix' || node.id === 'warp_calc'
+                            ? 'font-pixel-silkscreen text-[11px] sm:text-xs uppercase tracking-tight'
+                            : 'font-display'
+                        }`}
+                      >
                         {node.name}: {node.worldName}
                       </h4>
                       <div className="text-[10px] font-mono font-black text-emerald-400 mt-0.5">
@@ -2161,7 +2173,13 @@ export const WorldMap: React.FC<WorldMapProps> = ({
                     percent={selectedWorldProgress?.percent ?? 0}
                     size={32}
                   />
-                  <h3 className="text-lg sm:text-xl font-black text-amber-300 font-display leading-tight">
+                  <h3
+                    className={`text-lg sm:text-xl font-black text-amber-300 leading-tight ${
+                      selectedNode.id === 'wages_matrix' || selectedNode.id === 'warp_calc'
+                        ? 'font-pixel-silkscreen uppercase tracking-tight'
+                        : 'font-display'
+                    }`}
+                  >
                     {selectedNode.name}: {selectedNode.worldName}
                   </h3>
                 </div>

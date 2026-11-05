@@ -1472,7 +1472,7 @@ export const COIN_UTILITY_DESTINATIONS: CoinUtilityDestination[] = [
     id: 'use_arcade_boosts',
     title: 'Arcade Vault Power-Ups & Coin Wagers',
     costRangeLabel: '5–20 Coins',
-    whereLabel: 'Arcade Tab (46 Games)',
+    whereLabel: 'Arcade Tab (47 Games)',
     description:
       'Activate 2x Arcade Payout Multipliers, Extra Shield Hearts, and Inspector Radars across our new non-quiz Action, Sim & Defense games!',
     targetType: 'app_tab',
