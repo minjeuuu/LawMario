@@ -1104,28 +1104,28 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
       return (
         <div
           key={idx}
-          className="p-3.5 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/60 border-2 border-indigo-300 dark:border-indigo-700 space-y-1.5"
+          className="p-3.5 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/60 border-2 border-indigo-300 dark:border-indigo-700 space-y-2"
         >
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider font-mario leading-none">
-                <BookOpen className="w-3 h-3 shrink-0" />
-                <span>{item.badgeLabel || 'DEFINITION'}</span>
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider font-mario leading-none">
+              <BookOpen className="w-3 h-3 shrink-0" />
+              <span>{item.badgeLabel || 'DEFINITION'}</span>
+            </span>
+            {item.title && (
+              <span className="font-black text-indigo-950 dark:text-indigo-200 text-sm sm:text-base font-display">
+                {renderInteractiveText(item.title)}
               </span>
-              {item.title && (
-                <span className="font-black text-indigo-950 dark:text-indigo-200 text-sm sm:text-base font-display">
-                  {renderInteractiveText(item.title)}
-                </span>
-              )}
-            </div>
-            {actionBtns}
+            )}
           </div>
           {item.body && (
-            <p className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold`}>
+            <p className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold leading-relaxed`}>
               {renderInteractiveText(item.body)}
             </p>
           )}
           {renderSubClauses(item.subClauses)}
+          <div className="flex items-center justify-end gap-1.5 pt-0.5">
+            {actionBtns}
+          </div>
         </div>
       );
     }
@@ -1164,32 +1164,32 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
       return (
         <div
           key={idx}
-          className={`p-3 rounded-xl border-2 space-y-1.5 ${toneStyles.wrap}`}
+          className={`p-3 rounded-xl border-2 space-y-2 ${toneStyles.wrap}`}
         >
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
-              {item.tone !== 'concept' && (
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mario leading-none ${toneStyles.badge}`}
-                >
-                  {toneStyles.icon}
-                  <span>{item.badgeLabel}</span>
-                </span>
-              )}
-              {item.title && (
-                <span className={`font-black text-sm sm:text-base font-display ${toneStyles.title}`}>
-                  {renderInteractiveText(item.title)}
-                </span>
-              )}
-            </div>
-            {actionBtns}
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            {item.tone !== 'concept' && (
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mario leading-none ${toneStyles.badge}`}
+              >
+                {toneStyles.icon}
+                <span>{item.badgeLabel}</span>
+              </span>
+            )}
+            {item.title && (
+              <span className={`font-black text-sm sm:text-base font-display ${toneStyles.title}`}>
+                {renderInteractiveText(item.title)}
+              </span>
+            )}
           </div>
           {item.body && (
-            <p className={`rule-item-text ${bodyTextClass} text-slate-800 dark:text-slate-100 font-semibold`}>
+            <p className={`rule-item-text ${bodyTextClass} text-slate-800 dark:text-slate-100 font-semibold leading-relaxed`}>
               {renderInteractiveText(item.body)}
             </p>
           )}
           {renderSubClauses(item.subClauses)}
+          <div className="flex items-center justify-end gap-1.5 pt-0.5">
+            {actionBtns}
+          </div>
         </div>
       );
     }
@@ -1201,37 +1201,11 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
           key={idx}
           className="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs group relative"
         >
-          <div className="flex items-start justify-between gap-2.5">
-            <div className="flex items-start gap-2.5 min-w-0 flex-1">
-              <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
-                {String(item.number ?? 1).padStart(2, '0')}
-              </span>
-              <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold min-w-0 leading-relaxed`}>
-                {item.title && (
-                  <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
-                    {renderInteractiveText(item.title)}:
-                  </span>
-                )}
-                <span>{renderInteractiveText(item.body)}</span>
-              </div>
-            </div>
-            <div className="shrink-0 pt-0.5">{actionBtns}</div>
-          </div>
-          {item.subClauses && <div className="pl-8">{renderSubClauses(item.subClauses)}</div>}
-        </div>
-      );
-    }
-
-    // 5. Unnumbered Bullet / Principle Item
-    return (
-      <div
-        key={idx}
-        className="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs group relative"
-      >
-        <div className="flex items-start justify-between gap-2.5">
-          <div className="flex items-start gap-2.5 min-w-0 flex-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
-            <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold min-w-0 leading-relaxed`}>
+          <div className="flex items-start gap-2.5">
+            <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-amber-400 text-slate-950 border border-black text-xs font-black font-mario shrink-0 mt-0.5 shadow-[0_1px_0_#000]">
+              {String(item.number ?? 1).padStart(2, '0')}
+            </span>
+            <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 leading-relaxed`}>
               {item.title && (
                 <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
                   {renderInteractiveText(item.title)}:
@@ -1240,9 +1214,35 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
               <span>{renderInteractiveText(item.body)}</span>
             </div>
           </div>
-          <div className="shrink-0 pt-0.5">{actionBtns}</div>
+          {item.subClauses && <div className="pl-8">{renderSubClauses(item.subClauses)}</div>}
+          <div className="flex items-center justify-end gap-1.5 pt-0.5">
+            {actionBtns}
+          </div>
+        </div>
+      );
+    }
+
+    // 5. Unnumbered Bullet / Principle Item
+    return (
+      <div
+        key={idx}
+        className="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs group relative"
+      >
+        <div className="flex items-start gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-black shrink-0 mt-2" />
+          <div className={`rule-item-text ${bodyTextClass} text-slate-900 dark:text-slate-100 font-semibold flex-1 min-w-0 leading-relaxed`}>
+            {item.title && (
+              <span className="font-black text-slate-950 dark:text-amber-200 mr-1.5">
+                {renderInteractiveText(item.title)}:
+              </span>
+            )}
+            <span>{renderInteractiveText(item.body)}</span>
+          </div>
         </div>
         {item.subClauses && <div className="pl-5">{renderSubClauses(item.subClauses)}</div>}
+        <div className="flex items-center justify-end gap-1.5 pt-0.5">
+          {actionBtns}
+        </div>
       </div>
     );
   };
