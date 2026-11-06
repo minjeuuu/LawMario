@@ -59,13 +59,20 @@ export async function ensurePrintFontLoadedInBrowser(fontStyle?: string): Promis
 /**
  * Captures a live DOM element with html2canvas at High-DPI (2.5x retina)
  * embedding the true rendered web font into a standard A4 PDF document.
+ * Includes automatic multi-page slicing so tall review sheets are paginated
+ * cleanly without vertical squashing or distortion.
  */
 export async function captureDomElementToPdfBytesAsync(
-  elementId: string,
+  elementId: string | string[],
   orientation: 'portrait' | 'landscape'
 ): Promise<Uint8Array | null> {
   if (typeof document === 'undefined') return null;
-  const el = document.getElementById(elementId);
+  const ids = Array.isArray(elementId) ? elementId : [elementId];
+  let el: HTMLElement | null = null;
+  for (const id of ids) {
+    el = document.getElementById(id);
+    if (el) break;
+  }
   if (!el) return null;
 
   try {
@@ -77,7 +84,11 @@ export async function captureDomElementToPdfBytesAsync(
       windowWidth: el.scrollWidth || undefined,
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.96);
+    const pageW = orientation === 'portrait' ? 210 : 297;
+    const pageH = orientation === 'portrait' ? 297 : 210;
+    const pageAspect = pageH / pageW;
+    const canvasAspect = canvas.height / canvas.width;
+
     const doc = new jsPDF({
       orientation,
       unit: 'mm',
@@ -85,9 +96,47 @@ export async function captureDomElementToPdfBytesAsync(
       compress: true,
     });
 
-    const pageW = orientation === 'portrait' ? 210 : 297;
-    const pageH = orientation === 'portrait' ? 297 : 210;
-    doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH, undefined, 'FAST');
+    // Single-page fit with small 8% tolerance to prevent unintentional blank pages
+    if (canvasAspect <= pageAspect * 1.08) {
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
+      doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH, undefined, 'FAST');
+    } else {
+      // Multi-page slicing: cleanly divide tall canvas into crisp A4 pages
+      const sliceHeightPx = Math.floor(canvas.width * pageAspect);
+      const totalPages = Math.ceil(canvas.height / sliceHeightPx);
+
+      for (let i = 0; i < totalPages; i++) {
+        const yOffset = i * sliceHeightPx;
+        const currentSliceH = Math.min(sliceHeightPx, canvas.height - yOffset);
+
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceHeightPx;
+        const ctx = sliceCanvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0,
+            yOffset,
+            canvas.width,
+            currentSliceH,
+            0,
+            0,
+            canvas.width,
+            currentSliceH
+          );
+        }
+
+        const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+        if (i > 0) {
+          doc.addPage('a4', orientation);
+        }
+        doc.addImage(sliceImgData, 'JPEG', 0, 0, pageW, pageH, undefined, 'FAST');
+      }
+    }
+
     const arrayBuffer = doc.output('arraybuffer');
     return new Uint8Array(arrayBuffer);
   } catch (err) {
@@ -103,6 +152,9 @@ export async function buildTrueFontStudyReviewerPdfBytesAsync(
   params: StudyGuideReviewerPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
+  const orient = params.orientation === 'landscape' ? 'landscape' : 'portrait';
+  const snapBytes = await captureDomElementToPdfBytesAsync('printable-study-guide', orient);
+  if (snapBytes) return snapBytes;
   return buildStudyGuideReviewerPdfBytes(params);
 }
 
@@ -127,8 +179,10 @@ export async function buildTrueFontCertificateOrDiplomaPdfBytesAsync(
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
   const orient = params.orientation === 'portrait' ? 'portrait' : 'landscape';
-  const targetId = isMasterDiploma ? 'royal-juris-diploma-sheet' : 'official-labor-certificate';
-  const snapBytes = await captureDomElementToPdfBytesAsync(targetId, orient);
+  const targetIds = isMasterDiploma
+    ? ['royal-juris-diploma-sheet', 'master-diploma-printable']
+    : ['official-labor-certificate'];
+  const snapBytes = await captureDomElementToPdfBytesAsync(targetIds, orient);
   if (snapBytes) return snapBytes;
   return isMasterDiploma
     ? buildMasterDiplomaPdfBytes(params)
@@ -142,7 +196,10 @@ export async function buildTrueFontScoreCardPdfBytesAsync(
   params: ScoreCardPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  const snapBytes = await captureDomElementToPdfBytesAsync('official-player-scorecard', 'landscape');
+  const snapBytes = await captureDomElementToPdfBytesAsync(
+    ['official-scorecard-sheet', 'official-player-scorecard'],
+    'landscape'
+  );
   if (snapBytes) return snapBytes;
   return buildScoreCardLandscapePdfBytes(params);
 }

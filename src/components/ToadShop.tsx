@@ -1315,13 +1315,14 @@ export const ToadShop: React.FC<ToadShopProps> = ({
 
   useEffect(() => {
     if (activeCategory === 'certificate') {
-      applyPrintPageRule(diplomaOrientation, '6mm');
+      const activeFontStack = resolveExtendedPrintFont(diplomaFontId).cssFontFamily;
+      applyPrintPageRule(diplomaOrientation, '6mm', activeFontStack);
       return () => {
         clearPrintPageRule();
       };
     }
     return undefined;
-  }, [activeCategory, diplomaOrientation]);
+  }, [activeCategory, diplomaOrientation, diplomaFontId]);
   const [selectedFaction, setSelectedFaction] = useState<string>('All');
   const [mysteryResult, setMysteryResult] = useState<string | null>(null);
   const [isRollingMystery, setIsRollingMystery] = useState<boolean>(false);

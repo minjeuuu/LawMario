@@ -42,6 +42,8 @@ interface GlobalSearchModalProps {
   onOpenShop?: () => void;
   onOpenLeaderboard?: () => void;
   onStartQuickStudy?: () => void;
+  onOpenDoleCalculator?: () => void;
+  onOpenResearchCohort?: () => void;
   activeWorld?: string;
 }
 
@@ -53,6 +55,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   onOpenShop,
   onOpenLeaderboard,
   onStartQuickStudy,
+  onOpenDoleCalculator,
+  onOpenResearchCohort,
   activeWorld = 'all',
 }) => {
   const [query, setQuery] = useState('');
@@ -151,6 +155,24 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         tab: 'calculator',
         badge: 'Table',
         icon: <Calculator className="w-4 h-4 text-cyan-400" />,
+      },
+      {
+        id: 'tool-dole-calc',
+        title: 'DOLE Statutory Pay & Overtime Multiplier Calculator',
+        subtitle: 'Interactive wage simulator for ordinary OT (125%), night shift (110%), holidays (200%/260%/300%), 13th month & retirement (Art. 302)',
+        category: 'Calculator',
+        tab: 'dole_calc',
+        badge: 'DOLE BWC',
+        icon: <Calculator className="w-4 h-4 text-emerald-400" />,
+      },
+      {
+        id: 'tool-research-cohort',
+        title: 'Research Cohort Directory (9 Official Authors)',
+        subtitle: 'Matthew Cesar Corpuz (Main Creator), Cruz, Fanged, Fernandez, Garcia, Garvida, Mañalac, Untalan, Vila',
+        category: 'Tool',
+        tab: 'research_cohort',
+        badge: 'Authors',
+        icon: <Users className="w-4 h-4 text-amber-400" />,
       }
     );
 
@@ -393,6 +415,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     } else if (item.tab === 'shop') {
       if (onOpenShop) onOpenShop();
       else onSelectResult('shop');
+    } else if (item.tab === 'dole_calc') {
+      if (onOpenDoleCalculator) onOpenDoleCalculator();
+      else onSelectResult('calculator');
+    } else if (item.tab === 'research_cohort') {
+      if (onOpenResearchCohort) onOpenResearchCohort();
     } else {
       onSelectResult(item.tab, item.targetId);
     }

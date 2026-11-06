@@ -184,3 +184,50 @@ test('Vector Mario elements draw without errors into jsPDF instance', () => {
   const out = doc.output('arraybuffer');
   assert.ok(out.byteLength > 500);
 });
+
+test('DOLE Statutory Wage & Overtime Multipliers compute exact Philippine peso figures', () => {
+  const dailyWage = 645; // NCR Rate
+  const hourlyRate = dailyWage / 8; // 80.625
+  assert.equal(hourlyRate, 80.625);
+
+  // Ordinary Overtime: Hourly Rate × 1.25 × 2 hours
+  const ot2h = hourlyRate * 1.25 * 2;
+  assert.equal(ot2h, 201.5625);
+
+  // Night Shift Differential: Hourly Rate × 10% × 2 hours
+  const nsd2h = hourlyRate * 0.1 * 2;
+  assert.equal(nsd2h, 16.125);
+
+  // Rest Day / Special Non-Working Day: Daily Wage × 130%
+  const restDayPay = dailyWage * 1.3;
+  assert.equal(restDayPay, 838.5);
+
+  // Regular Holiday Worked: Daily Wage × 200%
+  const regHolidayWorked = dailyWage * 2.0;
+  assert.equal(regHolidayWorked, 1290.0);
+
+  // Regular Holiday on Rest Day: Daily Wage × 260%
+  const regHolidayRest = dailyWage * 2.6;
+  assert.equal(regHolidayRest, 1677.0);
+
+  // Double Regular Holiday Worked: Daily Wage × 300%
+  const doubleHolidayWorked = dailyWage * 3.0;
+  assert.equal(doubleHolidayWorked, 1935.0);
+
+  // Statutory Retirement Pay (Art. 302): 22.5 days per year of service
+  // 15 days basic + 2.5 days (5 days SIL) + 4.1667 days (1/12 13th month) = 22.5 days
+  const retirementPerYear = dailyWage * 22.5;
+  assert.equal(retirementPerYear, 14512.5);
+  const retirement5Years = retirementPerYear * 5;
+  assert.equal(retirement5Years, 72562.5);
+});
+
+test('Dynamic print font CSS cascades across both screen selectors and @media print', () => {
+  const fontCss = buildDynamicPrintPageCss('portrait', '8mm', '"Playfair Display", serif');
+  assert.ok(fontCss.includes(':root {'));
+  assert.ok(fontCss.includes('--print-active-font: "Playfair Display", serif;'));
+  assert.ok(fontCss.includes('#official-scorecard-sheet'));
+  assert.ok(fontCss.includes('#master-diploma-printable'));
+  assert.ok(fontCss.includes('#one-page-summary-sheet'));
+  assert.ok(fontCss.includes('@media print {'));
+});

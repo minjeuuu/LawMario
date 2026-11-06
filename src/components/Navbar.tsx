@@ -129,6 +129,8 @@ interface NavbarProps {
   onOpenLegalCitationsModal?: () => void;
   onOpenQuickGlossary?: () => void;
   onOpenStatuteLookup?: () => void;
+  onOpenDoleCalculator?: () => void;
+  onOpenResearchCohort?: () => void;
   zenReadingMode?: boolean;
   onToggleZenReadingMode?: () => void;
   activeTheme?: MarioTheme;
@@ -200,6 +202,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenLegalCitationsModal,
   onOpenQuickGlossary,
   onOpenStatuteLookup,
+  onOpenDoleCalculator,
+  onOpenResearchCohort,
   zenReadingMode = false,
   onToggleZenReadingMode,
   activeTheme = 'overworld',
@@ -1350,6 +1354,38 @@ export const Navbar: React.FC<NavbarProps> = ({
                         </button>
                       )}
 
+                      {onOpenDoleCalculator && (
+                        <button
+                          type="button"
+                          data-testid="navbar-dole-calc-btn"
+                          onClick={() => {
+                            setShowMoreToolsMenu(false);
+                            onOpenDoleCalculator();
+                            marioAudio.playCoin();
+                          }}
+                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <Calculator className="w-3.5 h-3.5 shrink-0" />
+                          <span>DOLE Pay Calc</span>
+                        </button>
+                      )}
+
+                      {onOpenResearchCohort && (
+                        <button
+                          type="button"
+                          data-testid="navbar-research-cohort-btn"
+                          onClick={() => {
+                            setShowMoreToolsMenu(false);
+                            onOpenResearchCohort();
+                            marioAudio.playPowerUp();
+                          }}
+                          className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border border-black inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                          <Users className="w-3.5 h-3.5 shrink-0" />
+                          <span>Research Cohort</span>
+                        </button>
+                      )}
+
                       {onOpenLegalCitationsModal && (
                         <button
                           type="button"
@@ -2473,6 +2509,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <Search className="w-3.5 h-3.5 shrink-0" />
                       <span>Statute Lookup</span>
+                    </button>
+                  )}
+                  {onOpenDoleCalculator && (
+                    <button
+                      type="button"
+                      data-testid="mobile-dole-calc-btn"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenDoleCalculator();
+                        marioAudio.playCoin();
+                      }}
+                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-emerald-400 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer whitespace-nowrap"
+                    >
+                      <Calculator className="w-3.5 h-3.5 shrink-0" />
+                      <span>DOLE Pay Calc</span>
+                    </button>
+                  )}
+                  {onOpenResearchCohort && (
+                    <button
+                      type="button"
+                      data-testid="mobile-research-cohort-btn"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        onOpenResearchCohort();
+                        marioAudio.playPowerUp();
+                      }}
+                      className="min-h-[42px] flex items-center justify-center gap-1.5 p-2 bg-amber-400 text-slate-950 font-black text-xs rounded-xl border border-black cursor-pointer whitespace-nowrap"
+                    >
+                      <Users className="w-3.5 h-3.5 shrink-0" />
+                      <span>Research Cohort</span>
                     </button>
                   )}
                   {onOpenLegalCitationsModal && (

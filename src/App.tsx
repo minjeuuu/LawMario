@@ -52,6 +52,8 @@ import { CoinLeaderboardModal } from './components/CoinLeaderboardModal';
 import { LegalCitationsModal, CitationsView } from './components/LegalCitationsModal';
 import { QuickGlossaryModal } from './components/QuickGlossaryModal';
 import { StatuteLookupModal } from './components/StatuteLookupModal';
+import { DolePayMultiplierCalculator } from './components/DolePayMultiplierCalculator';
+import { ResearchCohortModal } from './components/ResearchCohortModal';
 import { BossBattleLogModal } from './components/BossBattleLogModal';
 import {
   TopicFlashcardDeckModal,
@@ -522,6 +524,8 @@ export default function App() {
   const [isLegalCitationsOpen, setIsLegalCitationsOpen] = useState<boolean>(false);
   const [isQuickGlossaryOpen, setIsQuickGlossaryOpen] = useState<boolean>(false);
   const [isStatuteLookupOpen, setIsStatuteLookupOpen] = useState<boolean>(false);
+  const [isDoleCalculatorOpen, setIsDoleCalculatorOpen] = useState<boolean>(false);
+  const [isResearchCohortOpen, setIsResearchCohortOpen] = useState<boolean>(false);
   const [isBossBattleLogOpen, setIsBossBattleLogOpen] = useState<boolean>(false);
   // Level-Up Progression State (XP, levels, and unlocked Mario character avatars)
   const [userProgression, setUserProgression] = useState<UserProgressionState>(() =>
@@ -2406,6 +2410,8 @@ export default function App() {
           onOpenLegalCitationsModal={() => setIsLegalCitationsOpen(true)}
           onOpenQuickGlossary={() => setIsQuickGlossaryOpen(true)}
           onOpenStatuteLookup={() => setIsStatuteLookupOpen(true)}
+          onOpenDoleCalculator={() => setIsDoleCalculatorOpen(true)}
+          onOpenResearchCohort={() => setIsResearchCohortOpen(true)}
           showLegalCitations={showLegalCitations}
           setShowLegalCitations={handleSetShowLegalCitations}
           onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
@@ -4767,6 +4773,8 @@ export default function App() {
         }}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
         onStartQuickStudy={handleStartQuickStudy}
+        onOpenDoleCalculator={() => setIsDoleCalculatorOpen(true)}
+        onOpenResearchCohort={() => setIsResearchCohortOpen(true)}
       />
 
       {/* Print Study Guide & PDF Generator Modal */}
@@ -4850,6 +4858,18 @@ export default function App() {
             }, 150);
           }
         }}
+      />
+
+      {/* DOLE BWC Statutory Pay Multiplier & Wage Calculator Modal */}
+      <DolePayMultiplierCalculator
+        isOpen={isDoleCalculatorOpen}
+        onClose={() => setIsDoleCalculatorOpen(false)}
+      />
+
+      {/* Official Research Cohort & Authors Directory Modal */}
+      <ResearchCohortModal
+        isOpen={isResearchCohortOpen}
+        onClose={() => setIsResearchCohortOpen(false)}
       />
 
       {/* Bar Master 'Boss Battle & Quick Quiz Log' Modal */}

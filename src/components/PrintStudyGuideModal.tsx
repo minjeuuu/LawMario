@@ -91,6 +91,15 @@ import {
   downloadTrueFontScoreCardPdfAsync,
   downloadTrueFontStudyReviewerPdfAsync,
 } from '../utils/pdfTrueFontRenderer';
+import {
+  MarioSuperStarIcon,
+  MarioCoinBlockIcon,
+  MarioWarpPipeIcon,
+  MarioMushroomIcon,
+  MarioFireFlowerIcon,
+  MarioCoinIcon,
+  MarioBrickStrip,
+} from './MarioPrintIcons';
 
 export type PrintModalDocumentMode = 'summary' | 'guide' | 'certificate' | 'scorecard';
 
@@ -2267,25 +2276,30 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       }}
                       className={`border-b-2 ${headingBorderClass} px-4 py-3 rounded-xl flex items-end justify-between gap-3`}
                     >
-                      <div>
-                        <span
-                          style={{ color: activeExtendedTheme.headerTextHex }}
-                          className="text-[10px] font-black uppercase tracking-widest opacity-90 block"
-                        >
-                          PHILIPPINE LABOR STANDARDS · ONE-PAGE A4 MASTER SUMMARY · {activeExtendedTheme.name.toUpperCase()}
-                        </span>
-                        <h2
-                          style={{ color: activeExtendedTheme.headerTextHex }}
-                          className="text-2xl font-black tracking-tight"
-                        >
-                          KEY LEGAL FORMULAS, MULTIPLIERS &amp; STATUTORY DEADLINES
-                        </h2>
-                        <p
-                          style={{ color: activeExtendedTheme.headerTextHex }}
-                          className="text-xs opacity-90 font-medium"
-                        >
-                          P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 &amp; R.A. 11861
-                        </p>
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-xs">
+                          <MarioSuperStarIcon size={24} />
+                        </div>
+                        <div className="min-w-0">
+                          <span
+                            style={{ color: activeExtendedTheme.headerTextHex }}
+                            className="text-[10px] font-black uppercase tracking-widest opacity-90 block"
+                          >
+                            PHILIPPINE LABOR STANDARDS · ONE-PAGE A4 MASTER SUMMARY · {activeExtendedTheme.name.toUpperCase()}
+                          </span>
+                          <h2
+                            style={{ color: activeExtendedTheme.headerTextHex }}
+                            className="text-xl sm:text-2xl font-black tracking-tight"
+                          >
+                            KEY LEGAL FORMULAS, MULTIPLIERS &amp; STATUTORY DEADLINES
+                          </h2>
+                          <p
+                            style={{ color: activeExtendedTheme.headerTextHex }}
+                            className="text-xs opacity-90 font-medium"
+                          >
+                            P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 &amp; R.A. 11861
+                          </p>
+                        </div>
                       </div>
                       <div
                         style={{ color: activeExtendedTheme.headerTextHex }}
@@ -2317,7 +2331,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           className={`${summaryBannerHeaderClass} px-3 py-2 flex items-center justify-between gap-2`}
                         >
                           <span className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5">
-                            <Scale className="w-3.5 h-3.5 shrink-0" />
+                            <MarioCoinBlockIcon size={16} />
                             <span>I. Key Statutory Pay Formulas ({ONE_PAGE_LEGAL_FORMULAS.length})</span>
                           </span>
                           <span className="text-[10px] font-mono opacity-85">Arts. 87–97 · 302</span>
@@ -2336,7 +2350,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               <div className="flex items-baseline justify-between gap-2">
                                 <span
                                   style={{ color: activeExtendedTheme.bodyTextHex }}
-                                  className="font-bold"
+                                  className="font-bold break-words [overflow-wrap:anywhere]"
                                 >
                                   {f.title}
                                 </span>
@@ -2349,13 +2363,13 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               </div>
                               <div
                                 style={{ color: activeExtendedTheme.accentHex }}
-                                className="font-mono font-black text-[11px]"
+                                className="font-mono font-black text-[11px] break-words [overflow-wrap:anywhere]"
                               >
                                 {f.formula}
                               </div>
                               <p
                                 style={{ color: activeExtendedTheme.mutedTextHex }}
-                                className="text-[10.5px]"
+                                className="text-[10.5px] break-words [overflow-wrap:anywhere]"
                               >
                                 {f.note}
                               </p>
@@ -2380,7 +2394,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           className={`${summaryBannerHeaderClass} px-3 py-2 flex items-center justify-between gap-2`}
                         >
                           <span className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 shrink-0" />
+                            <MarioWarpPipeIcon size={16} />
                             <span>II. Prescriptive &amp; Procedural Deadlines ({ONE_PAGE_LEGAL_DEADLINES.length})</span>
                           </span>
                           <span className="text-[10px] font-mono opacity-85">Arts. 297–306</span>
@@ -2399,7 +2413,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               <div className="flex items-baseline justify-between gap-2">
                                 <span
                                   style={{ color: activeExtendedTheme.bodyTextHex }}
-                                  className="font-bold"
+                                  className="font-bold break-words [overflow-wrap:anywhere]"
                                 >
                                   {d.claimOrAction}
                                 </span>
@@ -2412,7 +2426,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               </div>
                               <p
                                 style={{ color: activeExtendedTheme.mutedTextHex }}
-                                className="text-[10.5px]"
+                                className="text-[10.5px] break-words [overflow-wrap:anywhere]"
                               >
                                 <span className="font-semibold">{d.citation}:</span> {d.reckoningRule}
                               </p>
@@ -2421,6 +2435,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         </div>
                       </div>
                     </div>
+
+                    {/* Mario 8-Bit Brick Divider Strip */}
+                    <MarioBrickStrip className="w-full h-2 rounded my-1 shadow-2xs" />
 
                     {/* Bottom A4 Strip: World 6 Statutory Leave Caps & Core Doctrines */}
                     <div
@@ -2438,10 +2455,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           style={{ color: activeExtendedTheme.bodyTextHex }}
                           className="text-xs font-black uppercase flex items-center gap-1.5"
                         >
-                          <CheckCircle2
-                            style={{ color: activeExtendedTheme.accentHex }}
-                            className="w-3.5 h-3.5 shrink-0"
-                          />
+                          <MarioMushroomIcon size={16} variant="1up" />
                           <span>III. World 6 Statutory Leave Caps &amp; Core Tests</span>
                         </span>
                         <span
@@ -2458,12 +2472,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5"
                           >
                             <div className="flex items-baseline justify-between gap-1">
-                              <span className="font-bold text-slate-900">{lv.leaveName}</span>
+                              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere]">{lv.leaveName}</span>
                               <span className="font-mono font-black text-amber-800 tabular-nums shrink-0">
                                 {lv.cap}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-600 block">
+                            <span className="text-[10px] text-slate-600 block break-words [overflow-wrap:anywhere]">
                               {lv.citation} · {lv.rule}
                             </span>
                           </div>
@@ -2482,10 +2496,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     >
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black uppercase tracking-wider text-[10px] text-amber-900 bg-amber-400 border border-amber-600 px-2 py-0.5 rounded shadow-xs inline-flex items-center gap-1">
-                          <Users className="w-3 h-3" />
+                          <MarioSuperStarIcon size={14} />
                           <span>Research Cohort (9 Members)</span>
                         </span>
-                        <span className="font-semibold text-slate-900 text-[10.5px]">
+                        <span className="font-semibold text-slate-900 text-[10.5px] break-words [overflow-wrap:anywhere]">
                           CORPUZ (Main Creator) · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
                         </span>
                       </div>
@@ -2511,23 +2525,23 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   >
                     {/* Corner Ornaments */}
                     <div className={`absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
-                      <Award className="w-4 h-4" />
+                      <MarioSuperStarIcon size={16} />
                     </div>
                     <div className={`absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 ${certThemeClasses.corner} flex items-center justify-center`}>
-                      <Award className="w-4 h-4" />
+                      <MarioSuperStarIcon size={16} />
                     </div>
                     <div className={`absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
-                      <Award className="w-4 h-4" />
+                      <MarioSuperStarIcon size={16} />
                     </div>
                     <div className={`absolute bottom-3 right-3 w-7 h-7 border-r-2 border-b-2 ${certThemeClasses.corner} flex items-center justify-center`}>
-                      <Award className="w-4 h-4" />
+                      <MarioSuperStarIcon size={16} />
                     </div>
 
                     {/* Header Seal & Title */}
                     <div className="text-center space-y-2">
                       <div className="flex items-center justify-center gap-3">
                         <div className={`w-11 h-11 rounded-full border-2 ${certThemeClasses.sealCircle} flex items-center justify-center shrink-0`}>
-                          <Scale className="w-5 h-5" />
+                          <MarioCoinBlockIcon size={22} />
                         </div>
                         <div>
                           <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600">
@@ -2562,7 +2576,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       <h3
                         className={`${
                           certOrientation === 'portrait' ? 'text-3xl' : 'text-4xl'
-                        } font-extrabold text-slate-950 tracking-tight border-b-2 border-slate-900 pb-1.5 max-w-2xl mx-auto`}
+                        } font-extrabold text-slate-950 tracking-tight border-b-2 border-slate-900 pb-1.5 max-w-2xl mx-auto break-words [overflow-wrap:anywhere]`}
                       >
                         {candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar'}
                       </h3>
@@ -2610,7 +2624,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
                       <div className="flex flex-col items-center justify-center">
                         <div className="w-16 h-16 rounded-full border-4 border-amber-500 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 flex flex-col items-center justify-center text-slate-950 shadow-md">
-                          <Award className="w-7 h-7 text-amber-950" />
+                          <MarioSuperStarIcon size={26} />
                           <span className="text-[8px] font-black tracking-tighter uppercase leading-none mt-0.5">
                             SEALED
                           </span>
@@ -2657,25 +2671,30 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       }}
                       className={`${summaryBannerHeaderClass} rounded-2xl p-6 flex items-center justify-between gap-6 border-2 ${headingBorderClass}`}
                     >
-                      <div className="space-y-1.5 min-w-0">
-                        <span
-                          style={{ color: activeExtendedTheme.headerTextHex }}
-                          className="text-xs font-mono font-bold uppercase tracking-widest opacity-90 block"
-                        >
-                          SUPER MARIO LABOR ADVENTURE · OFFICIAL HERO SCORE CARD · {activeExtendedTheme.name.toUpperCase()}
-                        </span>
-                        <h2
-                          style={{ color: activeExtendedTheme.headerTextHex }}
-                          className="text-3xl font-black tracking-tight truncate"
-                        >
-                          {candidateName.trim() || playerName || 'Labor Scholar Hero'}
-                        </h2>
-                        <p
-                          style={{ color: activeExtendedTheme.headerTextHex }}
-                          className="text-sm font-semibold opacity-95"
-                        >
-                          {heroRankLabel} · Equipped Hero: {heroDisplayName} · {activeExtendedFont.name}
-                        </p>
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-md">
+                          <MarioSuperStarIcon size={32} />
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <span
+                            style={{ color: activeExtendedTheme.headerTextHex }}
+                            className="text-xs font-mono font-bold uppercase tracking-widest opacity-90 block"
+                          >
+                            SUPER MARIO LABOR ADVENTURE · OFFICIAL HERO SCORE CARD · {activeExtendedTheme.name.toUpperCase()}
+                          </span>
+                          <h2
+                            style={{ color: activeExtendedTheme.headerTextHex }}
+                            className="text-2xl sm:text-3xl font-black tracking-tight break-words [overflow-wrap:anywhere]"
+                          >
+                            {candidateName.trim() || playerName || 'Labor Scholar Hero'}
+                          </h2>
+                          <p
+                            style={{ color: activeExtendedTheme.headerTextHex }}
+                            className="text-sm font-semibold opacity-95"
+                          >
+                            {heroRankLabel} · Equipped Hero: {heroDisplayName} · {activeExtendedFont.name}
+                          </p>
+                        </div>
                       </div>
                       <div
                         style={{
@@ -2697,23 +2716,41 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     {/* 5 KPI Stat Tiles */}
                     <div className="grid grid-cols-5 gap-3">
                       {[
-                        { label: 'STUDY TIME', val: studyDurationFormatted },
-                        { label: 'GOLD COINS', val: `x${coins}` },
-                        { label: 'LOGIN STREAK', val: `${loginStreak} Days` },
+                        {
+                          label: 'STUDY TIME',
+                          val: studyDurationFormatted,
+                          icon: <Clock className="w-3.5 h-3.5 text-slate-500 inline mr-1" />,
+                        },
+                        {
+                          label: 'GOLD COINS',
+                          val: `x${coins}`,
+                          icon: <MarioCoinIcon size={15} className="inline mr-1" />,
+                        },
+                        {
+                          label: 'LOGIN STREAK',
+                          val: `${loginStreak} Days`,
+                          icon: <MarioFireFlowerIcon size={15} className="inline mr-1" />,
+                        },
                         {
                           label: 'BADGES EARNED',
                           val: `${unlockedAchievementsCount}/${totalAchievementsCount}`,
+                          icon: <MarioSuperStarIcon size={15} className="inline mr-1" />,
                         },
-                        { label: 'QUIZ RUNS', val: `${quizRunsCompleted} Cleared` },
+                        {
+                          label: 'QUIZ RUNS',
+                          val: `${quizRunsCompleted} Cleared`,
+                          icon: <MarioMushroomIcon size={15} variant="super" className="inline mr-1" />,
+                        },
                       ].map((tile) => (
                         <div
                           key={tile.label}
-                          className={`rounded-xl border-2 ${headingBorderClass} ${subtleBoxClass} p-4 space-y-1`}
+                          className={`rounded-xl border-2 ${headingBorderClass} ${subtleBoxClass} p-3.5 space-y-1`}
                         >
-                          <span className="text-[11px] font-mono font-bold text-slate-600 block">
-                            {tile.label}
+                          <span className="text-[11px] font-mono font-bold text-slate-600 flex items-center">
+                            {tile.icon}
+                            <span>{tile.label}</span>
                           </span>
-                          <span className="text-xl font-black font-mono text-slate-950 tabular-nums block">
+                          <span className="text-lg font-black font-mono text-slate-950 tabular-nums block">
                             {tile.val}
                           </span>
                         </div>
@@ -2723,8 +2760,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     {/* Six-World Breakdown Grid */}
                     <div className="space-y-2.5 flex-1">
                       <div className={`border-b-2 ${headingBorderClass} pb-1.5 flex items-center justify-between`}>
-                        <h3 className="text-sm font-black uppercase tracking-wide text-slate-950">
-                          Six-World Philippine Labor Standards Mastery Breakdown
+                        <h3 className="text-sm font-black uppercase tracking-wide text-slate-950 flex items-center gap-2">
+                          <MarioCoinBlockIcon size={16} />
+                          <span>Six-World Philippine Labor Standards Mastery Breakdown</span>
                         </h3>
                         <span className="text-xs font-mono text-slate-600">Issued: {currentDate}</span>
                       </div>
@@ -2732,11 +2770,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         {scoreCardWorldBreakdown.map((wb) => (
                           <div
                             key={wb.worldNumber}
-                            className="bg-white border border-slate-300 rounded-xl p-4 space-y-2"
+                            className="bg-white border border-slate-300 rounded-xl p-3.5 space-y-2"
                           >
                             <div className="flex items-center justify-between gap-2 text-sm">
-                              <span className="font-black text-slate-950">
-                                World {wb.worldNumber}: {wb.shortTitle}
+                              <span className="font-black text-slate-950 flex items-center gap-1.5">
+                                <MarioWarpPipeIcon size={14} className="shrink-0" />
+                                <span>World {wb.worldNumber}: {wb.shortTitle}</span>
                               </span>
                               <span className="font-mono font-bold text-slate-700 tabular-nums">
                                 {wb.percent}% ({wb.completed}/{wb.total})
@@ -2754,6 +2793,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         ))}
                       </div>
                     </div>
+
+                    {/* Mario 8-Bit Brick Divider Strip */}
+                    <MarioBrickStrip className="w-full h-2 rounded my-1 shadow-2xs" />
 
                     {/* Footer */}
                     <div className={`border-t-2 ${headingBorderClass} pt-3 flex items-center justify-between text-xs font-mono text-slate-600`}>
@@ -2811,9 +2853,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 style={{ color: activeExtendedTheme.headerTextHex }}
                 className={`${
                   isCompact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
-                } font-black tracking-tight leading-tight`}
+                } font-black tracking-tight leading-tight flex items-center justify-center gap-2 flex-wrap`}
               >
-                Philippine Labor Standards &amp; Statutory Welfare Reviewer
+                <MarioSuperStarIcon size={24} />
+                <span>Philippine Labor Standards &amp; Statutory Welfare Reviewer</span>
+                <MarioCoinBlockIcon size={24} />
               </h1>
               <p
                 style={{ color: activeExtendedTheme.headerTextHex }}
@@ -2855,7 +2899,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 pb-1.5">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-slate-900" />
+                    <MarioSuperStarIcon size={16} />
                     <h2 className="font-black text-xs uppercase tracking-wide text-slate-950">
                       Memory Aid Attribution &amp; Research Cohort
                     </h2>
@@ -2873,12 +2917,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center shrink-0 border border-amber-600 shadow-xs tabular-nums">
                         {idx + 1}
                       </span>
-                      <span className={idx === 0 ? 'font-black text-slate-950 flex-1 truncate' : 'font-semibold text-slate-900 flex-1 truncate'}>
+                      <span className={idx === 0 ? 'font-black text-slate-950 flex-1 break-words [overflow-wrap:anywhere] leading-snug min-w-0' : 'font-semibold text-slate-900 flex-1 break-words [overflow-wrap:anywhere] leading-snug min-w-0'}>
                         {member}
                       </span>
                       {idx === 0 && (
                         <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0 inline-flex items-center gap-0.5">
-                          <Star className="w-2.5 h-2.5 fill-emerald-600 text-emerald-600" />
+                          <MarioSuperStarIcon size={11} />
                           <span>Lead</span>
                         </span>
                       )}
@@ -2897,7 +2941,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 pb-1.5">
                   <div className="flex items-center gap-2">
-                    <Award className="w-4 h-4 text-slate-900" />
+                    <MarioCoinBlockIcon size={16} />
                     <h2 className="font-black text-xs uppercase tracking-wide text-slate-950">
                       Six-World Mastery Checklist
                     </h2>
@@ -2912,7 +2956,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     const done = worldTopics.filter((t) => completedTopicIds.includes(t.id)).length;
                     return (
                       <div key={w.id} className={`p-2 border rounded-lg ${subtleBoxClass}`}>
-                        <span className="font-bold block text-slate-900 truncate">
+                        <span className="font-bold block text-slate-950 break-words [overflow-wrap:anywhere] leading-tight">
                           W{w.worldNumber}: {w.shortTitle}
                         </span>
                         <span className="text-slate-700 tabular-nums">
@@ -2959,7 +3003,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               <section className="space-y-2" data-testid="print-matrix-multipliers">
                 <div className={`border-b-2 ${headingBorderClass} pb-1 flex flex-wrap items-center justify-between gap-2`}>
                   <div className="flex items-center gap-2">
-                    <Scale className="w-4 h-4 text-slate-900" />
+                    <MarioCoinIcon size={18} />
                     <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
                       I. Statutory Pay Multiplier Matrix (DOLE BWC)
                     </h2>
@@ -3093,8 +3137,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             {includeRegionalWages && (
               <section className="space-y-2" data-testid="print-matrix-regional-wages">
                 <div className={`border-b-2 ${headingBorderClass} pb-1 flex items-center justify-between gap-2`}>
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-slate-900" />
+                  <div className="flex items-center gap-2">
+                    <MarioWarpPipeIcon size={18} />
                     <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
                       II. 17 Regions Daily Minimum Wage &amp; Kasambahay Matrix
                     </h2>
@@ -3157,8 +3201,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             {includeLeavesMatrix && (
               <section className="space-y-2" data-testid="print-matrix-statutory-leaves">
                 <div className={`border-b-2 ${headingBorderClass} pb-1 flex items-center justify-between gap-2`}>
-                  <div className="flex items-center gap-1.5">
-                    <Scale className="w-4 h-4 text-slate-900" />
+                  <div className="flex items-center gap-2">
+                    <MarioMushroomIcon size={18} variant="1up" />
                     <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
                       III. World 6 Statutory Leaves Master Comparison Matrix
                     </h2>
@@ -3376,9 +3420,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <h3
                             style={{ color: activeExtendedTheme.accentHex }}
-                            className="font-black text-xs sm:text-sm uppercase tracking-wide"
+                            className="font-black text-xs sm:text-sm uppercase tracking-wide flex items-center gap-1.5"
                           >
-                            World {world.worldNumber}: {world.title.replace(/^WORLD \d+:\s*/i, '')}
+                            <MarioSuperStarIcon size={14} />
+                            <span>World {world.worldNumber}: {world.title.replace(/^WORLD \d+:\s*/i, '')}</span>
                           </h3>
                           <span
                             style={{ color: activeExtendedTheme.mutedTextHex }}

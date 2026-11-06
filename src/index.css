@@ -973,7 +973,26 @@ html.dark .theme-arctic_ice_world {
   }
 }
 
-/* Print Font Cascade: Apply the chosen print font across all study guide, summary, and certificate containers */
+/* Print & Screen Font Cascade: Apply the chosen print font across all study guide, summary, certificate, scorecard, and diploma containers */
+#printable-study-guide,
+#printable-study-guide *:not(.font-preserve),
+#one-page-summary-sheet,
+#one-page-summary-sheet *:not(.font-preserve),
+#official-labor-certificate,
+#official-labor-certificate *:not(.font-preserve),
+#official-scorecard-sheet,
+#official-scorecard-sheet *:not(.font-preserve),
+#official-player-scorecard,
+#official-player-scorecard *:not(.font-preserve),
+#master-diploma-printable,
+#master-diploma-printable *:not(.font-preserve),
+#royal-juris-diploma-sheet,
+#royal-juris-diploma-sheet *:not(.font-preserve),
+.dynamic-print-font-target,
+.dynamic-print-font-target *:not(.font-preserve) {
+  font-family: var(--print-active-font, inherit) !important;
+}
+
 @media print {
   #printable-study-guide,
   #printable-study-guide *:not(.font-preserve),
@@ -981,8 +1000,14 @@ html.dark .theme-arctic_ice_world {
   #one-page-summary-sheet *:not(.font-preserve),
   #official-labor-certificate,
   #official-labor-certificate *:not(.font-preserve),
+  #official-scorecard-sheet,
+  #official-scorecard-sheet *:not(.font-preserve),
   #official-player-scorecard,
   #official-player-scorecard *:not(.font-preserve),
+  #master-diploma-printable,
+  #master-diploma-printable *:not(.font-preserve),
+  #royal-juris-diploma-sheet,
+  #royal-juris-diploma-sheet *:not(.font-preserve),
   .dynamic-print-font-target,
   .dynamic-print-font-target *:not(.font-preserve) {
     font-family: var(--print-active-font, inherit) !important;
@@ -1530,7 +1555,10 @@ body.printing-scorecard-only {
 #one-page-summary-sheet,
 #official-labor-certificate,
 #official-scorecard-sheet,
-#master-diploma-printable {
+#official-player-scorecard,
+#master-diploma-printable,
+#royal-juris-diploma-sheet,
+.dynamic-print-font-target {
   font-family: var(--print-active-font, inherit) !important;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -1539,11 +1567,14 @@ body.printing-scorecard-only {
   user-select: text !important;
 }
 
-#printable-study-guide *,
-#one-page-summary-sheet *,
-#official-labor-certificate *,
-#official-scorecard-sheet *,
-#master-diploma-printable * {
+#printable-study-guide *:not(.font-preserve),
+#one-page-summary-sheet *:not(.font-preserve),
+#official-labor-certificate *:not(.font-preserve),
+#official-scorecard-sheet *:not(.font-preserve),
+#official-player-scorecard *:not(.font-preserve),
+#master-diploma-printable *:not(.font-preserve),
+#royal-juris-diploma-sheet *:not(.font-preserve),
+.dynamic-print-font-target *:not(.font-preserve) {
   font-family: var(--print-active-font, inherit) !important;
   overflow-wrap: anywhere;
   word-break: break-word;
