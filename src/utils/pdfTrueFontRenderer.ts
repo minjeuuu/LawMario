@@ -60,16 +60,56 @@ export async function fetchGoogleFontTtfBase64ForStyle(
   }
 
   try {
-    const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(primaryFamily)}`;
-    const cssRes = await fetch(cssUrl);
-    if (!cssRes.ok) return null;
-    const css = await cssRes.text();
-    const ttfMatch = css.match(/src:\s*url\((https:\/\/fonts\.gstatic\.com\/[^\)]+\.ttf)\)/);
-    if (!ttfMatch) return null;
+    const slug = primaryFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let ttfBuffer: ArrayBuffer | null = null;
 
-    const ttfRes = await fetch(ttfMatch[1]);
-    if (!ttfRes.ok) return null;
-    const ttfBuffer = await ttfRes.arrayBuffer();
+    // 1. Primary source: jsDelivr Fontsource CDN (always serves raw .ttf with CORS enabled for any browser)
+    try {
+      const fontsourceUrl = `https://cdn.jsdelivr.net/fontsource/fonts/${slug}@latest/latin-400-normal.ttf`;
+      const res = await fetch(fontsourceUrl);
+      if (res.ok) {
+        ttfBuffer = await res.arrayBuffer();
+      }
+    } catch {
+      // Fallback
+    }
+
+    // 2. Secondary source: unpkg Fontsource
+    if (!ttfBuffer) {
+      try {
+        const unpkgUrl = `https://unpkg.com/@fontsource/${slug}/files/${slug}-latin-400-normal.ttf`;
+        const res = await fetch(unpkgUrl);
+        if (res.ok) {
+          ttfBuffer = await res.arrayBuffer();
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
+    // 3. Fallback: Google Fonts CSS2 API (works when caller is curl/node or if gstatic serves .ttf)
+    if (!ttfBuffer) {
+      try {
+        const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(primaryFamily)}`;
+        const cssRes = await fetch(cssUrl);
+        if (cssRes.ok) {
+          const css = await cssRes.text();
+          const ttfMatch = css.match(/src:\s*url\((https:\/\/fonts\.gstatic\.com\/[^\)]+\.ttf)\)/);
+          if (ttfMatch) {
+            const ttfRes = await fetch(ttfMatch[1]);
+            if (ttfRes.ok) {
+              ttfBuffer = await ttfRes.arrayBuffer();
+            }
+          }
+        }
+      } catch {
+        // Fallback failed
+      }
+    }
+
+    if (!ttfBuffer || ttfBuffer.byteLength < 500) {
+      return null;
+    }
 
     const bytes = new Uint8Array(ttfBuffer);
     let binary = '';
