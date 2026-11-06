@@ -58,6 +58,70 @@ export const GROUP_MEMBERS: readonly string[] = [
   'VILA, HANNAH DANIELA',
 ] as const;
 
+export interface GroupMemberDetail {
+  name: string;
+  role: string;
+  specialization: string;
+  marioRole: string;
+}
+
+export const GROUP_MEMBER_DETAILS: readonly GroupMemberDetail[] = [
+  {
+    name: 'CORPUZ, MATTHEW CESAR',
+    role: 'Lead Creator & Systems Architect',
+    specialization: 'Full Philippine Labor Standards Architecture & Bar Syllabus Integration',
+    marioRole: 'Mario (Field Captain)',
+  },
+  {
+    name: 'CRUZ, MARY LOUISE',
+    role: 'Senior Legal Researcher',
+    specialization: 'World 6 Statutory Leaves, Maternity & Paternity Law (R.A. 11210 / 8187)',
+    marioRole: 'Princess Peach (Leaves & Protections)',
+  },
+  {
+    name: 'FANGED, TRACY FAE',
+    role: 'Statutory Auditor',
+    specialization: 'Hours of Work, Compressed Workweek & Overtime Pay Premium Formulas',
+    marioRole: 'Luigi (Hours & Operations)',
+  },
+  {
+    name: 'FERNANDEZ, JELYN',
+    role: 'Doctrine Researcher',
+    specialization: 'Weekly Rest Periods, Regular vs Special Holidays & Double Holiday Pay',
+    marioRole: 'Yoshi (Rest Days & Premium)',
+  },
+  {
+    name: 'GARCIA, AERON STEVEN',
+    role: 'Economic Wage Analyst',
+    specialization: 'Regional Minimum Wage Board Orders (17 Regions) & Wage Distortion (R.A. 6727)',
+    marioRole: 'Toad (Regional Wages Ledger)',
+  },
+  {
+    name: 'GARVIDA, MHELBOURNE',
+    role: 'Compliance & Regulatory Auditor',
+    specialization: 'Contracting & Subcontracting Rules (DOLE D.O. 174-17) & Substantial Capital',
+    marioRole: 'Bowser / Wario (Due Process & Capital Guard)',
+  },
+  {
+    name: 'MAÑALAC, ABIGAIL',
+    role: 'Special Classes Researcher',
+    specialization: 'Kasambahay Law (R.A. 10361), Working Children (R.A. 9231) & PWDs (R.A. 7277)',
+    marioRole: 'Rosalina (Protective Workplace Statutes)',
+  },
+  {
+    name: 'UNTALAN, BEYONCE HELEIN',
+    role: 'Due Process Scholar',
+    specialization: 'Security of Tenure, Twin-Notice Procedural Due Process & Agabon/Jaka Doctrine',
+    marioRole: 'Daisy (Tenure & Procedural Fairness)',
+  },
+  {
+    name: 'VILA, HANNAH DANIELA',
+    role: 'Bar Examination Cross-Checker',
+    specialization: 'Prescriptive Periods (Arts. 297-306) & DOLE Bureau of Working Conditions Rulings',
+    marioRole: 'Donkey Kong (Prescription & Enforcement)',
+  },
+] as const;
+
 // ==================== STUDY NOTES (PERSISTENT RIGHT DRAWER) ====================
 
 export const STUDY_NOTES_STORAGE_KEY = 'mario_labor_study_notes_v1';

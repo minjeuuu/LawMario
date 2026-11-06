@@ -24,6 +24,9 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  Printer,
+  Calculator,
+  Star,
 } from 'lucide-react';
 import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
@@ -44,6 +47,7 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
+  invokeBrowserPrint,
 } from '../utils/printHelper';
 import { getPrintFontCssStack } from '../utils/round11Features';
 import {
@@ -180,6 +184,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     'Summa Cum Laude · Super Star Rank'
   );
   const [candidateName, setCandidateName] = useState('');
+  const [simDailyWage, setSimDailyWage] = useState<number>(645);
+  const [showMultiplierSim, setShowMultiplierSim] = useState<boolean>(false);
   const [pdfDownloadedNotice, setPdfDownloadedNotice] = useState(false);
   const [pdfEngineMode, setPdfEngineMode] = useState<'vector' | 'canvas'>('vector');
   const [formatOptions, setFormatOptions] = useState<PrintGuideFormatOptions>(() => {
@@ -311,22 +317,25 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       clearPrintPageRule();
       return;
     }
+    const resolvedExtFont = resolveExtendedPrintFont(formatOptions.fontStyle);
+    const fontStack = resolvedExtFont.cssFontFamily;
     if (documentMode === 'certificate') {
-      applyPrintPageRule(certOrientation, '6mm');
+      applyPrintPageRule(certOrientation, '6mm', fontStack);
     } else if (documentMode === 'scorecard') {
-      applyPrintPageRule('landscape', '6mm');
+      applyPrintPageRule('landscape', '6mm', fontStack);
     } else if (documentMode === 'summary') {
-      applyPrintPageRule('portrait', '8mm');
+      applyPrintPageRule('portrait', '8mm', fontStack);
     } else {
       applyPrintPageRule(
         pageOrientation,
-        pageOrientation === 'landscape' ? '8mm 10mm' : '10mm 12mm'
+        pageOrientation === 'landscape' ? '8mm 10mm' : '10mm 12mm',
+        fontStack
       );
     }
     return () => {
       clearPrintPageRule();
     };
-  }, [isOpen, documentMode, pageOrientation, certOrientation]);
+  }, [isOpen, documentMode, pageOrientation, certOrientation, formatOptions.fontStyle]);
 
   const resolvedNotes =
     studyNotes ??
@@ -1054,6 +1063,33 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   Graphic
                 </button>
               </div>
+
+              <button
+                type="button"
+                data-testid="browser-print-action-btn"
+                onClick={() => {
+                  marioAudio.playCoin();
+                  const isLand = isLandscapeDocument;
+                  const orient = isLand ? 'landscape' : 'portrait';
+                  const margin =
+                    documentMode === 'certificate' || documentMode === 'scorecard'
+                      ? '6mm'
+                      : isLand
+                      ? '8mm 10mm'
+                      : '8mm';
+                  invokeBrowserPrint({
+                    orientation: orient,
+                    marginCss: margin,
+                    fontStack: activeCssFontStack,
+                  });
+                }}
+                className="min-h-[42px] justify-center inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0"
+                title="Open system print dialog (Ctrl+P / Cmd+P) applying the exact chosen font"
+              >
+                <Printer className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">Print (Ctrl+P)</span>
+                <span className="sm:hidden">Print</span>
+              </button>
 
               <button
                 type="button"
@@ -2434,6 +2470,29 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         ))}
                       </div>
                     </div>
+
+                    {/* IV. Research & Development Cohort Attribution Bar */}
+                    <div
+                      style={{
+                        backgroundColor: activeExtendedTheme.tableStripeBgHex || '#F8FAFC',
+                        borderColor: activeExtendedTheme.borderHex,
+                        color: activeExtendedTheme.bodyTextHex,
+                      }}
+                      className={`border-2 rounded-xl p-2.5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10.5px] ${subtleBoxClass}`}
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-black uppercase tracking-wider text-[10px] text-amber-900 bg-amber-400 border border-amber-600 px-2 py-0.5 rounded shadow-xs inline-flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          <span>Research Cohort (9 Members)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900 text-[10.5px]">
+                          CORPUZ (Main Creator) · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                        P.D. No. 442 Master Summary · {activeExtendedFont.name}
+                      </span>
+                    </div>
                   </div>
                 ) : documentMode === 'certificate' ? (
                   /* ==================== EXECUTIVE CERTIFICATE OF STATUTORY COMPLETION (PORTRAIT 794x1122 OR LANDSCAPE 1122x794) ==================== */
@@ -2805,16 +2864,24 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     Main Creator: Matthew Cesar Corpuz
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 text-[11px] text-slate-900">
+                <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-3 gap-y-2 text-[11px] text-slate-900">
                   {GROUP_MEMBERS.map((member, idx) => (
-                    <div key={member} className="flex items-baseline gap-1.5">
-                      <span className="font-mono text-[10px] text-slate-500 tabular-nums w-4 shrink-0">
-                        {idx + 1}.
+                    <div
+                      key={member}
+                      className="flex items-center gap-2 p-1.5 rounded-lg bg-white/85 border border-slate-300 shadow-2xs"
+                    >
+                      <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center shrink-0 border border-amber-600 shadow-xs tabular-nums">
+                        {idx + 1}
                       </span>
-                      <span className={idx === 0 ? 'font-black underline decoration-slate-400' : 'font-medium'}>
+                      <span className={idx === 0 ? 'font-black text-slate-950 flex-1 truncate' : 'font-semibold text-slate-900 flex-1 truncate'}>
                         {member}
-                        {idx === 0 ? ' (Creator)' : ''}
                       </span>
+                      {idx === 0 && (
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0 inline-flex items-center gap-0.5">
+                          <Star className="w-2.5 h-2.5 fill-emerald-600 text-emerald-600" />
+                          <span>Lead</span>
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -2890,26 +2957,108 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             <div id="print-sec-matrices" className="space-y-6">
             {includeMultipliers && (
               <section className="space-y-2" data-testid="print-matrix-multipliers">
-                <div className={`border-b-2 ${headingBorderClass} pb-1 flex items-center justify-between gap-2`}>
-                  <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
-                    I. Statutory Pay Multiplier Matrix (DOLE BWC)
-                  </h2>
-                  <span className="text-[10px] font-mono text-slate-600">Arts. 87, 93–94 Labor Code</span>
+                <div className={`border-b-2 ${headingBorderClass} pb-1 flex flex-wrap items-center justify-between gap-2`}>
+                  <div className="flex items-center gap-2">
+                    <Scale className="w-4 h-4 text-slate-900" />
+                    <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
+                      I. Statutory Pay Multiplier Matrix (DOLE BWC)
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMultiplierSim((prev) => !prev);
+                        marioAudio.playCoin();
+                      }}
+                      className="print:hidden px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] inline-flex items-center gap-1 border border-black shadow-xs cursor-pointer"
+                      title="Open interactive DOLE pay multiplier simulator"
+                    >
+                      <Calculator className="w-3.5 h-3.5" />
+                      <span>{showMultiplierSim ? 'Close Calculator' : 'Live Pay Calculator'}</span>
+                    </button>
+                    <span className="text-[10px] font-mono text-slate-600">Arts. 87, 93–94 Labor Code</span>
+                  </div>
                 </div>
-                <div className="w-full overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
+
+                {/* Interactive Multiplier Live Simulator (Print Hidden) */}
+                {showMultiplierSim && (
+                  <div className="print:hidden p-3 rounded-xl bg-slate-900 text-white border-2 border-amber-400 shadow-lg space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center font-mario">
+                          ?
+                        </span>
+                        <span className="font-black text-xs uppercase tracking-wide text-amber-300">
+                          DOLE Statutory Pay Multiplier Simulator
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <label htmlFor="sim-wage-input" className="text-slate-300 font-bold">
+                          Daily Wage: ₱
+                        </label>
+                        <input
+                          id="sim-wage-input"
+                          type="number"
+                          min="100"
+                          max="50000"
+                          step="1"
+                          value={simDailyWage}
+                          onChange={(e) => setSimDailyWage(Math.max(1, Number(e.target.value) || 0))}
+                          className="w-24 px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-amber-300 font-mono font-bold text-xs"
+                        />
+                        <span className="text-slate-400 text-[11px] font-mono">
+                          (₱{(simDailyWage / 8).toFixed(2)}/hr)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      <div className="p-2 rounded bg-slate-800/80 border border-slate-700">
+                        <span className="text-slate-400 text-[10px] block font-bold">Ordinary OT (+2h @ 125%)</span>
+                        <span className="font-mono font-black text-amber-300 text-sm">
+                          ₱{((simDailyWage / 8) * 1.25 * 2).toFixed(2)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">Total: ₱{(simDailyWage + (simDailyWage / 8) * 1.25 * 2).toFixed(2)}</span>
+                      </div>
+                      <div className="p-2 rounded bg-slate-800/80 border border-slate-700">
+                        <span className="text-slate-400 text-[10px] block font-bold">Rest Day / Special (130%)</span>
+                        <span className="font-mono font-black text-emerald-300 text-sm">
+                          ₱{(simDailyWage * 1.3).toFixed(2)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">+₱{(simDailyWage * 0.3).toFixed(2)} premium</span>
+                      </div>
+                      <div className="p-2 rounded bg-slate-800/80 border border-slate-700">
+                        <span className="text-slate-400 text-[10px] block font-bold">Regular Holiday (200%)</span>
+                        <span className="font-mono font-black text-yellow-300 text-sm">
+                          ₱{(simDailyWage * 2.0).toFixed(2)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">200% double pay</span>
+                      </div>
+                      <div className="p-2 rounded bg-slate-800/80 border border-slate-700">
+                        <span className="text-slate-400 text-[10px] block font-bold">Holiday on Rest Day (260%)</span>
+                        <span className="font-mono font-black text-sky-300 text-sm">
+                          ₱{(simDailyWage * 2.6).toFixed(2)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">+60% combined</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="w-full overflow-x-auto print:overflow-visible">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
                     <colgroup>
                       <col style={{ width: '22%' }} />
-                      <col style={{ width: '34%' }} />
-                      <col style={{ width: '12%' }} />
+                      <col style={{ width: '33%' }} />
+                      <col style={{ width: '13%' }} />
                       <col style={{ width: '32%' }} />
                     </colgroup>
                     <thead>
                       <tr className={tableHeaderClass}>
-                        <th className="p-2 border border-slate-500 font-black">Benefit Category</th>
-                        <th className="p-2 border border-slate-500 font-black">Scenario / Day Type</th>
-                        <th className="p-2 border border-slate-500 font-black text-right">Rate</th>
-                        <th className="p-2 border border-slate-500 font-black">Statutory Formula</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Benefit Category</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Scenario / Day Type</th>
+                        <th className="p-2 border border-slate-500 font-black text-right break-words [overflow-wrap:anywhere]">Rate</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Statutory Formula</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2920,16 +3069,16 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             idx % 2 === 1 ? zebraRowClass : 'bg-white'
                           }`}
                         >
-                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top">
+                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.benefit}
                           </td>
-                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top">
+                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.scenario}
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-mono font-black text-slate-950 text-right align-top">
+                          <td className="p-1.5 border border-slate-400 font-mono font-black text-slate-950 text-right align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {(row.multiplierDecimal * 100).toFixed(1).replace(/\.0$/, '')}%
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-900 align-top">
+                          <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.formula}
                           </td>
                         </tr>
@@ -2952,8 +3101,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   </div>
                   <span className="text-[10px] font-mono text-slate-600">R.A. 6727 · R.A. 10361</span>
                 </div>
-                <div className="w-full overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
+                <div className="w-full overflow-x-auto print:overflow-visible">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
                     <colgroup>
                       <col style={{ width: '26%' }} />
                       <col style={{ width: '18%' }} />
@@ -2963,11 +3112,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </colgroup>
                     <thead>
                       <tr className={tableHeaderClass}>
-                        <th className="p-2 border border-slate-500 font-black">Region</th>
-                        <th className="p-2 border border-slate-500 font-black">Effectivity</th>
-                        <th className="p-2 border border-slate-500 font-black">Non-Agriculture</th>
-                        <th className="p-2 border border-slate-500 font-black">Agriculture</th>
-                        <th className="p-2 border border-slate-500 font-black">Kasambahay / Mo.</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Region</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Effectivity</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Non-Agriculture</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Agriculture</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Kasambahay / Mo.</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2980,19 +3129,19 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               idx % 2 === 1 ? zebraRowClass : 'bg-white'
                             }`}
                           >
-                            <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top">
+                            <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.region}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-800 align-top">
+                            <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-800 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.effectivity}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono font-bold text-slate-950 align-top">
+                            <td className="p-1.5 border border-slate-400 font-mono font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.nonAgri}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono text-slate-900 align-top">
+                            <td className="p-1.5 border border-slate-400 font-mono text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.agri}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono text-slate-900 align-top">
+                            <td className="p-1.5 border border-slate-400 font-mono text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {kas ? kas.minimumWage : '—'}
                             </td>
                           </tr>
@@ -3016,8 +3165,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   </div>
                   <span className="text-[10px] font-mono text-slate-600">Art. 95 &amp; Special Leave Statutes</span>
                 </div>
-                <div className="w-full overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
+                <div className="w-full overflow-x-auto print:overflow-visible">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
                     <colgroup>
                       <col style={{ width: '20%' }} />
                       <col style={{ width: '15%' }} />
@@ -3027,11 +3176,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </colgroup>
                     <thead>
                       <tr className={tableHeaderClass}>
-                        <th className="p-2 border border-slate-500 font-black">Statutory Leave</th>
-                        <th className="p-2 border border-slate-500 font-black">Legal Basis</th>
-                        <th className="p-2 border border-slate-500 font-black">Paid Duration</th>
-                        <th className="p-2 border border-slate-500 font-black">Key Eligibility</th>
-                        <th className="p-2 border border-slate-500 font-black">Cash Commutation &amp; Payor</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Statutory Leave</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Legal Basis</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Paid Duration</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Key Eligibility</th>
+                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Cash Commutation &amp; Payor</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3042,19 +3191,19 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             idx % 2 === 1 ? zebraRowClass : 'bg-white'
                           }`}
                         >
-                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top">
+                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.leave}
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-800 align-top">
+                          <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-800 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {formatOptions.includeLegalCitations ? row.basis : 'Statutory'}
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top">
+                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.duration}
                           </td>
-                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top">
+                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.eligibility}
                           </td>
-                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top">
+                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.conversion}
                           </td>
                         </tr>
@@ -3401,8 +3550,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                         </div>
                                       ))}
                                     {rule.tableData && (
-                                      <div className="w-full overflow-visible pt-0.5">
-                                        <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums">
+                                      <div className="w-full overflow-x-auto print:overflow-visible pt-0.5">
+                                        <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
                                           <colgroup>
                                             {getPrintColumnWidths(rule.tableData.headers.length).map(
                                               (widthPct, colIdx) => (
@@ -3415,7 +3564,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                               {rule.tableData.headers.map((h, hIdx) => (
                                                 <th
                                                   key={hIdx}
-                                                  className="p-1.5 border border-slate-500 font-black"
+                                                  className="p-1.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]"
                                                 >
                                                   {stripInlineLegalCitations(
                                                     h,
@@ -3436,7 +3585,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                                 {rRow.map((cell, cIdx) => (
                                                   <td
                                                     key={cIdx}
-                                                    className={`p-1.5 border border-slate-400 align-top ${
+                                                    className={`p-1.5 border border-slate-400 align-top break-words [overflow-wrap:anywhere] leading-snug ${
                                                       cIdx === 0
                                                         ? 'font-bold text-slate-950'
                                                         : 'text-slate-900'

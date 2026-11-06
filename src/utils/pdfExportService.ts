@@ -838,6 +838,92 @@ function paintPageBackground(doc: jsPDF, pageW: number, pageH: number, bg: RgbTu
   doc.rect(0, 0, pageW, pageH, 'F');
 }
 
+/**
+ * Draws a Mario 8-Bit Question Mark Coin Block in pure vector geometry (zero emoji)
+ */
+export function drawVectorMarioCoinBlock(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  size: number,
+  primaryColor: RgbTuple,
+  accentColor: RgbTuple
+): void {
+  doc.setFillColor(...accentColor);
+  doc.rect(x, y, size, size, 'F');
+  const inset = size * 0.12;
+  doc.setFillColor(...primaryColor);
+  doc.rect(x + inset, y + inset, size - inset * 2, size - inset * 2, 'F');
+  doc.setFillColor(255, 255, 255);
+  const boltR = Math.max(0.2, size * 0.05);
+  doc.circle(x + inset * 1.5, y + inset * 1.5, boltR, 'F');
+  doc.circle(x + size - inset * 1.5, y + inset * 1.5, boltR, 'F');
+  doc.circle(x + inset * 1.5, y + size - inset * 1.5, boltR, 'F');
+  doc.circle(x + size - inset * 1.5, y + size - inset * 1.5, boltR, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(size * 2.2);
+  doc.text('?', x + size / 2, y + size * 0.74, { align: 'center' });
+}
+
+/**
+ * Draws a Mario Warp Pipe section divider in pure vector geometry (zero emoji)
+ */
+export function drawVectorMarioPipe(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  pipeRgb: RgbTuple = [34, 197, 94],
+  rimRgb: RgbTuple = [22, 101, 52]
+): void {
+  const rimH = Math.min(2.8, h * 0.4);
+  const overhang = 1.2;
+  doc.setFillColor(...pipeRgb);
+  doc.setDrawColor(...rimRgb);
+  doc.setLineWidth(0.3);
+  doc.rect(x - overhang, y, w + overhang * 2, rimH, 'FD');
+  doc.rect(x, y + rimH, w, h - rimH, 'FD');
+  doc.setFillColor(255, 255, 255);
+  doc.rect(x + w * 0.18, y + 0.3, w * 0.12, h - 0.6, 'F');
+}
+
+/**
+ * Draws a Mario Super Star emblem in pure vector geometry (zero emoji)
+ */
+export function drawVectorMarioStar(
+  doc: jsPDF,
+  cx: number,
+  cy: number,
+  r: number,
+  starRgb: RgbTuple = [253, 224, 71],
+  borderRgb: RgbTuple = [180, 83, 9]
+): void {
+  const spikes = 5;
+  const innerR = r * 0.42;
+  doc.setFillColor(...starRgb);
+  doc.setDrawColor(...borderRgb);
+  doc.setLineWidth(0.25);
+  doc.circle(cx, cy, innerR * 1.15, 'F');
+  for (let i = 0; i < spikes * 2; i++) {
+    const angle = (i * Math.PI) / spikes - Math.PI / 2;
+    const nextAngle = ((i + 1) * Math.PI) / spikes - Math.PI / 2;
+    const currentR = i % 2 === 0 ? r : innerR;
+    const nextR = (i + 1) % 2 === 0 ? r : innerR;
+    const x1 = cx + Math.cos(angle) * currentR;
+    const y1 = cy + Math.sin(angle) * currentR;
+    const x2 = cx + Math.cos(nextAngle) * nextR;
+    const y2 = cy + Math.sin(nextAngle) * nextR;
+    doc.line(x1, y1, x2, y2);
+  }
+  doc.setFillColor(15, 23, 42);
+  const eyeW = Math.max(0.25, r * 0.12);
+  const eyeH = Math.max(0.6, r * 0.32);
+  doc.rect(cx - r * 0.22, cy - eyeH * 0.5, eyeW, eyeH, 'F');
+  doc.rect(cx + r * 0.1, cy - eyeH * 0.5, eyeW, eyeH, 'F');
+}
+
 export interface OnePageSummaryPdfOptions {
   candidateName?: string;
   dateLabel?: string;
@@ -930,7 +1016,6 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
 
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(6.1 * fScale);
   const watermarkSuffix =
     options.includeWatermark && options.watermarkText
       ? `  |  ${sanitizePdfText(options.watermarkText)}`
@@ -938,8 +1023,13 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   const subMeta = candidate
     ? `Prepared for: ${candidate}  |  Generated: ${dateStr}  |  Font: ${fp.displayLabel}${watermarkSuffix}`
     : `Generated: ${dateStr}  |  Philippine Labor Standards  |  Font: ${fp.displayLabel}${watermarkSuffix}`;
-  const clampedSubMeta = doc.splitTextToSize(subMeta, contentW - 6)[0] || subMeta;
-  doc.text(clampedSubMeta, pageW / 2, 21.1, { align: 'center' });
+  let metaSize = 6.1 * fScale;
+  doc.setFontSize(metaSize);
+  while (doc.getTextWidth(subMeta) > (contentW - 6) && metaSize > 4.2) {
+    metaSize -= 0.25;
+    doc.setFontSize(metaSize);
+  }
+  doc.text(subMeta, pageW / 2, 21.1, { align: 'center' });
 
   // ==================== LEFT COLUMN: PART I - FORMULAS ====================
   let leftY = 24.5;
@@ -967,31 +1057,41 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.roundedRect(leftX + colW - badgeW - 1.2, leftY + 0.8, badgeW, 3.8, 0.7, 0.7, 'FD');
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(5.85 * fScale);
-    const rateText = doc.splitTextToSize(sanitizePdfText(item.rateBadge), badgeW - 1.5)[0] || '';
-    doc.text(rateText, leftX + colW - badgeW / 2 - 1.2, leftY + 3.4, {
+    let rBadgeSize = 5.85 * fScale;
+    doc.setFontSize(rBadgeSize);
+    const rBadgeText = sanitizePdfText(item.rateBadge);
+    while (doc.getTextWidth(rBadgeText) > (badgeW - 1.5) && rBadgeSize > 4.0) {
+      rBadgeSize -= 0.3;
+      doc.setFontSize(rBadgeSize);
+    }
+    doc.text(rBadgeText, leftX + colW - badgeW / 2 - 1.2, leftY + 3.4, {
       align: 'center',
     });
 
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.4 * fScale);
-    const safeTitle =
-      doc.splitTextToSize(sanitizePdfText(`${idx + 1}. ${item.title}`), colW - badgeW - 3.5)[0] || '';
+    let tSize = 6.4 * fScale;
+    doc.setFontSize(tSize);
+    const fullTitle = sanitizePdfText(`${idx + 1}. ${item.title}`);
+    while (doc.getTextWidth(fullTitle) > (colW - badgeW - 3.5) && tSize > 4.6) {
+      tSize -= 0.3;
+      doc.setFontSize(tSize);
+    }
+    const safeTitle = doc.splitTextToSize(fullTitle, colW - badgeW - 3.5);
     doc.text(safeTitle, leftX + 1.5, leftY + 3.4);
 
     doc.setTextColor(...theme.formulaText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(5.9 * fScale);
+    doc.setFontSize(5.85 * fScale);
     const formulaLines = doc.splitTextToSize(sanitizePdfText(item.formula), colW - 3);
-    doc.text(formulaLines, leftX + 1.5, leftY + 6.9);
+    doc.text(formulaLines, leftX + 1.5, leftY + 6.8);
 
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.2 * fScale);
+    doc.setFontSize(5.0 * fScale);
     const noteStr = `${sanitizePdfText(item.note)} [${sanitizePdfText(item.citation)}]`;
     const noteLines = doc.splitTextToSize(noteStr, colW - 3);
-    const noteStartY = formulaLines.length > 1 ? leftY + 10.5 : leftY + 10.1;
+    const noteStartY = formulaLines.length > 1 ? leftY + 10.3 : leftY + 9.8;
     doc.text(noteLines, leftX + 1.5, noteStartY);
 
     leftY += rowH + 0.52;
@@ -1023,27 +1123,35 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.roundedRect(rightX + colW - dlBadgeW - 1.2, rightY + 0.8, dlBadgeW, 3.8, 0.7, 0.7, 'FD');
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(5.65 * fScale);
-    const dlText = doc.splitTextToSize(sanitizePdfText(item.deadline), dlBadgeW - 1.5)[0] || '';
-    doc.text(dlText, rightX + colW - dlBadgeW / 2 - 1.2, rightY + 3.4, {
+    let dlBadgeSize = 5.65 * fScale;
+    doc.setFontSize(dlBadgeSize);
+    const dlClean = sanitizePdfText(item.deadline);
+    while (doc.getTextWidth(dlClean) > (dlBadgeW - 1.5) && dlBadgeSize > 3.8) {
+      dlBadgeSize -= 0.3;
+      doc.setFontSize(dlBadgeSize);
+    }
+    doc.text(dlClean, rightX + colW - dlBadgeW / 2 - 1.2, rightY + 3.4, {
       align: 'center',
     });
 
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.25 * fScale);
-    const titleLines = doc.splitTextToSize(
-      sanitizePdfText(`${idx + 1}. ${item.claimOrAction}`),
-      colW - dlBadgeW - 3.5
-    );
+    let dlTSize = 6.25 * fScale;
+    doc.setFontSize(dlTSize);
+    const fullClaim = sanitizePdfText(`${idx + 1}. ${item.claimOrAction}`);
+    while (doc.getTextWidth(fullClaim) > (colW - dlBadgeW - 3.5) && dlTSize > 4.5) {
+      dlTSize -= 0.3;
+      doc.setFontSize(dlTSize);
+    }
+    const titleLines = doc.splitTextToSize(fullClaim, colW - dlBadgeW - 3.5);
     doc.text(titleLines, rightX + 1.5, rightY + 3.4);
 
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.3 * fScale);
+    doc.setFontSize(5.15 * fScale);
     const ruleText = `${sanitizePdfText(item.reckoningRule)} (${sanitizePdfText(item.citation)})`;
     const ruleLines = doc.splitTextToSize(ruleText, colW - 3);
-    const ruleStartY = titleLines.length > 1 ? rightY + 7.8 : rightY + 7.2;
+    const ruleStartY = titleLines.length > 1 ? rightY + 7.7 : rightY + 7.2;
     doc.text(ruleLines, rightX + 1.5, ruleStartY);
 
     rightY += rowH + 0.52;
@@ -1079,21 +1187,25 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
 
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(5.95 * fScale);
-    const lvTitle =
-      doc.splitTextToSize(sanitizePdfText(`${lv.leaveName} (${lv.citation})`), leaveCardW - 2.6)[0] ||
-      '';
+    let lvTSize = 5.95 * fScale;
+    doc.setFontSize(lvTSize);
+    const fullLvTitle = sanitizePdfText(`${lv.leaveName} (${lv.citation})`);
+    while (doc.getTextWidth(fullLvTitle) > (leaveCardW - 2.6) && lvTSize > 4.2) {
+      lvTSize -= 0.25;
+      doc.setFontSize(lvTSize);
+    }
+    const lvTitle = doc.splitTextToSize(fullLvTitle, leaveCardW - 2.6);
     doc.text(lvTitle, cx + 1.3, cy + 3.2);
 
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.subHeadingStyle);
     doc.setFontSize(5.75 * fScale);
-    const lvCap = doc.splitTextToSize(sanitizePdfText(lv.cap), leaveCardW - 2.6)[0] || '';
+    const lvCap = sanitizePdfText(lv.cap);
     doc.text(lvCap, cx + 1.3, cy + 6.6);
 
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.15 * fScale);
+    doc.setFontSize(4.95 * fScale);
     const lvRule = doc.splitTextToSize(sanitizePdfText(lv.rule), leaveCardW - 2.6);
     doc.text(lvRule, cx + 1.3, cy + 9.5);
   });
@@ -1117,17 +1229,24 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     checkY + 7.5
   );
 
-  doc.setTextColor(...theme.mutedText);
+  // Group Members Attribution Strip — Fully Lists All 9 Research Cohort Members
+  const footerY = 286.2;
+  doc.setFillColor(...theme.cardTintFill);
+  doc.setDrawColor(...theme.borderMuted);
+  doc.setLineWidth(0.2);
+  doc.rect(marginX, footerY, contentW, 4.6, 'FD');
+  doc.setTextColor(...theme.bodyText);
+  doc.setFont(ff, fp.headingStyle);
+  doc.setFontSize(5.1 * fScale);
+  doc.text('RESEARCH COHORT:', marginX + 2, footerY + 3.1);
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(5.8 * fScale);
-  doc.text(
-    `Super Mario Labor Adventure - A4 Master Sheet (${fp.displayLabel})`,
-    marginX,
-    288.4
-  );
-  doc.text('Created by Matthew (Matthew Cesar Corpuz - Main Creator)', pageW - marginX, 288.4, {
-    align: 'right',
-  });
+  doc.setFontSize(4.55 * fScale);
+  doc.setTextColor(...theme.mutedText);
+  const rosterLine =
+    'CORPUZ (Main Creator), CRUZ, FANGED, FERNANDEZ, GARCIA, GARVIDA, MAÑALAC, UNTALAN, VILA';
+  doc.text(rosterLine, marginX + 25.5, footerY + 3.1);
+  doc.setFont(ff, fp.subHeadingStyle);
+  doc.text(`Typeface: ${fp.displayLabel}`, pageW - marginX - 2, footerY + 3.1, { align: 'right' });
 
   return docToUint8Array(doc);
 }
@@ -1272,21 +1391,30 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
 
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    const recSize = (recipient.length > 30 ? 17.5 : 21) * cScale;
+    let recSize = (recipient.length > 36 ? 16 : recipient.length > 24 ? 18.5 : 21.5) * cScale;
     doc.setFontSize(recSize);
-    const clampedRec = doc.splitTextToSize(recipient, W - 44)[0] || recipient;
-    doc.text(clampedRec, W / 2, 91, { align: 'center' });
+    while (doc.getTextWidth(recipient) > (W - 46) && recSize > 12) {
+      recSize -= 0.6;
+      doc.setFontSize(recSize);
+    }
+    const recLines = doc.splitTextToSize(recipient, W - 46);
+    const recStartY = recLines.length > 1 ? 88.5 : 91;
+    doc.text(recLines, W / 2, recStartY, { align: 'center', lineHeightFactor: 1.18 });
 
     doc.setDrawColor(...theme.primary);
     doc.setLineWidth(0.5);
-    doc.line(34, 95, W - 34, 95);
+    doc.line(34, 95.5, W - 34, 95.5);
 
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(9.5 * cScale);
-    const clampedHonors =
-      doc.splitTextToSize(honors.toUpperCase(), W - 44)[0] || honors.toUpperCase();
-    doc.text(clampedHonors, W / 2, 104, { align: 'center' });
+    let honorsSize = 9.5 * cScale;
+    doc.setFontSize(honorsSize);
+    while (doc.getTextWidth(honors.toUpperCase()) > (W - 46) && honorsSize > 7.0) {
+      honorsSize -= 0.4;
+      doc.setFontSize(honorsSize);
+    }
+    const honorsLines = doc.splitTextToSize(honors.toUpperCase(), W - 46);
+    doc.text(honorsLines, W / 2, 104, { align: 'center', lineHeightFactor: 1.15 });
 
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.bodyStyle);
@@ -1407,21 +1535,30 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
 
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.headingStyle);
-  const recipientFontSize = (recipient.length > 36 ? 19 : recipient.length > 26 ? 22 : 25) * cScale;
-  doc.setFontSize(recipientFontSize);
-  const clampedRecipient = doc.splitTextToSize(recipient, W - 70)[0] || recipient;
-  doc.text(clampedRecipient, W / 2, 74.5, { align: 'center' });
+  let recLandSize = (recipient.length > 40 ? 17 : recipient.length > 26 ? 20.5 : 24) * cScale;
+  doc.setFontSize(recLandSize);
+  while (doc.getTextWidth(recipient) > (W - 68) && recLandSize > 13) {
+    recLandSize -= 0.6;
+    doc.setFontSize(recLandSize);
+  }
+  const recLandLines = doc.splitTextToSize(recipient, W - 68);
+  const startLandY = recLandLines.length > 1 ? 72.0 : 74.5;
+  doc.text(recLandLines, W / 2, startLandY, { align: 'center', lineHeightFactor: 1.18 });
 
   doc.setDrawColor(...theme.primary);
   doc.setLineWidth(0.5);
-  doc.line(64, 78.2, W - 64, 78.2);
+  doc.line(64, 78.5, W - 64, 78.5);
 
   doc.setTextColor(...theme.badgeText);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(10 * cScale);
-  const clampedHonors =
-    doc.splitTextToSize(honors.toUpperCase(), W - 70)[0] || honors.toUpperCase();
-  doc.text(clampedHonors, W / 2, 85.8, { align: 'center' });
+  let honorsLandSize = 10 * cScale;
+  doc.setFontSize(honorsLandSize);
+  while (doc.getTextWidth(honors.toUpperCase()) > (W - 68) && honorsLandSize > 7.2) {
+    honorsLandSize -= 0.4;
+    doc.setFontSize(honorsLandSize);
+  }
+  const honorsLandLines = doc.splitTextToSize(honors.toUpperCase(), W - 68);
+  doc.text(honorsLandLines, W / 2, 85.8, { align: 'center', lineHeightFactor: 1.15 });
 
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.bodyStyle);
@@ -1660,9 +1797,15 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
 
     doc.setTextColor(...dipTheme.bodyText);
     doc.setFont(dff, dipFont.headingStyle);
-    doc.setFontSize((recipient.length > 28 ? 19 : 23) * dScale);
-    const recLine = doc.splitTextToSize(recipient, W - 46)[0] || recipient;
-    doc.text(recLine, W / 2, 82, { align: 'center' });
+    let dRecSize = (recipient.length > 36 ? 16 : recipient.length > 24 ? 19 : 23) * dScale;
+    doc.setFontSize(dRecSize);
+    while (doc.getTextWidth(recipient) > (W - 46) && dRecSize > 12) {
+      dRecSize -= 0.5;
+      doc.setFontSize(dRecSize);
+    }
+    const recLines = doc.splitTextToSize(recipient, W - 46);
+    const recY = recLines.length > 1 ? 79.5 : 82;
+    doc.text(recLines, W / 2, recY, { align: 'center', lineHeightFactor: 1.15 });
     doc.setDrawColor(...dipTheme.accent);
     doc.setLineWidth(0.6);
     doc.line(32, 85.5, W - 32, 85.5);
@@ -1766,9 +1909,15 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
 
   doc.setTextColor(...dipTheme.bodyText);
   doc.setFont(dff, dipFont.headingStyle);
-  doc.setFontSize((recipient.length > 32 ? 20 : 24) * dScale);
-  const recLand = doc.splitTextToSize(recipient, W - 70)[0] || recipient;
-  doc.text(recLand, W / 2, 77.5, { align: 'center' });
+  let dLandSize = (recipient.length > 38 ? 17 : recipient.length > 26 ? 20.5 : 24) * dScale;
+  doc.setFontSize(dLandSize);
+  while (doc.getTextWidth(recipient) > (W - 68) && dLandSize > 13) {
+    dLandSize -= 0.5;
+    doc.setFontSize(dLandSize);
+  }
+  const recLandLines = doc.splitTextToSize(recipient, W - 68);
+  const recLandY = recLandLines.length > 1 ? 75.0 : 77.5;
+  doc.text(recLandLines, W / 2, recLandY, { align: 'center', lineHeightFactor: 1.15 });
   doc.setDrawColor(...dipTheme.accent);
   doc.setLineWidth(0.6);
   doc.line(58, 80.5, W - 58, 80.5);
@@ -2010,7 +2159,9 @@ export function buildStudyGuideReviewerPdfBytes(
 
       const wrappedCells = colWidths.map((cw, cIdx) => {
         const txt = sanitizePdfText(cells[cIdx] || '');
-        return doc.splitTextToSize(txt, Math.max(10, cw - cellPadX * 2));
+        const maxW = Math.max(8, cw - cellPadX * 2);
+        const safeTxt = txt.replace(/(\S{24})/g, '$1 ');
+        return doc.splitTextToSize(safeTxt, maxW);
       });
       const maxLines = Math.max(1, ...wrappedCells.map((lines) => lines.length));
       const rowH = maxLines * lineH + cellPadY * 2;
@@ -2044,7 +2195,10 @@ export function buildStudyGuideReviewerPdfBytes(
           isHeader ? fp.headingStyle : cIdx === 0 ? fp.subHeadingStyle : fp.bodyStyle
         );
         doc.setFontSize(fontSz);
-        doc.text(wrappedCells[cIdx], curX + cellPadX, y + cellPadY + lineH * 0.78);
+        const cellLines = wrappedCells[cIdx];
+        cellLines.forEach((cline, lIdx) => {
+          doc.text(cline, curX + cellPadX, y + cellPadY + (lIdx + 0.82) * lineH);
+        });
         curX += cw;
       });
 
@@ -2087,38 +2241,74 @@ export function buildStudyGuideReviewerPdfBytes(
 
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(7.0);
+  let covSize = 7.0;
+  doc.setFontSize(covSize);
   const coverSub = params.candidateName
     ? `Prepared for: ${sanitizePdfText(params.candidateName)}  |  Modules: ${params.topics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
     : `Modules: ${params.topics.length}  |  Mastered: ${params.completedTopicIds.length}/${ALL_LAW_TOPICS.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`;
-  const clampedCoverSub = doc.splitTextToSize(coverSub, contentW - 8)[0] || coverSub;
-  doc.text(clampedCoverSub, pageW / 2, y + 17.4, { align: 'center' });
+  while (doc.getTextWidth(coverSub) > (contentW - 8) && covSize > 5.2) {
+    covSize -= 0.25;
+    doc.setFontSize(covSize);
+  }
+  const coverSubLines = doc.splitTextToSize(coverSub, contentW - 8);
+  doc.text(coverSubLines, pageW / 2, y + 17.4, { align: 'center', lineHeightFactor: 1.15 });
   y += 24;
 
-  // Group Members Attribution
+  // Group Members Attribution — Pristine 3-Column Roster (Zero Split Names / Never Cropped)
   if (params.includeGroupMembers !== false) {
-    const membersLine = sanitizePdfText(GROUP_MEMBERS.join('  |  '));
-    doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(6.9 * scale);
-    const wrappedMembers = doc.splitTextToSize(membersLine, contentW - 6);
-    const boxH = 8.5 + wrappedMembers.length * (3.5 * scale);
-    ensureSpace(boxH + 3);
+    const boxH = 25.0;
+    ensureSpace(boxH + 4);
+    // Outer card
     doc.setDrawColor(...theme.borderMuted);
     doc.setFillColor(...theme.zebraFill);
     doc.rect(marginX, y, contentW, boxH, 'FD');
-    doc.setTextColor(...theme.bodyText);
+
+    // Header strip
+    doc.setFillColor(...theme.primary);
+    doc.rect(marginX, y, contentW, 5.8, 'F');
+    doc.setTextColor(...theme.kickerText);
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(7.6 * scale);
     doc.text(
-      'MEMORY AID ATTRIBUTION & RESEARCH COHORT (MAIN CREATOR: MATTHEW CESAR CORPUZ)',
-      marginX + 3,
-      y + 4.8
+      'SUPER MARIO LABOR STANDARDS AID  -  RESEARCH & DEVELOPMENT COHORT',
+      marginX + 3.5,
+      y + 4.1
     );
-    doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(6.9 * scale);
-    doc.setTextColor(...theme.mutedText);
-    doc.text(wrappedMembers, marginX + 3, y + 9.2);
-    y += boxH + 3;
+    doc.setFont(ff, fp.subHeadingStyle);
+    doc.setFontSize(6.4 * scale);
+    doc.text(
+      '9 RESEARCHERS  |  MAIN CREATOR: MATTHEW CESAR CORPUZ',
+      pageW - marginX - 3.5,
+      y + 4.1,
+      { align: 'right' }
+    );
+
+    // 3 balanced columns: Col 0 = members 0..2, Col 1 = members 3..5, Col 2 = members 6..8
+    const colStepW = contentW / 3;
+    const itemH = 5.2;
+    const startRowY = y + 10.0;
+
+    GROUP_MEMBERS.forEach((member, idx) => {
+      const colIdx = Math.floor(idx / 3);
+      const rowIdx = idx % 3;
+      const memX = marginX + colIdx * colStepW + 3;
+      const memY = startRowY + rowIdx * itemH;
+
+      // Number badge
+      doc.setTextColor(...theme.accent);
+      doc.setFont(ff, fp.headingStyle);
+      doc.setFontSize(6.8 * scale);
+      doc.text(`${idx + 1}.`, memX, memY);
+
+      // Full member name
+      doc.setTextColor(...theme.bodyText);
+      doc.setFont(ff, idx === 0 ? fp.headingStyle : fp.bodyStyle);
+      doc.setFontSize(idx === 0 ? 7.1 * scale : 6.8 * scale);
+      const suffix = idx === 0 ? ' (Lead Creator)' : '';
+      doc.text(sanitizePdfText(`${member}${suffix}`), memX + 4.8, memY);
+    });
+
+    y += boxH + 3.5;
   }
 
   // Mastery Progress Summary
@@ -2227,9 +2417,9 @@ export function buildStudyGuideReviewerPdfBytes(
       return [row.benefit, pct, `${row.scenario} (${row.formula})`];
     });
     drawWrappedTable(['Benefit / Day Type', 'Rate', 'Applicable Scenario & Formula'], multRows, [
-      0.3,
-      0.13,
-      0.57,
+      0.26,
+      0.14,
+      0.6,
     ]);
   }
 
@@ -2549,13 +2739,15 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
 
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(20 * sScale);
-  const clampedPlayer =
-    doc.splitTextToSize(
-      sanitizePdfText(params.playerName || 'Labor Scholar Hero'),
-      W - 120
-    )[0] || 'Labor Scholar Hero';
-  doc.text(clampedPlayer, 21, 33);
+  const safePlayer = sanitizePdfText(params.playerName || 'Labor Scholar Hero');
+  let pSize = 20 * sScale;
+  doc.setFontSize(pSize);
+  while (doc.getTextWidth(safePlayer) > (W - 120) && pSize > 12) {
+    pSize -= 0.5;
+    doc.setFontSize(pSize);
+  }
+  const playerLines = doc.splitTextToSize(safePlayer, W - 120);
+  doc.text(playerLines, 21, playerLines.length > 1 ? 30.5 : 33);
 
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
   doc.setFont(ff, fp.bodyStyle);
@@ -2624,7 +2816,16 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
 
   const wColW = (W - 32 - 6) / 2;
   const wRowH = 24;
-  params.worldBreakdown.forEach((wb, idx) => {
+  const resolvedBreakdown =
+    params.worldBreakdown ||
+    WORLDS_METADATA.map((w) => ({
+      worldNumber: w.worldNumber,
+      shortTitle: w.shortTitle,
+      completed: 10,
+      total: 10,
+      pct: 100,
+    }));
+  resolvedBreakdown.forEach((wb, idx) => {
     const c = idx % 2;
     const r = Math.floor(idx / 2);
     const bx = 16 + c * (wColW + 6);
