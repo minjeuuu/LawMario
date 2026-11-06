@@ -2436,12 +2436,13 @@ export function buildStudyGuideReviewerPdfBytes(
 
   paintPageBackground(doc, pageW, pageH, theme.pageBg);
   let y = marginTop;
+  const marginTopPage2 = Math.max(marginTop, 13.8);
 
   const addThemedPage = () => {
     doc.addPage('a4', orientation);
     paintPageBackground(doc, pageW, pageH, theme.pageBg);
     applyPdfCharSpace(doc, fp.charSpace);
-    y = marginTop;
+    y = marginTopPage2;
   };
 
   const ensureSpace = (neededMm: number) => {
@@ -3083,7 +3084,7 @@ export function buildStudyGuideReviewerPdfBytes(
       const checkSubBlockSpace = (subH: number) => {
         if (curY + subH > pageH - marginBottom) {
           addThemedPage();
-          curY = marginTop;
+          curY = marginTopPage2;
         }
       };
 
@@ -3098,12 +3099,15 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.setDrawColor(245, 158, 11); // amber-500
         doc.setLineWidth(0.22);
         doc.roundedRect(marginX + cardPadX, curY, innerW, takeBoxH, 1.2, 1.2, 'FD');
+        // Left accent bar
+        doc.setFillColor(217, 119, 6); // amber-600
+        doc.rect(marginX + cardPadX, curY, 1.5, takeBoxH, 'F');
 
-        drawVectorMarioStar(doc, marginX + cardPadX + 3.5, curY + 3.6, 1.4);
+        drawVectorMarioStar(doc, marginX + cardPadX + 4.2, curY + 3.6, 1.4);
         doc.setTextColor(146, 64, 14); // amber-800
         doc.setFont(ff, fp.headingStyle);
         doc.setFontSize(8.2 * scale);
-        doc.text(takeLines, marginX + cardPadX + 7.0, curY + 3.6);
+        doc.text(takeLines, marginX + cardPadX + 7.8, curY + 3.6);
         curY += takeBoxH + 2.2;
       }
 
@@ -3145,18 +3149,21 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.setDrawColor(203, 213, 225); // slate-300
         doc.setLineWidth(0.18);
         doc.roundedRect(marginX + cardPadX, curY, innerW, jurBoxH, 1.0, 1.0, 'FD');
+        // Left accent bar
+        doc.setFillColor(71, 85, 105); // slate-600
+        doc.rect(marginX + cardPadX, curY, 1.5, jurBoxH, 'F');
 
         doc.setTextColor(15, 23, 42);
         doc.setFont(ff, fp.headingStyle);
         doc.setFontSize(7.8 * scale);
-        doc.text('CONTROLLING JURISPRUDENCE & PRECEDENTS', marginX + cardPadX + 2.5, curY + 3.6);
+        doc.text('CONTROLLING JURISPRUDENCE & PRECEDENTS', marginX + cardPadX + 3.8, curY + 3.6);
 
         let curJy = curY + 7.0;
         allJurLines.forEach((lines) => {
           doc.setTextColor(30, 41, 59);
           doc.setFont(ff, fp.bodyStyle);
           doc.setFontSize(7.5 * scale);
-          doc.text(lines, marginX + cardPadX + 2.5, curJy);
+          doc.text(lines, marginX + cardPadX + 3.8, curJy);
           curJy += lines.length * (3.8 * scale);
         });
         curY += jurBoxH + 2.2;
@@ -3277,19 +3284,22 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.setDrawColor(244, 63, 94); // rose-500
         doc.setLineWidth(0.18);
         doc.roundedRect(marginX + cardPadX, curY, innerW, exBoxH, 1.0, 1.0, 'FD');
+        // Left accent bar
+        doc.setFillColor(244, 63, 94); // rose-500
+        doc.rect(marginX + cardPadX, curY, 1.5, exBoxH, 'F');
 
         doc.setTextColor(159, 18, 57); // rose-900
         doc.setFont(ff, fp.headingStyle);
         doc.setFontSize(7.8 * scale);
-        doc.text('GENERAL RULE & STATUTORY EXCEPTIONS', marginX + cardPadX + 2.5, curY + 3.6);
+        doc.text('GENERAL RULE & STATUTORY EXCEPTIONS', marginX + cardPadX + 3.8, curY + 3.6);
 
         let curEy = curY + 7.0;
         topic.exceptions.forEach((ex) => {
           doc.setTextColor(15, 23, 42);
           doc.setFont(ff, fp.headingStyle);
           doc.setFontSize(7.6 * scale);
-          const grLines = doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 6.0);
-          doc.text(grLines, marginX + cardPadX + 2.5, curEy);
+          const grLines = doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 8.0);
+          doc.text(grLines, marginX + cardPadX + 3.8, curEy);
           curEy += grLines.length * (3.8 * scale);
 
           doc.setFont(ff, fp.bodyStyle);
@@ -3297,8 +3307,8 @@ export function buildStudyGuideReviewerPdfBytes(
           ex.exceptions.forEach((eItem) => {
             const entry = parseListEntry(eItem);
             const eStr = entry.isNumbered ? `Exception: ${entry.marker} ${entry.text}` : `• Exception: ${entry.text}`;
-            const eLines = doc.splitTextToSize(sanitizePdfText(eStr), innerW - 8.0);
-            doc.text(eLines, marginX + cardPadX + 4.5, curEy);
+            const eLines = doc.splitTextToSize(sanitizePdfText(eStr), innerW - 9.0);
+            doc.text(eLines, marginX + cardPadX + 5.5, curEy);
             curEy += eLines.length * (3.6 * scale);
           });
         });
@@ -3313,12 +3323,12 @@ export function buildStudyGuideReviewerPdfBytes(
           const allTipLines = combinedTips.slice(0, 4).map((t) => {
             const entry = parseListEntry(t);
             const tStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
-            const l = doc.splitTextToSize(sanitizePdfText(tStr), innerW - 8.0);
+            const l = doc.splitTextToSize(sanitizePdfText(tStr), innerW - 9.0);
             tipLinesCount += l.length;
             return l;
           });
           const pLines = topic.practicalTakeaway
-            ? doc.splitTextToSize(sanitizePdfText(`Practical Application: ${cleanRuleText(topic.practicalTakeaway)}`), innerW - 8.0)
+            ? doc.splitTextToSize(sanitizePdfText(`Practical Application: ${cleanRuleText(topic.practicalTakeaway)}`), innerW - 9.0)
             : [];
           const tipBoxH = 6.0 + (tipLinesCount + pLines.length) * (3.8 * scale) + (pLines.length > 0 ? 1.5 : 0);
           checkSubBlockSpace(tipBoxH);
@@ -3327,19 +3337,22 @@ export function buildStudyGuideReviewerPdfBytes(
           doc.setDrawColor(217, 119, 6); // amber-600
           doc.setLineWidth(0.20);
           doc.roundedRect(marginX + cardPadX, curY, innerW, tipBoxH, 1.2, 1.2, 'FD');
+          // Left accent bar
+          doc.setFillColor(217, 119, 6); // amber-600
+          doc.rect(marginX + cardPadX, curY, 1.5, tipBoxH, 'F');
 
-          drawVectorMarioStar(doc, marginX + cardPadX + 3.5, curY + 3.6, 1.4);
+          drawVectorMarioStar(doc, marginX + cardPadX + 4.2, curY + 3.6, 1.4);
           doc.setTextColor(146, 64, 14); // amber-800
           doc.setFont(ff, fp.headingStyle);
           doc.setFontSize(7.8 * scale);
-          doc.text('MEMORY TRAPS & HIGH-YIELD TAKEAWAYS', marginX + cardPadX + 7.0, curY + 3.8);
+          doc.text('MEMORY TRAPS & HIGH-YIELD TAKEAWAYS', marginX + cardPadX + 7.8, curY + 3.8);
 
           let curTy = curY + 7.2;
           allTipLines.forEach((lines) => {
             doc.setTextColor(69, 26, 3);
             doc.setFont(ff, fp.bodyStyle);
             doc.setFontSize(7.5 * scale);
-            doc.text(lines, marginX + cardPadX + 3.0, curTy);
+            doc.text(lines, marginX + cardPadX + 3.8, curTy);
             curTy += lines.length * (3.7 * scale);
           });
 
@@ -3347,7 +3360,7 @@ export function buildStudyGuideReviewerPdfBytes(
             doc.setTextColor(120, 53, 15);
             doc.setFont(ff, fp.headingStyle);
             doc.setFontSize(7.6 * scale);
-            doc.text(pLines, marginX + cardPadX + 3.0, curTy);
+            doc.text(pLines, marginX + cardPadX + 3.8, curTy);
             curTy += pLines.length * (3.7 * scale);
           }
           curY += tipBoxH + 2.2;
@@ -3404,7 +3417,7 @@ export function buildStudyGuideReviewerPdfBytes(
     y += 16;
   }
 
-  // Page numbering + optional subtle header/footer watermark across all pages
+  // Page numbering + professional running header (pages 2+) & footer across all pages
   const totalPages = doc.getNumberOfPages();
   const wmLabel =
     params.includeWatermark && params.watermarkText
@@ -3412,18 +3425,60 @@ export function buildStudyGuideReviewerPdfBytes(
       : '';
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
+
+    // Running Header on pages 2 through totalPages
+    if (p > 1) {
+      doc.setDrawColor(...theme.borderMuted);
+      doc.setLineWidth(0.22);
+      doc.line(marginX, 9.2, pageW - marginX, 9.2);
+
+      // Micro decorative accent square in theme accent
+      doc.setFillColor(...theme.accent);
+      doc.rect(marginX, 7.2, 1.8, 1.8, 'F');
+
+      doc.setTextColor(...theme.mutedText);
+      doc.setFont(ff, fp.headingStyle);
+      doc.setFontSize(6.2 * scale);
+      doc.text(
+        'PHILIPPINE LABOR STANDARDS · COMPREHENSIVE STATUTORY REVIEWER',
+        marginX + 3.2,
+        8.6
+      );
+
+      doc.setFont(ff, fp.bodyStyle);
+      doc.setFontSize(5.8 * scale);
+      doc.text(
+        'P.D. NO. 442 (AS AMENDED) · BAR & BOARD REVIEW AID',
+        pageW - marginX,
+        8.6,
+        { align: 'right' }
+      );
+    }
+
+    // Running Footer across all pages
     doc.setDrawColor(...theme.borderMuted);
-    doc.setLineWidth(0.2);
-    doc.line(marginX, pageH - 10, pageW - marginX, pageH - 10);
+    doc.setLineWidth(0.22);
+    doc.line(marginX, pageH - 10.5, pageW - marginX, pageH - 10.5);
+
+    // Vector Mario Star accent at bottom left on themed pages
+    if (!theme.isInkSaver) {
+      drawVectorMarioStar(doc, marginX + 1.8, pageH - 6.0, 1.4, [253, 224, 71], [180, 83, 9]);
+    }
+
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(6.6);
+    doc.setFontSize(6.4 * scale);
+    const leftTextX = !theme.isInkSaver ? marginX + 4.8 : marginX;
     doc.text(
-      `Super Mario Labor Adventure - Philippine Labor Standards Guide (Created by Matthew)${wmLabel}`,
-      marginX,
-      pageH - 6.2
+      `Super Mario Labor Adventure · Philippine Labor Standards Guide (Created by Matthew)${wmLabel}`,
+      leftTextX,
+      pageH - 5.6
     );
-    doc.text(`Page ${p} of ${totalPages}`, pageW - marginX, pageH - 6.2, { align: 'right' });
+
+    doc.setFont(ff, fp.headingStyle);
+    doc.setFontSize(6.8 * scale);
+    doc.setTextColor(...theme.bodyText);
+    doc.text(`Page ${p} of ${totalPages}`, pageW - marginX, pageH - 5.6, { align: 'right' });
   }
 
   return docToUint8Array(doc);

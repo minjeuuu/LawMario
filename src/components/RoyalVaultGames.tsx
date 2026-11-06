@@ -776,68 +776,147 @@ export const PAULINE_WAGE_CONCERT_BANK: readonly MasterArcadeScenario[] = [
   },
 ];
 
-const ThematicRoyalGameVisualizer: React.FC<{
+interface ThematicRoyalGameVisualizerProps {
   gameTitle: string;
   stageNum: number;
   totalStages: number;
+  options: string[];
   pickedOption: number | null;
-  isRight: boolean;
-}> = ({ gameTitle, stageNum, totalStages, pickedOption, isRight }) => {
-  const progressPct = Math.min(100, Math.round(((stageNum + 1) / Math.max(1, totalStages)) * 100));
-  const [mineRailBranch, setMineRailBranch] = useState<'upper' | 'lower'>('upper');
-  const [derbyGear, setDerbyGear] = useState<'100%' | '150%' | '200%' | '300%'>('200%');
-  const [activeRuneKeys, setActiveRuneKeys] = useState<number[]>([0]);
-  const [concertChannel, setConcertChannel] = useState<number>(0);
+  correctIndex: number;
+  onPickOption: (idx: number) => void;
+  streak: number;
+  eliminatedIndices: Set<number>;
+}
 
-  // 1. Captain Toad's Minecart Gem Dig
+const ThematicRoyalGameVisualizer: React.FC<ThematicRoyalGameVisualizerProps> = ({
+  gameTitle,
+  stageNum,
+  totalStages,
+  options,
+  pickedOption,
+  correctIndex,
+  onPickOption,
+  streak,
+  eliminatedIndices,
+}) => {
+  const [mineRailTrack, setMineRailTrack] = useState<number>(0);
+  const [derbyGear, setDerbyGear] = useState<'1st' | '2nd' | '3rd' | '4th Turbo'>('2nd');
+  const [activeRuneSocket, setActiveRuneSocket] = useState<number>(0);
+  const [concertLane, setConcertLane] = useState<number>(0);
+  const [actionPulse, setActionPulse] = useState(false);
+
+  // 1. Captain Toad's Kasambahay Subterranean Minecart Runner
   if (gameTitle.includes('Toad') || gameTitle.includes('Minecart')) {
+    const handleSwitchTrack = (trackIdx: number) => {
+      setMineRailTrack(trackIdx);
+      marioAudio.playClick();
+      setActionPulse(true);
+      setTimeout(() => setActionPulse(false), 500);
+    };
+
     return (
-      <div className="bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-500/70 rounded-2xl p-3 sm:p-4 text-xs font-bold text-white shadow-inner space-y-2.5">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase text-amber-300 font-mario">
-          <span className="flex items-center gap-1.5">
-            <Pickaxe className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>Captain Toad Subterranean Rails</span>
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                setMineRailBranch((b) => (b === 'upper' ? 'lower' : 'upper'));
-                marioAudio.playClick();
-              }}
-              className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 border border-black font-mono text-[10px] font-black cursor-pointer"
-            >
-              Switch Track ({mineRailBranch === 'upper' ? 'Upper' : 'Lower'})
-            </button>
-            <span className="text-emerald-300 font-mono tabular-nums">
-              Depth {stageNum * 60 + 120}m · {progressPct}%
+      <div className="bg-slate-900 border-3 border-amber-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
+        {/* Minecart Cockpit HUD */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/40 pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-2xl bg-amber-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <Pickaxe className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-amber-300 uppercase block">
+                Captain Toad Kasambahay Minecart · Tunnel #{stageNum + 1}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-emerald-400">
+                Depth: {stageNum * 85 + 150}m · Cavern Rails Active
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-mono text-amber-300 uppercase bg-black/60 px-2.5 py-1 rounded-lg border border-amber-500/50">
+              Active Track: {String.fromCharCode(65 + mineRailTrack)}
             </span>
           </div>
         </div>
-        <div className="relative h-14 bg-slate-950/90 rounded-xl border border-amber-600/50 overflow-hidden flex items-center px-3">
-          <div className="absolute inset-x-0 bottom-3 h-1.5 bg-amber-600/60 border-t border-b border-amber-400/50 flex justify-between px-2">
-            {Array.from({ length: 16 }).map((_, i) => (
-              <div key={i} className="w-1.5 h-3 -mt-0.5 bg-amber-800 border-x border-amber-600" />
-            ))}
-          </div>
-          <div className="absolute inset-x-4 top-1.5 flex justify-between text-xs opacity-75">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-            <MarioCoinIcon className="w-3.5 h-3.5 text-amber-400" />
-            <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
-            <MarioStarIcon className="w-3.5 h-3.5 text-amber-300" />
-          </div>
-          <div
-            className="absolute transition-all duration-500 ease-out flex items-center gap-1.5"
-            style={{ left: `${Math.max(4, Math.min(84, (stageNum / Math.max(1, totalStages)) * 82))}%` }}
-          >
-            <div className="w-9 h-8 rounded-lg bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000]">
-              <Pickaxe className="w-4 h-4 text-slate-950" />
+
+        {/* 3D-styled Cavern Runner Rail Visualizer */}
+        <div className="relative bg-gradient-to-b from-amber-950 via-slate-950 to-stone-950 rounded-2xl border-2 border-amber-600/60 p-3.5 overflow-hidden flex flex-col justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className={`p-2 rounded-2xl bg-amber-400 border-2 border-black shadow-[0_3px_0_#000] transition-transform ${
+                  actionPulse ? 'scale-110 -rotate-6' : ''
+                }`}
+              >
+                <MarioCharacterAvatar character="capttoad" className="w-8 h-8" />
+              </div>
+              <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-amber-400/50 text-xs font-bold text-amber-200">
+                <span>Steer Captain Toad into the lawful Kasambahay statutory gem track below!</span>
+              </div>
             </div>
-            {pickedOption !== null && isRight && (
-              <span className="text-[10px] font-black font-mario text-amber-300 bg-black/80 px-1.5 py-0.5 rounded border border-amber-400 whitespace-nowrap">
-                +1 GEM!
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 bg-black/80 px-2.5 py-1 rounded-lg border border-slate-700 text-xs font-mono text-amber-300">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-spin" />
+              <span>GEM RADAR ONLINE</span>
+            </div>
+          </div>
+
+          {/* 4 Interactive Mine Rail Choices */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices.has(i);
+              const isSelected = pickedOption === i;
+              const isRight = i === correctIndex;
+              const isFocused = mineRailTrack === i;
+              let trackStyle =
+                'bg-slate-950/95 hover:bg-amber-950/80 border-slate-700 text-slate-100';
+              if (isEliminated) {
+                trackStyle =
+                  'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
+                if (isRight) {
+                  trackStyle =
+                    'bg-amber-500 text-slate-950 border-black ring-2 ring-amber-300 font-black shadow-[0_0_12px_rgba(245,158,11,0.8)]';
+                } else if (isSelected) {
+                  trackStyle = 'bg-rose-600 text-white border-black';
+                } else {
+                  trackStyle = 'bg-slate-950/50 text-slate-500 border-slate-800';
+                }
+              } else if (isFocused) {
+                trackStyle =
+                  'bg-amber-950/80 border-amber-400 text-amber-100 ring-1 ring-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]';
+              }
+
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={pickedOption !== null || isEliminated}
+                  onClick={() => {
+                    if (!isEliminated) {
+                      handleSwitchTrack(i);
+                      onPickOption(i);
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${trackStyle}`}
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-black text-amber-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
+                      {String.fromCharCode(65 + i)}
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                      {opt}
+                    </span>
+                  </div>
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
+                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-amber-300 px-1.5 py-0.5 rounded">
+                      GEM COLLECTED!
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -846,15 +925,25 @@ const ThematicRoyalGameVisualizer: React.FC<{
 
   // 2. Princess Daisy's Grand Prix Holiday Derby
   if (gameTitle.includes('Daisy') || gameTitle.includes('Derby')) {
+    const derbyGears = ['1st', '2nd', '3rd', '4th Turbo'] as const;
     return (
-      <div className="bg-gradient-to-r from-rose-950 via-slate-900 to-rose-950 border-2 border-rose-500/70 rounded-2xl p-3 sm:p-4 text-xs font-bold text-white shadow-inner space-y-2.5">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase text-rose-300 font-mario">
-          <span className="flex items-center gap-1.5">
-            <Flag className="w-4 h-4 text-rose-300 shrink-0" />
-            <span>Daisy Circuit Grand Prix · Lap {stageNum + 1}/{totalStages}</span>
-          </span>
+      <div className="bg-slate-900 border-3 border-rose-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rose-500/40 pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-2xl bg-orange-400 border-2 border-black shadow-[0_3px_0_#000]">
+              <Flag className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-rose-300 uppercase block">
+                Daisy Sarasaland Holiday Derby · Hurdle Lap #{stageNum + 1}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-orange-300">
+                Holiday Multiplier Sprint Track · Speed: {derbyGear}
+              </span>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-1">
-            {(['100%', '150%', '200%', '300%'] as const).map((g) => (
+            {derbyGears.map((g) => (
               <button
                 key={g}
                 type="button"
@@ -873,25 +962,72 @@ const ThematicRoyalGameVisualizer: React.FC<{
             ))}
           </div>
         </div>
-        <div className="relative h-14 bg-slate-950/90 rounded-xl border border-rose-600/50 overflow-hidden flex items-center px-3">
-          <div className="absolute inset-x-0 bottom-2.5 h-2 bg-slate-800 border-t border-b border-rose-400/40 flex justify-between px-2">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="w-3 h-1 bg-amber-300/80 my-auto" />
-            ))}
-          </div>
-          <div className="absolute right-3 top-2 bottom-2 w-4 bg-gradient-to-b from-white via-black to-white opacity-80 rounded" />
-          <div
-            className="absolute transition-all duration-500 ease-out flex items-center gap-1.5"
-            style={{ left: `${Math.max(4, Math.min(84, (stageNum / Math.max(1, totalStages)) * 80))}%` }}
-          >
-            <div className="w-9 h-8 rounded-lg bg-orange-400 border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000]">
-              <Zap className="w-4 h-4 text-slate-950" />
+
+        <div className="relative bg-gradient-to-b from-rose-950 via-slate-950 to-orange-950 rounded-2xl border-2 border-rose-600/60 p-3.5 overflow-hidden flex flex-col justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-2xl bg-orange-400 border-2 border-black shadow-[0_3px_0_#000]">
+                <MarioCharacterAvatar character="daisy" className="w-8 h-8" />
+              </div>
+              <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-rose-400/50 text-xs font-bold text-rose-200">
+                <span>Select and clear the lawful statutory holiday multiplier hurdle gate!</span>
+              </div>
             </div>
-            {pickedOption !== null && isRight && (
-              <span className="text-[10px] font-black font-mario text-emerald-300 bg-black/80 px-1.5 py-0.5 rounded border border-emerald-400 whitespace-nowrap">
-                TURBO!
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 bg-black/80 px-2.5 py-1 rounded-lg border border-slate-700 text-xs font-mono text-orange-300">
+              <Zap className="w-3.5 h-3.5 text-amber-300" />
+              <span>HURDLE READY</span>
+            </div>
+          </div>
+
+          {/* 4 Interactive Derby Hurdle Lanes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices.has(i);
+              const isSelected = pickedOption === i;
+              const isRight = i === correctIndex;
+              let hurdleStyle =
+                'bg-slate-950/95 hover:bg-rose-950/80 border-slate-700 text-slate-100';
+              if (isEliminated) {
+                hurdleStyle =
+                  'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
+                if (isRight) {
+                  hurdleStyle =
+                    'bg-orange-500 text-slate-950 border-black ring-2 ring-orange-300 font-black shadow-[0_0_12px_rgba(249,115,22,0.8)]';
+                } else if (isSelected) {
+                  hurdleStyle = 'bg-rose-600 text-white border-black';
+                } else {
+                  hurdleStyle = 'bg-slate-950/50 text-slate-500 border-slate-800';
+                }
+              }
+
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={pickedOption !== null || isEliminated}
+                  onClick={() => !isEliminated && onPickOption(i)}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${hurdleStyle}`}
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-black text-rose-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
+                      {String.fromCharCode(65 + i)}
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                      {opt}
+                    </span>
+                  </div>
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
+                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-orange-300 px-1.5 py-0.5 rounded">
+                      HURDLE CLEARED!
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -900,94 +1036,186 @@ const ThematicRoyalGameVisualizer: React.FC<{
 
   // 3. Dry Bones Crypt of Twin-Notice & Deadlines
   if (gameTitle.includes('Dry Bones') || gameTitle.includes('Crypt')) {
-    const runeLabels = ['1-Yr ULP', '3-Yr Money', '4-Yr Dismiss', '5d NTE', '30d DOLE'];
     return (
-      <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border-2 border-purple-500/70 rounded-2xl p-3 sm:p-4 text-xs font-bold text-white shadow-inner space-y-2.5">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase text-purple-300 font-mario">
-          <span className="flex items-center gap-1.5">
-            <Skull className="w-4 h-4 text-purple-300 shrink-0" />
-            <span>Dry Bones Dungeon Crypt</span>
-          </span>
-          <span className="text-cyan-300 font-mono tabular-nums">
-            Portcullis Seal: {Math.max(0, totalStages - stageNum - 1)} Locks Left
-          </span>
+      <div className="bg-slate-900 border-3 border-purple-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-purple-500/40 pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-2xl bg-purple-600 border-2 border-black shadow-[0_3px_0_#000]">
+              <Skull className="w-5 h-5 text-white shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-purple-300 uppercase block">
+                Dry Bones Crypt · Prescriptive Sarcophagus Chamber #{stageNum + 1}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-cyan-300">
+                Statutory Runestones &amp; Portcullis Wards Active
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-purple-500/50 text-xs font-mono text-purple-300">
+            <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>WARD ONLINE</span>
+          </div>
         </div>
-        <div className="relative bg-slate-950/90 rounded-xl border border-purple-600/50 p-2.5 flex flex-wrap items-center justify-between gap-2">
-          <Flame className="w-4 h-4 text-amber-400 shrink-0" />
-          <div className="flex flex-wrap items-center gap-1.5">
-            {runeLabels.slice(0, totalStages).map((lbl, i) => {
-              const unlockedRune = i <= stageNum || activeRuneKeys.includes(i);
+
+        <div className="relative bg-gradient-to-b from-purple-950 via-slate-950 to-indigo-950 rounded-2xl border-2 border-purple-600/60 p-3.5 overflow-hidden flex flex-col justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-2xl bg-purple-500 border-2 border-black shadow-[0_3px_0_#000]">
+                <Skull className="w-8 h-8 text-white" />
+              </div>
+              <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-purple-400/50 text-xs font-bold text-purple-200">
+                <span>Socket the controlling prescriptive runestone to raise the crypt portcullis!</span>
+              </div>
+            </div>
+            <span className="text-xs text-amber-300 font-mono bg-black/80 px-2.5 py-1 rounded-lg border border-slate-700">
+              Prescription Lock
+            </span>
+          </div>
+
+          {/* 4 Interactive Crypt Stone Sockets */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices.has(i);
+              const isSelected = pickedOption === i;
+              const isRight = i === correctIndex;
+              let cryptStyle =
+                'bg-slate-950/95 hover:bg-purple-950/80 border-slate-700 text-slate-100';
+              if (isEliminated) {
+                cryptStyle =
+                  'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
+                if (isRight) {
+                  cryptStyle =
+                    'bg-purple-600 text-white border-black ring-2 ring-purple-300 font-black shadow-[0_0_12px_rgba(168,85,247,0.8)]';
+                } else if (isSelected) {
+                  cryptStyle = 'bg-rose-600 text-white border-black';
+                } else {
+                  cryptStyle = 'bg-slate-950/50 text-slate-500 border-slate-800';
+                }
+              }
+
               return (
                 <button
-                  key={lbl}
+                  key={i}
                   type="button"
-                  onClick={() => {
-                    setActiveRuneKeys((prev) =>
-                      prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]
-                    );
-                    marioAudio.playClick();
-                  }}
-                  className={`px-2 py-1 rounded-lg border font-mono text-[10px] font-black inline-flex items-center gap-1 cursor-pointer ${
-                    unlockedRune
-                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200'
-                      : 'bg-slate-900 border-amber-500/50 text-amber-300'
-                  }`}
+                  disabled={pickedOption !== null || isEliminated}
+                  onClick={() => !isEliminated && onPickOption(i)}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${cryptStyle}`}
                 >
-                  {unlockedRune ? (
-                    <Unlock className="w-3 h-3 text-emerald-400 shrink-0" />
-                  ) : (
-                    <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-black text-purple-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
+                      {String.fromCharCode(65 + i)}
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                      {opt}
+                    </span>
+                  </div>
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
                   )}
-                  <span>{lbl}</span>
+                  {pickedOption !== null && isRight && !isEliminated && (
+                    <span className="text-[10px] font-mario text-emerald-300 shrink-0 mt-0.5 bg-black/80 px-1.5 py-0.5 rounded border border-emerald-400">
+                      SOCKETED!
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
-          <Flame className="w-4 h-4 text-amber-400 shrink-0" />
         </div>
       </div>
     );
   }
 
-  // 4. Mayor Pauline's Big Band Wage Concert
-  const eqBands = ['100% SC', '1/12 13th', 'Cash Cash', '2x RA 8188'];
+  // 4. Mayor Pauline's Metro Wage Concert
   return (
-    <div className="bg-gradient-to-r from-pink-950 via-slate-900 to-amber-950 border-2 border-pink-500/70 rounded-2xl p-3 sm:p-4 text-xs font-bold text-white shadow-inner space-y-2.5">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase text-pink-300 font-mario">
-        <span className="flex items-center gap-1.5">
-          <Music className="w-4 h-4 text-pink-300 shrink-0" />
-          <span>Pauline Big Band Equalizer · {80 + stageNum * 5} dB</span>
-        </span>
-        <div className="flex flex-wrap items-center gap-1">
-          {eqBands.map((b, idx) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => {
-                setConcertChannel(idx);
-                marioAudio.playClick();
-              }}
-              className={`px-2 py-0.5 rounded font-mono text-[10px] font-black border cursor-pointer ${
-                concertChannel === idx
-                  ? 'bg-amber-400 text-slate-950 border-black'
-                  : 'bg-slate-950 text-pink-200 border-pink-500/50'
-              }`}
-            >
-              {b}
-            </button>
-          ))}
+    <div className="bg-slate-900 border-3 border-pink-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pink-500/40 pb-2.5">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-2xl bg-pink-500 border-2 border-black shadow-[0_3px_0_#000]">
+            <Music className="w-5 h-5 text-slate-950 shrink-0" />
+          </div>
+          <div>
+            <span className="font-mario text-[11px] text-pink-300 uppercase block">
+              Pauline Big Band Concert · Track #{stageNum + 1}/{totalStages}
+            </span>
+            <span className="text-[10px] font-mono text-pink-300">
+              New Donk City Rooftop Rhythm Highway · {85 + stageNum * 5} dB
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-pink-500/50 text-xs font-mono text-pink-300">
+          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <span>RHYTHM HIGHWAY</span>
         </div>
       </div>
-      <div className="relative h-14 bg-slate-950/90 rounded-xl border border-pink-600/50 overflow-hidden flex items-end justify-between px-4 pb-2">
-        {[30, 65, 45, 90, 50, 75, 40, 95, 60, 85, 55, 70, 100, 45].map((h, i) => (
-          <div
-            key={i}
-            className="w-2.5 rounded-t bg-gradient-to-t from-pink-500 via-rose-400 to-amber-300 transition-all duration-300"
-            style={{
-              height: `${Math.max(15, Math.min(42, h * (0.4 + ((stageNum + concertChannel) / (totalStages + 2)) * 0.6)))}px`,
-            }}
-          />
-        ))}
+
+      <div className="relative bg-gradient-to-b from-pink-950 via-slate-950 to-amber-950 rounded-2xl border-2 border-pink-600/60 p-3.5 overflow-hidden flex flex-col justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-2xl bg-pink-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <MarioCharacterAvatar character="pauline" className="w-8 h-8" />
+            </div>
+            <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-pink-400/50 text-xs font-bold text-pink-200">
+              <span>Strike the rhythm highway pad with the controlling wage doctrine on beat!</span>
+            </div>
+          </div>
+          <span className="text-xs text-amber-300 font-mono bg-black/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            Rhythm Sync Active
+          </span>
+        </div>
+
+        {/* 4 Interactive Concert Rhythm Pads */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {options.map((opt, i) => {
+            const isEliminated = eliminatedIndices.has(i);
+            const isSelected = pickedOption === i;
+            const isRight = i === correctIndex;
+            let concertStyle =
+              'bg-slate-950/95 hover:bg-pink-950/80 border-slate-700 text-slate-100';
+            if (isEliminated) {
+              concertStyle =
+                'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+            } else if (pickedOption !== null) {
+              if (isRight) {
+                concertStyle =
+                  'bg-pink-500 text-slate-950 border-black ring-2 ring-pink-300 font-black shadow-[0_0_12px_rgba(236,72,153,0.8)]';
+              } else if (isSelected) {
+                concertStyle = 'bg-rose-600 text-white border-black';
+              } else {
+                concertStyle = 'bg-slate-950/50 text-slate-500 border-slate-800';
+              }
+            }
+
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={pickedOption !== null || isEliminated}
+                onClick={() => !isEliminated && onPickOption(i)}
+                className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${concertStyle}`}
+              >
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-black text-pink-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
+                    {String.fromCharCode(65 + i)}
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                    {opt}
+                  </span>
+                </div>
+                {isEliminated && (
+                  <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                )}
+                {pickedOption !== null && isRight && !isEliminated && (
+                  <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-pink-300 px-1.5 py-0.5 rounded">
+                    PERFECT BEAT!
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -1386,15 +1614,6 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
               </div>
             )}
 
-            <ThematicRoyalGameVisualizer
-              gameTitle={gameTitle}
-              stageNum={currentIdx}
-              totalStages={deck.length}
-              pickedOption={pickedOption}
-              isRight={pickedOption === currentItem.correctIndex}
-              streak={streak}
-            />
-
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
               <span className="text-amber-300 font-mono tabular-nums">
                 Stage {currentIdx + 1}/{deck.length} · {currentItem.headline}
@@ -1410,44 +1629,17 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {currentItem.options.map((opt, idx) => {
-                const isPicked = pickedOption === idx;
-                const isRight = idx === currentItem.correctIndex;
-                const isEliminated = eliminatedIndices.has(idx);
-                let btnTone = 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-100';
-                if (isEliminated) {
-                  btnTone = 'bg-slate-950/40 border-slate-800 text-slate-600 line-through opacity-40 cursor-not-allowed';
-                } else if (pickedOption !== null) {
-                  if (isRight) {
-                    btnTone = 'bg-emerald-500/25 border-emerald-400 text-emerald-100 ring-2 ring-emerald-400';
-                  } else if (isPicked) {
-                    btnTone = 'bg-rose-500/25 border-rose-500 text-rose-100';
-                  } else {
-                    btnTone = 'bg-slate-950/60 border-slate-800 text-slate-500';
-                  }
-                }
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    disabled={pickedOption !== null || isEliminated}
-                    onClick={() => handleChoose(idx)}
-                    className={`min-h-[54px] p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${btnTone}`}
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <span className="w-7 h-7 rounded-lg bg-black border border-slate-700 text-amber-300 font-black font-mario text-xs flex items-center justify-center shrink-0 mt-0.5">
-                        {String.fromCharCode(65 + idx)}
-                      </span>
-                      <span className="text-xs sm:text-sm font-bold leading-snug">{opt}</span>
-                    </div>
-                    {isEliminated && (
-                      <span className="text-[10px] font-mario text-rose-400/80 shrink-0 mt-0.5">ZAPPED!</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <ThematicRoyalGameVisualizer
+              gameTitle={gameTitle}
+              stageNum={currentIdx}
+              totalStages={deck.length}
+              options={currentItem.options}
+              pickedOption={pickedOption}
+              correctIndex={currentItem.correctIndex}
+              onPickOption={handleChoose}
+              streak={streak}
+              eliminatedIndices={eliminatedIndices}
+            />
 
             {pickedOption !== null && (
               <div

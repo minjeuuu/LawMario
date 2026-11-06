@@ -1550,7 +1550,7 @@ const InteractiveMasterArcadeStage: React.FC<{
 
   // 1. Yoshi Overtime Express — Live Railway Switcher Simulator
   if (gameTitle.includes('Yoshi')) {
-    const trackLabels = ['125% Ord OT', '169% RD-OT', '260% Hol-OT'];
+    const trackLabels = ['Track A', 'Track B', 'Track C', 'Track D'];
     const handleWhistle = () => {
       setTrainWhistleActive(true);
       setYoshiTrackLever((prev) => (prev + 1) % trackLabels.length);
@@ -1560,12 +1560,20 @@ const InteractiveMasterArcadeStage: React.FC<{
 
     return (
       <div className="bg-slate-900 border-3 border-emerald-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
+        {/* Railway Locomotive Cockpit HUD */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-500/40 pb-2.5">
           <div className="flex items-center gap-2">
-            <Train className="w-5 h-5 text-emerald-400 shrink-0" />
-            <span className="font-mario text-[11px] text-emerald-300 uppercase">
-              Yoshi Overtime Locomotive · Station #{stageNum}/{totalStages}
-            </span>
+            <div className="p-2 rounded-2xl bg-emerald-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <Train className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-emerald-300 uppercase block">
+                Yoshi Overtime Locomotive · Station #{stageNum}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-emerald-400">
+                Mainline Junction Rails · Steam Pressure: 100%
+              </span>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             {trackLabels.map((lbl, idx) => (
@@ -1576,9 +1584,9 @@ const InteractiveMasterArcadeStage: React.FC<{
                   setYoshiTrackLever(idx);
                   marioAudio.playClick();
                 }}
-                className={`px-2 py-1 rounded-lg font-mono text-[10px] font-black border cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-black border cursor-pointer transition-all ${
                   yoshiTrackLever === idx
-                    ? 'bg-emerald-400 text-slate-950 border-black'
+                    ? 'bg-emerald-400 text-slate-950 border-black shadow-[0_0_8px_rgba(52,211,153,0.7)]'
                     : 'bg-slate-950 text-slate-300 border-slate-700 hover:text-white'
                 }`}
               >
@@ -1592,42 +1600,59 @@ const InteractiveMasterArcadeStage: React.FC<{
               className="px-2.5 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] border border-black shadow-[0_2px_0_#000] cursor-pointer flex items-center gap-1 active:translate-y-0.5"
             >
               <Zap className="w-3 h-3 fill-current" />
-              <span>SWITCH TRACK</span>
+              <span>PULL WHISTLE</span>
             </button>
           </div>
         </div>
 
+        {/* 3D-styled Locomotive Track Junction Stage */}
         <div className="relative bg-gradient-to-b from-sky-950 via-slate-950 to-emerald-950 rounded-2xl border-2 border-emerald-600/60 p-3.5 flex flex-col justify-between gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-2xl bg-emerald-500 border-2 border-black shadow-[0_3px_0_#000] ${trainWhistleActive ? 'animate-bounce' : ''}`}>
+              <div
+                className={`p-2 rounded-2xl bg-emerald-500 border-2 border-black shadow-[0_3px_0_#000] transition-transform ${
+                  trainWhistleActive ? 'animate-bounce scale-110' : ''
+                }`}
+              >
                 <MarioCharacterAvatar character="yoshi" className="w-8 h-8" />
               </div>
               <div className="bg-black/75 px-3 py-1.5 rounded-xl border border-emerald-400/50 text-xs font-bold text-emerald-200">
-                <span>Active Lever: {trackLabels[yoshiTrackLever]} · Pick the controlling Art. 87 rule below!</span>
+                <span>
+                  Switch Yoshi&apos;s train to the lawful statutory overtime multiplier track below!
+                </span>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-black text-amber-300 font-mono text-xs border border-slate-700 tabular-nums">
-              {trainWhistleActive ? '120 MPH' : `${55 + stageNum * 5} MPH`}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-lg bg-black text-amber-300 font-mono text-xs border border-slate-700 tabular-nums">
+                {trainWhistleActive ? '120 MPH · HYPER' : `${55 + stageNum * 5} MPH · NORMAL`}
+              </span>
+            </div>
           </div>
 
+          {/* 4 Interactive Track Switch Choices */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {options.map((opt, i) => {
               const isEliminated = eliminatedIndices?.has(i);
               const isSelected = pickedOption === i;
               const isRight = i === correctIndex;
-              let trackColor = 'bg-slate-950/95 hover:bg-emerald-950/80 border-slate-700 text-slate-100';
+              const isCurrentTrack = yoshiTrackLever === i;
+              let trackColor =
+                'bg-slate-950/95 hover:bg-emerald-950/80 border-slate-700 text-slate-100';
               if (isEliminated) {
-                trackColor = 'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+                trackColor =
+                  'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
               } else if (pickedOption !== null) {
                 if (isRight) {
-                  trackColor = 'bg-emerald-600 text-white border-black ring-2 ring-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.8)]';
+                  trackColor =
+                    'bg-emerald-600 text-white border-black ring-2 ring-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.8)]';
                 } else if (isSelected) {
                   trackColor = 'bg-rose-600 text-white border-black';
                 } else {
                   trackColor = 'bg-slate-950/50 text-slate-500 border-slate-800';
                 }
+              } else if (isCurrentTrack) {
+                trackColor =
+                  'bg-emerald-950/80 border-emerald-400 text-emerald-100 ring-1 ring-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]';
               }
 
               return (
@@ -1635,20 +1660,29 @@ const InteractiveMasterArcadeStage: React.FC<{
                   key={i}
                   type="button"
                   disabled={pickedOption !== null || isEliminated}
-                  onClick={() => !isEliminated && onPickOption(i)}
-                  className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${trackColor}`}
+                  onClick={() => {
+                    if (!isEliminated) {
+                      setYoshiTrackLever(i);
+                      onPickOption(i);
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${trackColor}`}
                 >
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-black text-amber-300 font-mario text-[10px] flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span className="w-7 h-7 rounded-lg bg-black text-amber-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
                       {String.fromCharCode(65 + i)}
                     </span>
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                      {opt}
+                    </span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
                   )}
                   {pickedOption !== null && isRight && !isEliminated && (
-                    <span className="text-[10px] font-mario text-amber-300 shrink-0 mt-0.5">CLEAR!</span>
+                    <span className="text-[10px] font-mario text-amber-300 shrink-0 mt-0.5 bg-black/80 px-1.5 py-0.5 rounded border border-emerald-400">
+                      CLEAR!
+                    </span>
                   )}
                   {pickedOption !== null && isSelected && !isRight && !isEliminated && (
                     <MarioThwompIcon className="w-5 h-5 shrink-0" />
@@ -1669,10 +1703,17 @@ const InteractiveMasterArcadeStage: React.FC<{
       <div className="bg-slate-900 border-3 border-indigo-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-500/40 pb-2.5">
           <div className="flex items-center gap-2">
-            <Moon className="w-5 h-5 text-indigo-400 shrink-0" />
-            <span className="font-mario text-[11px] text-indigo-300 uppercase">
-              Graveyard Shift Vacuum · 10:00 PM – 6:00 AM Window
-            </span>
+            <div className="p-2 rounded-2xl bg-indigo-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <Moon className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-indigo-300 uppercase block">
+                Graveyard Shift Vacuum · 10:00 PM – 6:00 AM Window
+              </span>
+              <span className="text-[10px] font-mono text-cyan-300">
+                Poltergust 3000 Suction Armed · Haunted Vault #{stageNum}/{totalStages}
+              </span>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             {uvChannels.map((ch, idx) => (
@@ -1708,7 +1749,7 @@ const InteractiveMasterArcadeStage: React.FC<{
           <div
             className="absolute inset-0 pointer-events-none transition-all duration-75"
             style={{
-              background: `radial-gradient(circle 110px at ${flashlightPos.x}% ${flashlightPos.y}%, rgba(254, 240, 138, 0.22) 0%, rgba(15, 23, 42, 0.85) 75%)`,
+              background: `radial-gradient(circle 120px at ${flashlightPos.x}% ${flashlightPos.y}%, rgba(254, 240, 138, 0.25) 0%, rgba(15, 23, 42, 0.88) 75%)`,
             }}
           />
 
@@ -1718,7 +1759,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 <MarioCharacterAvatar character="luigi" className="w-8 h-8" />
               </div>
               <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-indigo-400/50 text-xs font-bold text-indigo-200">
-                <span>UV Filter: {uvChannels[uvChannelIdx]} · Spotlight &amp; vacuum the lawful night-shift ruling!</span>
+                <span>UV Filter: {uvChannels[uvChannelIdx]} · Aim beam &amp; vacuum the lawful night-shift ruling!</span>
               </div>
             </div>
             <span className="text-xs text-amber-300 font-mono bg-black/70 px-2.5 py-1 rounded-lg border border-slate-700 tabular-nums">
@@ -1750,17 +1791,19 @@ const InteractiveMasterArcadeStage: React.FC<{
                   type="button"
                   disabled={pickedOption !== null || isEliminated}
                   onClick={() => !isEliminated && onPickOption(i)}
-                  className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${ghostBox}`}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${ghostBox}`}
                 >
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <MarioBooIcon className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 min-w-0">
+                    <MarioBooIcon className="w-6 h-6 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
                   )}
                   {pickedOption !== null && isRight && !isEliminated && (
-                    <span className="text-[10px] font-mario text-emerald-300 shrink-0 mt-0.5">VACUUMED!</span>
+                    <span className="text-[10px] font-mario text-emerald-300 shrink-0 mt-0.5 bg-black/80 px-1.5 py-0.5 rounded border border-emerald-400">
+                      VACUUMED!
+                    </span>
                   )}
                 </button>
               );
@@ -1777,10 +1820,17 @@ const InteractiveMasterArcadeStage: React.FC<{
       <div className="bg-slate-900 border-3 border-sky-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-500/40 pb-2.5">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-sky-400 shrink-0" />
-            <span className="font-mario text-[11px] text-sky-300 uppercase">
-              Comet Observatory · Wage Constellations
-            </span>
+            <div className="p-2 rounded-2xl bg-sky-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <Sparkles className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-sky-300 uppercase block">
+                Comet Observatory · Wage Constellations #{stageNum}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-sky-400">
+                Stargazing Reticle Aligned · Celestial Azimuth: {aimAngle}°
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-mono text-sky-200">
             <button
@@ -1789,11 +1839,11 @@ const InteractiveMasterArcadeStage: React.FC<{
                 setAimAngle((prev) => (prev + 325) % 360);
                 marioAudio.playClick();
               }}
-              className="px-2 py-0.5 rounded bg-slate-950 border border-sky-400/50 text-sky-300 hover:bg-sky-900/50 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-slate-950 border border-sky-400/50 text-sky-300 hover:bg-sky-900/50 cursor-pointer font-black"
             >
               -35°
             </button>
-            <span className="px-2 py-0.5 rounded bg-black text-amber-300 border border-slate-700 tabular-nums">
+            <span className="px-2.5 py-1 rounded-lg bg-black text-amber-300 border border-slate-700 tabular-nums">
               {aimAngle}°
             </span>
             <button
@@ -1802,7 +1852,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 setAimAngle((prev) => (prev + 35) % 360);
                 marioAudio.playClick();
               }}
-              className="px-2 py-0.5 rounded bg-slate-950 border border-sky-400/50 text-sky-300 hover:bg-sky-900/50 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-slate-950 border border-sky-400/50 text-sky-300 hover:bg-sky-900/50 cursor-pointer font-black"
             >
               +35°
             </button>
@@ -1815,7 +1865,7 @@ const InteractiveMasterArcadeStage: React.FC<{
               <MarioCharacterAvatar character="rosalina" className="w-8 h-8" />
             </div>
             <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-sky-400/50 text-xs font-bold text-sky-200">
-              <span>Rotate telescope turret ({aimAngle}°) and lock the controlling Supreme Court wage doctrine!</span>
+              <span>Rotate telescope turret ({aimAngle}°) and illuminate the controlling Supreme Court wage constellation!</span>
             </div>
           </div>
 
@@ -1848,17 +1898,19 @@ const InteractiveMasterArcadeStage: React.FC<{
                       onPickOption(i);
                     }
                   }}
-                  className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${starStyle}`}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${starStyle}`}
                 >
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <MarioStarIcon className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 min-w-0">
+                    <MarioStarIcon className="w-6 h-6 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
                   )}
                   {pickedOption !== null && isRight && !isEliminated && (
-                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">ALIGNED!</span>
+                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-sky-300 px-1.5 py-0.5 rounded">
+                      ALIGNED!
+                    </span>
                   )}
                 </button>
               );
@@ -1875,10 +1927,17 @@ const InteractiveMasterArcadeStage: React.FC<{
       <div className="bg-slate-900 border-3 border-pink-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pink-500/40 pb-2.5">
           <div className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-pink-400 shrink-0" />
-            <span className="font-mario text-[11px] text-pink-300 uppercase">
-              Princess Peach Royal Leave Dispatch Desk
-            </span>
+            <div className="p-2 rounded-2xl bg-pink-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <Crown className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-pink-300 uppercase block">
+                Princess Peach Royal Leave Dispatch Desk #{stageNum}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-pink-300">
+                Statutory Leave Petitions · Royal Seal: {peachSealLocked ? 'ARMED' : 'READY'}
+              </span>
+            </div>
           </div>
           <button
             type="button"
@@ -1886,10 +1945,10 @@ const InteractiveMasterArcadeStage: React.FC<{
               setPeachSealLocked((v) => !v);
               marioAudio.playCoin();
             }}
-            className={`px-2.5 py-1 rounded-xl border font-black text-[10px] cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl border font-black text-[10px] cursor-pointer transition-all ${
               peachSealLocked
-                ? 'bg-pink-400 text-slate-950 border-black'
-                : 'bg-black/60 text-pink-300 border-pink-500/60'
+                ? 'bg-pink-400 text-slate-950 border-black shadow-[0_0_8px_rgba(244,114,182,0.8)]'
+                : 'bg-black/60 text-pink-300 border-pink-500/60 hover:text-white'
             }`}
           >
             {peachSealLocked ? 'ROYAL SEAL ARMED' : 'ARM ROYAL WAX SEAL'}
@@ -1903,7 +1962,7 @@ const InteractiveMasterArcadeStage: React.FC<{
             </div>
             <div className="bg-black/80 px-3 py-1.5 rounded-xl border border-pink-400/50 text-xs font-bold text-pink-200 flex items-center gap-2">
               <Scroll className="w-4 h-4 text-pink-300 shrink-0" />
-              <span>File the statutory leave petition into the certified World 6 chute!</span>
+              <span>Review statutory leave petitions and stamp the official royal wax seal!</span>
             </div>
           </div>
 
@@ -1931,17 +1990,19 @@ const InteractiveMasterArcadeStage: React.FC<{
                   type="button"
                   disabled={pickedOption !== null || isEliminated}
                   onClick={() => !isEliminated && onPickOption(i)}
-                  className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${chuteStyle}`}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${chuteStyle}`}
                 >
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <Stamp className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Stamp className="w-6 h-6 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
                   )}
                   {pickedOption !== null && isRight && !isEliminated && (
-                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">STAMPED!</span>
+                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-pink-300 px-1.5 py-0.5 rounded">
+                      STAMPED!
+                    </span>
                   )}
                 </button>
               );
@@ -1958,10 +2019,17 @@ const InteractiveMasterArcadeStage: React.FC<{
       <div className="bg-slate-900 border-3 border-amber-500 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/40 pb-2.5">
           <div className="flex items-center gap-2">
-            <Vault className="w-5 h-5 text-amber-400 shrink-0" />
-            <span className="font-mario text-[11px] text-amber-300 uppercase">
-              Wario Treasury · Mechanical Safe Combination
-            </span>
+            <div className="p-2 rounded-2xl bg-amber-500 border-2 border-black shadow-[0_3px_0_#000]">
+              <Vault className="w-5 h-5 text-slate-950 shrink-0" />
+            </div>
+            <div>
+              <span className="font-mario text-[11px] text-amber-300 uppercase block">
+                Wario Treasury · Safe Combination Tumbler #{stageNum}/{totalStages}
+              </span>
+              <span className="text-[10px] font-mono text-amber-300">
+                Payroll Safe Dial: {vaultDialDeg}° · Tumbler Pins Set
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-mono">
             <button
@@ -1971,11 +2039,11 @@ const InteractiveMasterArcadeStage: React.FC<{
                 setVaultDialDeg((d) => (d + 315) % 360);
                 marioAudio.playClick();
               }}
-              className="px-2 py-0.5 rounded bg-slate-950 text-amber-300 border border-amber-500/60 hover:bg-amber-950 cursor-pointer font-black"
+              className="px-2.5 py-1 rounded-lg bg-slate-950 text-amber-300 border border-amber-500/60 hover:bg-amber-950 cursor-pointer font-black"
             >
               Dial -45°
             </button>
-            <span className="text-amber-300 bg-black px-2 py-0.5 rounded border border-amber-600/50 tabular-nums">
+            <span className="text-amber-300 bg-black px-2.5 py-1 rounded-lg border border-amber-600/50 tabular-nums">
               {vaultDialDeg}°
             </span>
             <button
@@ -1985,7 +2053,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 setVaultDialDeg((d) => (d + 45) % 360);
                 marioAudio.playClick();
               }}
-              className="px-2 py-0.5 rounded bg-slate-950 text-amber-300 border border-amber-500/60 hover:bg-amber-950 cursor-pointer font-black"
+              className="px-2.5 py-1 rounded-lg bg-slate-950 text-amber-300 border border-amber-500/60 hover:bg-amber-950 cursor-pointer font-black"
             >
               Dial +45°
             </button>
@@ -2031,17 +2099,19 @@ const InteractiveMasterArcadeStage: React.FC<{
                       onPickOption(i);
                     }
                   }}
-                  className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${vaultStyle}`}
+                  className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${vaultStyle}`}
                 >
-                  <div className="flex items-start gap-2.5 min-w-0">
-                    <Coins className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Coins className="w-6 h-6 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
                   )}
                   {pickedOption !== null && isRight && !isEliminated && (
-                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">CRACKED!</span>
+                    <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-amber-300 px-1.5 py-0.5 rounded">
+                      CRACKED!
+                    </span>
                   )}
                 </button>
               );
@@ -2057,10 +2127,17 @@ const InteractiveMasterArcadeStage: React.FC<{
     <div className="bg-slate-900 border-3 border-amber-600 rounded-3xl p-4 sm:p-5 text-white shadow-[0_6px_0_#000] space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-600/40 pb-2.5">
         <div className="flex items-center gap-2">
-          <Scale className="w-5 h-5 text-amber-400 shrink-0" />
-          <span className="font-mario text-[11px] text-amber-300 uppercase">
-            Chancellor Toadsworth Retirement Scale of Justice
-          </span>
+          <div className="p-2 rounded-2xl bg-amber-600 border-2 border-black shadow-[0_3px_0_#000]">
+            <Scale className="w-5 h-5 text-slate-950 shrink-0" />
+          </div>
+          <div>
+            <span className="font-mario text-[11px] text-amber-300 uppercase block">
+              Chancellor Toadsworth Retirement Tribunal #{stageNum}/{totalStages}
+            </span>
+            <span className="text-[10px] font-mono text-amber-300">
+              High Labor Court Bench · Formula: {tribunalCounterweight}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-1.5">
           {(
@@ -2077,7 +2154,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 setTribunalCounterweight(cw.id);
                 marioAudio.playClick();
               }}
-              className={`px-2 py-0.5 rounded-lg font-mono text-[10px] font-black border cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg font-mono text-[10px] font-black border cursor-pointer ${
                 tribunalCounterweight === cw.id
                   ? 'bg-amber-400 text-slate-950 border-black'
                   : 'bg-slate-950 text-amber-200 border-amber-700/60'
@@ -2123,17 +2200,19 @@ const InteractiveMasterArcadeStage: React.FC<{
                 type="button"
                 disabled={pickedOption !== null || isEliminated}
                 onClick={() => onPickOption(i)}
-                className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${scaleStyle}`}
+                className={`p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${scaleStyle}`}
               >
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <Scale className="w-5 h-5 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 min-w-0">
+                  <Scale className="w-6 h-6 shrink-0 mt-0.5" />
                   <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                 </div>
                 {isEliminated && (
                   <span className="text-[10px] font-mario text-rose-400/80 shrink-0 mt-0.5">ZAPPED!</span>
                 )}
                 {pickedOption !== null && isRight && (
-                  <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">BALANCED!</span>
+                  <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5 bg-amber-300 px-1.5 py-0.5 rounded">
+                    BALANCED!
+                  </span>
                 )}
               </button>
             );
