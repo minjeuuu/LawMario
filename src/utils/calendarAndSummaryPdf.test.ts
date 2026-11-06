@@ -116,7 +116,7 @@ test('Direct A4 PDF builders produce valid PDF byte streams and One-Page Summary
 
   const reviewerBytes = buildStudyGuideReviewerPdfBytes({
     orientation: 'portrait',
-    candidateName: 'Bar Candidate',
+    candidateName: 'Labor Law Scholar',
     completedTopicIds: [ALL_LAW_TOPICS[0].id],
     topics: ALL_LAW_TOPICS.slice(0, 3),
     selectedWorlds: ['world-1'],

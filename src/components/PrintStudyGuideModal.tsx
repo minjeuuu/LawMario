@@ -1661,7 +1661,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               </label>
 
               <label className="min-h-[44px] flex items-center justify-between gap-2 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-3 py-2 rounded-xl border border-slate-600">
-                <span className="text-white">Include Bar Tips</span>
+                <span className="text-white">Include Key Study Tips</span>
                 <input
                   type="checkbox"
                   checked={formatOptions.includeBarTips}
@@ -1694,7 +1694,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               </label>
 
               <label className="min-h-[44px] flex items-center justify-between gap-2 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-3 py-2 rounded-xl border border-slate-600">
-                <span className="text-white">Include Bar Scenarios</span>
+                <span className="text-white">Include Practical Scenarios</span>
                 <input
                   type="checkbox"
                   checked={includeHypotheticals}
@@ -1821,7 +1821,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               </label>
 
               <label className="min-h-[44px] flex items-center justify-between gap-2 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-3 py-2 rounded-xl border border-slate-600">
-                <span className="text-white">Bar Candidate Honor Pledge</span>
+                <span className="text-white">Learner Commitment &amp; Honor Pledge</span>
                 <input
                   type="checkbox"
                   checked={includeHonorPledge}
@@ -1868,12 +1868,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               </div>
 
               <div className="min-h-[44px] flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-600 sm:col-span-2 lg:col-span-3">
-                <span className="text-amber-300 text-xs shrink-0 font-bold">Candidate Name on Cover:</span>
+                <span className="text-amber-300 text-xs shrink-0 font-bold">Learner Name on Cover:</span>
                 <input
                   type="text"
                   value={candidateName}
                   onChange={(e) => setCandidateName(e.target.value)}
-                  placeholder="e.g., Atty. Juan Dela Cruz (Bar Reviewee)"
+                  placeholder="e.g., Juan Dela Cruz (Labor Law Scholar)"
                   className="bg-slate-900 border border-slate-700 text-white text-xs px-2.5 py-1.5 rounded-lg flex-1 min-w-0 font-normal focus:outline-none focus:border-amber-400"
                 />
               </div>
@@ -1954,7 +1954,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   value={
                     !includeWatermark
                       ? 'none'
-                      : formatOptions.watermarkText || 'CONFIDENTIAL BAR REVIEW'
+                      : formatOptions.watermarkText || 'CONFIDENTIAL STUDY REVIEW'
                   }
                   onChange={(e) => {
                     const val = e.target.value;
@@ -1969,7 +1969,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   className="w-full bg-slate-900 [color-scheme:dark] border border-slate-700 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-400 font-bold cursor-pointer"
                 >
                   <option value="none" className="bg-slate-900 text-white">No Watermark</option>
-                  <option value="CONFIDENTIAL BAR REVIEW" className="bg-slate-900 text-white">CONFIDENTIAL BAR REVIEW</option>
+                  <option value="CONFIDENTIAL STUDY REVIEW" className="bg-slate-900 text-white">CONFIDENTIAL STUDY REVIEW</option>
                   <option value="OFFICIAL STUDY GUIDE" className="bg-slate-900 text-white">OFFICIAL STUDY GUIDE</option>
                   <option value="FOR ACADEMIC USE ONLY" className="bg-slate-900 text-white">FOR ACADEMIC USE ONLY</option>
                   <option value="DO NOT REPRODUCE" className="bg-slate-900 text-white">DO NOT REPRODUCE</option>
@@ -2781,7 +2781,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       className="pointer-events-none absolute inset-0 z-10 overflow-hidden flex items-center justify-center opacity-[0.045] select-none print:opacity-[0.05]"
                     >
                       <span className="rotate-[-28deg] uppercase font-black text-4xl sm:text-6xl tracking-widest text-slate-950 text-center px-6">
-                        {formatOptions.watermarkText || 'CONFIDENTIAL BAR REVIEW'}
+                        {formatOptions.watermarkText || 'CONFIDENTIAL STUDY REVIEW'}
                       </span>
                     </div>
                   )}
@@ -2818,12 +2818,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 style={{ color: activeExtendedTheme.headerTextHex }}
                 className="text-xs opacity-90 max-w-2xl mx-auto leading-relaxed"
               >
-                Complete Six-World Bar &amp; Law School Memory Aid covering Hours of Work, Rest &amp; Holidays, 13th Month Pay, Wages &amp; D.O. 174, Special Groups, Protective Statutes, and Statutory Leaves (World 6)
+                Complete Six-World Philippine Labor Standards &amp; Workplace Rights Memory Aid covering Hours of Work, Rest &amp; Holidays, 13th Month Pay, Wages &amp; D.O. 174, Special Groups, Protective Statutes, and Statutory Leaves (World 6)
               </p>
               {candidateName && (
                 <div className="pt-1">
                   <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-300 rounded-lg text-xs font-bold text-slate-900">
-                    Prepared for Examinee: <span className="font-black text-slate-950">{candidateName}</span>
+                    Prepared for Learner: <span className="font-black text-slate-950">{candidateName}</span>
                   </span>
                 </div>
               )}
@@ -3220,7 +3220,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
                   {matricesOnlyMode
                     ? 'IV. Embedded Module Comparative Matrices (Worlds 1–6)'
-                    : 'IV. Codified Provisions, Doctrines, Exceptions & Bar Exam Tips'}
+                    : 'IV. Codified Provisions, Doctrines, Exceptions & High-Yield Study Tips'}
                 </h2>
                 <span className="text-[10.5px] text-slate-600">
                   {matricesOnlyMode
@@ -3674,7 +3674,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                 </div>
                               )}
 
-                              {/* High-Yield Bar Exam Tips & Practical Takeaway */}
+                              {/* High-Yield Study Tips & Practical Takeaway */}
                               {!matricesOnlyMode &&
                                 formatOptions.includeBarTips &&
                                 (combinedTips.length > 0 || topic.practicalTakeaway) && (

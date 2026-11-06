@@ -300,7 +300,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
       'Key Supreme Court Controlling Precedents:',
       ...entry.supremeCourtDoctrines.map((d) => `• ${d}`),
       '',
-      'Bar Exam Traps & Interpretation Guidance:',
+      'Common Traps & Practical Interpretation Guidance:',
       ...entry.interpretationTips.map((t) => `• ${t}`),
     ].join('\n');
     navigator.clipboard?.writeText(payload);
@@ -326,7 +326,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
       ...entry.supremeCourtDoctrines.map((d, i) => `${i + 1}. ${d}`),
       '',
       '======================================================================',
-      '## BAR EXAM TRAPS & INTERPRETATION GUIDANCE',
+      '## COMMON TRAPS & PRACTICAL INTERPRETATION GUIDANCE',
       '======================================================================',
       ...entry.interpretationTips.map((t, i) => `${i + 1}. ${t}`),
       '',
@@ -423,7 +423,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
         });
       }
 
-      // Bar Exam Traps & Interpretation Guidance
+      // Practical Interpretation Guidance & Common Traps
       if (entry.interpretationTips.length > 0) {
         if (y > pageHeight - 30) {
           doc.addPage();
@@ -435,7 +435,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
         doc.setTextColor(49, 46, 129);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8.5);
-        doc.text('BAR EXAM TRAPS & INTERPRETATION GUIDANCE', margin + 4, y + 5.5);
+        doc.text('COMMON TRAPS & PRACTICAL INTERPRETATION GUIDANCE', margin + 4, y + 5.5);
         y += 12;
 
         doc.setFont('helvetica', 'normal');
@@ -497,7 +497,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
         ? [`Supreme Court Controlling Doctrines:\n${entry.supremeCourtDoctrines.map((d) => `• ${d}`).join('\n')}`]
         : []),
       ...(entry.interpretationTips.length > 0
-        ? [`Bar Exam Interpretation Tips:\n${entry.interpretationTips.map((t) => `• ${t}`).join('\n')}`]
+        ? [`Practical Interpretation Tips:\n${entry.interpretationTips.map((t) => `• ${t}`).join('\n')}`]
         : []),
       `Ref: statute_${entry.articleNumber.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
     ];
@@ -1000,18 +1000,18 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                   </section>
                 )}
 
-                {/* 3. Bar Exam Traps & Interpretation Guidance */}
+                {/* 3. Common Traps & Practical Interpretation Guidance */}
                 {activeEntry.interpretationTips.length > 0 && (
                   <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-4 sm:p-5 border-2 border-sky-400/50 shadow-[2px_2px_0_#000] space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <div className="flex items-center gap-2 text-xs font-black text-sky-300">
                         <ShieldAlert className="w-4 h-4 shrink-0 text-sky-400" />
                         <span className="font-mono uppercase tracking-wider">
-                          BAR EXAM TRAPS &amp; INTERPRETATION GUIDANCE
+                          COMMON TRAPS &amp; PRACTICAL INTERPRETATION GUIDANCE
                         </span>
                       </div>
                       <span className="text-[10px] text-sky-400 font-mono font-bold">
-                        High-Yield Bar Tips
+                        Practical Study Tips
                       </span>
                     </div>
                     <ul className="space-y-2.5 text-xs sm:text-sm text-slate-200">

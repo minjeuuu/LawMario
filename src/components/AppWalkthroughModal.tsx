@@ -126,11 +126,11 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
     category: 'Codal Repertory',
     badge: 'Search Engine',
     summary:
-      'Instant search engine for all Philippine Labor Code articles, Republic Acts, and Supreme Court landmark rulings with exact verbatim text and bar tips.',
+      'Instant search engine for all Philippine Labor Code articles, Republic Acts, and Supreme Court landmark rulings with exact verbatim text and high-yield study tips.',
     primaryFeatures: [
       'Search by article number (e.g., "83", "87"), law ("RA 11210"), or doctrine keywords ("control test")',
       'Listen aloud to statutory provisions with Web Speech synthesis and speed cycler',
-      'Bar Exam Recitation Mode: Veils numeric thresholds and doctrines into interactive recall blocks',
+      'Active Recall Cloze Mode: Veils numeric thresholds and doctrines into interactive recall blocks',
       'Codal margin line numbers toggle (#) for precise courtroom citation reference',
       'One-tap Save Note integration directly into Study Notes Drawer',
       'Quick jump to corresponding module study deck',
@@ -160,7 +160,7 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
       { name: 'New Note', role: 'Opens editor to draft custom study insights and rule summaries' },
       { name: 'Quiz Errors Filter', role: 'Filters notebook strictly to review takeaways from missed quiz items' },
       { name: 'Export Notes (.txt)', role: 'Downloads complete study notebook as a clean organized study reviewer' },
-      { name: 'Pin Note', role: 'Pins crucial bar doctrines to the top of your notebook list' },
+      { name: 'Pin Note', role: 'Pins crucial statutory doctrines to the top of your notebook list' },
     ],
     proTip: 'Whenever you miss an answer in any quiz, click "Save Error to Notes" to build an automatic weakness notebook!',
   },
@@ -292,7 +292,7 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
     category: 'Profile & Telemetry',
     badge: 'Player Card',
     summary:
-      'Your comprehensive bar candidate dossier with avatar customization, 30-day performance heatmap, achievement trophies, and boss rank records.',
+      'Your comprehensive learner dossier with avatar customization, 30-day performance heatmap, achievement trophies, and boss rank records.',
     primaryFeatures: [
       'Editable player name with active Mario title and equipped companion badge',
       'Collapsible 30-day quiz performance heatmap visualizing missed Labor Code provisions',
@@ -343,7 +343,7 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
       { name: 'Copy Bluebook Citation', role: 'Copies standardized Bluebook legal citation to clipboard' },
       { name: 'Copy APA Citation', role: 'Copies academic APA 7th edition citation to clipboard' },
     ],
-    proTip: 'Use the cohort directory when writing bar review memorandums or citing specific statutory provisions in class papers.',
+    proTip: 'Use the cohort directory when writing case analyses or citing specific statutory provisions in class papers.',
   },
   {
     id: 'modal_companion_hud',
@@ -362,7 +362,7 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
     keyButtons: [
       { name: 'Pet Companion', role: 'Increases affection and happiness with joyful sound effects' },
       { name: 'Feed (5c)', role: 'Feeds a Super Mushroom treat to boost happiness to 100%' },
-      { name: 'Doctrine', role: 'Asks companion for an actionable Bar Exam statutory rule or doctrine' },
+      { name: 'Doctrine', role: 'Asks companion for an actionable statutory rule or practical workplace doctrine' },
       { name: '5m Study', role: 'Immediately launches a rapid 5-minute study blitz' },
       { name: 'Switch Companion', role: 'Opens menu to summon any of the 8 available Mario companions' },
     ],
@@ -467,7 +467,7 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     name: 'Toad’s Pro Tip Floating Pill',
     part: 'Floating Screen Bottom (Overworld Map)',
     category: 'Header & Global Controls',
-    whatItDoes: 'Cycles through 32 high-yield Philippine Labor Law bar exam tips and memory analogies.',
+    whatItDoes: 'Cycles through 32 high-yield Philippine Labor Law study tips and memory analogies.',
     howToUse: 'Click the Toad pill on the map to cycle next tip, share, or copy tip text to clipboard.',
     proTip: 'Hovering over the tip pauses the auto-hide timer so you can read at your own pace.',
     targetTab: 'map',
@@ -479,7 +479,7 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     category: 'Header & Global Controls',
     whatItDoes: 'Launches the complete DOLE statutory multiplier wage calculator modal with 17-region RTWPB presets.',
     howToUse: 'Click DOLE Calc in the navbar or mobile menu, select your region, and review exact wage breakdowns.',
-    proTip: 'Generates copyable official wage slips formatted for Bar exam problems and payroll audits.',
+    proTip: 'Generates copyable official wage slips formatted for class problems and payroll audits.',
     targetTab: 'calculator',
   },
   {
@@ -489,7 +489,7 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     category: 'Header & Global Controls',
     whatItDoes: 'Opens the Research Cohort Directory of 9 academic legal fellows with 1-click Bluebook/APA citation generation.',
     howToUse: 'Click Research in the navbar to browse contributors, search topics, and copy academic citations.',
-    proTip: 'Use Bluebook citation generation when citing the Labor Code and memory aid in law school papers.',
+    proTip: 'Use Bluebook citation generation when citing the Labor Code and memory aid in academic papers and class projects.',
     targetTab: 'modules',
   },
   {
@@ -574,7 +574,7 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
   },
   {
     id: 'btn-verbatim-recitation-toggle',
-    name: 'Bar Exam Recitation Mode (Cloze Recall)',
+    name: 'Active Recall Cloze Mode',
     part: 'Verbatim Codal Viewer Toolbar',
     category: 'Topic Card & Module Controls',
     whatItDoes: 'Veils high-yield statutory numbers, percentages, and doctrines as interactive mystery blocks for active recall testing.',
@@ -1211,7 +1211,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                       {demoViewTab === 'tables' &&
                         'Filtered to side-by-side matrices like Regular vs Special Holiday rates, and Facility vs Supplement criteria.'}
                       {demoViewTab === 'verbatim' &&
-                        'Displays unabridged statutory codifications with antique parchment mode, Bar Exam recitation cloze active recall, line numbering, speech read-aloud, and 1-tap notes saving.'}
+                        'Displays unabridged statutory codifications with antique parchment mode, active recall cloze recitation, line numbering, speech read-aloud, and 1-tap notes saving.'}
                       {demoViewTab === 'all' &&
                         'Displays the complete module: summary, key doctrines, matrices, checklists, and statutory scrolls.'}
                     </div>
@@ -1440,7 +1440,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 {chapter.id === 'quizzes_and_boss' && (
                   <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
                     <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
-                      BAR QUIZ BATTLE HUD WITH 50/50 LIFELINE
+                      QUIZ BATTLE HUD WITH 50/50 LIFELINE
                     </span>
                     <div className="flex items-center justify-between gap-2 pb-1">
                       <button
@@ -1500,7 +1500,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                         { title: 'Mushroom Union Tower Defense', desc: 'Defend picket line' },
                         { title: 'DOLE Payroll Stamping Desk', desc: 'Inspect & approve compliance' },
                         { title: 'Lakitu Skybridge Dash', desc: 'Sprint & leap across bridges' },
-                        { title: 'Bar Codal Word Hunt', desc: 'Find statutory terms on grid' },
+                        { title: 'Labor Codal Word Hunt', desc: 'Find statutory terms on grid' },
                       ].map((g) => (
                         <div
                           key={g.title}
@@ -1810,7 +1810,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                         <div className="space-y-0.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700">
                           <span className="text-[10px] font-black uppercase text-emerald-300 font-mario flex items-center gap-1">
                             <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
-                            <span>BAR EXAM PRO TIP</span>
+                            <span>PRO STUDY TIP</span>
                           </span>
                           <p className="text-slate-200 leading-relaxed font-semibold">
                             {btn.proTip}
@@ -1846,8 +1846,31 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 <span>Previous</span>
               </button>
 
-              <div className="text-xs font-mono font-bold text-amber-300 text-center hidden sm:block">
-                Chapter {stepIdx + 1} of {WALKTHROUGH_CHAPTERS.length} · {progressPct}% Complete
+              <div className="flex flex-col items-center gap-1.5 hidden sm:flex">
+                <div className="text-xs font-mono font-bold text-amber-300 text-center">
+                  Chapter {stepIdx + 1} of {WALKTHROUGH_CHAPTERS.length} · {progressPct}% Complete
+                </div>
+                <div className="flex items-center gap-1">
+                  {WALKTHROUGH_CHAPTERS.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setStepIdx(i);
+                        marioAudio.playCoin();
+                      }}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        i === stepIdx
+                          ? 'w-6 bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]'
+                          : i < stepIdx
+                          ? 'w-2.5 bg-emerald-400'
+                          : 'w-2 bg-slate-700 hover:bg-slate-500'
+                      }`}
+                      title={`Go to Chapter ${i + 1}`}
+                      aria-label={`Jump to Chapter ${i + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="flex items-center gap-2">

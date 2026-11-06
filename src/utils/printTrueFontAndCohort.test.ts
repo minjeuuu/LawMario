@@ -79,6 +79,9 @@ test('buildOnePageSummaryPdfBytes includes full research cohort and renders vali
   assert.ok(decompressed.includes('MANALAC') || decompressed.includes('MA') || decompressed.includes('Abigail'));
   assert.ok(decompressed.includes('UNTALAN'));
   assert.ok(decompressed.includes('VILA'));
+
+  const bannedPattern = /\b(bar exam|bar candidate|bar review|bar taker|bar topnotcher|bar tips|law student|law school)\b/i;
+  assert.equal(bannedPattern.test(decompressed), false, 'One-page summary must have 0 Bar/law student mentions');
 });
 
 test('buildCertificatePdfBytes renders long recipient names without [0] cropping', () => {
@@ -101,6 +104,9 @@ test('buildCertificatePdfBytes renders long recipient names without [0] cropping
   const decompressed = inflateSync(buf.subarray(streamStart + 7, streamEnd)).toString('latin1');
   assert.ok(decompressed.includes('Maria Kristina Isabella'));
   assert.ok(decompressed.includes('Santos-Villanueva'));
+
+  const bannedPattern = /\b(bar exam|bar candidate|bar review|bar taker|bar topnotcher|bar tips|law student|law school)\b/i;
+  assert.equal(bannedPattern.test(decompressed), false, 'Certificate must have 0 Bar/law student mentions');
 });
 
 test('buildMasterDiplomaPdfBytes renders long recipient names without [0] cropping in landscape', () => {
@@ -123,6 +129,9 @@ test('buildMasterDiplomaPdfBytes renders long recipient names without [0] croppi
   const decompressed = inflateSync(buf.subarray(streamStart + 7, streamEnd)).toString('latin1');
   assert.ok(decompressed.includes('Matthew Cesar Corpuz'));
   assert.ok(decompressed.includes('Distinguished Academic Scholars'));
+
+  const bannedPattern = /\b(bar exam|bar candidate|bar review|bar taker|bar topnotcher|bar tips|law student|law school)\b/i;
+  assert.equal(bannedPattern.test(decompressed), false, 'Master Diploma must have 0 Bar/law student mentions');
 });
 
 test('buildScoreCardLandscapePdfBytes auto-scales player name and embeds cleanly', () => {
@@ -151,6 +160,9 @@ test('buildScoreCardLandscapePdfBytes auto-scales player name and embeds cleanly
   const streamEnd = buf.indexOf('\nendstream', streamStart);
   const decompressed = inflateSync(buf.subarray(streamStart + 7, streamEnd)).toString('latin1');
   assert.ok(decompressed.includes('Commander Mario Jumpman'));
+
+  const bannedPattern = /\b(bar exam|bar candidate|bar review|bar taker|bar topnotcher|bar tips|law student|law school)\b/i;
+  assert.equal(bannedPattern.test(decompressed), false, 'Score card must have 0 Bar/law student mentions');
 });
 
 test('buildStudyGuideReviewerPdfBytes formats 9-member cohort into 3 structured columns and wrapped tables cleanly', () => {
@@ -160,7 +172,7 @@ test('buildStudyGuideReviewerPdfBytes formats 9-member cohort into 3 structured 
     selectedWorlds: ['world1', 'world2'],
     includeGroupMembers: true,
     includeMultipliers: true,
-    candidateName: 'Labor Bar Candidate',
+    candidateName: 'Labor Law Scholar',
   });
   assert.ok(pdfBytes instanceof Uint8Array);
   const rawAscii = Buffer.from(pdfBytes).toString('latin1');
@@ -174,6 +186,9 @@ test('buildStudyGuideReviewerPdfBytes formats 9-member cohort into 3 structured 
   assert.ok(decompressed.includes('CORPUZ'));
   assert.ok(decompressed.includes('CRUZ'));
   assert.ok(decompressed.includes('VILA'));
+
+  const bannedPattern = /\b(bar exam|bar candidate|bar review|bar taker|bar topnotcher|bar tips|law student|law school)\b/i;
+  assert.equal(bannedPattern.test(decompressed), false, 'Generated Reviewer PDF must not contain Bar Exam or Law Student references');
 });
 
 test('Vector Mario elements draw without errors into jsPDF instance', () => {

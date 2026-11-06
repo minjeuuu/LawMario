@@ -1890,7 +1890,7 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
   const H = orient === 'portrait' ? 297 : 210;
 
   const recipient =
-    sanitizePdfText(params.recipientName) || 'Mario Bar Candidate';
+    sanitizePdfText(params.recipientName) || 'Mario Labor Scholar';
   const dateStr = sanitizePdfText(
     params.dateLabel ||
       new Date().toLocaleDateString('en-US', {
@@ -2059,7 +2059,7 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
     const sigs = [
       { s: 'Chancellor Toadsworth', r: 'CHANCELLOR OF LEGISLATION' },
       { s: 'Matthew Cesar Corpuz', r: 'MAIN CREATOR & ARCHITECT' },
-      { s: 'Chief Arbiter Rosalina', r: 'SUPREME BAR EXAMINER' },
+      { s: 'Chief Arbiter Rosalina', r: 'CHIEF STATUTORY EXAMINER' },
     ];
     sigs.forEach((sg, idx) => {
       const cx = 22 + colW * idx + colW / 2;
@@ -3448,7 +3448,7 @@ export function buildStudyGuideReviewerPdfBytes(
       doc.setFont(ff, fp.bodyStyle);
       doc.setFontSize(5.8 * scale);
       doc.text(
-        'P.D. NO. 442 (AS AMENDED) · BAR & BOARD REVIEW AID',
+        'P.D. NO. 442 (AS AMENDED) · STATUTORY WORKPLACE REVIEW AID',
         pageW - marginX,
         8.6,
         { align: 'right' }

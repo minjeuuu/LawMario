@@ -227,7 +227,7 @@ test('Super Star 2x buff, Fire Flower 5-day streak, Quick Study deck, Print filt
   // Global Coin Leaderboard sorting
   const board = buildGlobalCoinLeaderboard({
     currentUser: {
-      studentName: 'Test Bar Candidate',
+      studentName: 'Test Labor Scholar',
       avatar: 'mario',
       totalCoins: 2000,
       streakDays: 10,
