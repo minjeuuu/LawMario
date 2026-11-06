@@ -69,8 +69,8 @@ const targetedFontEmbedCssCache = new Map<string, string>();
 
 /**
  * Fetches targeted, self-contained @font-face CSS for only the active Google Web Font family,
- * converting external woff2 URLs into base64 data URIs so html-to-image renders instantly
- * without network stalls or parsing hundreds of unused fonts.
+ * converting external font URLs into base64 data URIs so html-to-image renders instantly
+ * without network stalls, cross-origin security blocking, or parsing hundreds of unused fonts.
  */
 export async function getTargetedFontEmbedCss(fontFamily: string): Promise<string> {
   if (typeof window === 'undefined' || typeof fetch === 'undefined') {
@@ -97,24 +97,12 @@ export async function getTargetedFontEmbedCss(fontFamily: string): Promise<strin
   try {
     const googleFontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
       cleanFamily
-    )}:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap`;
+    )}:wght@400;600;700;800&display=swap`;
 
-    let res = await fetch(googleFontUrl, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-    });
-
+    let res = await fetch(googleFontUrl);
     if (!res.ok) {
       res = await fetch(
-        `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily)}&display=swap`,
-        {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          },
-        }
+        `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily)}&display=swap`
       );
     }
 
@@ -122,7 +110,9 @@ export async function getTargetedFontEmbedCss(fontFamily: string): Promise<strin
 
     let cssText = await res.text();
 
-    const urlMatches = Array.from(cssText.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g));
+    // Regex matches URLs with single quotes, double quotes, or no quotes
+    const regex = /url\(['"]?\s*(https:\/\/fonts\.gstatic\.com\/[^'"\s)]+)\s*['"]?\)/g;
+    const urlMatches = Array.from(cssText.matchAll(regex));
     const uniqueUrls = Array.from(new Set(urlMatches.map((m) => m[1])));
 
     const fontReplacements = await Promise.all(
@@ -146,7 +136,7 @@ export async function getTargetedFontEmbedCss(fontFamily: string): Promise<strin
 
     for (const { url, dataUri } of fontReplacements) {
       if (dataUri && dataUri.startsWith('data:')) {
-        cssText = cssText.split(url).join(dataUri);
+        cssText = cssText.replaceAll(url, dataUri);
       }
     }
 
@@ -159,7 +149,7 @@ export async function getTargetedFontEmbedCss(fontFamily: string): Promise<strin
 }
 
 /**
- * Captures live DOM preview element at Ultra-HD resolution (3.2x master standard, 307+ DPI)
+ * Captures live DOM preview element at crisp Master Print resolution (2.4x pixelRatio)
  * embedding the true selected web font, exact CSS card layouts, alignments, and Mario SVG elements
  * into a standard A4 PDF document. Includes module boundary-aware slicing so cards are never severed.
  */
@@ -198,11 +188,11 @@ export async function captureDomElementToPdfBytesAsync(
   ];
   const isSinglePage = ids.some((id) => singlePageElementIds.includes(id));
 
-  // Create isolated off-screen sandbox to eliminate parent scale, transforms, or opacity overrides
+  // Create isolated off-screen sandbox inside visible viewport coordinates to prevent WebKit clipping
   const sandbox = document.createElement('div');
   sandbox.style.position = 'fixed';
-  sandbox.style.left = '-99999px';
   sandbox.style.top = '0';
+  sandbox.style.left = '0';
   sandbox.style.width = `${targetW}px`;
   sandbox.style.margin = '0';
   sandbox.style.padding = '0';
@@ -212,6 +202,7 @@ export async function captureDomElementToPdfBytesAsync(
   sandbox.style.visibility = 'visible';
   sandbox.style.pointerEvents = 'none';
   sandbox.style.backgroundColor = '#ffffff';
+  sandbox.style.overflow = 'visible';
 
   const clone = el.cloneNode(true) as HTMLElement;
   clone.style.width = `${targetW}px`;
@@ -222,8 +213,13 @@ export async function captureDomElementToPdfBytesAsync(
   clone.style.visibility = 'visible';
   clone.style.position = 'relative';
   clone.style.boxSizing = 'border-box';
+  clone.style.display = 'block';
   clone.style.setProperty('font-family', resolvedFontStack, 'important');
   clone.style.setProperty('--print-active-font', resolvedFontStack, 'important');
+
+  // Hide interactive elements that have print:hidden
+  const printHiddens = clone.querySelectorAll('.print\\:hidden');
+  printHiddens.forEach((e) => ((e as HTMLElement).style.display = 'none'));
 
   sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
@@ -240,49 +236,31 @@ export async function captureDomElementToPdfBytesAsync(
     await new Promise((resolve) => setTimeout(resolve, 60));
 
     const targetH = clone.scrollHeight || (orientation === 'portrait' ? 1123 : 794);
-    const renderScale = 3.2; // 300+ DPI Ultra-HD print master standard
-    const highResW = Math.round(targetW * renderScale);
-    const highResH = Math.round(targetH * renderScale);
+    const renderPixelRatio = 2.4; // Crisp 230 DPI master standard, safe on mobile GPU memory
 
     let canvas: HTMLCanvasElement | null = null;
 
     // PRIMARY RENDER ENGINE: html-to-image with targeted fontEmbedCSS
     try {
       canvas = await htmlToImageCanvas(clone, {
-        width: highResW,
-        height: highResH,
-        canvasWidth: highResW,
-        canvasHeight: highResH,
+        width: targetW,
+        height: targetH,
+        canvasWidth: targetW,
+        canvasHeight: targetH,
+        pixelRatio: renderPixelRatio,
         backgroundColor: '#ffffff',
         fontEmbedCSS: fontEmbedCSS || undefined,
-        style: {
-          transform: `scale(${renderScale})`,
-          transformOrigin: 'top left',
-          width: `${targetW}px`,
-          height: `${targetH}px`,
-          margin: '0',
-          boxSizing: 'border-box',
-          fontFamily: resolvedFontStack,
-        },
       });
     } catch (primaryErr) {
       console.warn('html-to-image with fontEmbedCSS failed, retrying without fontEmbedCSS:', primaryErr);
       try {
         canvas = await htmlToImageCanvas(clone, {
-          width: highResW,
-          height: highResH,
-          canvasWidth: highResW,
-          canvasHeight: highResH,
+          width: targetW,
+          height: targetH,
+          canvasWidth: targetW,
+          canvasHeight: targetH,
+          pixelRatio: renderPixelRatio,
           backgroundColor: '#ffffff',
-          style: {
-            transform: `scale(${renderScale})`,
-            transformOrigin: 'top left',
-            width: `${targetW}px`,
-            height: `${targetH}px`,
-            margin: '0',
-            boxSizing: 'border-box',
-            fontFamily: resolvedFontStack,
-          },
         });
       } catch (secondaryErr) {
         console.warn('Secondary html-to-image failed, falling back to html2canvas:', secondaryErr);
@@ -292,7 +270,7 @@ export async function captureDomElementToPdfBytesAsync(
     // SECONDARY FALLBACK: High-DPI html2canvas
     if (!canvas) {
       canvas = await html2canvas(clone, {
-        scale: 2.5,
+        scale: renderPixelRatio,
         width: targetW,
         useCORS: true,
         logging: false,
@@ -354,8 +332,8 @@ export async function captureDomElementToPdfBytesAsync(
             curr = curr.offsetParent as HTMLElement | null;
           }
           return {
-            topPx: Math.round(top * renderScale),
-            bottomPx: Math.round((top + b.offsetHeight) * renderScale),
+            topPx: Math.round(top * renderPixelRatio),
+            bottomPx: Math.round((top + b.offsetHeight) * renderPixelRatio),
           };
         })
         .filter((b) => b.bottomPx > b.topPx)
@@ -459,7 +437,7 @@ export async function captureDomElementToPdfBytesAsync(
     const arrayBuffer = doc.output('arraybuffer');
     return new Uint8Array(arrayBuffer);
   } catch (err) {
-    console.warn('True font DOM canvas snapshot failed:', err);
+    console.error('True font DOM canvas snapshot failed:', err);
     return null;
   } finally {
     if (sandbox.parentNode) {
