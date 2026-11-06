@@ -610,10 +610,11 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                   verbatim={activeEntry.statutoryText}
                   keyRule={activeEntry.keyDoctrine}
                   worldBadge={activeEntry.bookCategory}
-                  initialTheme="midnight"
+                  initialTheme="parchment"
                   searchQuery={query}
                   onSaveToNotes={() => handleSaveStatuteToNotes(activeEntry)}
                   isSavedToNotes={savedNotesId === activeEntry.id}
+                  variant="modal"
                 />
 
                 {/* 2. Controlling Supreme Court Precedents */}

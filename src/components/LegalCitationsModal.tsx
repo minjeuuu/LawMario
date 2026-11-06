@@ -1396,6 +1396,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                   searchQuery={searchQuery}
                   onSaveToNotes={() => handleSaveToNotes(activeItem)}
                   isSavedToNotes={savedNoteIds[activeItem.id]}
+                  variant="codex-reader"
                 />
               </div>
             );
@@ -1519,6 +1520,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                                 searchQuery={searchQuery}
                                 onSaveToNotes={() => handleSaveToNotes(item)}
                                 isSavedToNotes={savedNoteIds[item.id]}
+                                variant="modal"
                               />
                             </td>
                           </tr>
@@ -1710,6 +1712,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                         searchQuery={searchQuery}
                         onSaveToNotes={() => handleSaveToNotes(item)}
                         isSavedToNotes={savedNoteIds[item.id]}
+                        variant="modal"
                       />
                     </div>
                   )}

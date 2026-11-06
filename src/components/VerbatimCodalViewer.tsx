@@ -47,6 +47,7 @@ export interface VerbatimCodalViewerProps {
   compactToolbar?: boolean;
   className?: string;
   showRecitationMode?: boolean;
+  variant?: 'card' | 'modal' | 'codex-reader';
 }
 
 export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
@@ -64,6 +65,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
   compactToolbar = false,
   className = '',
   showRecitationMode = true,
+  variant = 'card',
 }) => {
   // Theme & Typography States
   const [theme, setTheme] = useState<'midnight' | 'parchment' | 'ivory'>(initialTheme);
@@ -354,7 +356,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
 
       {/* Top Header Bar */}
       <div
-        className={`flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b pb-3 ${
+        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b pb-2.5 ${
           theme === 'parchment'
             ? 'border-amber-700/25'
             : theme === 'ivory'
@@ -363,54 +365,83 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
         }`}
       >
         {/* Title & Authority Badge */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div
-            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border border-black shadow-[0_2px_0_#000] ${
-              theme === 'parchment'
-                ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-amber-50'
-                : theme === 'ivory'
-                ? 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white'
-                : 'bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950'
-            }`}
-          >
-            <Scale className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span
-                className={`text-[9px] font-black uppercase font-mario tracking-wider px-2 py-0.5 rounded border ${
-                  theme === 'parchment'
-                    ? 'bg-amber-900/15 text-amber-950 border-amber-700/40'
-                    : theme === 'ivory'
-                    ? 'bg-blue-100 text-blue-950 border-blue-300'
-                    : 'bg-amber-950/80 text-amber-300 border-amber-500/50'
-                }`}
-              >
-                REPUBLIC OF THE PHILIPPINES · CODIFIED STATUTE
-              </span>
-              {worldBadge && (
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                    theme === 'parchment'
-                      ? 'bg-amber-200/80 text-amber-900'
-                      : theme === 'ivory'
-                      ? 'bg-slate-200 text-slate-800'
-                      : 'bg-slate-800 text-amber-300'
-                  }`}
-                >
-                  {worldBadge}
-                </span>
-              )}
-            </div>
-            <h4
-              className={`text-sm sm:text-base font-black font-display mt-0.5 truncate ${
-                theme === 'parchment' ? 'text-stone-900' : theme === 'ivory' ? 'text-slate-900' : 'text-white'
+        {variant === 'modal' ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <div
+              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border shadow-xs ${
+                theme === 'parchment'
+                  ? 'bg-amber-700 text-amber-50 border-amber-900'
+                  : theme === 'ivory'
+                  ? 'bg-blue-600 text-white border-blue-800'
+                  : 'bg-amber-400 text-slate-950 border-black'
               }`}
             >
-              {citation}
-            </h4>
+              <Scale className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0">
+              <span
+                className={`text-[10px] font-black uppercase font-mono tracking-wider block truncate ${
+                  theme === 'parchment'
+                    ? 'text-amber-950'
+                    : theme === 'ivory'
+                    ? 'text-blue-950'
+                    : 'text-amber-300'
+                }`}
+              >
+                EXACT CODAL TEXT · {citation}
+              </span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border border-black shadow-[0_2px_0_#000] ${
+                theme === 'parchment'
+                  ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-amber-50'
+                  : theme === 'ivory'
+                  ? 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white'
+                  : 'bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950'
+              }`}
+            >
+              <Scale className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span
+                  className={`text-[9px] font-black uppercase font-mario tracking-wider px-2 py-0.5 rounded border ${
+                    theme === 'parchment'
+                      ? 'bg-amber-900/15 text-amber-950 border-amber-700/40'
+                      : theme === 'ivory'
+                      ? 'bg-blue-100 text-blue-950 border-blue-300'
+                      : 'bg-amber-950/80 text-amber-300 border-amber-500/50'
+                  }`}
+                >
+                  REPUBLIC OF THE PHILIPPINES · CODIFIED STATUTE
+                </span>
+                {worldBadge && (
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                      theme === 'parchment'
+                        ? 'bg-amber-200/80 text-amber-900'
+                        : theme === 'ivory'
+                        ? 'bg-slate-200 text-slate-800'
+                        : 'bg-slate-800 text-amber-300'
+                    }`}
+                  >
+                    {worldBadge}
+                  </span>
+                )}
+              </div>
+              <h4
+                className={`text-sm sm:text-base font-black font-display mt-0.5 truncate ${
+                  theme === 'parchment' ? 'text-stone-900' : theme === 'ivory' ? 'text-slate-900' : 'text-white'
+                }`}
+              >
+                {citation}
+              </h4>
+            </div>
+          </div>
+        )}
 
         {/* Master Toolbar */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
