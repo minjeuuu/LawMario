@@ -447,88 +447,45 @@ export async function captureDomElementToPdfBytesAsync(
 }
 
 /**
- * 1. Multi-Page Unabridged Reviewer PDF rendered with exact preview fonts, layout, and Mario icons.
+ * 1. Multi-Page Unabridged Reviewer PDF rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontStudyReviewerPdfBytesAsync(
   params: StudyGuideReviewerPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  if (typeof document !== 'undefined') {
-    const snap = await captureDomElementToPdfBytesAsync(
-      'printable-study-guide',
-      params.orientation,
-      params.fontStyle
-    );
-    if (snap && snap.length > 0) {
-      return snap;
-    }
-  }
   return buildStudyGuideReviewerPdfBytes(params);
 }
 
 /**
- * 2. Exact 1-Page A4 Summary Sheet rendered with exact preview fonts, layout, and Mario icons.
+ * 2. Exact 1-Page A4 Summary Sheet rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontOnePageSummaryPdfBytesAsync(
   options: OnePageSummaryPdfOptions = {}
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(options.fontStyle);
-  if (typeof document !== 'undefined') {
-    const snap = await captureDomElementToPdfBytesAsync(
-      'one-page-summary-sheet',
-      'portrait',
-      options.fontStyle
-    );
-    if (snap && snap.length > 0) {
-      return snap;
-    }
-  }
   return buildOnePageSummaryPdfBytes(options);
 }
 
 /**
- * 3. Executive Mastery Certificate OR Royal Grand Master Diploma rendered with exact preview fonts, layout, and Mario icons.
+ * 3. Executive Mastery Certificate OR Royal Grand Master Diploma rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontCertificateOrDiplomaPdfBytesAsync(
   params: CertificatePdfParams,
   isMasterDiploma: boolean = false
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  if (typeof document !== 'undefined') {
-    const targetIds = isMasterDiploma
-      ? ['master-diploma-printable', 'royal-juris-diploma-sheet', 'official-labor-certificate']
-      : ['official-labor-certificate', 'master-diploma-printable'];
-    const snap = await captureDomElementToPdfBytesAsync(
-      targetIds,
-      params.orientation,
-      params.fontStyle
-    );
-    if (snap && snap.length > 0) {
-      return snap;
-    }
-  }
   return isMasterDiploma
     ? buildMasterDiplomaPdfBytes(params)
     : buildCertificatePdfBytes(params);
 }
 
 /**
- * 4. Official Hero Score Card Landscape PDF rendered with exact preview fonts, layout, and Mario icons.
+ * 4. Official Hero Score Card Landscape PDF rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontScoreCardPdfBytesAsync(
   params: ScoreCardPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  if (typeof document !== 'undefined') {
-    const snap = await captureDomElementToPdfBytesAsync(
-      ['official-scorecard-sheet', 'official-player-scorecard'],
-      'landscape',
-      params.fontStyle
-    );
-    if (snap && snap.length > 0) {
-      return snap;
-    }
-  }
   return buildScoreCardLandscapePdfBytes(params);
 }
 

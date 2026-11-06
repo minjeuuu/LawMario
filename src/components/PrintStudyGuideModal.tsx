@@ -619,6 +619,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
         includeRetirementFormulaBox,
         includeHonorPledge,
         blankNoteLinesCount: formatOptions.blankNoteLinesCount,
+        includeExecutiveMarioSummary,
+        includeLatinMaxims,
       });
     }
     setPdfDownloadedNotice(true);
