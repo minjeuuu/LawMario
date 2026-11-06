@@ -2334,6 +2334,10 @@ export function buildStudyGuideReviewerPdfBytes(
     compress: true,
   });
 
+  const activeTopics: LawTopic[] =
+    params.topics && params.topics.length > 0 ? params.topics : ALL_LAW_TOPICS;
+  const completedIds: string[] = params.completedTopicIds || [];
+
   const theme = resolvePdfThemeAndFont(params.colorAccent, params.fontStyle);
   const ff = theme.fontFamily;
   const fp = theme.fontProfile;
@@ -2529,10 +2533,10 @@ export function buildStudyGuideReviewerPdfBytes(
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(6.2 * scale);
   const coverSub = params.candidateName
-    ? `Prepared for Examinee: ${sanitizePdfText(params.candidateName)}  |  Modules: ${params.topics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
-    : `Complete Six-World Memory Aid  |  Modules: ${params.topics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`;
+    ? `Prepared for Examinee: ${sanitizePdfText(params.candidateName)}  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
+    : `Complete Six-World Memory Aid  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`;
   doc.text(doc.splitTextToSize(coverSub, contentW - 28)[0] || '', pageW / 2, y + 16.5, { align: 'center' });
-  doc.text(`Created by Matthew (Matthew Cesar Corpuz — Main Creator)  ·  Active Modules: ${params.topics.length}`, pageW / 2, y + 19.8, { align: 'center' });
+  doc.text(`Created by Matthew (Matthew Cesar Corpuz — Main Creator)  ·  Active Modules: ${activeTopics.length}`, pageW / 2, y + 19.8, { align: 'center' });
 
   y += 25.0;
 
@@ -2633,8 +2637,8 @@ export function buildStudyGuideReviewerPdfBytes(
     doc.setFontSize(7.2 * scale);
     doc.text('SIX-WORLD STATUTORY MASTERY CHECKLIST', marginX + 6.8, y + 3.8);
 
-    const completedRatio = `${params.completedTopicIds.length} / ${ALL_LAW_TOPICS.length} Modules`;
-    const pct = Math.round((params.completedTopicIds.length / ALL_LAW_TOPICS.length) * 100);
+    const completedRatio = `${completedIds.length} / ${ALL_LAW_TOPICS.length} Modules`;
+    const pct = Math.round((completedIds.length / ALL_LAW_TOPICS.length) * 100);
     doc.setFont(ff, fp.subHeadingStyle);
     doc.setFontSize(6.2 * scale);
     doc.text(`Mastered: ${completedRatio} (${pct}%)`, pageW - marginX - 3.5, y + 3.8, { align: 'right' });
@@ -2651,7 +2655,7 @@ export function buildStudyGuideReviewerPdfBytes(
       const by = wStartY + rowIdx * (wBoxH + 1.2);
 
       const wTopics = ALL_LAW_TOPICS.filter((t) => t.worldId === w.id);
-      const done = wTopics.filter((t) => params.completedTopicIds.includes(t.id)).length;
+      const done = wTopics.filter((t) => completedIds.includes(t.id)).length;
 
       doc.setFillColor(255, 255, 255);
       doc.setDrawColor(...theme.borderMuted);
@@ -2855,8 +2859,13 @@ export function buildStudyGuideReviewerPdfBytes(
   }
 
   // IV. Unabridged Modules Breakdown
-  WORLDS_METADATA.filter((w) => params.selectedWorlds.includes(w.id)).forEach((world) => {
-    const worldTopics = params.topics.filter((t) => t.worldId === world.id);
+  const selectedWorldList =
+    params.selectedWorlds && params.selectedWorlds.length > 0
+      ? params.selectedWorlds
+      : WORLDS_METADATA.map((w) => w.id);
+
+  WORLDS_METADATA.filter((w) => selectedWorldList.includes(w.id)).forEach((world) => {
+    const worldTopics = activeTopics.filter((t) => t.worldId === world.id);
     if (worldTopics.length === 0) return;
 
     // World Banner (rounded box with theme accent soft bg and star)
@@ -2890,7 +2899,7 @@ export function buildStudyGuideReviewerPdfBytes(
     y += 14.5;
 
     worldTopics.forEach((topic) => {
-      const isDone = params.completedTopicIds.includes(topic.id);
+      const isDone = completedIds.includes(topic.id);
       const topicCardH = computeTopicModuleHeight(
         doc,
         topic,

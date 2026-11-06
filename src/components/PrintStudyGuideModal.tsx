@@ -482,6 +482,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
           includeRetirementFormulaBox,
           includeHonorPledge,
           blankNoteLinesCount: formatOptions.blankNoteLinesCount,
+          includeExecutiveMarioSummary,
+          includeLatinMaxims,
         });
       }
 
@@ -827,6 +829,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     ? 'A4 HERO SCORE CARD'
                     : 'COMPLETE LABOR REVIEWER'}
                 </h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-500/60 text-[9px] font-mono text-emerald-300 font-bold">
+                    v2.5.0 · Real Vector PDF (Zero Images)
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -1180,6 +1187,27 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 {isLandscapeDocument ? 'A4 Landscape' : 'A4 Portrait'} ·{' '}
                 {estimatedPageCount === 1 ? '1 Page' : `${estimatedPageCount} Pages`}
               </span>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    if ('serviceWorker' in navigator) {
+                      const registrations = await navigator.serviceWorker.getRegistrations();
+                      for (const reg of registrations) await reg.unregister();
+                    }
+                    if ('caches' in window) {
+                      const keys = await caches.keys();
+                      for (const key of keys) await caches.delete(key);
+                    }
+                  } catch {}
+                  window.location.reload();
+                }}
+                className="text-[10px] text-slate-400 hover:text-amber-300 underline cursor-pointer px-1 whitespace-nowrap"
+                title="Bypass Service Worker cache and fetch fresh app"
+              >
+                Clear Cache
+              </button>
             </div>
 
             {/* Whole-Reviewer Quick Section Jump Bar */}
