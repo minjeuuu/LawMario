@@ -1604,6 +1604,21 @@ body.printing-scorecard-only {
   width: 100%;
 }
 
+/* Pixel & Display font density adjustments in Print sheets to prevent overflow or wrapping collisions */
+#one-page-summary-sheet[data-font="press_start_mario"],
+#one-page-summary-sheet[data-font="press_start_retro"],
+[data-font="press_start_mario"] #one-page-summary-sheet,
+[data-font="press_start_retro"] #one-page-summary-sheet {
+  font-size: 80% !important;
+  line-height: 1.35 !important;
+}
+
+#one-page-summary-sheet[data-font="silkscreen_nes"],
+[data-font="silkscreen_nes"] #one-page-summary-sheet {
+  font-size: 88% !important;
+  line-height: 1.3 !important;
+}
+
 /* Navbar Menu & Tools Popovers: Clean readable typography with retro Mario headers */
 .mario-menu-press2p {
   font-family: inherit;

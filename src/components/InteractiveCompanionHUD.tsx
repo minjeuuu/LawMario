@@ -232,9 +232,9 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
 
   const positionClasses = effectiveDockSide === 'right' ? 'right-3 sm:right-6' : 'left-3 sm:left-6';
   const verticalPositionClass = isToadTipOpen
-    ? 'bottom-[380px] sm:bottom-[340px] lg:bottom-24'
-    : isReadingTab && effectiveDockSide === 'right'
-      ? 'bottom-36 sm:bottom-40 lg:bottom-24'
+    ? 'bottom-[380px] sm:bottom-[340px] lg:bottom-28'
+    : effectiveDockSide === 'right'
+      ? 'bottom-32 sm:bottom-36 lg:bottom-20'
       : 'bottom-20 sm:bottom-22 lg:bottom-6';
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);

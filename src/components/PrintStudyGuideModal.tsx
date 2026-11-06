@@ -2106,7 +2106,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-theme={activeExtendedTheme.id}
                     data-font={activeExtendedFont.id}
                     style={activeSheetDynamicStyle}
-                    className={`${summaryPaperBgClass} ${bodyFontClass} p-4 sm:p-5 rounded-2xl border-2 shadow-2xl w-full space-y-2.5 select-text overflow-hidden`}
+                    className={`${summaryPaperBgClass} ${bodyFontClass} p-4 sm:p-5 rounded-2xl border-2 shadow-2xl w-full space-y-2.5 select-text overflow-visible box-border`}
                   >
                     {/* A4 Sheet Header */}
                     <div
@@ -2130,13 +2130,13 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           </span>
                           <h2
                             style={{ color: activeExtendedTheme.headerTextHex }}
-                            className="text-lg sm:text-xl font-black tracking-tight leading-tight"
+                            className="text-base sm:text-lg font-black tracking-tight leading-snug"
                           >
                             KEY LEGAL FORMULAS, MULTIPLIERS &amp; STATUTORY DEADLINES
                           </h2>
                           <p
                             style={{ color: activeExtendedTheme.headerTextHex }}
-                            className="text-[10px] sm:text-[10.5px] opacity-90 font-medium leading-tight truncate"
+                            className="text-[9.5px] sm:text-[10px] opacity-90 font-medium leading-tight"
                           >
                             P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 &amp; R.A. 11861
                           </p>
@@ -2333,20 +2333,20 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         borderColor: activeExtendedTheme.borderHex,
                         color: activeExtendedTheme.bodyTextHex,
                       }}
-                      className={`border-2 rounded-xl p-2 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[10px] ${subtleBoxClass}`}
+                      className={`border-2 rounded-xl px-3 py-2 space-y-1 text-[10px] ${subtleBoxClass}`}
                     >
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-1">
                         <span className="font-black uppercase tracking-wider text-[9px] text-amber-900 bg-amber-400 border border-amber-600 px-1.5 py-0.5 rounded shadow-xs inline-flex items-center gap-1">
                           <MarioSuperStarIcon size={12} />
-                          <span>Research Cohort (9 Members)</span>
+                          <span>Research Cohort · 9 Members</span>
                         </span>
-                        <span className="font-semibold text-slate-900 text-[10px] break-words [overflow-wrap:anywhere]">
-                          CORPUZ (Main Creator) · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
+                        <span className="text-[9px] text-slate-500 font-mono shrink-0">
+                          P.D. No. 442 Master Summary · {activeExtendedFont.name}
                         </span>
                       </div>
-                      <span className="text-[9px] text-slate-500 font-mono shrink-0">
-                        P.D. No. 442 Master Summary · {activeExtendedFont.name}
-                      </span>
+                      <div className="text-[9.5px] font-semibold text-slate-900 tracking-tight leading-snug">
+                        <span className="font-black text-amber-800">CORPUZ (Main Creator)</span> · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
+                      </div>
                     </div>
                   </div>
                 ) : documentMode === 'certificate' ? (

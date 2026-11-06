@@ -98,7 +98,7 @@ export async function captureDomElementToPdfBytesAsync(
     }
     await new Promise((resolve) => setTimeout(resolve, 80));
 
-    const targetW = orientation === 'portrait' ? 794 : 1123;
+    const targetW = orientation === 'portrait' ? 794 : 1122;
 
     const canvas = await html2canvas(el, {
       scale: 2,
@@ -107,60 +107,60 @@ export async function captureDomElementToPdfBytesAsync(
       logging: false,
       backgroundColor: '#ffffff',
       windowWidth: targetW,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0,
+      y: 0,
       onclone: async (clonedDoc) => {
-        // 1. Force clone stage & target elements to unscaled natural A4 dimensions without margins or transforms
-        const scaledOuter = clonedDoc.querySelector('[data-testid="print-scaled-stage-outer"]') as HTMLElement | null;
-        if (scaledOuter) {
-          scaledOuter.style.position = 'relative';
-          scaledOuter.style.left = '0';
-          scaledOuter.style.top = '0';
-          scaledOuter.style.width = `${targetW}px`;
-          scaledOuter.style.maxWidth = `${targetW}px`;
-          scaledOuter.style.minWidth = `${targetW}px`;
-          scaledOuter.style.height = 'auto';
-          scaledOuter.style.transform = 'none';
-          scaledOuter.style.opacity = '1';
-          scaledOuter.style.visibility = 'visible';
-          scaledOuter.style.pointerEvents = 'auto';
-          scaledOuter.style.zIndex = '1';
-          scaledOuter.style.margin = '0';
-          scaledOuter.style.padding = '0';
+        // 1. Force root styling to avoid unclipped canvas or horizontal shifts
+        clonedDoc.documentElement.style.margin = '0';
+        clonedDoc.documentElement.style.padding = '0';
+        clonedDoc.documentElement.style.width = `${targetW}px`;
+        clonedDoc.documentElement.style.overflow = 'visible';
+
+        if (clonedDoc.body) {
+          clonedDoc.body.style.margin = '0';
+          clonedDoc.body.style.padding = '0';
+          clonedDoc.body.style.backgroundColor = '#ffffff';
+          clonedDoc.body.style.width = `${targetW}px`;
+          clonedDoc.body.style.overflow = 'visible';
+          clonedDoc.body.style.setProperty('--print-active-font', resolvedFontStack, 'important');
         }
 
-        const scaledStage = clonedDoc.querySelector('[data-testid="print-scaled-stage-inner"]') as HTMLElement | null;
-        if (scaledStage) {
-          scaledStage.style.transform = 'none';
-          scaledStage.style.width = `${targetW}px`;
-          scaledStage.style.maxWidth = `${targetW}px`;
-          scaledStage.style.minWidth = `${targetW}px`;
-          scaledStage.style.height = 'auto';
-          scaledStage.style.margin = '0';
-          scaledStage.style.padding = '0';
-        }
-
+        // 2. Locate cloned target element and isolate it into body so modal dialogs,
+        // scrolls, and wrappers cannot crop or offset it!
         const clonedTarget = clonedDoc.getElementById(el.id);
         if (clonedTarget) {
+          const allBodyChildren = Array.from(clonedDoc.body.children);
+          for (const child of allBodyChildren) {
+            if (!child.contains(clonedTarget)) {
+              child.remove();
+            }
+          }
+          clonedDoc.body.appendChild(clonedTarget);
+
+          clonedTarget.style.position = 'relative';
+          clonedTarget.style.top = '0';
+          clonedTarget.style.left = '0';
           clonedTarget.style.width = `${targetW}px`;
           clonedTarget.style.maxWidth = `${targetW}px`;
           clonedTarget.style.minWidth = `${targetW}px`;
           clonedTarget.style.transform = 'none';
           clonedTarget.style.margin = '0';
           clonedTarget.style.boxSizing = 'border-box';
+          clonedTarget.style.overflow = 'visible';
+          clonedTarget.style.opacity = '1';
+          clonedTarget.style.visibility = 'visible';
         }
 
-        // 2. Explicitly set CSS custom property and inject high-priority font-family override
+        // 3. Inject CSS custom property and font-family priority overrides
         clonedDoc.documentElement.style.setProperty('--print-active-font', resolvedFontStack, 'important');
-        if (clonedDoc.body) {
-          clonedDoc.body.style.setProperty('--print-active-font', resolvedFontStack, 'important');
-          clonedDoc.body.style.margin = '0';
-          clonedDoc.body.style.padding = '0';
-        }
-
         const styleEl = clonedDoc.createElement('style');
         styleEl.textContent = `
           * {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            box-sizing: border-box;
           }
           :root {
             --print-active-font: ${resolvedFontStack} !important;
@@ -172,7 +172,7 @@ export async function captureDomElementToPdfBytesAsync(
         `;
         clonedDoc.head.appendChild(styleEl);
 
-        // 3. Ensure all elements in the target sheet explicitly receive the exact font family via setProperty important
+        // 4. Ensure all elements in the target sheet receive the active font-family
         const activeSheets = clonedDoc.querySelectorAll(
           `#${el.id}, #one-page-summary-sheet, #official-labor-certificate, #official-scorecard-sheet, #official-player-scorecard, #master-diploma-printable, #royal-juris-diploma-sheet, #printable-study-guide`
         );
@@ -204,7 +204,6 @@ export async function captureDomElementToPdfBytesAsync(
     const pageW = orientation === 'portrait' ? 210 : 297;
     const pageH = orientation === 'portrait' ? 297 : 210;
     const pageAspect = pageH / pageW;
-    const canvasAspect = canvas.height / canvas.width;
 
     const doc = new jsPDF({
       orientation,
@@ -213,48 +212,113 @@ export async function captureDomElementToPdfBytesAsync(
       compress: true,
     });
 
-    // Single-page fit (summary sheet, certificate, scorecard):
-    if (canvasAspect <= pageAspect * 1.05) {
+    const singlePageElementIds = [
+      'one-page-summary-sheet',
+      'official-labor-certificate',
+      'official-scorecard-sheet',
+      'official-player-scorecard',
+      'master-diploma-printable',
+      'royal-juris-diploma-sheet',
+    ];
+    const isSinglePage = ids.some((id) => singlePageElementIds.includes(id));
+
+    if (isSinglePage) {
+      // Guaranteed Single-Page Fit with Aspect Ratio Preservation:
       const imgData = canvas.toDataURL('image/png');
-      const renderW = pageW;
-      const renderH = (canvas.height / canvas.width) * pageW;
-      const finalH = Math.min(pageH, renderH);
-      const yOffset = renderH < pageH ? Math.max(0, (pageH - renderH) / 2) : 0;
-      doc.addImage(imgData, 'PNG', 0, yOffset, renderW, finalH, undefined, 'FAST');
+      const canvasRatio = canvas.width / canvas.height;
+      const pageRatio = pageW / pageH;
+
+      let renderW: number;
+      let renderH: number;
+
+      if (canvasRatio >= pageRatio) {
+        // Canvas is proportionally wider/shorter than page: fit to page width
+        renderW = pageW;
+        renderH = pageW / canvasRatio;
+      } else {
+        // Canvas is proportionally taller than page: fit to page height
+        renderH = pageH;
+        renderW = pageH * canvasRatio;
+      }
+
+      // Center the sheet on the page with zero crop and zero overflow
+      const xOffset = Math.max(0, (pageW - renderW) / 2);
+      const yOffset = Math.max(0, (pageH - renderH) / 2);
+
+      doc.addImage(imgData, 'PNG', xOffset, yOffset, renderW, renderH, undefined, 'FAST');
     } else {
-      // Multi-page slicing: cleanly divide tall canvas into crisp A4 pages
-      const sliceHeightPx = Math.floor(canvas.width * pageAspect);
-      const totalPages = Math.ceil(canvas.height / sliceHeightPx);
+      // Multi-Page Slicing: cleanly divide tall reviewer canvas into crisp A4 pages
+      const nominalSliceHeightPx = Math.floor(canvas.width * pageAspect);
+      let currentY = 0;
+      let pageIndex = 0;
 
-      for (let i = 0; i < totalPages; i++) {
-        const yOffset = i * sliceHeightPx;
-        const currentSliceH = Math.min(sliceHeightPx, canvas.height - yOffset);
+      while (currentY < canvas.height) {
+        const remainingH = canvas.height - currentY;
+        if (remainingH <= nominalSliceHeightPx) {
+          // Last page slice fits completely
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = remainingH;
+          const ctx = sliceCanvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            ctx.drawImage(canvas, 0, currentY, canvas.width, remainingH, 0, 0, canvas.width, remainingH);
+          }
+          const sliceImgData = sliceCanvas.toDataURL('image/png');
+          if (pageIndex > 0) doc.addPage('a4', orientation);
+          const renderH = (remainingH / nominalSliceHeightPx) * pageH;
+          doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, renderH, undefined, 'FAST');
+          break;
+        }
 
+        // Search for a clean whitespace gap between 75% and 100% of nominalSliceHeightPx
+        let bestCutY = currentY + nominalSliceHeightPx;
+        const minScanY = currentY + Math.floor(nominalSliceHeightPx * 0.75);
+        const maxScanY = currentY + nominalSliceHeightPx - 8;
+
+        try {
+          const sampleCtx = canvas.getContext('2d');
+          if (sampleCtx) {
+            const scanW = Math.min(canvas.width, 160);
+            const scanStartX = Math.floor((canvas.width - scanW) / 2);
+            for (let testY = maxScanY; testY >= minScanY; testY -= 4) {
+              const pixelData = sampleCtx.getImageData(scanStartX, testY, scanW, 1).data;
+              let isWhitespace = true;
+              for (let px = 0; px < pixelData.length; px += 16) {
+                const r = pixelData[px];
+                const g = pixelData[px + 1];
+                const b = pixelData[px + 2];
+                if (r < 240 || g < 240 || b < 240) {
+                  isWhitespace = false;
+                  break;
+                }
+              }
+              if (isWhitespace) {
+                bestCutY = testY;
+                break;
+              }
+            }
+          }
+        } catch {}
+
+        const sliceH = bestCutY - currentY;
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = canvas.width;
-        sliceCanvas.height = sliceHeightPx;
+        sliceCanvas.height = sliceH;
         const ctx = sliceCanvas.getContext('2d');
         if (ctx) {
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-          ctx.drawImage(
-            canvas,
-            0,
-            yOffset,
-            canvas.width,
-            currentSliceH,
-            0,
-            0,
-            canvas.width,
-            currentSliceH
-          );
+          ctx.drawImage(canvas, 0, currentY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
         }
-
         const sliceImgData = sliceCanvas.toDataURL('image/png');
-        if (i > 0) {
-          doc.addPage('a4', orientation);
-        }
-        doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
+        if (pageIndex > 0) doc.addPage('a4', orientation);
+        const renderH = (sliceH / nominalSliceHeightPx) * pageH;
+        doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, renderH, undefined, 'FAST');
+
+        currentY = bestCutY;
+        pageIndex++;
       }
     }
 
