@@ -1021,6 +1021,8 @@ export interface OnePageSummaryPdfOptions {
   fontStyle?: string;
   includeWatermark?: boolean;
   watermarkText?: string;
+  loadedFont?: string;
+  ttfBase64?: string;
 }
 
 /**
@@ -1038,7 +1040,20 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   });
 
   const theme = resolvePdfThemeAndFont(options.colorAccent, options.fontStyle);
-  const ff = theme.fontFamily;
+  let ff = theme.fontFamily;
+  if (options.ttfBase64 && options.loadedFont) {
+    try {
+      const vfsName = `${options.loadedFont}-Regular.ttf`;
+      doc.addFileToVFS(vfsName, options.ttfBase64);
+      doc.addFont(vfsName, options.loadedFont, 'normal');
+      doc.addFont(vfsName, options.loadedFont, 'bold');
+      doc.addFont(vfsName, options.loadedFont, 'italic');
+      doc.addFont(vfsName, options.loadedFont, 'bolditalic');
+      ff = options.loadedFont;
+    } catch (e) {
+      console.warn('Failed to embed TTF font in jsPDF:', e);
+    }
+  }
   const fp = theme.fontProfile;
   const fScale = Math.min(1.05, Math.max(0.85, fp.sizeScale));
   applyPdfCharSpace(doc, fp.charSpace);
@@ -1140,8 +1155,10 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   // ==================== LEFT COLUMN: PART I - FORMULAS ====================
   const colStartY = 24.5;
   const colHeaderH = 5.2;
-  const rowH = 13.8;
-  const colTotalItemsH = 10 * rowH;
+  const numFormulas = ONE_PAGE_LEGAL_FORMULAS.length;
+  const numDeadlines = ONE_PAGE_LEGAL_DEADLINES.length;
+  const rowH = 10.8;
+  const colTotalItemsH = numFormulas * rowH;
 
   // Col 1 Header Banner
   doc.setFillColor(...theme.primary);
@@ -1150,7 +1167,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(6.8 * fScale);
-  doc.text('I. KEY STATUTORY PAY FORMULAS (10)', leftX + 6.8, colStartY + 3.6);
+  doc.text(`I. KEY STATUTORY PAY FORMULAS (${numFormulas})`, leftX + 6.8, colStartY + 3.6);
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(5.6 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
@@ -1178,28 +1195,28 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Title (bold) on left + Rate Badge on right (styled with theme.badgeText)
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.2 * fScale);
+    doc.setFontSize(5.8 * fScale);
     const titleText = `${idx + 1}. ${item.title}`;
     const rBadge = item.rateBadge || item.citation;
-    doc.text(titleText, leftX + 1.8, leftY + 3.3);
+    doc.text(titleText, leftX + 1.8, leftY + 3.0);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(5.85 * fScale);
-    doc.text(rBadge, leftX + colW - 1.8, leftY + 3.3, { align: 'right' });
+    doc.setFontSize(5.5 * fScale);
+    doc.text(rBadge, leftX + colW - 1.8, leftY + 3.0, { align: 'right' });
 
     // Line 2: Formula (accent bold text)
     doc.setTextColor(...theme.formulaText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(6.5 * fScale);
+    doc.setFontSize(6.0 * fScale);
     const formulaLines = doc.splitTextToSize(sanitizePdfText(item.formula), colW - 3.6);
-    doc.text(formulaLines[0] || '', leftX + 1.8, leftY + 6.8);
+    doc.text(formulaLines[0] || '', leftX + 1.8, leftY + 6.3);
 
     // Line 3: Note (muted small text)
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.0 * fScale);
+    doc.setFontSize(4.7 * fScale);
     const noteLines = doc.splitTextToSize(sanitizePdfText(item.note), colW - 3.6);
-    doc.text(noteLines[0] || '', leftX + 1.8, leftY + 10.3);
+    doc.text(noteLines[0] || '', leftX + 1.8, leftY + 9.3);
 
     leftY += rowH;
   });
@@ -1212,7 +1229,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.setTextColor(...theme.primaryText);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(6.8 * fScale);
-  doc.text('II. PRESCRIPTIVE & PROCEDURAL DEADLINES (10)', rightX + 7.2, colStartY + 3.6);
+  doc.text(`II. PRESCRIPTIVE & PROCEDURAL DEADLINES (${numDeadlines})`, rightX + 7.2, colStartY + 3.6);
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(5.6 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
@@ -1240,35 +1257,35 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Claim/Action (bold) on left + Deadline in theme.badgeText on right
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.2 * fScale);
+    doc.setFontSize(5.8 * fScale);
     const claimText = `${idx + 1}. ${item.claimOrAction}`;
-    doc.text(claimText, rightX + 1.8, rightY + 3.3);
+    doc.text(claimText, rightX + 1.8, rightY + 3.0);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(5.85 * fScale);
-    doc.text(item.deadline, rightX + colW - 1.8, rightY + 3.3, { align: 'right' });
+    doc.setFontSize(5.5 * fScale);
+    doc.text(item.deadline, rightX + colW - 1.8, rightY + 3.0, { align: 'right' });
 
     // Line 2: Citation + Reckoning Rule
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.0 * fScale);
+    doc.setFontSize(4.7 * fScale);
     const ruleLine = `${item.citation}: ${item.reckoningRule}`;
     const ruleLines = doc.splitTextToSize(sanitizePdfText(ruleLine), colW - 3.6);
-    doc.text(ruleLines[0] || '', rightX + 1.8, rightY + 7.0);
+    doc.text(ruleLines[0] || '', rightX + 1.8, rightY + 6.3);
     if (ruleLines[1]) {
-      doc.text(ruleLines[1], rightX + 1.8, rightY + 10.3);
+      doc.text(ruleLines[1], rightX + 1.8, rightY + 9.3);
     }
 
     rightY += rowH;
   });
 
   // ==================== MARIO BRICK DIVIDER STRIP ====================
-  const brickY = colStartY + colHeaderH + colTotalItemsH + 1.4;
-  drawVectorMarioBrickStrip(doc, marginX, brickY, contentW, 1.6, theme.accent, theme.borderStrong);
+  const brickY = colStartY + colHeaderH + colTotalItemsH + 1.8;
+  drawVectorMarioBrickStrip(doc, marginX, brickY, contentW, 1.8, theme.accent, theme.borderStrong);
 
   // ==================== PART III: BOTTOM WORLD 6 LEAVES & CORE CHECKPOINTS ====================
-  const bottomY = brickY + 2.8;
-  const bottomBoxH = 41.5;
+  const bottomY = brickY + 3.0;
+  const bottomBoxH = 43.5;
 
   // Outer container card
   doc.setFillColor(...theme.cardTintFill);
@@ -1287,7 +1304,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(5.5 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
-  doc.text('One-Page Printer-Friendly A4 Reference', pageW - marginX - 2.5, bottomY + 3.5, { align: 'right' });
+  doc.text('Arts. 95, 1146 · R.A. 11210', pageW - marginX - 2.5, bottomY + 3.5, { align: 'right' });
 
   // 6 Leave Cards in 3 Columns x 2 Rows
   const gridStartY = bottomY + 5.8;
@@ -1349,7 +1366,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   );
 
   // ==================== RESEARCH COHORT ATTRIBUTION BAR ====================
-  const footerY = 284.0;
+  const footerY = bottomY + bottomBoxH + 2.5;
   doc.setFillColor(...theme.cardTintFill);
   doc.setDrawColor(...theme.borderMuted);
   doc.setLineWidth(0.22);
@@ -1401,6 +1418,8 @@ export interface CertificatePdfParams {
   colorAccent?: string;
   fontStyle?: string;
   orientation?: 'landscape' | 'portrait';
+  loadedFont?: string;
+  ttfBase64?: string;
 }
 
 /**
@@ -1420,7 +1439,20 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     params.colorAccent,
     params.fontStyle || 'editorial_serif'
   );
-  const ff = theme.fontFamily;
+  let ff = theme.fontFamily;
+  if (params.ttfBase64 && params.loadedFont) {
+    try {
+      const vfsName = `${params.loadedFont}-Regular.ttf`;
+      doc.addFileToVFS(vfsName, params.ttfBase64);
+      doc.addFont(vfsName, params.loadedFont, 'normal');
+      doc.addFont(vfsName, params.loadedFont, 'bold');
+      doc.addFont(vfsName, params.loadedFont, 'italic');
+      doc.addFont(vfsName, params.loadedFont, 'bolditalic');
+      ff = params.loadedFont;
+    } catch (e) {
+      console.warn('Failed to embed TTF in jsPDF:', e);
+    }
+  }
   const fp = theme.fontProfile;
   const cScale = Math.min(1.08, Math.max(0.85, fp.sizeScale));
   applyPdfCharSpace(doc, fp.charSpace);
@@ -1822,7 +1854,20 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
     params.colorAccent || 'supreme_court_crimson',
     params.fontStyle || 'playfair_royal'
   );
-  const dff = dipTheme.fontFamily;
+  let dff = dipTheme.fontFamily;
+  if (params.ttfBase64 && params.loadedFont) {
+    try {
+      const vfsName = `${params.loadedFont}-Regular.ttf`;
+      doc.addFileToVFS(vfsName, params.ttfBase64);
+      doc.addFont(vfsName, params.loadedFont, 'normal');
+      doc.addFont(vfsName, params.loadedFont, 'bold');
+      doc.addFont(vfsName, params.loadedFont, 'italic');
+      doc.addFont(vfsName, params.loadedFont, 'bolditalic');
+      dff = params.loadedFont;
+    } catch (e) {
+      console.warn('Failed to embed TTF in jsPDF:', e);
+    }
+  }
   const dipFont = dipTheme.fontProfile;
   const dScale = Math.min(1.08, Math.max(0.85, dipFont.sizeScale));
   applyPdfCharSpace(doc, dipFont.charSpace);
@@ -2177,6 +2222,8 @@ export interface StudyGuideReviewerPdfParams {
   blankNoteLinesCount?: number;
   includeExecutiveMarioSummary?: boolean;
   includeLatinMaxims?: boolean;
+  loadedFont?: string;
+  ttfBase64?: string;
 }
 
 /**
@@ -2339,7 +2386,20 @@ export function buildStudyGuideReviewerPdfBytes(
   const completedIds: string[] = params.completedTopicIds || [];
 
   const theme = resolvePdfThemeAndFont(params.colorAccent, params.fontStyle);
-  const ff = theme.fontFamily;
+  let ff = theme.fontFamily;
+  if (params.ttfBase64 && params.loadedFont) {
+    try {
+      const vfsName = `${params.loadedFont}-Regular.ttf`;
+      doc.addFileToVFS(vfsName, params.ttfBase64);
+      doc.addFont(vfsName, params.loadedFont, 'normal');
+      doc.addFont(vfsName, params.loadedFont, 'bold');
+      doc.addFont(vfsName, params.loadedFont, 'italic');
+      doc.addFont(vfsName, params.loadedFont, 'bolditalic');
+      ff = params.loadedFont;
+    } catch (e) {
+      console.warn('Failed to embed TTF in jsPDF:', e);
+    }
+  }
   const fp = theme.fontProfile;
   applyPdfCharSpace(doc, fp.charSpace);
   applyPdfDocumentMeta(
@@ -3309,6 +3369,8 @@ export interface ScoreCardPdfParams {
     total: number;
     percent: number;
   }[];
+  loadedFont?: string;
+  ttfBase64?: string;
 }
 
 export function countPdfPagesFromBytes(bytes: Uint8Array): number {
@@ -3346,7 +3408,20 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
     params.colorAccent || 'executive_navy',
     params.fontStyle || 'modern_sans'
   );
-  const ff = theme.fontFamily;
+  let ff = theme.fontFamily;
+  if (params.ttfBase64 && params.loadedFont) {
+    try {
+      const vfsName = `${params.loadedFont}-Regular.ttf`;
+      doc.addFileToVFS(vfsName, params.ttfBase64);
+      doc.addFont(vfsName, params.loadedFont, 'normal');
+      doc.addFont(vfsName, params.loadedFont, 'bold');
+      doc.addFont(vfsName, params.loadedFont, 'italic');
+      doc.addFont(vfsName, params.loadedFont, 'bolditalic');
+      ff = params.loadedFont;
+    } catch (e) {
+      console.warn('Failed to embed TTF in jsPDF:', e);
+    }
+  }
   const fp = theme.fontProfile;
   const sScale = Math.min(1.08, Math.max(0.85, fp.sizeScale));
   applyPdfDocumentMeta(
