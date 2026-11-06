@@ -55,6 +55,7 @@ import { StatuteLookupModal } from './components/StatuteLookupModal';
 import { DolePayMultiplierCalculator } from './components/DolePayMultiplierCalculator';
 import { ResearchCohortModal } from './components/ResearchCohortModal';
 import { InteractiveCompanionHUD } from './components/InteractiveCompanionHUD';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { BossBattleLogModal } from './components/BossBattleLogModal';
 import {
   TopicFlashcardDeckModal,
@@ -5081,14 +5082,16 @@ export default function App() {
       <AutoScrollController activeTab={activeTab} />
 
       {/* Interactive Mario Study Companion HUD — Animated Expressions, Affection Leveling, Pet, Feed, Legal Doctrines & Quick Study */}
-      <InteractiveCompanionHUD
-        equippedCompanionId={equippedCompanion}
-        onEquipCompanion={handleEquipCompanion}
-        onStartQuickStudy={handleStartQuickStudy}
-        onEarnCoins={handleEarnCoins}
-        coins={coins}
-        completedTopicsCount={completedTopicIds.length}
-      />
+      <ErrorBoundary fallback={null}>
+        <InteractiveCompanionHUD
+          equippedCompanionId={equippedCompanion}
+          onEquipCompanion={handleEquipCompanion}
+          onStartQuickStudy={handleStartQuickStudy}
+          onEarnCoins={handleEarnCoins}
+          coins={coins}
+          completedTopicsCount={completedTopicIds.length}
+        />
+      </ErrorBoundary>
 
       {/* Mario Ground Footer with Discreet Official 'Created by Matthew' Credit & Group Members */}
       <footer className="mt-16 bg-[#1e293b] border-t-4 border-black text-amber-100 py-8 px-4 pb-24 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">

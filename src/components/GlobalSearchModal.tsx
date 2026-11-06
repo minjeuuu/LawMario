@@ -18,6 +18,7 @@ import {
   ArrowUp,
   ArrowDown,
   CornerDownLeft,
+  Users,
 } from 'lucide-react';
 import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import { marioAudio } from '../utils/audio';
