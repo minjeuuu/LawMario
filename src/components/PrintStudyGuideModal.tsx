@@ -42,7 +42,7 @@ import {
   PrintGuideFormatOptions,
   filterTopicsForPrintGuide,
 } from '../utils/engagementFeatures';
-import { cleanRuleText } from '../utils/moduleFormatter';
+import { cleanRuleText, parseListEntry } from '../utils/moduleFormatter';
 import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
@@ -746,12 +746,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
   const fontScaleClass =
     fontSizeScale === 'large'
-      ? 'text-sm sm:text-base leading-relaxed'
+      ? 'text-base sm:text-lg leading-relaxed'
       : fontSizeScale === 'small'
-      ? 'text-[10px] sm:text-[11px] leading-relaxed'
+      ? 'text-xs sm:text-[13px] leading-relaxed'
       : isCompact
-      ? 'text-[11px] leading-relaxed'
-      : 'text-xs leading-relaxed';
+      ? 'text-xs sm:text-sm leading-relaxed'
+      : 'text-[13.5px] sm:text-[15px] leading-relaxed';
 
   return (
     <div
@@ -3045,7 +3045,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 )}
 
                 <div className="w-full overflow-x-auto print:overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-xs sm:text-[13px] border border-slate-500 border-collapse tabular-nums box-border">
                     <colgroup>
                       <col style={{ width: '22%' }} />
                       <col style={{ width: '33%' }} />
@@ -3054,10 +3054,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </colgroup>
                     <thead>
                       <tr className={tableHeaderClass}>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Benefit Category</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Scenario / Day Type</th>
-                        <th className="p-2 border border-slate-500 font-black text-right break-words [overflow-wrap:anywhere]">Rate</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Statutory Formula</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Benefit Category</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Scenario / Day Type</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black text-right break-words [overflow-wrap:anywhere]">Rate</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Statutory Formula</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3068,16 +3068,16 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             idx % 2 === 1 ? zebraRowClass : 'bg-white'
                           }`}
                         >
-                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.benefit}
                           </td>
-                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.scenario}
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-mono font-black text-slate-950 text-right align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 font-mono font-black text-slate-950 text-right align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {(row.multiplierDecimal * 100).toFixed(1).replace(/\.0$/, '')}%
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 font-mono text-xs sm:text-[12px] text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.formula}
                           </td>
                         </tr>
@@ -3094,14 +3094,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 <div className={`border-b-2 ${headingBorderClass} pb-1 flex items-center justify-between gap-2`}>
                   <div className="flex items-center gap-2">
                     <MarioWarpPipeIcon size={18} />
-                    <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
+                    <h2 className="text-sm sm:text-base font-black text-slate-950 uppercase tracking-wide">
                       II. 17 Regions Daily Minimum Wage &amp; Kasambahay Matrix
                     </h2>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-600">R.A. 6727 · R.A. 10361</span>
+                  <span className="text-[10px] sm:text-xs font-mono text-slate-600">R.A. 6727 · R.A. 10361</span>
                 </div>
                 <div className="w-full overflow-x-auto print:overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-xs sm:text-[13px] border border-slate-500 border-collapse tabular-nums box-border">
                     <colgroup>
                       <col style={{ width: '26%' }} />
                       <col style={{ width: '18%' }} />
@@ -3111,11 +3111,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </colgroup>
                     <thead>
                       <tr className={tableHeaderClass}>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Region</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Effectivity</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Non-Agriculture</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Agriculture</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Kasambahay / Mo.</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Region</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Effectivity</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black text-right break-words [overflow-wrap:anywhere]">Non-Agriculture</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black text-right break-words [overflow-wrap:anywhere]">Agriculture</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black text-right break-words [overflow-wrap:anywhere]">Kasambahay / Mo.</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3128,19 +3128,19 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               idx % 2 === 1 ? zebraRowClass : 'bg-white'
                             }`}
                           >
-                            <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                            <td className="p-2 sm:p-2.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.region}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-800 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                            <td className="p-2 sm:p-2.5 border border-slate-400 font-mono text-xs sm:text-[12px] text-slate-800 align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.effectivity}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                            <td className="p-2 sm:p-2.5 border border-slate-400 font-mono font-bold text-slate-950 text-right align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.nonAgri}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                            <td className="p-2 sm:p-2.5 border border-slate-400 font-mono text-slate-900 text-right align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {rw.agri}
                             </td>
-                            <td className="p-1.5 border border-slate-400 font-mono text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                            <td className="p-2 sm:p-2.5 border border-slate-400 font-mono text-slate-900 text-right align-top break-words [overflow-wrap:anywhere] leading-snug">
                               {kas ? kas.minimumWage : '—'}
                             </td>
                           </tr>
@@ -3158,14 +3158,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 <div className={`border-b-2 ${headingBorderClass} pb-1 flex items-center justify-between gap-2`}>
                   <div className="flex items-center gap-2">
                     <MarioMushroomIcon size={18} variant="1up" />
-                    <h2 className="text-sm font-black text-slate-950 uppercase tracking-wide">
+                    <h2 className="text-sm sm:text-base font-black text-slate-950 uppercase tracking-wide">
                       III. World 6 Statutory Leaves Master Comparison Matrix
                     </h2>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-600">Art. 95 &amp; Special Leave Statutes</span>
+                  <span className="text-[10px] sm:text-xs font-mono text-slate-600">Art. 95 &amp; Special Leave Statutes</span>
                 </div>
                 <div className="w-full overflow-x-auto print:overflow-visible">
-                  <table className="print-friendly-matrix w-full table-fixed text-left text-[10.5px] border border-slate-500 border-collapse tabular-nums box-border">
+                  <table className="print-friendly-matrix w-full table-fixed text-left text-xs sm:text-[13px] border border-slate-500 border-collapse tabular-nums box-border">
                     <colgroup>
                       <col style={{ width: '20%' }} />
                       <col style={{ width: '15%' }} />
@@ -3175,11 +3175,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </colgroup>
                     <thead>
                       <tr className={tableHeaderClass}>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Statutory Leave</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Legal Basis</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Paid Duration</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Key Eligibility</th>
-                        <th className="p-2 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Cash Commutation &amp; Payor</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Statutory Leave</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Legal Basis</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Paid Duration</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Key Eligibility</th>
+                        <th className="p-2 sm:p-2.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]">Cash Commutation &amp; Payor</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3190,19 +3190,19 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             idx % 2 === 1 ? zebraRowClass : 'bg-white'
                           }`}
                         >
-                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.leave}
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-mono text-[10px] text-slate-800 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 font-mono text-xs sm:text-[12px] text-slate-800 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {formatOptions.includeLegalCitations ? row.basis : 'Statutory'}
                           </td>
-                          <td className="p-1.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 font-bold text-slate-950 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.duration}
                           </td>
-                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.eligibility}
                           </td>
-                          <td className="p-1.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
+                          <td className="p-2 sm:p-2.5 border border-slate-400 text-slate-900 align-top break-words [overflow-wrap:anywhere] leading-snug">
                             {row.conversion}
                           </td>
                         </tr>
@@ -3429,20 +3429,20 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                   )}
                                   <h4
                                     className={`font-black ${
-                                      isCompact ? 'text-xs sm:text-[13px]' : 'text-sm sm:text-[15px]'
+                                      isCompact ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
                                     } text-slate-950 leading-snug`}
                                   >
                                     {topic.title}
                                   </h4>
                                 </div>
-                                <span className="text-[10px] font-mono font-semibold text-slate-700 shrink-0 tabular-nums">
+                                <span className="text-xs font-mono font-semibold text-slate-700 shrink-0 tabular-nums">
                                   {isDone ? '[MASTERED]' : '[  TO REVIEW]'}
                                 </span>
                               </div>
 
                               {/* Mario Executive Takeaway */}
                               {!matricesOnlyMode && includeExecutiveMarioSummary && topic.beginnerSummary && (
-                                <div className="bg-amber-50/80 border border-amber-300 rounded-lg p-2 text-[10.5px] text-amber-950 font-medium break-inside-avoid">
+                                <div className="bg-amber-50/80 border border-amber-300 rounded-lg p-2.5 text-xs sm:text-sm text-amber-950 font-medium break-inside-avoid">
                                   <strong className="font-bold text-amber-900 uppercase">Mario Executive Takeaway:</strong>{' '}
                                   {topic.beginnerSummary}
                                 </div>
@@ -3450,7 +3450,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
                               {/* Summary */}
                               {!matricesOnlyMode && (
-                                <p className="text-slate-900 leading-relaxed">
+                                <p className="text-slate-900 leading-relaxed text-xs sm:text-sm">
                                   <strong className="font-bold">Core Rule:</strong>{' '}
                                   {stripInlineLegalCitations(
                                     topic.summary,
@@ -3469,10 +3469,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       isCompact ? 'p-2 space-y-0.5' : 'p-2.5 space-y-1'
                                     } break-inside-avoid`}
                                   >
-                                    <span className="font-bold text-slate-950 block text-[10.5px] uppercase tracking-wide">
+                                    <span className="font-bold text-slate-950 block text-xs sm:text-[13px] uppercase tracking-wide">
                                       Controlling Jurisprudence &amp; Legal Citations
                                     </span>
-                                    <ul className="list-disc pl-4 space-y-0.5 text-slate-900">
+                                    <ul className="list-disc pl-4 space-y-1 text-slate-900 text-xs sm:text-sm">
                                       {topic.keyDoctrines.map((d, dIdx) => (
                                         <li key={dIdx}>{cleanRuleText(d)}</li>
                                       ))}
@@ -3484,8 +3484,8 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               <div
                                 className={
                                   isCompact && !matricesOnlyMode
-                                    ? 'grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2'
-                                    : 'space-y-2.5'
+                                    ? 'grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2.5'
+                                    : 'space-y-3'
                                 }
                               >
                                 {rulesToRender.map((rule, rIdx) => (
@@ -3495,7 +3495,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       rule.tableData ? '' : 'break-inside-avoid'
                                     } ${rule.tableData && isCompact ? 'md:col-span-2' : ''}`}
                                   >
-                                    <span className="font-bold text-slate-950 flex items-start gap-1.5 break-after-avoid">
+                                    <span className="font-black text-slate-950 flex items-start gap-1.5 break-after-avoid text-sm sm:text-base">
                                       {includeCheckboxes && (
                                         <span className="inline-block w-3.5 h-3.5 border-2 border-slate-700 rounded-xs mt-0.5 shrink-0" />
                                       )}
@@ -3508,7 +3508,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       </span>
                                     </span>
                                     {!matricesOnlyMode && rule.description && (
-                                      <p className="text-slate-800 pl-3 leading-relaxed">
+                                      <p className="text-slate-800 pl-3 leading-relaxed text-xs sm:text-sm">
                                         {stripInlineLegalCitations(
                                           rule.description,
                                           formatOptions.includeLegalCitations
@@ -3516,37 +3516,63 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       </p>
                                     )}
                                     {!matricesOnlyMode && rule.items && rule.items.length > 0 && (
-                                      <ul className="list-disc pl-5 space-y-0.5 text-slate-800 leading-relaxed">
-                                        {rule.items.map((item, iIdx) => (
-                                          <li key={iIdx}>
-                                            {stripInlineLegalCitations(
-                                              item,
-                                              formatOptions.includeLegalCitations
-                                            )}
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      <div className="pl-3 sm:pl-4 space-y-1.5 text-slate-800 leading-relaxed text-xs sm:text-sm">
+                                        {rule.items.map((item, iIdx) => {
+                                          const rawCleaned = stripInlineLegalCitations(
+                                            item,
+                                            formatOptions.includeLegalCitations
+                                          );
+                                          const entry = parseListEntry(rawCleaned);
+                                          return (
+                                            <div key={iIdx} className="flex items-start gap-2">
+                                              <span
+                                                className={`shrink-0 font-bold ${
+                                                  entry.isNumbered
+                                                    ? 'font-mono text-slate-900 min-w-[1.3rem]'
+                                                    : 'text-amber-500 text-xs'
+                                                }`}
+                                              >
+                                                {entry.marker}
+                                              </span>
+                                              <span className="flex-1 min-w-0">{entry.text}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
                                     )}
                                     {!matricesOnlyMode &&
                                       rule.subSections &&
                                       rule.subSections.map((sub, sIdx) => (
-                                        <div key={sIdx} className="pl-4 pt-0.5 space-y-0.5">
-                                          <span className="font-semibold text-slate-900 block">
+                                        <div key={sIdx} className="pl-3 sm:pl-5 pt-1 space-y-1">
+                                          <span className="font-bold text-slate-950 block text-xs sm:text-sm">
                                             {stripInlineLegalCitations(
                                               sub.title,
                                               formatOptions.includeLegalCitations
                                             )}
                                           </span>
-                                          <ul className="list-disc pl-4 space-y-0.5 text-slate-800">
-                                            {sub.items.map((si, siIdx) => (
-                                              <li key={siIdx}>
-                                                {stripInlineLegalCitations(
-                                                  si,
-                                                  formatOptions.includeLegalCitations
-                                                )}
-                                              </li>
-                                            ))}
-                                          </ul>
+                                          <div className="pl-2 sm:pl-3 space-y-1 text-slate-800 leading-relaxed text-xs sm:text-sm">
+                                            {sub.items.map((si, siIdx) => {
+                                              const rawCleaned = stripInlineLegalCitations(
+                                                si,
+                                                formatOptions.includeLegalCitations
+                                              );
+                                              const entry = parseListEntry(rawCleaned);
+                                              return (
+                                                <div key={siIdx} className="flex items-start gap-2">
+                                                  <span
+                                                    className={`shrink-0 font-bold ${
+                                                      entry.isNumbered
+                                                        ? 'font-mono text-slate-900 min-w-[1.3rem]'
+                                                        : 'text-slate-400 text-xs'
+                                                    }`}
+                                                  >
+                                                    {entry.marker}
+                                                  </span>
+                                                  <span className="flex-1 min-w-0">{entry.text}</span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
                                         </div>
                                       ))}
                                     {rule.tableData && (
@@ -3611,14 +3637,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               {!matricesOnlyMode && topic.exceptions && topic.exceptions.length > 0 && (
                                 <div
                                   className={`${subtleBoxClass} border rounded-lg ${
-                                    isCompact ? 'p-2 space-y-1' : 'p-2.5 space-y-1.5'
+                                    isCompact ? 'p-2 space-y-1' : 'p-3 space-y-1.5'
                                   } break-inside-avoid`}
                                 >
-                                  <span className="font-bold text-slate-950 block text-[10.5px] uppercase tracking-wide">
+                                  <span className="font-bold text-slate-950 block text-xs sm:text-[13px] uppercase tracking-wide">
                                     General Rule &amp; Statutory Exceptions
                                   </span>
                                   {topic.exceptions.map((ex, exIdx) => (
-                                    <div key={exIdx} className="space-y-0.5">
+                                    <div key={exIdx} className="space-y-1 text-xs sm:text-sm">
                                       <p className="font-semibold text-slate-900">
                                         General Rule:{' '}
                                         {stripInlineLegalCitations(
@@ -3626,16 +3652,23 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                           formatOptions.includeLegalCitations
                                         )}
                                       </p>
-                                      <ul className="list-disc pl-5 space-y-0.5 text-slate-800">
-                                        {ex.exceptions.map((eItem, eiIdx) => (
-                                          <li key={eiIdx}>
-                                            {stripInlineLegalCitations(
-                                              eItem,
-                                              formatOptions.includeLegalCitations
-                                            )}
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      <div className="pl-4 space-y-1 text-slate-800">
+                                        {ex.exceptions.map((eItem, eiIdx) => {
+                                          const rawCleaned = stripInlineLegalCitations(
+                                            eItem,
+                                            formatOptions.includeLegalCitations
+                                          );
+                                          const entry = parseListEntry(rawCleaned);
+                                          return (
+                                            <div key={eiIdx} className="flex items-start gap-2">
+                                              <span className="shrink-0 font-bold text-rose-600 text-xs">
+                                                {entry.isNumbered ? entry.marker : '•'}
+                                              </span>
+                                              <span className="flex-1 min-w-0">{entry.text}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -3647,27 +3680,34 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                 (combinedTips.length > 0 || topic.practicalTakeaway) && (
                                   <div
                                     className={`border ${tipBoxClass} rounded-lg ${
-                                      isCompact ? 'p-2 space-y-0.5' : 'p-2.5 space-y-1'
+                                      isCompact ? 'p-2 space-y-0.5' : 'p-3 space-y-1.5'
                                     } break-inside-avoid`}
                                   >
-                                    <span className="font-bold text-slate-950 flex items-center gap-1 text-[10.5px] uppercase tracking-wide">
-                                      <Sparkles className="w-3 h-3 shrink-0" />
+                                    <span className="font-bold text-slate-950 flex items-center gap-1.5 text-xs sm:text-[13px] uppercase tracking-wide">
+                                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-600" />
                                       Memory Traps &amp; High-Yield Takeaways
                                     </span>
                                     {combinedTips.length > 0 && (
-                                      <ul className="list-disc pl-4 space-y-0.5 text-slate-900">
-                                        {combinedTips.map((tip, tIdx) => (
-                                          <li key={tIdx}>
-                                            {stripInlineLegalCitations(
-                                              tip,
-                                              formatOptions.includeLegalCitations
-                                            )}
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      <div className="pl-2 space-y-1 text-slate-900 text-xs sm:text-sm">
+                                        {combinedTips.map((tip, tIdx) => {
+                                          const rawCleaned = stripInlineLegalCitations(
+                                            tip,
+                                            formatOptions.includeLegalCitations
+                                          );
+                                          const entry = parseListEntry(rawCleaned);
+                                          return (
+                                            <div key={tIdx} className="flex items-start gap-2">
+                                              <span className="shrink-0 font-bold text-amber-600 text-xs">
+                                                {entry.isNumbered ? entry.marker : '•'}
+                                              </span>
+                                              <span className="flex-1 min-w-0">{entry.text}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
                                     )}
                                     {topic.practicalTakeaway && (
-                                      <p className="text-slate-800 pt-0.5">
+                                      <p className="text-slate-800 pt-1 text-xs sm:text-sm">
                                         <strong>Practical Application:</strong>{' '}
                                         {stripInlineLegalCitations(
                                           topic.practicalTakeaway,

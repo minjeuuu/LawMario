@@ -8,7 +8,7 @@ import { WORLDS_METADATA, ALL_LAW_TOPICS, STATUTORY_LEAVES_MASTER_ROWS } from '.
 import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
 import { REGIONAL_MINIMUM_WAGES, KASAMBAHAY_MINIMUM_WAGES } from '../data/regionalWages';
 import { GROUP_MEMBERS, StudyNoteItem } from './engagementFeatures';
-import { cleanRuleText } from './moduleFormatter';
+import { cleanRuleText, parseListEntry } from './moduleFormatter';
 import { LawTopic } from '../types/laborLaw';
 import { getPdfFontProfile, PdfFontProfile } from './round11Features';
 import {
@@ -2250,30 +2250,30 @@ function computeTopicModuleHeight(
 ): number {
   const cardPadX = 2.5;
   const innerW = contentW - cardPadX * 2;
-  let h = 4.8; // card top & bottom padding
+  let h = 5.2; // card top & bottom padding
 
   // 1. Header: statutory basis + title + status
   if (params.includeLegalCitations !== false && topic.badge) {
-    h += 3.2;
+    h += 3.6;
   }
   const titleW = innerW - 28;
   const checkPrefix = params.includeCheckboxes !== false ? '[ ] ' : '';
   const fullTitleStr = `${checkPrefix}${topic.title}`;
   const tLines = doc.splitTextToSize(sanitizePdfText(fullTitleStr), titleW);
-  h += tLines.length * (3.8 * scale) + 1.2;
-  h += 2.0; // divider line
+  h += tLines.length * (4.6 * scale) + 1.4;
+  h += 2.2; // divider line
 
   // 2. Mario Executive Takeaway
   if (!params.matricesOnlyMode && params.includeExecutiveMarioSummary !== false && topic.beginnerSummary) {
     const takeText = `MARIO EXECUTIVE TAKEAWAY: ${cleanRuleText(topic.beginnerSummary)}`;
-    const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 4.0);
-    h += takeLines.length * (3.2 * scale) + 3.2 + 2.0;
+    const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 8.0);
+    h += takeLines.length * (3.9 * scale) + 4.5 + 2.2;
   }
 
   // 3. Core Rule Summary
   if (!params.matricesOnlyMode && topic.summary) {
-    const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 16);
-    h += sumLines.length * (3.2 * scale) + 2.0;
+    const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 18);
+    h += sumLines.length * (3.9 * scale) + 2.4;
   }
 
   // 4. Controlling Jurisprudence
@@ -2287,7 +2287,7 @@ function computeTopicModuleHeight(
     topic.keyDoctrines.forEach((d) => {
       jurLinesCount += doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(d)}`), innerW - 6.0).length;
     });
-    h += 5.0 + jurLinesCount * (3.1 * scale) + 2.0;
+    h += 5.6 + jurLinesCount * (3.8 * scale) + 2.2;
   }
 
   // 5. Codified Rules
@@ -2300,40 +2300,44 @@ function computeTopicModuleHeight(
       sanitizePdfText(`${rIdx + 1}. ${cleanRuleText(rule.heading)}`),
       innerW
     );
-    h += rHead.length * (3.5 * scale) + 0.8;
+    h += rHead.length * (4.2 * scale) + 1.2;
 
     if (!params.matricesOnlyMode && rule.description) {
       const descLines = doc.splitTextToSize(
         sanitizePdfText(cleanRuleText(rule.description)),
         innerW - 4.0
       );
-      h += descLines.length * (3.2 * scale) + 1.0;
+      h += descLines.length * (3.9 * scale) + 1.2;
     }
 
     if (!params.matricesOnlyMode && rule.items && rule.items.length > 0) {
       rule.items.forEach((it) => {
+        const entry = parseListEntry(it);
+        const itStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
         const itLines = doc.splitTextToSize(
-          sanitizePdfText(`• ${cleanRuleText(it)}`),
+          sanitizePdfText(itStr),
           innerW - 6.0
         );
-        h += itLines.length * (3.1 * scale) + 0.5;
+        h += itLines.length * (3.8 * scale) + 0.8;
       });
     }
 
     if (!params.matricesOnlyMode && rule.subSections && rule.subSections.length > 0) {
       rule.subSections.forEach((sub) => {
         const subTitle = doc.splitTextToSize(sanitizePdfText(cleanRuleText(sub.title)), innerW - 6.0);
-        h += subTitle.length * (3.2 * scale) + 0.6;
+        h += subTitle.length * (4.0 * scale) + 1.0;
         sub.items.forEach((si) => {
-          const siLines = doc.splitTextToSize(sanitizePdfText(`- ${cleanRuleText(si)}`), innerW - 8.0);
-          h += siLines.length * (3.0 * scale) + 0.4;
+          const entry = parseListEntry(si);
+          const siStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
+          const siLines = doc.splitTextToSize(sanitizePdfText(siStr), innerW - 8.0);
+          h += siLines.length * (3.8 * scale) + 0.6;
         });
       });
     }
 
     if (rule.tableData) {
-      const cellPadY = 1.5;
-      const lineH = 3.3 * scale;
+      const cellPadY = 1.8;
+      const lineH = 3.8 * scale;
       // Budget for wrapped multi-line cells in embedded tables
       h += (rule.tableData.rows.length + 1) * (lineH * 2.2 + cellPadY * 2) + 4.0;
     }
@@ -2348,7 +2352,7 @@ function computeTopicModuleHeight(
         exLinesCount += doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 8.0).length;
       });
     });
-    h += 5.0 + exLinesCount * (3.1 * scale) + 2.0;
+    h += 5.8 + exLinesCount * (3.8 * scale) + 2.2;
   }
 
   // 7. Memory Traps & High-Yield Takeaways
@@ -2362,7 +2366,7 @@ function computeTopicModuleHeight(
       const pLines = topic.practicalTakeaway
         ? doc.splitTextToSize(sanitizePdfText(`Practical Application: ${cleanRuleText(topic.practicalTakeaway)}`), innerW - 8.0)
         : [];
-      h += 5.2 + (tipLinesCount + pLines.length) * (3.1 * scale) + (pLines.length > 0 ? 1.5 : 0) + 2.0;
+      h += 6.0 + (tipLinesCount + pLines.length) * (3.8 * scale) + (pLines.length > 0 ? 1.5 : 0) + 2.2;
     }
   }
 
@@ -2464,7 +2468,7 @@ export function buildStudyGuideReviewerPdfBytes(
       drawVectorMarioStar(doc, marginX + 4.2, y + 3.6, 2.3, [253, 224, 71], [180, 83, 9]);
     }
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(8.3 * scale);
+    doc.setFontSize(9.6 * scale);
     const maxTitleW = rightTag ? contentW - 46 : contentW - 8;
     const clampedTitle = doc.splitTextToSize(sanitizePdfText(title), maxTitleW)[0] || '';
     const textStartX = isWorldBanner && !theme.isInkSaver ? marginX + 8.2 : marginX + 2.5;
@@ -2472,7 +2476,7 @@ export function buildStudyGuideReviewerPdfBytes(
     if (rightTag) {
       doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
       doc.setFont(ff, fp.subHeadingStyle);
-      doc.setFontSize(6.8 * scale);
+      doc.setFontSize(7.6 * scale);
       doc.text(sanitizePdfText(rightTag), pageW - marginX - 2.5, y + 4.9, { align: 'right' });
     }
     y += 9.8;
@@ -2510,10 +2514,10 @@ export function buildStudyGuideReviewerPdfBytes(
         : Array.from({ length: colCount }, () => 1 / colCount);
 
     const colWidths = fractions.map((f) => f * tableWidth);
-    const cellPadX = 1.8;
-    const cellPadY = 1.5;
-    const fontSz = 6.6 * scale;
-    const lineH = 3.3 * scale;
+    const cellPadX = 2.2;
+    const cellPadY = 1.8;
+    const fontSz = 7.6 * scale;
+    const lineH = 3.8 * scale;
 
     const renderRow = (cells: string[], isHeader: boolean, rowIdx: number) => {
       doc.setFont(ff, isHeader ? fp.headingStyle : fp.bodyStyle);
@@ -3043,31 +3047,31 @@ export function buildStudyGuideReviewerPdfBytes(
       if (params.includeLegalCitations !== false && topic.badge) {
         doc.setTextColor(71, 85, 105); // slate-600
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(6.4 * scale);
-        doc.text(`STATUTORY BASIS: ${topic.badge.toUpperCase()}`, marginX + cardPadX, curY + 2.0);
-        curY += 3.2;
+        doc.setFontSize(7.0 * scale);
+        doc.text(`STATUTORY BASIS: ${topic.badge.toUpperCase()}`, marginX + cardPadX, curY + 2.2);
+        curY += 3.6;
       }
 
       // Title & Mastered Status
       doc.setTextColor(...theme.bodyText);
       doc.setFont(ff, fp.headingStyle);
-      doc.setFontSize(9.6 * scale);
+      doc.setFontSize(11.2 * scale);
       const checkPrefix = params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
       const fullTitleStr = `${checkPrefix}${topic.title}`;
       const titleLines = doc.splitTextToSize(sanitizePdfText(fullTitleStr), innerW - 28);
-      doc.text(titleLines, marginX + cardPadX, curY + 3.2);
+      doc.text(titleLines, marginX + cardPadX, curY + 3.4);
 
       // Status pill on right
       doc.setFont(ff, fp.subHeadingStyle);
-      doc.setFontSize(6.8 * scale);
+      doc.setFontSize(7.4 * scale);
       if (isDone) {
         doc.setTextColor(5, 150, 105); // emerald-600
-        doc.text('[MASTERED]', pageW - marginX - cardPadX, curY + 3.2, { align: 'right' });
+        doc.text('[MASTERED]', pageW - marginX - cardPadX, curY + 3.4, { align: 'right' });
       } else {
         doc.setTextColor(100, 116, 139); // slate-500
-        doc.text('[  TO REVIEW]', pageW - marginX - cardPadX, curY + 3.2, { align: 'right' });
+        doc.text('[  TO REVIEW]', pageW - marginX - cardPadX, curY + 3.4, { align: 'right' });
       }
-      curY += titleLines.length * (4.0 * scale) + 1.2;
+      curY += titleLines.length * (4.6 * scale) + 1.4;
 
       // Subtle divider line
       doc.setDrawColor(203, 213, 225);
@@ -3087,7 +3091,7 @@ export function buildStudyGuideReviewerPdfBytes(
       if (!params.matricesOnlyMode && params.includeExecutiveMarioSummary !== false && topic.beginnerSummary) {
         const takeText = `MARIO EXECUTIVE TAKEAWAY: ${cleanRuleText(topic.beginnerSummary)}`;
         const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 8.0);
-        const takeBoxH = takeLines.length * (3.3 * scale) + 4.0;
+        const takeBoxH = takeLines.length * (3.9 * scale) + 4.5;
         checkSubBlockSpace(takeBoxH);
 
         doc.setFillColor(254, 243, 199); // amber-100
@@ -3095,29 +3099,29 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.setLineWidth(0.22);
         doc.roundedRect(marginX + cardPadX, curY, innerW, takeBoxH, 1.2, 1.2, 'FD');
 
-        drawVectorMarioStar(doc, marginX + cardPadX + 3.5, curY + 3.4, 1.3);
+        drawVectorMarioStar(doc, marginX + cardPadX + 3.5, curY + 3.6, 1.4);
         doc.setTextColor(146, 64, 14); // amber-800
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(7.0 * scale);
-        doc.text(takeLines, marginX + cardPadX + 6.8, curY + 3.4);
+        doc.setFontSize(8.2 * scale);
+        doc.text(takeLines, marginX + cardPadX + 7.0, curY + 3.6);
         curY += takeBoxH + 2.2;
       }
 
       // 3. Core Rule Summary
       if (!params.matricesOnlyMode && topic.summary) {
         const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 18);
-        const ruleH = sumLines.length * (3.3 * scale) + 2.0;
+        const ruleH = sumLines.length * (3.9 * scale) + 2.2;
         checkSubBlockSpace(ruleH);
 
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(7.4 * scale);
+        doc.setFontSize(8.4 * scale);
         doc.setTextColor(15, 23, 42); // slate-950
-        doc.text('Core Rule: ', marginX + cardPadX, curY + 2.8);
+        doc.text('Core Rule: ', marginX + cardPadX, curY + 3.0);
 
         doc.setFont(ff, fp.bodyStyle);
-        doc.setFontSize(7.0 * scale);
+        doc.setFontSize(8.0 * scale);
         doc.setTextColor(30, 41, 59); // slate-800
-        doc.text(sumLines, marginX + cardPadX + 16.0, curY + 2.8);
+        doc.text(sumLines, marginX + cardPadX + 17.5, curY + 3.0);
         curY += ruleH;
       }
 
@@ -3134,7 +3138,7 @@ export function buildStudyGuideReviewerPdfBytes(
           jurLinesCount += l.length;
           return l;
         });
-        const jurBoxH = 5.2 + jurLinesCount * (3.2 * scale);
+        const jurBoxH = 5.6 + jurLinesCount * (3.8 * scale);
         checkSubBlockSpace(jurBoxH);
 
         doc.setFillColor(248, 250, 252); // slate-50
@@ -3144,16 +3148,16 @@ export function buildStudyGuideReviewerPdfBytes(
 
         doc.setTextColor(15, 23, 42);
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(6.8 * scale);
-        doc.text('CONTROLLING JURISPRUDENCE & PRECEDENTS', marginX + cardPadX + 2.5, curY + 3.4);
+        doc.setFontSize(7.8 * scale);
+        doc.text('CONTROLLING JURISPRUDENCE & PRECEDENTS', marginX + cardPadX + 2.5, curY + 3.6);
 
-        let curJy = curY + 6.6;
+        let curJy = curY + 7.0;
         allJurLines.forEach((lines) => {
           doc.setTextColor(30, 41, 59);
           doc.setFont(ff, fp.bodyStyle);
-          doc.setFontSize(6.4 * scale);
+          doc.setFontSize(7.5 * scale);
           doc.text(lines, marginX + cardPadX + 2.5, curJy);
-          curJy += lines.length * (3.2 * scale);
+          curJy += lines.length * (3.8 * scale);
         });
         curY += jurBoxH + 2.2;
       }
@@ -3169,13 +3173,13 @@ export function buildStudyGuideReviewerPdfBytes(
           sanitizePdfText(`${rIdx + 1}. ${cleanRuleText(rule.heading)}`),
           innerW
         );
-        const headingH = rHead.length * (3.6 * scale) + 1.0;
+        const headingH = rHead.length * (4.2 * scale) + 1.2;
         checkSubBlockSpace(headingH + 6.0);
 
         doc.setTextColor(15, 23, 42); // slate-950
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(7.8 * scale);
-        doc.text(rHead, marginX + cardPadX, curY + 3.0);
+        doc.setFontSize(9.0 * scale);
+        doc.text(rHead, marginX + cardPadX, curY + 3.2);
         curY += headingH;
 
         // Description
@@ -3184,56 +3188,60 @@ export function buildStudyGuideReviewerPdfBytes(
             sanitizePdfText(cleanRuleText(rule.description)),
             innerW - 4.0
           );
-          const descH = descLines.length * (3.3 * scale) + 1.0;
+          const descH = descLines.length * (3.9 * scale) + 1.2;
           checkSubBlockSpace(descH);
 
           doc.setFont(ff, fp.bodyStyle);
-          doc.setFontSize(7.0 * scale);
+          doc.setFontSize(8.0 * scale);
           doc.setTextColor(51, 65, 85); // slate-700
-          doc.text(descLines, marginX + cardPadX + 3.0, curY + 2.8);
+          doc.text(descLines, marginX + cardPadX + 3.0, curY + 3.0);
           curY += descH;
         }
 
-        // Bullet Items
+        // Bullet / Numbered Items (cleanly parsed: zero redundant - 1. or • 1.)
         if (!params.matricesOnlyMode && rule.items && rule.items.length > 0) {
           rule.items.forEach((it) => {
+            const entry = parseListEntry(it);
+            const itStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
             const itLines = doc.splitTextToSize(
-              sanitizePdfText(`• ${cleanRuleText(it)}`),
+              sanitizePdfText(itStr),
               innerW - 6.0
             );
-            const itH = itLines.length * (3.2 * scale) + 0.6;
+            const itH = itLines.length * (3.8 * scale) + 0.8;
             checkSubBlockSpace(itH);
 
-            doc.setFont(ff, fp.bodyStyle);
-            doc.setFontSize(6.8 * scale);
+            doc.setFont(ff, entry.isNumbered ? fp.headingStyle : fp.bodyStyle);
+            doc.setFontSize(7.8 * scale);
             doc.setTextColor(51, 65, 85);
-            doc.text(itLines, marginX + cardPadX + 4.5, curY + 2.6);
+            doc.text(itLines, marginX + cardPadX + 4.5, curY + 2.8);
             curY += itH;
           });
         }
 
-        // Subsections
+        // Subsections (cleanly parsed: zero redundant - 1. or • 1.)
         if (!params.matricesOnlyMode && rule.subSections && rule.subSections.length > 0) {
           rule.subSections.forEach((sub) => {
             const subTitle = doc.splitTextToSize(sanitizePdfText(cleanRuleText(sub.title)), innerW - 6.0);
-            const subH = subTitle.length * (3.2 * scale) + 0.8;
+            const subH = subTitle.length * (4.0 * scale) + 1.0;
             checkSubBlockSpace(subH + 4.0);
 
             doc.setFont(ff, fp.headingStyle);
-            doc.setFontSize(6.8 * scale);
+            doc.setFontSize(8.0 * scale);
             doc.setTextColor(15, 23, 42);
-            doc.text(subTitle, marginX + cardPadX + 4.5, curY + 2.6);
+            doc.text(subTitle, marginX + cardPadX + 4.5, curY + 3.0);
             curY += subH;
 
             sub.items.forEach((si) => {
-              const siLines = doc.splitTextToSize(sanitizePdfText(`- ${cleanRuleText(si)}`), innerW - 8.0);
-              const siH = siLines.length * (3.1 * scale) + 0.5;
+              const entry = parseListEntry(si);
+              const siStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
+              const siLines = doc.splitTextToSize(sanitizePdfText(siStr), innerW - 8.0);
+              const siH = siLines.length * (3.8 * scale) + 0.6;
               checkSubBlockSpace(siH);
 
-              doc.setFont(ff, fp.bodyStyle);
-              doc.setFontSize(6.5 * scale);
+              doc.setFont(ff, entry.isNumbered ? fp.headingStyle : fp.bodyStyle);
+              doc.setFontSize(7.6 * scale);
               doc.setTextColor(51, 65, 85);
-              doc.text(siLines, marginX + cardPadX + 6.5, curY + 2.4);
+              doc.text(siLines, marginX + cardPadX + 7.0, curY + 2.8);
               curY += siH;
             });
           });
@@ -3262,7 +3270,7 @@ export function buildStudyGuideReviewerPdfBytes(
             exLinesCount += doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 8.0).length;
           });
         });
-        const exBoxH = 5.2 + exLinesCount * (3.2 * scale);
+        const exBoxH = 5.8 + exLinesCount * (3.8 * scale);
         checkSubBlockSpace(exBoxH);
 
         doc.setFillColor(255, 241, 242); // rose-50
@@ -3272,24 +3280,26 @@ export function buildStudyGuideReviewerPdfBytes(
 
         doc.setTextColor(159, 18, 57); // rose-900
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(6.8 * scale);
-        doc.text('GENERAL RULE & STATUTORY EXCEPTIONS', marginX + cardPadX + 2.5, curY + 3.4);
+        doc.setFontSize(7.8 * scale);
+        doc.text('GENERAL RULE & STATUTORY EXCEPTIONS', marginX + cardPadX + 2.5, curY + 3.6);
 
-        let curEy = curY + 6.6;
+        let curEy = curY + 7.0;
         topic.exceptions.forEach((ex) => {
           doc.setTextColor(15, 23, 42);
           doc.setFont(ff, fp.headingStyle);
-          doc.setFontSize(6.5 * scale);
+          doc.setFontSize(7.6 * scale);
           const grLines = doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 6.0);
           doc.text(grLines, marginX + cardPadX + 2.5, curEy);
-          curEy += grLines.length * (3.2 * scale);
+          curEy += grLines.length * (3.8 * scale);
 
           doc.setFont(ff, fp.bodyStyle);
           doc.setTextColor(51, 65, 85);
           ex.exceptions.forEach((eItem) => {
-            const eLines = doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 8.0);
+            const entry = parseListEntry(eItem);
+            const eStr = entry.isNumbered ? `Exception: ${entry.marker} ${entry.text}` : `• Exception: ${entry.text}`;
+            const eLines = doc.splitTextToSize(sanitizePdfText(eStr), innerW - 8.0);
             doc.text(eLines, marginX + cardPadX + 4.5, curEy);
-            curEy += eLines.length * (3.1 * scale);
+            curEy += eLines.length * (3.6 * scale);
           });
         });
         curY += exBoxH + 2.2;
@@ -3301,14 +3311,16 @@ export function buildStudyGuideReviewerPdfBytes(
         if (combinedTips.length > 0 || topic.practicalTakeaway) {
           let tipLinesCount = 0;
           const allTipLines = combinedTips.slice(0, 4).map((t) => {
-            const l = doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(t)}`), innerW - 8.0);
+            const entry = parseListEntry(t);
+            const tStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
+            const l = doc.splitTextToSize(sanitizePdfText(tStr), innerW - 8.0);
             tipLinesCount += l.length;
             return l;
           });
           const pLines = topic.practicalTakeaway
             ? doc.splitTextToSize(sanitizePdfText(`Practical Application: ${cleanRuleText(topic.practicalTakeaway)}`), innerW - 8.0)
             : [];
-          const tipBoxH = 5.6 + (tipLinesCount + pLines.length) * (3.2 * scale) + (pLines.length > 0 ? 1.5 : 0);
+          const tipBoxH = 6.0 + (tipLinesCount + pLines.length) * (3.8 * scale) + (pLines.length > 0 ? 1.5 : 0);
           checkSubBlockSpace(tipBoxH);
 
           doc.setFillColor(254, 243, 199); // amber-100
@@ -3316,27 +3328,27 @@ export function buildStudyGuideReviewerPdfBytes(
           doc.setLineWidth(0.20);
           doc.roundedRect(marginX + cardPadX, curY, innerW, tipBoxH, 1.2, 1.2, 'FD');
 
-          drawVectorMarioStar(doc, marginX + cardPadX + 3.5, curY + 3.4, 1.4);
+          drawVectorMarioStar(doc, marginX + cardPadX + 3.5, curY + 3.6, 1.4);
           doc.setTextColor(146, 64, 14); // amber-800
           doc.setFont(ff, fp.headingStyle);
-          doc.setFontSize(6.8 * scale);
-          doc.text('MEMORY TRAPS & HIGH-YIELD TAKEAWAYS', marginX + cardPadX + 6.8, curY + 3.6);
+          doc.setFontSize(7.8 * scale);
+          doc.text('MEMORY TRAPS & HIGH-YIELD TAKEAWAYS', marginX + cardPadX + 7.0, curY + 3.8);
 
-          let curTy = curY + 6.8;
+          let curTy = curY + 7.2;
           allTipLines.forEach((lines) => {
             doc.setTextColor(69, 26, 3);
             doc.setFont(ff, fp.bodyStyle);
-            doc.setFontSize(6.4 * scale);
+            doc.setFontSize(7.5 * scale);
             doc.text(lines, marginX + cardPadX + 3.0, curTy);
-            curTy += lines.length * (3.2 * scale);
+            curTy += lines.length * (3.7 * scale);
           });
 
           if (pLines.length > 0) {
             doc.setTextColor(120, 53, 15);
             doc.setFont(ff, fp.headingStyle);
-            doc.setFontSize(6.4 * scale);
+            doc.setFontSize(7.6 * scale);
             doc.text(pLines, marginX + cardPadX + 3.0, curTy);
-            curTy += pLines.length * (3.2 * scale);
+            curTy += pLines.length * (3.7 * scale);
           }
           curY += tipBoxH + 2.2;
         }

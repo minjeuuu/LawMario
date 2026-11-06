@@ -12,6 +12,13 @@ export interface SubClauseItem {
   text: string;
 }
 
+export interface CleanListEntry {
+  raw: string;
+  marker: string;
+  text: string;
+  isNumbered: boolean;
+}
+
 export interface FormattedModuleItem {
   kind: FormattedItemKind;
   tone: CalloutTone;
@@ -23,14 +30,58 @@ export interface FormattedModuleItem {
 }
 
 /**
- * Cleanly strips leading bullet glyphs or "Bar Tip:" prefixes while preserving real text.
+ * Cleanly strips leading bullet glyphs, redundant dashes before numbering, or "Bar Tip:" prefixes.
  */
 export function cleanRuleText(raw: string): string {
   if (!raw) return '';
   return raw
-    .replace(/^\s*[•\-\*\u25AA\u25AB\u25BA]\s*/, '')
+    // Strip redundant bullet/dash sitting in front of numbering (e.g. "- 1." or "• 1." or "- (1)")
+    .replace(/^\s*[•\-\*\u2022\u25AA\u25AB\u25BA]\s*(?=(\d+[\.\)]|\([a-z0-9]+\)|[a-z][\.\)]))/i, '')
+    // Strip standalone leading bullet/dash glyph
+    .replace(/^\s*[•\-\*\u2022\u25AA\u25AB\u25BA]\s*/, '')
     .replace(/^Bar Tip:\s*/i, '')
     .trim();
+}
+
+/**
+ * Parses any list item or sub-item to detect whether it is already numbered (e.g. "1.", "2.", "(a)")
+ * and strips any redundant double-markers (such as "- 1." or "• 1.").
+ * Returns clean marker and text so renderers never print "- 1." or "• 1.".
+ */
+export function parseListEntry(rawText: string, defaultBullet = '•'): CleanListEntry {
+  if (!rawText) {
+    return { raw: '', marker: defaultBullet, text: '', isNumbered: false };
+  }
+  const text = cleanRuleText(rawText);
+
+  // Check if text starts with explicit number or letter marker: e.g. "1. ", "2) ", "(1) ", "(a) ", "a. "
+  const numMatch = text.match(/^(\d+[\.\)]|\([a-z0-9]+\)|[a-z][\.\)])\s+(.*)$/i);
+  if (numMatch) {
+    return {
+      raw: text,
+      marker: numMatch[1],
+      text: numMatch[2].trim(),
+      isNumbered: true,
+    };
+  }
+
+  // Check if text still starts with a bullet marker: e.g. "• ", "- "
+  const bulletMatch = text.match(/^\s*[-•*\u2022\u25AA\u25AB\u25BA]\s+(.*)$/);
+  if (bulletMatch) {
+    return {
+      raw: text,
+      marker: defaultBullet,
+      text: bulletMatch[1].trim(),
+      isNumbered: false,
+    };
+  }
+
+  return {
+    raw: text,
+    marker: defaultBullet,
+    text: text,
+    isNumbered: false,
+  };
 }
 
 /**
