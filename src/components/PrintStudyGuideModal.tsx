@@ -174,6 +174,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [zoomPreset, setZoomPreset] = useState<PreviewZoomPreset>('fit');
   const [previewRenderMode, setPreviewRenderMode] = useState<'sheet' | 'pdf'>('sheet');
   const [showVisualSwatches, setShowVisualSwatches] = useState<boolean>(true);
+  const [swatchViewMode, setSwatchViewMode] = useState<'themes' | 'fonts'>('themes');
+  const [themeCategoryFilter, setThemeCategoryFilter] = useState<string>('All');
+  const [fontCategoryFilter, setFontCategoryFilter] = useState<string>('All');
   const [twoColumnLayout, setTwoColumnLayout] = useState(false);
   const [includeWatermark, setIncludeWatermark] = useState(false);
   const [includeFormulasCheatSheet, setIncludeFormulasCheatSheet] = useState(true);
@@ -921,7 +924,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 data-testid="download-active-pdf-btn"
                 onClick={handleDownloadPdf}
                 className="min-h-[42px] flex-1 sm:flex-initial justify-center inline-flex items-center gap-2 px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform"
-                title="Download Clean Vector PDF file (.pdf)"
+                title="Download PDF file (.pdf)"
               >
                 <FileDown className="w-4 h-4 shrink-0" />
                 <span>
@@ -1209,82 +1212,207 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             )}
           </div>
 
-          {/* Interactive 44 Color Theme Swatches + 36 True-Font Preview Pills */}
+          {/* Interactive Themes & Fonts Swatches Studio — Super UI/UX Friendly */}
           {showVisualSwatches && (
             <div
               data-testid="print-visual-themes-fonts-strip"
-              className="pt-2 border-t border-slate-800/90 grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-[26vh] overflow-y-auto pr-1"
+              className="pt-2.5 pb-1 border-t border-slate-800 space-y-2.5"
             >
-              {/* 44 Color Swatches */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-slate-400 mr-0.5">
-                  Palette ({EXTENDED_PRINT_COLOR_THEMES.length}):
-                </span>
-                {EXTENDED_PRINT_COLOR_THEMES.map((themeItem) => {
-                  const isSelected = activeExtendedTheme.id === themeItem.id;
-                  return (
-                    <button
-                      key={themeItem.id}
-                      type="button"
-                      data-testid={`print-theme-swatch-${themeItem.id}`}
-                      onClick={() =>
-                        updateFormat(
-                          'colorAccent',
-                          themeItem.id as PrintGuideFormatOptions['colorAccent']
-                        )
-                      }
-                      title={`${themeItem.name} (${themeItem.category})`}
-                      className={`min-h-[28px] px-2 py-1 rounded-lg border text-[10px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
-                          : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
-                      }`}
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full shrink-0 border border-white/40"
-                        style={{ backgroundColor: themeItem.swatchHexes[0] }}
-                      />
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0 -ml-1"
-                        style={{ backgroundColor: themeItem.swatchHexes[1] }}
-                      />
-                      <span>{themeItem.name}</span>
-                    </button>
-                  );
-                })}
+              {/* Header Controls: Tab Switcher + Category Filters */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                {/* Segmented Switcher: Themes vs Fonts */}
+                <div className="inline-flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700 shrink-0 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    data-testid="swatch-tab-themes-btn"
+                    onClick={() => {
+                      marioAudio.playClick();
+                      setSwatchViewMode('themes');
+                    }}
+                    className={`min-h-[32px] px-3 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                      swatchViewMode === 'themes'
+                        ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <Palette className="w-3.5 h-3.5 shrink-0" />
+                    <span>Color Themes ({EXTENDED_PRINT_COLOR_THEMES.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="swatch-tab-fonts-btn"
+                    onClick={() => {
+                      marioAudio.playClick();
+                      setSwatchViewMode('fonts');
+                    }}
+                    className={`min-h-[32px] px-3 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                      swatchViewMode === 'fonts'
+                        ? 'bg-emerald-400 text-slate-950 shadow-[0_2px_0_#000]'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <Type className="w-3.5 h-3.5 shrink-0" />
+                    <span>Typography Fonts ({EXTENDED_PRINT_FONT_CATALOG.length})</span>
+                  </button>
+                </div>
+
+                {/* Category Filter Chips */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+                  {swatchViewMode === 'themes' ? (
+                    (['All', 'Mario Kingdom', 'Legal & Classic', 'Editorial & Luxury', 'Pastel & Ink-Saver'] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          marioAudio.playClick();
+                          setThemeCategoryFilter(cat);
+                        }}
+                        className={`min-h-[26px] px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-colors border ${
+                          themeCategoryFilter === cat
+                            ? 'bg-slate-800 text-amber-300 border-amber-400 font-black'
+                            : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))
+                  ) : (
+                    (['All', 'Sans-Serif', 'Legal Serif', 'Display & Mario', 'Tabular Mono'] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          marioAudio.playClick();
+                          setFontCategoryFilter(cat);
+                        }}
+                        className={`min-h-[26px] px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer transition-colors border ${
+                          fontCategoryFilter === cat
+                            ? 'bg-slate-800 text-emerald-300 border-emerald-400 font-black'
+                            : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
 
-              {/* 36 True-Font Style Pills */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-slate-400 mr-0.5">
-                  Typeface ({EXTENDED_PRINT_FONT_CATALOG.length}):
-                </span>
-                {EXTENDED_PRINT_FONT_CATALOG.map((fontItem) => {
-                  const isSelected = activeExtendedFont.id === fontItem.id;
-                  return (
-                    <button
-                      key={fontItem.id}
-                      type="button"
-                      data-testid={`print-font-pill-${fontItem.id}`}
-                      onClick={() =>
-                        updateFormat(
-                          'fontStyle',
-                          fontItem.id as PrintGuideFormatOptions['fontStyle']
-                        )
-                      }
-                      title={`${fontItem.name} — ${fontItem.sampleText}`}
-                      style={{ fontFamily: fontItem.cssFontFamily }}
-                      className={`min-h-[28px] px-2 py-1 rounded-lg border text-[10px] inline-flex items-center gap-1 cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-emerald-400 text-slate-950 border-black font-black shadow-[0_1px_0_#000]'
-                          : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700 font-semibold'
-                      }`}
-                    >
-                      <span>Aa</span>
-                      <span>{fontItem.name}</span>
-                    </button>
-                  );
-                })}
+              {/* Swatches Grid */}
+              <div className="max-h-[30vh] sm:max-h-[34vh] overflow-y-auto pr-1">
+                {swatchViewMode === 'themes' ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {EXTENDED_PRINT_COLOR_THEMES.filter(
+                      (t) => themeCategoryFilter === 'All' || t.category === themeCategoryFilter
+                    ).map((themeItem) => {
+                      const isSelected = activeExtendedTheme.id === themeItem.id;
+                      return (
+                        <button
+                          key={themeItem.id}
+                          type="button"
+                          data-testid={`print-theme-swatch-${themeItem.id}`}
+                          onClick={() => {
+                            marioAudio.playCoin();
+                            updateFormat(
+                              'colorAccent',
+                              themeItem.id as PrintGuideFormatOptions['colorAccent']
+                            );
+                          }}
+                          className={`min-h-[58px] p-2 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between gap-1.5 relative overflow-hidden group ${
+                            isSelected
+                              ? 'bg-amber-400/15 border-amber-400 ring-2 ring-amber-400/60 shadow-[0_4px_12px_rgba(251,191,36,0.25)]'
+                              : 'bg-slate-900/90 hover:bg-slate-850 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          {/* Palette Multi-Bar Swatch */}
+                          <div className="flex items-center justify-between gap-1.5 w-full">
+                            <div className="flex items-center h-3.5 rounded-md overflow-hidden border border-white/20 flex-1 shadow-xs">
+                              {themeItem.swatchHexes.map((hex, idx) => (
+                                <span
+                                  key={idx}
+                                  className="h-full flex-1"
+                                  style={{ backgroundColor: hex }}
+                                />
+                              ))}
+                            </div>
+                            {isSelected && (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            )}
+                          </div>
+
+                          {/* Theme Name & Badge */}
+                          <div className="min-w-0">
+                            <span
+                              className={`text-[11px] font-black block truncate leading-tight ${
+                                isSelected ? 'text-amber-300' : 'text-slate-100 group-hover:text-white'
+                              }`}
+                            >
+                              {themeItem.name}
+                            </span>
+                            <span className="text-[9px] font-medium text-slate-400 block truncate">
+                              {themeItem.badge} · {themeItem.category.replace(' & ', '/')}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                    {EXTENDED_PRINT_FONT_CATALOG.filter(
+                      (f) => fontCategoryFilter === 'All' || f.category === fontCategoryFilter
+                    ).map((fontItem) => {
+                      const isSelected = activeExtendedFont.id === fontItem.id;
+                      return (
+                        <button
+                          key={fontItem.id}
+                          type="button"
+                          data-testid={`print-font-pill-${fontItem.id}`}
+                          onClick={() => {
+                            marioAudio.playClick();
+                            updateFormat(
+                              'fontStyle',
+                              fontItem.id as PrintGuideFormatOptions['fontStyle']
+                            );
+                          }}
+                          className={`min-h-[62px] p-2 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between gap-1 relative overflow-hidden group ${
+                            isSelected
+                              ? 'bg-emerald-400/15 border-emerald-400 ring-2 ring-emerald-400/60 shadow-[0_4px_12px_rgba(52,211,153,0.25)]'
+                              : 'bg-slate-900/90 hover:bg-slate-850 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 w-full">
+                            <span
+                              style={{ fontFamily: fontItem.cssFontFamily }}
+                              className="text-lg font-bold text-white leading-none tracking-normal"
+                            >
+                              Aa
+                            </span>
+                            {isSelected && (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <span
+                              className={`text-[11px] font-black block truncate leading-tight ${
+                                isSelected ? 'text-emerald-300' : 'text-slate-100 group-hover:text-white'
+                              }`}
+                            >
+                              {fontItem.name}
+                            </span>
+                            <span
+                              style={{ fontFamily: fontItem.cssFontFamily }}
+                              className="text-[9.5px] text-slate-400 block truncate leading-tight mt-0.5"
+                            >
+                              {fontItem.sampleText}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
