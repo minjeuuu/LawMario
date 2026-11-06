@@ -905,23 +905,77 @@ export function drawVectorMarioStar(
   doc.setFillColor(...starRgb);
   doc.setDrawColor(...borderRgb);
   doc.setLineWidth(0.25);
-  doc.circle(cx, cy, innerR * 1.15, 'F');
+
+  // Fill star polygon using triangles from center
   for (let i = 0; i < spikes * 2; i++) {
-    const angle = (i * Math.PI) / spikes - Math.PI / 2;
-    const nextAngle = ((i + 1) * Math.PI) / spikes - Math.PI / 2;
-    const currentR = i % 2 === 0 ? r : innerR;
-    const nextR = (i + 1) % 2 === 0 ? r : innerR;
-    const x1 = cx + Math.cos(angle) * currentR;
-    const y1 = cy + Math.sin(angle) * currentR;
-    const x2 = cx + Math.cos(nextAngle) * nextR;
-    const y2 = cy + Math.sin(nextAngle) * nextR;
+    const angle1 = (i * Math.PI) / spikes - Math.PI / 2;
+    const angle2 = ((i + 1) * Math.PI) / spikes - Math.PI / 2;
+    const r1 = i % 2 === 0 ? r : innerR;
+    const r2 = (i + 1) % 2 === 0 ? r : innerR;
+    const x1 = cx + Math.cos(angle1) * r1;
+    const y1 = cy + Math.sin(angle1) * r1;
+    const x2 = cx + Math.cos(angle2) * r2;
+    const y2 = cy + Math.sin(angle2) * r2;
+    doc.triangle(cx, cy, x1, y1, x2, y2, 'F');
     doc.line(x1, y1, x2, y2);
   }
+
+  // Draw iconic vertical Mario Star eyes
   doc.setFillColor(15, 23, 42);
   const eyeW = Math.max(0.25, r * 0.12);
-  const eyeH = Math.max(0.6, r * 0.32);
-  doc.rect(cx - r * 0.22, cy - eyeH * 0.5, eyeW, eyeH, 'F');
-  doc.rect(cx + r * 0.1, cy - eyeH * 0.5, eyeW, eyeH, 'F');
+  const eyeH = Math.max(0.6, r * 0.35);
+  doc.rect(cx - r * 0.22, cy - eyeH * 0.45, eyeW, eyeH, 'F');
+  doc.rect(cx + r * 0.1, cy - eyeH * 0.45, eyeW, eyeH, 'F');
+}
+
+/**
+ * Draws a Mario Gold Coin in pure vector geometry (zero emoji)
+ */
+export function drawVectorMarioCoin(
+  doc: jsPDF,
+  cx: number,
+  cy: number,
+  r: number
+): void {
+  doc.setFillColor(250, 204, 21);
+  doc.setDrawColor(180, 83, 9);
+  doc.setLineWidth(0.2);
+  doc.circle(cx, cy, r, 'FD');
+  doc.setFillColor(234, 179, 8);
+  doc.circle(cx, cy, r * 0.72, 'F');
+  doc.setFillColor(254, 240, 138);
+  doc.rect(cx - r * 0.16, cy - r * 0.52, r * 0.32, r * 1.04, 'F');
+}
+
+/**
+ * Draws a Mario Brick Strip header border in pure vector geometry (zero emoji)
+ */
+export function drawVectorMarioBrickStrip(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  h: number = 2.0,
+  brickRgb: RgbTuple = [185, 28, 28],
+  mortarRgb: RgbTuple = [30, 20, 20]
+): void {
+  doc.setFillColor(...mortarRgb);
+  doc.rect(x, y, w, h, 'F');
+  const brickW = 6.0;
+  const brickH = (h - 0.35) / 2;
+  const numBricks = Math.ceil(w / brickW);
+  doc.setFillColor(...brickRgb);
+  for (let b = 0; b < numBricks; b++) {
+    const bx = x + b * brickW;
+    const bw = Math.min(brickW - 0.35, x + w - bx);
+    if (bw > 0) doc.rect(bx, y, bw, brickH, 'F');
+  }
+  for (let b = -1; b < numBricks; b++) {
+    const bx = x + b * brickW + brickW / 2;
+    const startX = Math.max(x, bx);
+    const endX = Math.min(x + w, bx + brickW - 0.35);
+    if (endX > startX) doc.rect(startX, y + brickH + 0.35, endX - startX, brickH, 'F');
+  }
 }
 
 export interface OnePageSummaryPdfOptions {
@@ -998,6 +1052,13 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.setTextColor(...theme.kickerText);
   }
 
+  // Pure Vector Mario Elements in Header (Zero Emoji / 100% Vector Art)
+  if (!theme.isInkSaver) {
+    drawVectorMarioCoinBlock(doc, marginX + 2.5, 9.8, 11, theme.accent, theme.secondaryAccent);
+    drawVectorMarioStar(doc, pageW - marginX - 8.0, 15.4, 5.2, [253, 224, 71], [180, 83, 9]);
+    drawVectorMarioBrickStrip(doc, marginX, 23.0, contentW, 1.4, theme.accent, theme.borderStrong);
+  }
+
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(6.3 * fScale);
   doc.text(
@@ -1009,7 +1070,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
 
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(11.2 * fScale);
+  doc.setFontSize(10.8 * fScale);
   doc.text('ONE-PAGE STATUTORY FORMULAS & DEADLINES MASTER SHEET (A4)', pageW / 2, 16.9, {
     align: 'center',
   });
@@ -1345,9 +1406,8 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     [18, H - 18],
     [W - 18, H - 18],
   ];
-  doc.setFillColor(...theme.accent);
   corners.forEach(([cx, cy]) => {
-    doc.circle(cx, cy, 2.1, 'F');
+    drawVectorMarioStar(doc, cx, cy, 3.8, [253, 224, 71], [180, 83, 9]);
   });
 
   if (orient === 'portrait') {
@@ -2111,11 +2171,16 @@ export function buildStudyGuideReviewerPdfBytes(
       doc.rect(marginX, y, contentW, 7.2, 'F');
       doc.setTextColor(...theme.kickerText);
     }
+    const isWorldBanner = title.toUpperCase().startsWith('WORLD');
+    if (isWorldBanner && !theme.isInkSaver) {
+      drawVectorMarioStar(doc, marginX + 4.2, y + 3.6, 2.3, [253, 224, 71], [180, 83, 9]);
+    }
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(8.3 * scale);
-    const maxTitleW = rightTag ? contentW - 42 : contentW - 5;
+    const maxTitleW = rightTag ? contentW - 46 : contentW - 8;
     const clampedTitle = doc.splitTextToSize(sanitizePdfText(title), maxTitleW)[0] || '';
-    doc.text(clampedTitle, marginX + 2.5, y + 4.9);
+    const textStartX = isWorldBanner && !theme.isInkSaver ? marginX + 8.2 : marginX + 2.5;
+    doc.text(clampedTitle, textStartX, y + 4.9);
     if (rightTag) {
       doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
       doc.setFont(ff, fp.subHeadingStyle);
@@ -2221,6 +2286,13 @@ export function buildStudyGuideReviewerPdfBytes(
     doc.setFillColor(...theme.primary);
     doc.rect(marginX, y, contentW, 20.5, 'F');
     doc.setTextColor(...theme.kickerText);
+  }
+
+  // Pure Vector Mario Elements in Reviewer Masthead (Zero Emoji / 100% Vector Art)
+  if (!theme.isInkSaver) {
+    drawVectorMarioCoinBlock(doc, marginX + 3.0, y + 4.5, 11.5, theme.accent, theme.secondaryAccent);
+    drawVectorMarioStar(doc, pageW - marginX - 9.0, y + 10.2, 5.5, [253, 224, 71], [180, 83, 9]);
+    drawVectorMarioBrickStrip(doc, marginX, y + 20.5, contentW, 1.8, theme.accent, theme.borderStrong);
   }
 
   doc.setFont(ff, fp.headingStyle);
@@ -2463,8 +2535,92 @@ export function buildStudyGuideReviewerPdfBytes(
     );
 
     worldTopics.forEach((topic) => {
-      ensureSpace(24);
       const isDone = params.completedTopicIds.includes(topic.id);
+
+      // Pre-calculate full module height to guarantee NO CUTS PER MODULE
+      let topicH = 4.5;
+      const checkPrefix =
+        params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
+      const headerLabel =
+        params.includeLegalCitations !== false
+          ? `${checkPrefix}${topic.title} [${topic.badge}]`
+          : `${checkPrefix}${topic.title}`;
+      const titleLines = doc.splitTextToSize(sanitizePdfText(headerLabel), contentW - 32);
+      topicH += titleLines.length * (4.1 * scale * fp.lineHeightMultiplier) + 1.2;
+
+      if (!params.matricesOnlyMode && topic.summary) {
+        const sumLines = doc.splitTextToSize(
+          sanitizePdfText(`Core Summary: ${cleanRuleText(topic.summary)}`),
+          contentW - 2
+        );
+        topicH += sumLines.length * (3.6 * scale * fp.lineHeightMultiplier) + 1.5;
+      }
+
+      const rules = params.matricesOnlyMode
+        ? topic.rules.filter((r) => Boolean(r.tableData))
+        : topic.rules;
+
+      rules.forEach((rule, rIdx) => {
+        const rHead = doc.splitTextToSize(
+          sanitizePdfText(`${rIdx + 1}. ${cleanRuleText(rule.heading)}`),
+          contentW - 4
+        );
+        topicH += rHead.length * (3.7 * scale * fp.lineHeightMultiplier);
+
+        if (!params.matricesOnlyMode && rule.description) {
+          const descLines = doc.splitTextToSize(
+            sanitizePdfText(cleanRuleText(rule.description)),
+            contentW - 8
+          );
+          topicH += descLines.length * (3.4 * scale) + 1.0;
+        }
+
+        if (!params.matricesOnlyMode && rule.items && rule.items.length > 0) {
+          rule.items.forEach((it) => {
+            const itLines = doc.splitTextToSize(
+              sanitizePdfText(`- ${cleanRuleText(it)}`),
+              contentW - 10
+            );
+            topicH += itLines.length * (3.4 * scale) + 0.6;
+          });
+        }
+
+        if (rule.tableData) {
+          topicH += (rule.tableData.rows.length + 1) * (5.5 * scale) + 3.0;
+        }
+      });
+
+      if (!params.matricesOnlyMode && params.includeBarTips !== false) {
+        const tips = [...(topic.keyTips || []), ...(topic.barTips || [])];
+        if (tips.length > 0) {
+          tips.slice(0, 3).forEach((tip) => {
+            const tipLines = doc.splitTextToSize(
+              sanitizePdfText(`Key Study Checkpoint: ${cleanRuleText(tip)}`),
+              contentW - 8
+            );
+            topicH += tipLines.length * (3.4 * scale) + 0.8;
+          });
+        }
+      }
+
+      if (params.blankNoteLinesCount && params.blankNoteLinesCount > 0) {
+        const linesCount = Math.min(10, params.blankNoteLinesCount);
+        topicH += linesCount * 5.2 + 6.0;
+      }
+
+      topicH += 2.5;
+
+      // NO CUTS PER MODULE:
+      // If the module can fit on an intact fresh page, but doesn't fit on the current page,
+      // advance to a new page so that the entire module stays 100% complete and uncut!
+      const availablePageSpace = pageH - marginBottom - y;
+      const fullPageCapacity = pageH - marginTop - marginBottom;
+
+      if (topicH <= fullPageCapacity && topicH > availablePageSpace) {
+        addThemedPage();
+      } else if (availablePageSpace < 22) {
+        addThemedPage();
+      }
 
       doc.setDrawColor(...theme.borderStrong);
       doc.setLineWidth(0.3);
@@ -2474,13 +2630,6 @@ export function buildStudyGuideReviewerPdfBytes(
       doc.setTextColor(...theme.bodyText);
       doc.setFont(ff, fp.headingStyle);
       doc.setFontSize(8.8 * scale);
-      const checkPrefix =
-        params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
-      const headerLabel =
-        params.includeLegalCitations !== false
-          ? `${checkPrefix}${topic.title} [${topic.badge}]`
-          : `${checkPrefix}${topic.title}`;
-      const titleLines = doc.splitTextToSize(sanitizePdfText(headerLabel), contentW - 32);
       doc.text(titleLines, marginX, y);
       doc.setFont(ff, fp.subHeadingStyle);
       doc.setFontSize(6.8 * scale);
@@ -2500,10 +2649,6 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.text(sumLines, marginX + 1, y);
         y += sumLines.length * (3.6 * scale * fp.lineHeightMultiplier) + 1.5;
       }
-
-      const rules = params.matricesOnlyMode
-        ? topic.rules.filter((r) => Boolean(r.tableData))
-        : topic.rules;
 
       rules.forEach((rule, rIdx) => {
         ensureSpace(16);
@@ -2762,6 +2907,11 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
   doc.setDrawColor(...theme.badgeBorder);
   doc.setLineWidth(0.5);
   doc.roundedRect(W - 84, 18, 64, 25, 2.5, 2.5, 'FD');
+
+  if (!theme.isInkSaver) {
+    drawVectorMarioStar(doc, W - 92, 30.5, 4.5, [253, 224, 71], [180, 83, 9]);
+    drawVectorMarioBrickStrip(doc, 16, 45.5, W - 32, 1.8, theme.accent, theme.borderStrong);
+  }
   doc.setTextColor(...theme.badgeText);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(18 * sScale);

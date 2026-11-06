@@ -291,74 +291,45 @@ export async function captureDomElementToPdfBytesAsync(
 }
 
 /**
- * 1. Multi-Page Unabridged Reviewer PDF rendered with true font fidelity.
+ * 1. Multi-Page Unabridged Reviewer PDF rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontStudyReviewerPdfBytesAsync(
   params: StudyGuideReviewerPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  const orient = params.orientation === 'landscape' ? 'landscape' : 'portrait';
-  const snapBytes = await captureDomElementToPdfBytesAsync(
-    'printable-study-guide',
-    orient,
-    params.fontStyle
-  );
-  if (snapBytes) return snapBytes;
   return buildStudyGuideReviewerPdfBytes(params);
 }
 
 /**
- * 2. Exact 1-Page A4 Summary Sheet rendered with true font fidelity.
+ * 2. Exact 1-Page A4 Summary Sheet rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontOnePageSummaryPdfBytesAsync(
   options: OnePageSummaryPdfOptions = {}
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(options.fontStyle);
-  const snapBytes = await captureDomElementToPdfBytesAsync(
-    'one-page-summary-sheet',
-    'portrait',
-    options.fontStyle
-  );
-  if (snapBytes) return snapBytes;
   return buildOnePageSummaryPdfBytes(options);
 }
 
 /**
- * 3. Executive Mastery Certificate OR Royal Grand Master Diploma rendered with true font fidelity.
+ * 3. Executive Mastery Certificate OR Royal Grand Master Diploma rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontCertificateOrDiplomaPdfBytesAsync(
   params: CertificatePdfParams,
   isMasterDiploma: boolean = false
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  const orient = params.orientation === 'portrait' ? 'portrait' : 'landscape';
-  const targetIds = isMasterDiploma
-    ? ['royal-juris-diploma-sheet', 'master-diploma-printable']
-    : ['official-labor-certificate'];
-  const snapBytes = await captureDomElementToPdfBytesAsync(
-    targetIds,
-    orient,
-    params.fontStyle
-  );
-  if (snapBytes) return snapBytes;
   return isMasterDiploma
     ? buildMasterDiplomaPdfBytes(params)
     : buildCertificatePdfBytes(params);
 }
 
 /**
- * 4. Official Hero Score Card Landscape PDF rendered with true font fidelity.
+ * 4. Official Hero Score Card Landscape PDF rendered as 100% Vector PDF (real PDF, zero images).
  */
 export async function buildTrueFontScoreCardPdfBytesAsync(
   params: ScoreCardPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
-  const snapBytes = await captureDomElementToPdfBytesAsync(
-    ['official-scorecard-sheet', 'official-player-scorecard'],
-    'landscape',
-    params.fontStyle
-  );
-  if (snapBytes) return snapBytes;
   return buildScoreCardLandscapePdfBytes(params);
 }
 

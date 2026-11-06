@@ -47,7 +47,6 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
-  invokeBrowserPrint,
 } from '../utils/printHelper';
 import { getPrintFontCssStack } from '../utils/round11Features';
 import {
@@ -623,18 +622,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     window.setTimeout(() => setPdfDownloadedNotice(false), 2600);
   };
 
-  const handleSaveNativeVectorPdf = () => {
-    marioAudio.playCoin();
-    const resolvedExtFont = resolveExtendedPrintFont(formatOptions.fontStyle);
-    const fontStack = resolvedExtFont.cssFontFamily;
-    const orient = isLandscapeDocument ? 'landscape' : 'portrait';
-    invokeBrowserPrint({
-      orientation: orient,
-      marginCss: '0',
-      fontStack,
-    });
-  };
-
   const isCompact = formatOptions.compactLayout;
   const activeThemeCatalog = getPrintThemeCatalogItem(formatOptions.colorAccent);
   const activeFontCatalog = getPrintFontCatalogItem(formatOptions.fontStyle);
@@ -931,28 +918,17 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
               <button
                 type="button"
-                data-testid="print-native-vector-pdf-btn"
-                onClick={handleSaveNativeVectorPdf}
-                className="min-h-[42px] px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-transform"
-                title="Save as 100% Vector PDF using the exact HTML, CSS, fonts, and Mario graphics via your browser's native Save as PDF engine"
-              >
-                <Printer className="w-4 h-4 shrink-0" />
-                <span>Save Vector PDF (Exact HTML)</span>
-              </button>
-
-              <button
-                type="button"
                 data-testid="download-active-pdf-btn"
                 onClick={handleDownloadPdf}
-                className="min-h-[42px] flex-1 sm:flex-initial justify-center inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform"
-                title="Download 300+ DPI Ultra-HD PDF file"
+                className="min-h-[42px] flex-1 sm:flex-initial justify-center inline-flex items-center gap-2 px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform"
+                title="Download Clean Vector PDF file (.pdf)"
               >
                 <FileDown className="w-4 h-4 shrink-0" />
                 <span>
                   {pdfDownloadedNotice
                     ? 'PDF Downloaded (.pdf)'
                     : documentMode === 'summary'
-                    ? 'Download 300 DPI PDF'
+                    ? 'Download 1-Page Summary PDF'
                     : documentMode === 'certificate'
                     ? 'Download Certificate PDF'
                     : documentMode === 'scorecard'
@@ -3322,9 +3298,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           return (
                             <article
                               key={topic.id}
-                              className={`border border-slate-400 rounded-xl bg-white ${
+                              className={`border-y sm:border-y border-slate-300 bg-white ${
                                 isCompact ? 'p-3 space-y-2' : 'p-4 space-y-3'
-                              } ${twoColumnLayout ? 'break-inside-avoid mb-4 inline-block w-full' : ''} ${
+                              } break-inside-avoid print:break-inside-avoid ${twoColumnLayout ? 'mb-4 inline-block w-full' : ''} ${
                                 formatOptions.pageBreakPerModule && topicIdx > 0
                                   ? 'print-module-break'
                                   : ''
