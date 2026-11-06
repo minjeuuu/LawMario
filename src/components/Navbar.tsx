@@ -75,6 +75,8 @@ import {
   MARIO_NAVBAR_AMBIENCE_OPTIONS,
   resolveEquippedNameplate,
   resolveCompanionInteraction,
+  resolveUniversalCardFrame,
+  type CardFrameId,
 } from '../utils/round12Features';
 import {
   DAILY_GOAL_INCREMENTS,
@@ -104,6 +106,7 @@ interface NavbarProps {
   loginStreak: number;
   isBonusClaimedToday: boolean;
   equippedAvatar?: MarioAvatar;
+  equippedCardFrame?: CardFrameId;
   colorMode: ColorMode;
   onToggleColorMode: () => void;
   unlockedAchievementsCount?: number;
@@ -177,6 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   loginStreak,
   isBonusClaimedToday,
   equippedAvatar = 'mario',
+  equippedCardFrame = 'frame_default',
   colorMode,
   onToggleColorMode,
   unlockedAchievementsCount = 0,
@@ -258,6 +262,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const companionMeta = resolveCompanionInteraction(equippedCompanionId);
+  const resolvedEquippedFrame = resolveUniversalCardFrame(equippedCardFrame);
 
   const effectiveDailyGoal = normalizeDailyGoalMinutes(dailyGoalMinutes);
   const dailyGoalProgress = computeDailyStudyGoalProgress(
@@ -328,10 +333,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     marioAudio.playCoin();
   };
 
-  const handleTabClick = (tab: string) => {
+  const handleTabClick = (tab: string, e?: React.MouseEvent) => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
     marioAudio.playTabSwitch();
+    if (e && e.currentTarget) {
+      try {
+        (e.currentTarget as HTMLElement).scrollIntoView({ inline: 'nearest', behavior: 'smooth' });
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const handleToggleStudyDifficulty = () => {
@@ -440,9 +452,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <div
                   data-testid="navbar-avatar-profile-btn"
-                  data-avatar-frame={luxuryAvatarFrame || 'default'}
+                  data-avatar-frame={equippedCardFrame || luxuryAvatarFrame || 'default'}
                   className={`w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-lg inline-flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
-                    luxuryAvatarFrame.includes('diamond') || luxuryAvatarFrame.includes('cosmic')
+                    equippedCardFrame && equippedCardFrame !== 'frame_default'
+                      ? resolvedEquippedFrame.borderClasses
+                      : luxuryAvatarFrame.includes('diamond') || luxuryAvatarFrame.includes('cosmic')
                       ? 'bg-cyan-300 border-2 border-cyan-100 ring-2 ring-cyan-400'
                       : luxuryAvatarFrame.includes('crimson') || luxuryAvatarFrame.includes('bowser')
                       ? 'bg-rose-500 border-2 border-amber-300 ring-2 ring-rose-400'
@@ -1100,7 +1114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {showMoreToolsMenu && (
                   <div
                     data-testid="navbar-more-tools-popover"
-                    className="mario-menu-press2p absolute right-0 top-full mt-2 w-80 bg-slate-950/95 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[6px_6px_0_#000] z-50 text-white space-y-2.5 backdrop-blur-md"
+                    className="mario-menu-press2p absolute right-0 top-full mt-2 w-80 bg-slate-950/95 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[6px_6px_0_#000] z-50 text-white space-y-2.5 backdrop-blur-md max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain"
                   >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
@@ -1656,24 +1670,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Desktop Navigation — Responsive Royal Tabs, Tablet-Safe, Zero Horizontal Scroll */}
+          {/* Desktop & Tablet Navigation — Responsive Royal Tabs, Tablet-Safe, Zero Horizontal Scroll */}
           <nav
             aria-label="Primary Navigation"
             data-testid="desktop-primary-nav"
-            className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between"
+            className="hidden md:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between"
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => {
               const isSansTab =
                 item.id === 'wages_matrix' || item.id === 'calculator' || item.id === 'shop';
               const labelTypography = isSansTab
-                ? 'font-sans font-black text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs'
-                : 'font-mario font-bold text-[7px] min-[1180px]:text-[7.5px] xl:text-[8.5px] 2xl:text-[9.5px] tracking-tighter';
+                ? 'font-sans font-black text-[9px] sm:text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs'
+                : 'font-mario font-bold text-[6.5px] sm:text-[7px] min-[1180px]:text-[7.5px] xl:text-[8.5px] 2xl:text-[9.5px] tracking-tighter';
               return (
                 <button
                   key={item.id}
                   type="button"
                   data-nav-font={isSansTab ? 'sans' : 'mario'}
-                  onClick={() => handleTabClick(item.id)}
+                  onClick={(e) => handleTabClick(item.id, e)}
                   title={item.label}
                   className={`h-9 px-1 min-[1180px]:px-1.5 xl:px-2.5 inline-flex items-center justify-center gap-0.5 xl:gap-1.5 rounded-xl border-2 transition-all cursor-pointer leading-none whitespace-nowrap shrink ${labelTypography} ${
                     activeTab === item.id
@@ -1695,10 +1709,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Mobile & Tablet 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
+          {/* Mobile Phone 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
           <div
             data-testid="mobile-utility-nav-row"
-            className="grid grid-cols-5 lg:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
+            className="grid grid-cols-5 md:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
           >
             <button
               type="button"

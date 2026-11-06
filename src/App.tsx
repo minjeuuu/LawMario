@@ -54,6 +54,7 @@ import { QuickGlossaryModal } from './components/QuickGlossaryModal';
 import { StatuteLookupModal } from './components/StatuteLookupModal';
 import { DolePayMultiplierCalculator } from './components/DolePayMultiplierCalculator';
 import { ResearchCohortModal } from './components/ResearchCohortModal';
+import { InteractiveCompanionHUD } from './components/InteractiveCompanionHUD';
 import { BossBattleLogModal } from './components/BossBattleLogModal';
 import {
   TopicFlashcardDeckModal,
@@ -2092,17 +2093,21 @@ export default function App() {
       setQuizExternalLaunch((prev) => ({ mode: 'flashback', nonce: (prev?.nonce || 0) + 1 }));
       marioAudio.playPowerUp();
     } else if (mode === 'multiplier_test') {
-      setActiveTab('warp_calc');
+      setIsDoleCalculatorOpen(true);
+      setActiveTab('calculator');
       marioAudio.playCoin();
     } else if (mode === 'reverse_citation') {
       setActiveTab('flashcards');
+      setQuickStudyLaunchId((prev) => prev + 1);
       marioAudio.playPowerUp();
     } else if (mode === 'pomodoro_sprint') {
       setActiveTab('modules');
       marioAudio.playPowerUp();
       window.setTimeout(() => {
-        const el = document.getElementById('modules-study-sprint-container');
-        el?.scrollIntoView({ behavior: 'smooth' });
+        const el =
+          document.getElementById('modules-study-sprint-container') ||
+          document.querySelector('[data-testid="modules-study-sprint-timer"]');
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 150);
     } else if (mode === 'flagpole_quiz') {
       setActiveTab('quiz');
@@ -2389,6 +2394,7 @@ export default function App() {
           loginStreak={loginStreak}
           isBonusClaimedToday={isBonusClaimedToday}
           equippedAvatar={equippedAvatar}
+          equippedCardFrame={equippedCardFrame}
           colorMode={colorMode}
           onToggleColorMode={() => handleToggleColorMode()}
           unlockedAchievementsCount={unlockedAchievementsCount}
@@ -2782,6 +2788,7 @@ export default function App() {
               onUpdateStreakState={setFlagpoleStreakState}
               onAwardBonusXp={handleAwardBonusXp}
               equippedAvatar={equippedAvatar}
+          equippedCardFrame={equippedCardFrame}
               onStartDailyQuiz={() => {
                 setActiveTab('quiz');
                 setQuizExternalLaunch((prev) => ({ mode: 'quick', nonce: (prev?.nonce || 0) + 1 }));
@@ -2833,6 +2840,7 @@ export default function App() {
               activeWorld={activeWorld}
               fontSize={fontSize}
               equippedAvatar={equippedAvatar}
+          equippedCardFrame={equippedCardFrame}
               setEquippedAvatar={setEquippedAvatar}
               completedTopicIds={completedTopicIds}
               onToggleTopicComplete={handleToggleTopicComplete}
@@ -3022,6 +3030,7 @@ export default function App() {
                 marioAudio.syncModuleAudio(worldId, true);
               }}
               equippedAvatar={equippedAvatar}
+          equippedCardFrame={equippedCardFrame}
               favoriteCount={bookmarkedTopicIds.length}
               showFavoritesOnly={moduleStatusFilter === 'bookmarked'}
               onToggleFavoritesFilter={() => {
@@ -4271,6 +4280,7 @@ export default function App() {
             activeTheme={activeTheme}
             setActiveTheme={handleSelectActiveTheme}
             equippedAvatar={equippedAvatar}
+          equippedCardFrame={equippedCardFrame}
             setEquippedAvatar={setEquippedAvatar}
             superStarEndsAt={superStarEndsAt}
             onActivateSuperStar={handleActivateSuperStar}
@@ -4341,6 +4351,7 @@ export default function App() {
         {(activeTab === 'vault' || activeTab === 'game2d' || activeTab === 'game3d') && (
           <GameVault
             equippedAvatar={equippedAvatar}
+          equippedCardFrame={equippedCardFrame}
             setEquippedAvatar={setEquippedAvatar}
             coins={coins}
             setCoins={handleArcadeSetCoins}
@@ -4552,6 +4563,7 @@ export default function App() {
         onUpdatePlayerName={handleUpdatePlayerName}
         achievements={achievementSync.achievements}
         equippedAvatar={equippedAvatar}
+        equippedCardFrame={equippedCardFrame}
         onSelectAvatar={handleSelectAvatarPersist}
         coins={coins}
         loginStreak={loginStreak}
@@ -4634,6 +4646,7 @@ export default function App() {
         onClose={() => setIsLevelProgressionOpen(false)}
         totalXp={userProgression.totalXp}
         equippedAvatar={equippedAvatar}
+        equippedCardFrame={equippedCardFrame}
         onEquipAvatar={handleSelectAvatarPersist}
       />
 
@@ -4698,6 +4711,7 @@ export default function App() {
         playerName={profileStats.playerName}
         onUpdatePlayerName={handleUpdatePlayerName}
         equippedAvatar={equippedAvatar}
+        equippedCardFrame={equippedCardFrame}
         coins={coins}
         streakDays={loginStreak}
         completedTopicsCount={completedTopicIds.length}
@@ -4715,6 +4729,7 @@ export default function App() {
         studyDifficulty={studyDifficulty}
         onSelectDifficulty={handleSetStudyDifficulty}
         equippedAvatar={equippedAvatar}
+        equippedCardFrame={equippedCardFrame}
         onSelectAvatar={handleSelectAvatarPersist}
         alreadyGraduated={profileStats.walkthroughCompleted}
       />
@@ -4741,6 +4756,7 @@ export default function App() {
         coins={coins}
         playerName={profileStats.playerName}
         equippedAvatar={equippedAvatar}
+        equippedCardFrame={equippedCardFrame}
         loginStreak={loginStreak}
         unlockedAchievementsCount={unlockedAchievementsCount}
         totalAchievementsCount={achievementSync.achievements.length}
@@ -4787,6 +4803,7 @@ export default function App() {
         initialMode={printGuideInitialMode}
         playerName={profileStats.playerName}
         equippedAvatar={equippedAvatar}
+        equippedCardFrame={equippedCardFrame}
         loginStreak={loginStreak}
         unlockedAchievementsCount={unlockedAchievementsCount}
         totalAchievementsCount={achievementSync.achievements.length}
@@ -5063,71 +5080,15 @@ export default function App() {
       {/* Floating Auto-Scroll Speed Controller */}
       <AutoScrollController activeTab={activeTab} />
 
-      {/* Summoned Study Companion Desk Widget — Interactive Mario Pet Legal Tips + 5-Min Quick Study */}
-      {equippedCompanion !== 'comp_none' && (() => {
-        const petInfo = resolveCompanionInteraction(
-          equippedCompanion,
-          completedTopicIds.length + coins
-        );
-        return (
-          <>
-            {/* Desktop & Tablet Companion Widget */}
-            <div
-              data-testid="study-companion-widget"
-              className={`${
-                activeTab === 'map'
-                  ? showToadTip
-                    ? 'hidden xl:flex bottom-6 left-[436px]'
-                    : 'hidden sm:flex bottom-40 lg:bottom-20 left-6'
-                  : 'hidden sm:flex bottom-20 lg:bottom-5 left-4'
-              } fixed z-30 bg-[#0f172a]/95 text-white border-2 border-amber-400 rounded-2xl p-2.5 shadow-[4px_4px_0_#000] items-center gap-2.5 max-w-[330px] print:hidden`}
-            >
-              <div className="w-9 h-9 rounded-xl bg-amber-400 border border-black flex items-center justify-center shrink-0">
-                <MarioCharacterAvatar character={petInfo.avatarKey as MarioAvatar} className="w-6 h-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-[8.5px] font-black uppercase text-amber-300 font-mario truncate">
-                    {petInfo.name} · +{petInfo.bonusCoinsPerTopic}c/TOPIC
-                  </span>
-                </div>
-                <p className="text-[10.5px] font-semibold text-slate-200 line-clamp-2 leading-snug mt-0.5">
-                  {petInfo.speech}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleStartQuickStudy}
-                  className="mt-1 px-2 py-0.5 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[10px] border border-black inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <Zap className="w-3 h-3 shrink-0" />
-                  <span>5-Min Quick Study</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Mobile Study Companion Dock Pill */}
-            <div
-              data-testid="study-companion-widget-mobile"
-              className="sm:hidden fixed bottom-16 left-3 z-30 bg-[#0f172a]/95 text-white border-2 border-amber-400 rounded-full px-2 py-1 shadow-[2px_2px_0_#000] flex items-center gap-1.5 max-w-[220px] print:hidden"
-            >
-              <div className="w-6 h-6 rounded-full bg-amber-400 border border-black flex items-center justify-center shrink-0">
-                <MarioCharacterAvatar character={petInfo.avatarKey as MarioAvatar} className="w-4 h-4" />
-              </div>
-              <span className="text-[8px] font-black uppercase text-amber-300 font-mario truncate flex-1">
-                {petInfo.name.split(' ')[0]}
-              </span>
-              <button
-                type="button"
-                onClick={handleStartQuickStudy}
-                aria-label="Quick Study"
-                className="px-1.5 py-0.5 bg-emerald-400 text-slate-950 font-black text-[8px] rounded-md border border-black cursor-pointer shrink-0"
-              >
-                Study
-              </button>
-            </div>
-          </>
-        );
-      })()}
+      {/* Interactive Mario Study Companion HUD — Animated Expressions, Affection Leveling, Pet, Feed, Legal Doctrines & Quick Study */}
+      <InteractiveCompanionHUD
+        equippedCompanionId={equippedCompanion}
+        onEquipCompanion={handleEquipCompanion}
+        onStartQuickStudy={handleStartQuickStudy}
+        onEarnCoins={handleEarnCoins}
+        coins={coins}
+        completedTopicsCount={completedTopicIds.length}
+      />
 
       {/* Mario Ground Footer with Discreet Official 'Created by Matthew' Credit & Group Members */}
       <footer className="mt-16 bg-[#1e293b] border-t-4 border-black text-amber-100 py-8 px-4 pb-24 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">

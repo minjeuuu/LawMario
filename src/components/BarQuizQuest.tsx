@@ -347,18 +347,6 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     }, 520);
   };
 
-  useEffect(() => {
-    if (externalLaunchMode && externalLaunchMode.nonce > 0) {
-      if (externalLaunchMode.mode === 'boss') {
-        launchWithBossWarp('BOWSER LAVA KEEP SHOWDOWN', () => setActiveMode('boss'));
-      } else if (externalLaunchMode.mode === 'koopa_boss') {
-        launchWithBossWarp('KOOPA SOVEREIGN CITADEL GAUNTLET', () => setActiveMode('koopa_boss'));
-      } else {
-        setActiveMode(externalLaunchMode.mode);
-      }
-    }
-  }, [externalLaunchMode]);
-
   // ==================== MODE 0A: EXAM SIMULATION (10 Randomized All-Topic Qs + Timer + Breakdown) ====================
   const [simTimePreset, setSimTimePreset] = useState<300 | 600 | 900>(600);
   const [simDeck, setSimDeck] = useState<AdaptedQuizQuestion[]>(() =>
@@ -404,6 +392,26 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
     setSimTimedOut(false);
     setSimFinalSummary(null);
   };
+
+  useEffect(() => {
+    if (externalLaunchMode && externalLaunchMode.nonce > 0) {
+      if (externalLaunchMode.mode === 'boss') {
+        launchWithBossWarp('BOWSER LAVA KEEP SHOWDOWN', () => setActiveMode('boss'));
+      } else if (externalLaunchMode.mode === 'koopa_boss') {
+        launchWithBossWarp('KOOPA SOVEREIGN CITADEL GAUNTLET', () => setActiveMode('koopa_boss'));
+      } else {
+        setActiveMode(externalLaunchMode.mode);
+        if (externalLaunchMode.mode === 'exam_sim') {
+          startFreshExamSimulation();
+        }
+      }
+      try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch {
+        // ignore
+      }
+    }
+  }, [externalLaunchMode]);
 
   const finishExamSimulation = (didTimeOut: boolean = false) => {
     const snap = simStateRef.current;

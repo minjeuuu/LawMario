@@ -680,7 +680,9 @@ export const TopicQuickQuizModal: React.FC<TopicQuickQuizModalProps> = ({
                       <span className="w-6 h-6 rounded-md bg-black border border-slate-700 text-amber-300 font-black font-mono text-xs flex items-center justify-center shrink-0 mt-0.5">
                         {String.fromCharCode(65 + idx)}
                       </span>
-                      <span className="text-xs sm:text-sm font-bold leading-snug flex-1">{opt}</span>
+                      <span className="w-full min-w-0 break-words [overflow-wrap:anywhere] whitespace-normal text-xs sm:text-sm font-bold leading-relaxed flex-1">
+                        {opt}
+                      </span>
                       {answered && isCorrect && (
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       )}

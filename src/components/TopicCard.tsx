@@ -2949,11 +2949,13 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
               </span>
             </div>
 
-            <p className="text-sm font-bold text-slate-100 leading-relaxed">
-              {quickCheck.question}
-            </p>
+            <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-3 sm:p-3.5">
+              <p className="text-sm font-bold text-slate-100 leading-relaxed break-words [overflow-wrap:anywhere] whitespace-normal">
+                {quickCheck.question}
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex flex-col gap-2 w-full">
               {quickCheck.options.map((optText, optIdx) => {
                 const isSelected = quickCheckChoice === optIdx;
                 const isCorrectOpt = optIdx === quickCheck.correctIndex;
@@ -3002,12 +3004,14 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                         marioAudio.playWrongAnswer();
                       }
                     }}
-                    className={`min-h-[44px] px-3.5 py-2.5 rounded-xl border-2 text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-start gap-2 ${btnStyle}`}
+                    className={`w-full min-h-[46px] px-3.5 py-2.5 rounded-xl border-2 text-left text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-start gap-2.5 ${btnStyle}`}
                   >
-                    <span className="font-mono font-black shrink-0">
-                      {String.fromCharCode(65 + optIdx)}.
+                    <span className="w-6 h-6 rounded-md bg-black/60 border border-slate-700 text-amber-300 font-mono font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      {String.fromCharCode(65 + optIdx)}
                     </span>
-                    <span className="min-w-0 break-words">{optText}</span>
+                    <span className="w-full min-w-0 break-words [overflow-wrap:anywhere] whitespace-normal leading-relaxed flex-1">
+                      {optText}
+                    </span>
                   </button>
                 );
               })}

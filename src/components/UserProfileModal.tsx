@@ -75,6 +75,8 @@ import { loadRound10VaultState } from '../utils/round10Features';
 import {
   resolveEquippedNameplate,
   resolveCompanionInteraction,
+  resolveUniversalCardFrame,
+  type CardFrameId,
 } from '../utils/round12Features';
 import { marioAudio } from '../utils/audio';
 import {
@@ -128,6 +130,7 @@ interface UserProfileModalProps {
   coinLedger?: CoinLedgerMap;
   completedTopicsHistory?: Record<string, number>;
   equippedLuxuryFrame?: LuxuryAvatarFrameId;
+  equippedCardFrame?: CardFrameId;
   equippedLuxuryAura?: LuxuryMushroomAuraId;
   userProgression?: UserProgressionState;
   onOpenLevelProgression?: () => void;
@@ -169,6 +172,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   coinLedger,
   completedTopicsHistory,
   equippedLuxuryFrame,
+  equippedCardFrame = 'frame_default',
   equippedLuxuryAura,
   userProgression,
   onOpenLevelProgression,
@@ -228,6 +232,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     [isOpen]
   );
   const activeLuxuryFrame = equippedLuxuryFrame || fallbackLuxury.avatarFrame;
+  const resolvedUniversalFrame = resolveUniversalCardFrame(equippedCardFrame);
   const activeLuxuryAura = equippedLuxuryAura || fallbackLuxury.mushroomAura;
 
   const studyIntensity30d = React.useMemo(
@@ -570,7 +575,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     title="Click to switch Hero Avatar"
                     data-testid="profile-hero-avatar-btn"
                     className={`relative w-16 h-16 rounded-2xl flex items-center justify-center hover:scale-105 transition-transform cursor-pointer shrink-0 ${
-                      activeLuxuryFrame === 'lux_frame_gold_filigree'
+                      equippedCardFrame && equippedCardFrame !== 'frame_default'
+                        ? resolvedUniversalFrame.borderClasses
+                        : activeLuxuryFrame === 'lux_frame_gold_filigree'
                         ? 'bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 border-4 border-amber-300 ring-2 ring-yellow-200 shadow-[0_4px_12px_rgba(251,191,36,0.5)]'
                         : activeLuxuryFrame === 'lux_frame_grand_star_platinum'
                         ? 'bg-gradient-to-br from-slate-100 via-cyan-200 to-indigo-300 border-4 border-cyan-200 ring-2 ring-white shadow-[0_4px_12px_rgba(103,232,249,0.5)]'

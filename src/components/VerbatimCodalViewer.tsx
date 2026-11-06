@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { jsPDF } from 'jspdf';
 import {
   Scale,
   BookOpen,
@@ -12,6 +13,7 @@ import {
   Play,
   RotateCcw,
   Download,
+  FileDown,
   Search,
   X,
   Eye,
@@ -22,6 +24,7 @@ import {
   FileText,
   Gavel,
   ShieldAlert,
+  ChevronDown,
 } from 'lucide-react';
 import { marioAudio } from '../utils/audio';
 import {
@@ -40,7 +43,7 @@ export interface VerbatimCodalViewerProps {
   summary?: string;
   keyRule?: string;
   worldBadge?: string;
-  initialTheme?: 'midnight' | 'parchment' | 'ivory';
+  initialTheme?: 'midnight' | 'parchment' | 'ivory' | 'burgundy' | 'navy';
   searchQuery?: string;
   onSaveToNotes?: () => void;
   isSavedToNotes?: boolean;
@@ -68,8 +71,8 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
   variant = 'card',
 }) => {
   // Theme & Typography States
-  const [theme, setTheme] = useState<'midnight' | 'parchment' | 'ivory'>(initialTheme);
-  const [fontFamily, setFontFamily] = useState<'serif' | 'sans' | 'mono'>('serif');
+  const [theme, setTheme] = useState<'midnight' | 'parchment' | 'ivory' | 'burgundy' | 'navy'>(initialTheme);
+  const [fontFamily, setFontFamily] = useState<'serif' | 'sans' | 'mono' | 'playfair'>('serif');
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('base');
   const [lineSpacing, setLineSpacing] = useState<'tight' | 'normal' | 'relaxed'>('normal');
   const [showLineNumbers, setShowLineNumbers] = useState(false);
@@ -282,6 +285,89 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
     setTimeout(() => setCopiedFull(false), 2000);
   };
 
+  // Download Official PDF Legal Codal Slip
+  const handleDownloadPdf = () => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentWidth = pageWidth - margin * 2;
+      let y = margin;
+
+      // Header Banner
+      doc.setFillColor(15, 23, 42); // slate-900
+      doc.roundedRect(margin, y, contentWidth, 24, 3, 3, 'F');
+
+      doc.setTextColor(251, 191, 36); // amber-400
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('REPUBLIC OF THE PHILIPPINES · LABOR CODE CODEX', margin + 6, y + 8);
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(13);
+      doc.text(citation || 'Statutory Provision', margin + 6, y + 17);
+
+      y += 30;
+
+      // Title
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11.5);
+      const titleLines = doc.splitTextToSize(title, contentWidth);
+      doc.text(titleLines, margin, y);
+      y += titleLines.length * 5.5 + 4;
+
+      // Verbatim Section
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(51, 65, 85);
+      const verbatimLines = doc.splitTextToSize(verbatim, contentWidth);
+
+      for (let i = 0; i < verbatimLines.length; i++) {
+        if (y > pageHeight - 25) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(verbatimLines[i], margin, y);
+        y += 4.5;
+      }
+
+      y += 4;
+
+      // Key Legal Rule Callout Box
+      if (keyRule) {
+        if (y > pageHeight - 35) {
+          doc.addPage();
+          y = margin;
+        }
+        const ruleLines = doc.splitTextToSize(`KEY STATUTORY DOCTRINE: ${keyRule}`, contentWidth - 8);
+        const boxHeight = ruleLines.length * 4.5 + 8;
+        doc.setFillColor(254, 243, 199);
+        doc.setDrawColor(217, 119, 6);
+        doc.roundedRect(margin, y, contentWidth, boxHeight, 2, 2, 'FD');
+        doc.setTextColor(120, 53, 15);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.text(ruleLines, margin + 4, y + 5.5);
+        y += boxHeight + 6;
+      }
+
+      const safeTitle = (citation || 'statute')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .toLowerCase()
+        .slice(0, 40);
+      doc.save(`${safeTitle}_official_codal_slip.pdf`);
+      marioAudio.playPowerUp();
+    } catch {
+      // ignore
+    }
+  };
+
   // Download Markdown legal slip
   const handleDownloadMarkdown = () => {
     const md = formatVerbatimMarkdown(citation, title, verbatim, summary, keyRule);
@@ -307,6 +393,8 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
       ? 'font-serif'
       : fontFamily === 'mono'
       ? 'font-mono'
+      : fontFamily === 'playfair'
+      ? 'font-display'
       : 'font-sans';
 
   const sizeClass =
@@ -331,6 +419,10 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
       ? 'bg-gradient-to-br from-[#fcf7ee] via-[#f7f0df] to-[#eedfc2] text-stone-900 border-amber-700/70 shadow-[0_8px_30px_rgba(180,83,9,0.2)]'
       : theme === 'ivory'
       ? 'bg-white text-slate-900 border-slate-300 shadow-[0_8px_30px_rgba(0,0,0,0.12)]'
+      : theme === 'burgundy'
+      ? 'bg-gradient-to-br from-[#2b0808] via-[#1a0505] to-[#110202] text-rose-100 border-rose-500 shadow-[0_8px_30px_rgba(225,29,72,0.3)]'
+      : theme === 'navy'
+      ? 'bg-gradient-to-br from-[#021029] via-[#051937] to-[#010918] text-sky-100 border-sky-400 shadow-[0_8px_30px_rgba(14,165,233,0.3)]'
       : 'bg-gradient-to-br from-slate-950 via-[#0d1321] to-[#080c14] text-slate-100 border-amber-400/90 shadow-[0_8px_30px_rgba(0,0,0,0.6)]';
 
   const innerScrollClass =
@@ -338,6 +430,10 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
       ? 'bg-[#fffefb] border-amber-700/30 text-stone-900 shadow-[inset_0_2px_12px_rgba(180,83,9,0.08)]'
       : theme === 'ivory'
       ? 'bg-slate-50/70 border-slate-200 text-slate-900 shadow-inner'
+      : theme === 'burgundy'
+      ? 'bg-[#180303] border-rose-900/60 text-rose-100 shadow-inner'
+      : theme === 'navy'
+      ? 'bg-[#030d1f] border-sky-900/60 text-sky-100 shadow-inner'
       : 'bg-[#090d16] border-slate-800 text-slate-100 shadow-inner';
 
   return (
@@ -515,45 +611,68 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
             </button>
           )}
 
-          {/* Theme Switcher */}
-          <button
-            type="button"
-            onClick={() => {
-              setTheme((prev) => (prev === 'midnight' ? 'parchment' : prev === 'parchment' ? 'ivory' : 'midnight'));
-              marioAudio.playClick();
-            }}
-            title="Cycle Reading Theme (Midnight Codex, Courtroom Parchment, Law Library Ivory)"
-            className={`min-h-[34px] px-2.5 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
-              theme === 'parchment'
-                ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-600'
-                : theme === 'ivory'
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-400'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="hidden sm:inline capitalize">{theme}</span>
-          </button>
+          {/* Theme Dropdown */}
+          <div className="relative inline-flex items-center">
+            <label htmlFor="verbatim-theme-select" className="sr-only">Reading Theme</label>
+            <select
+              id="verbatim-theme-select"
+              value={theme}
+              onChange={(e) => {
+                setTheme(e.target.value as any);
+                marioAudio.playClick();
+              }}
+              title="Select Reading Theme (Midnight Codex, Courtroom Parchment, Law Library Ivory, NLRC Burgundy, Supreme Navy)"
+              className={`min-h-[34px] pl-2.5 pr-7 rounded-xl text-xs font-bold border cursor-pointer appearance-none transition-colors ${
+                theme === 'parchment'
+                  ? 'bg-amber-100 text-amber-950 border-amber-600'
+                  : theme === 'ivory'
+                  ? 'bg-slate-100 text-slate-900 border-slate-400'
+                  : theme === 'burgundy'
+                  ? 'bg-[#2a0505] text-rose-100 border-rose-600'
+                  : theme === 'navy'
+                  ? 'bg-[#03132e] text-sky-100 border-sky-400'
+                  : 'bg-slate-800 text-slate-200 border-slate-600'
+              }`}
+            >
+              <option value="midnight">Midnight</option>
+              <option value="parchment">Parchment</option>
+              <option value="ivory">Ivory</option>
+              <option value="burgundy">Burgundy</option>
+              <option value="navy">Supreme Navy</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2 pointer-events-none text-slate-400" />
+          </div>
 
-          {/* Font Family Switcher */}
-          <button
-            type="button"
-            onClick={() => {
-              setFontFamily((prev) => (prev === 'serif' ? 'sans' : prev === 'sans' ? 'mono' : 'serif'));
-              marioAudio.playClick();
-            }}
-            title="Cycle Font Style (Classical Serif, Modern Sans, Precision Mono)"
-            className={`min-h-[34px] px-2 rounded-xl text-xs font-black border inline-flex items-center gap-1 cursor-pointer font-mono ${
-              theme === 'parchment'
-                ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-600'
-                : theme === 'ivory'
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-400'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-            }`}
-          >
-            <Type className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-[10px] uppercase font-bold">{fontFamily}</span>
-          </button>
+          {/* Font Family Dropdown */}
+          <div className="relative inline-flex items-center">
+            <label htmlFor="verbatim-font-select" className="sr-only">Font Style</label>
+            <select
+              id="verbatim-font-select"
+              value={fontFamily}
+              onChange={(e) => {
+                setFontFamily(e.target.value as any);
+                marioAudio.playClick();
+              }}
+              title="Select Font Style (Classical Serif, Modern Sans, Precision Mono, Playfair)"
+              className={`min-h-[34px] pl-2.5 pr-7 rounded-xl text-xs font-bold border cursor-pointer appearance-none transition-colors ${
+                theme === 'parchment'
+                  ? 'bg-amber-100 text-amber-950 border-amber-600'
+                  : theme === 'ivory'
+                  ? 'bg-slate-100 text-slate-900 border-slate-400'
+                  : theme === 'burgundy'
+                  ? 'bg-[#2a0505] text-rose-100 border-rose-600'
+                  : theme === 'navy'
+                  ? 'bg-[#03132e] text-sky-100 border-sky-400'
+                  : 'bg-slate-800 text-slate-200 border-slate-600'
+              }`}
+            >
+              <option value="serif">Serif</option>
+              <option value="sans">Sans</option>
+              <option value="mono">Mono</option>
+              <option value="playfair">Playfair</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2 pointer-events-none text-slate-400" />
+          </div>
 
           {/* Font Size Scaler */}
           <button
@@ -675,6 +794,17 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
             )}
           </button>
 
+          {/* Download Official PDF Legal Slip */}
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            title="Download Official Formatted PDF Legal Codal Slip"
+            className="min-h-[34px] px-2.5 rounded-xl text-xs font-black border inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white border-black cursor-pointer shadow-xs active:translate-y-0.5 transition-all"
+          >
+            <FileDown className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">PDF Slip</span>
+          </button>
+
           {/* Download Markdown Slip */}
           <button
             type="button"
@@ -685,10 +815,15 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
                 ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-600'
                 : theme === 'ivory'
                 ? 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-400'
+                : theme === 'burgundy'
+                ? 'bg-[#2a0505] text-rose-100 border-rose-600'
+                : theme === 'navy'
+                ? 'bg-[#03132e] text-sky-100 border-sky-400'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
             }`}
           >
             <Download className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-[10px] hidden sm:inline">MD</span>
           </button>
         </div>
       </div>

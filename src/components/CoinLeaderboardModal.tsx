@@ -24,6 +24,7 @@ import {
 } from '../utils/round9Features';
 import { MarioCharacterAvatar, MarioCoinIcon, MarioFireFlowerIcon } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
+import { resolveUniversalCardFrame, type CardFrameId } from '../utils/round12Features';
 
 interface CoinLeaderboardModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ interface CoinLeaderboardModalProps {
   playerName: string;
   onUpdatePlayerName?: (name: string) => void;
   equippedAvatar: MarioAvatar;
+  equippedCardFrame?: CardFrameId;
   coins: number;
   streakDays: number;
   completedTopicsCount: number;
@@ -45,6 +47,7 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
   playerName,
   onUpdatePlayerName,
   equippedAvatar,
+  equippedCardFrame = 'frame_default',
   coins,
   streakDays,
   completedTopicsCount,
@@ -376,7 +379,13 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
                         #{entry.rank}
                       </span>
 
-                      <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-700 flex items-center justify-center shrink-0">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          entry.isCurrentUser && equippedCardFrame && equippedCardFrame !== 'frame_default'
+                            ? resolveUniversalCardFrame(equippedCardFrame).borderClasses
+                            : 'bg-slate-950 border border-slate-700'
+                        }`}
+                      >
                         <MarioCharacterAvatar
                           character={entry.avatar as MarioAvatar}
                           className="w-7 h-7"

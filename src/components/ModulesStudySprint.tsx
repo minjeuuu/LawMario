@@ -141,6 +141,7 @@ export const ModulesStudySprint: React.FC<ModulesStudySprintProps> = ({
 
   return (
     <section
+      id="modules-study-sprint-container"
       data-testid="modules-study-sprint-timer"
       aria-label="Study Sprint 25-Minute Pomodoro & Study Ambience"
       className="bg-slate-900 text-white rounded-2xl border-3 border-slate-950 p-3.5 sm:p-4 shadow-[4px_4px_0_#000] space-y-3 print:hidden"

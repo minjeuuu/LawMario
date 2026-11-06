@@ -299,20 +299,20 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                     type="button"
                     onClick={() => handleSelectSoundscape(track.id)}
                     data-testid={`soundscape-${track.id}`}
-                    className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer min-w-0 overflow-hidden ${
                       isSelected
                         ? 'bg-amber-400/20 border-amber-400 text-white shadow-[0_2px_0_#000]'
                         : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 text-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-black text-xs sm:text-sm font-display text-white">
+                    <div className="flex items-center justify-between gap-1.5 mb-1 min-w-0">
+                      <span className="font-black text-xs sm:text-sm font-display text-white truncate min-w-0 flex-1">
                         {track.name}
                       </span>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-black font-mario border border-black ${track.accentClass}`}
+                        className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black font-mono border border-black shrink-0 whitespace-nowrap uppercase tracking-wider ${track.accentClass}`}
                       >
-                        {isSelected && isMusicActive ? 'LIVE' : track.shortName.toUpperCase()}
+                        {isSelected && isMusicActive ? 'LIVE' : track.shortName}
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-300 font-medium leading-snug">

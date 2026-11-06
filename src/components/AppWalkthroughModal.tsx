@@ -307,6 +307,67 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
     ],
     proTip: 'Check your World Boss Rank card to compare your completion times against top Mushroom Kingdom benchmarks!',
   },
+  {
+    id: 'modal_dole_calculator',
+    name: 'DOLE Statutory Wage Multiplier Calculator',
+    category: 'Calculators & Wages',
+    badge: 'RTWPB 2026',
+    summary:
+      'Official interactive DOLE statutory calculator with 1-click regional wage presets for all 17 regions, 125% overtime, 110% night shift, 130% rest day, 200%/260%/300% holiday pay, 13th month, and Art. 302 retirement.',
+    primaryFeatures: [
+      'Official 17 Philippine regions RTWPB minimum wage presets with one tap',
+      'Overtime, rest day, night shift differential, and holiday multipliers calculated in real time',
+      'Accurate Article 302 statutory retirement computation using the 22.5-day legal divisor',
+      'Copyable breakdown payroll slip ready for study notes and exam review',
+    ],
+    keyButtons: [
+      { name: 'Region Presets', role: 'Instantly applies standard statutory minimum daily wages for any Philippine region' },
+      { name: 'Copy Breakdown Slip', role: 'Copies the complete computed legal wage breakdown to your clipboard' },
+      { name: 'Reset Inputs', role: 'Clears all hourly inputs to default baseline numbers' },
+    ],
+    proTip: 'Remember the 22.5-day retirement divisor: 15 days basic salary + 5 days SIL + 2.5 days (1/12th of 13th month)!',
+  },
+  {
+    id: 'modal_research_cohort',
+    name: 'Research Cohort Directory & Citation Engine',
+    category: 'Legal Research',
+    badge: '9 Cohort Fellows',
+    summary:
+      'Comprehensive directory of all 9 Research Cohort legal contributors with their assigned Labor Law domains, Mario roles, and 1-click Bluebook/APA citation generation.',
+    primaryFeatures: [
+      'Full roster of 9 research members with assigned statutory worlds and research domains',
+      'Search and filter by keyword, topic area, or researcher name',
+      '1-click Bluebook and APA citation formatting ready for academic papers and legal memorandums',
+    ],
+    keyButtons: [
+      { name: 'Copy Bluebook Citation', role: 'Copies standardized Bluebook legal citation to clipboard' },
+      { name: 'Copy APA Citation', role: 'Copies academic APA 7th edition citation to clipboard' },
+    ],
+    proTip: 'Use the cohort directory when writing bar review memorandums or citing specific statutory provisions in class papers.',
+  },
+  {
+    id: 'modal_companion_hud',
+    name: 'Interactive Mario Study Companion HUD',
+    category: 'Study Engagement',
+    badge: 'Mario Pet & Tutor',
+    summary:
+      'Engaging interactive Mario pet widget with animated expressions, affection leveling (Lv. 1–10), petting, feeding Super Mushrooms, high-yield legal doctrine tips, and 5-minute study blitzes.',
+    primaryFeatures: [
+      'Companion Affection & Leveling system with persistent happiness meter (0–100%)',
+      'Petting interaction with sound cues and floating affection hearts',
+      'Feed Super Mushroom action to max out happiness and award bonus XP',
+      'Instant legal doctrine advice rotating through landmark Philippine Supreme Court rulings',
+      'Quick Companion Switcher allowing instant swapping between 8 Mario companions',
+    ],
+    keyButtons: [
+      { name: 'Pet Companion', role: 'Increases affection and happiness with joyful sound effects' },
+      { name: 'Feed (5c)', role: 'Feeds a Super Mushroom treat to boost happiness to 100%' },
+      { name: 'Doctrine', role: 'Asks companion for an actionable Bar Exam statutory rule or doctrine' },
+      { name: '5m Study', role: 'Immediately launches a rapid 5-minute study blitz' },
+      { name: 'Switch Companion', role: 'Opens menu to summon any of the 8 available Mario companions' },
+    ],
+    proTip: 'Pet your companion daily and level them up to Level 10 to maximize your bonus coin multipliers!',
+  },
 ];
 
 export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
@@ -410,6 +471,36 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     howToUse: 'Click the Toad pill on the map to cycle next tip, share, or copy tip text to clipboard.',
     proTip: 'Hovering over the tip pauses the auto-hide timer so you can read at your own pace.',
     targetTab: 'map',
+  },
+  {
+    id: 'btn-dole-multiplier-modal',
+    name: 'DOLE Pay Multiplier Calculator ("DOLE Calc")',
+    part: 'Top Navigation Bar & Mobile Drawer',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Launches the complete DOLE statutory multiplier wage calculator modal with 17-region RTWPB presets.',
+    howToUse: 'Click DOLE Calc in the navbar or mobile menu, select your region, and review exact wage breakdowns.',
+    proTip: 'Generates copyable official wage slips formatted for Bar exam problems and payroll audits.',
+    targetTab: 'calculator',
+  },
+  {
+    id: 'btn-research-cohort-modal',
+    name: 'Research Cohort Directory ("Research")',
+    part: 'Top Navigation Bar & Mobile Drawer',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Opens the Research Cohort Directory of 9 academic legal fellows with 1-click Bluebook/APA citation generation.',
+    howToUse: 'Click Research in the navbar to browse contributors, search topics, and copy academic citations.',
+    proTip: 'Use Bluebook citation generation when citing the Labor Code and memory aid in law school papers.',
+    targetTab: 'modules',
+  },
+  {
+    id: 'btn-companion-widget',
+    name: 'Interactive Mario Study Companion HUD',
+    part: 'Floating Screen Bottom (All Views)',
+    category: 'Header & Global Controls',
+    whatItDoes: 'Engages you with real-time pet interactions, affection leveling, legal doctrine advice, and 5-min study blitzes.',
+    howToUse: 'Click Pet to show love, Feed to boost happiness, Doctrine to ask legal tips, or Switch to change companions.',
+    proTip: 'Level up your companion to Level 10 to earn bonus coin multipliers on every studied topic!',
+    targetTab: 'modules',
   },
   {
     id: 'btn-statute-lookup-modal',

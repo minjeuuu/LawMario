@@ -1928,6 +1928,26 @@ export function resolveUniversalCardFrame(frameId?: string): UniversalCardFrameS
         badgeText: 'TOPNOTCHER PLATINUM',
         badgeClasses: 'bg-sky-300 text-slate-950 border-slate-900',
       };
+    case 'frame_juris_doctor':
+    case 'gear_frame_juris_doctor':
+      return {
+        id: 'frame_juris_doctor',
+        label: 'Grand Monarch Juris Doctor Frame',
+        borderClasses:
+          'border-amber-400 ring-4 ring-blue-500/90 shadow-[0_8px_0_#1E3A8A,0_0_26px_rgba(251,191,36,0.5)]',
+        badgeText: 'JURIS DOCTOR MONARCH',
+        badgeClasses: 'bg-gradient-to-r from-amber-400 to-amber-200 text-slate-950 border-blue-900',
+      };
+    case 'frame_supernova_mastery':
+    case 'gear_frame_supernova':
+      return {
+        id: 'frame_supernova_mastery',
+        label: 'Supernova 100% Bar Mastery Frame',
+        borderClasses:
+          'border-orange-500 ring-4 ring-yellow-400/90 shadow-[0_8px_0_#7C2D12,0_0_28px_rgba(249,115,22,0.52)]',
+        badgeText: 'SUPERNOVA MASTER',
+        badgeClasses: 'bg-gradient-to-r from-amber-500 to-red-600 text-white border-black',
+      };
     default:
       if (frameId && frameId !== 'frame_default') {
         return {

@@ -497,6 +497,24 @@ export const CARD_FRAME_ITEMS: ShopItem[] = [
     description: 'Iridescent Star Cup prism border celebrating 100% six-world statutory mastery.',
     badge: 'Star Cup',
   },
+  {
+    id: 'frame_juris_doctor',
+    name: 'Grand Monarch Juris Doctor Frame',
+    category: 'frame',
+    frameId: 'frame_juris_doctor',
+    price: 175,
+    description: 'Royal navy and polished gold laurel trim reserved for future Supreme Court practitioners.',
+    badge: 'Juris Doctor',
+  },
+  {
+    id: 'frame_supernova_mastery',
+    name: 'Supernova 100% Bar Mastery Frame',
+    category: 'frame',
+    frameId: 'frame_supernova_mastery',
+    price: 220,
+    description: 'Blazing solar flame trim celebrating 100% mastery across all Philippine Labor Standards.',
+    badge: 'Supernova Bar',
+  },
 ];
 
 export const ROUND11_CHAMBERS_EXTRAS: Round10ShopCatalogItem[] = [
