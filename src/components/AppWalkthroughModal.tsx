@@ -129,7 +129,9 @@ export const MODAL_GUIDE_ITEMS: ModalGuideItem[] = [
       'Instant search engine for all Philippine Labor Code articles, Republic Acts, and Supreme Court landmark rulings with exact verbatim text and bar tips.',
     primaryFeatures: [
       'Search by article number (e.g., "83", "87"), law ("RA 11210"), or doctrine keywords ("control test")',
-      'Listen aloud to statutory provisions with Web Speech synthesis',
+      'Listen aloud to statutory provisions with Web Speech synthesis and speed cycler',
+      'Bar Exam Recitation Mode: Veils numeric thresholds and doctrines into interactive recall blocks',
+      'Codal margin line numbers toggle (#) for precise courtroom citation reference',
       'One-tap Save Note integration directly into Study Notes Drawer',
       'Quick jump to corresponding module study deck',
     ],
@@ -474,10 +476,40 @@ export const BUTTON_DIRECTORY: ButtonDirectoryItem[] = [
     name: 'Statute Codex / Parchment Theme Toggle',
     part: 'Topic Card Statutory Provision Header',
     category: 'Topic Card & Module Controls',
-    whatItDoes: 'Switches between antique warm legal Parchment vellum mode and deep Midnight Codex mode.',
+    whatItDoes: 'Switches between antique warm legal Parchment vellum mode, deep Midnight Codex mode, and Law Library Ivory mode.',
     howToUse: 'Click the Sparkles / Theme button inside the verbatim provision box.',
     proTip: 'Parchment mode uses classic legal serif typography with warm gold leaf borders.',
     targetTab: 'modules',
+  },
+  {
+    id: 'btn-verbatim-recitation-toggle',
+    name: 'Bar Exam Recitation Mode (Cloze Recall)',
+    part: 'Verbatim Codal Viewer Toolbar',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Veils high-yield statutory numbers, percentages, and doctrines as interactive mystery blocks for active recall testing.',
+    howToUse: 'Click "Recitation Mode", then tap any ? RECALL ? block to verify the exact codal term.',
+    proTip: 'Tap "Reveal All" to check your complete answers before class or exam review.',
+    targetTab: 'modules',
+  },
+  {
+    id: 'btn-verbatim-line-numbers',
+    name: 'Codal Margin Line Numbers Toggle (#)',
+    part: 'Verbatim Codal Viewer Toolbar',
+    category: 'Topic Card & Module Controls',
+    whatItDoes: 'Displays unselectable line numbers (01, 02, 03...) along the left margin for precise statutory referencing.',
+    howToUse: 'Click the # Lines button in the statutory toolbar to toggle line numbering.',
+    proTip: 'Copying statutory text automatically excludes line numbers for clean quotation in digests and pleadings.',
+    targetTab: 'modules',
+  },
+  {
+    id: 'btn-citations-codex-reader',
+    name: 'Master Codex Reader View Mode',
+    part: 'Citations & Verbatim Repertory Modal',
+    category: 'Citations & Legal Tools',
+    whatItDoes: 'Transforms the citations repertory into an authentic continuous Philippine Labor Code Codal book reader.',
+    howToUse: 'Click the Codex Reader button in the Citations Repertory top toolbar.',
+    proTip: 'Use the fast-jump pill track to leap instantly across all 38 statutory provisions without reloading.',
+    targetTab: 'citations',
   },
   {
     id: 'btn-quiz-save-error-btn',
@@ -1088,7 +1120,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                       {demoViewTab === 'tables' &&
                         'Filtered to side-by-side matrices like Regular vs Special Holiday rates, and Facility vs Supplement criteria.'}
                       {demoViewTab === 'verbatim' &&
-                        'Displays unabridged statutory codifications with antique parchment mode and 1-tap notes saving.'}
+                        'Displays unabridged statutory codifications with antique parchment mode, Bar Exam recitation cloze active recall, line numbering, speech read-aloud, and 1-tap notes saving.'}
                       {demoViewTab === 'all' &&
                         'Displays the complete module: summary, key doctrines, matrices, checklists, and statutory scrolls.'}
                     </div>

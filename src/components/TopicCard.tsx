@@ -71,6 +71,7 @@ import { QuickGlossaryModal } from './QuickGlossaryModal';
 import { extractClozeSegments } from '../utils/studyModes';
 import { getTopicQuickCheck } from '../utils/moduleSorting';
 import { TopicCompletionCircle } from './TopicStudyModals';
+import { VerbatimCodalViewer } from './VerbatimCodalViewer';
 import {
   TopicMasteredSectionsMap,
   loadTopicMasteredSectionsMap,
@@ -2298,226 +2299,54 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
           {topic.verbatimProvision && (
             <div
               data-testid={`verbatim-provision-section-${topic.id}`}
-              className={`mario-reveal-section rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-[0_6px_24px_rgba(0,0,0,0.45)] relative overflow-hidden border-2 transition-colors duration-200 ${
-                statuteTheme === 'parchment'
-                  ? 'bg-gradient-to-br from-[#fcf7ee] via-[#f7f0df] to-[#eedfc2] text-stone-900 border-amber-600/70 shadow-[0_6px_24px_rgba(180,83,9,0.2)]'
-                  : 'bg-gradient-to-br from-slate-950 via-[#111827] to-[#0b0f19] border-amber-400/90 text-white'
-              }`}
+              className="mario-reveal-section space-y-2.5"
             >
-              {/* Decorative Subtle Background Stamp */}
-              <div className="absolute -right-8 -bottom-8 pointer-events-none opacity-5 select-none">
-                <Scale className={`w-48 h-48 ${statuteTheme === 'parchment' ? 'text-amber-900' : 'text-amber-300'}`} />
-              </div>
-
-              <div
-                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 ${
-                  statuteTheme === 'parchment' ? 'border-amber-700/30' : 'border-amber-400/30'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-black shadow-[0_2px_0_#000] ${
-                      statuteTheme === 'parchment'
-                        ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-amber-50'
-                        : 'bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950'
-                    }`}
-                  >
+              {/* Outer Bar Expand/Collapse Button */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 border-2 border-amber-400/80 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center font-black border border-black shrink-0 shadow-[0_2px_0_#000]">
                     <Scale className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className={`text-[9px] font-black uppercase font-mario tracking-wider px-2 py-0.5 rounded border ${
-                          statuteTheme === 'parchment'
-                            ? 'bg-amber-900/15 text-amber-950 border-amber-700/40'
-                            : 'bg-amber-950/80 text-amber-300 border-amber-500/50'
-                        }`}
-                      >
-                        REPUBLIC OF THE PHILIPPINES · CODIFIED STATUTE
-                      </span>
-                    </div>
-                    <h4
-                      className={`text-sm sm:text-base font-black font-display mt-0.5 truncate ${
-                        statuteTheme === 'parchment' ? 'text-stone-900' : 'text-white'
-                      }`}
-                    >
+                    <span className="text-[9px] font-black uppercase text-amber-300 font-mario tracking-wider block">
+                      REPUBLIC OF THE PHILIPPINES · CODIFIED STATUTE
+                    </span>
+                    <h4 className="text-sm sm:text-base font-black text-white truncate font-display">
                       {topic.badge} — Complete Unabridged Text
                     </h4>
                   </div>
                 </div>
 
-                {/* Statutory Toolbar */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                  {/* Theme Switcher: Codex vs Parchment */}
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setStatuteTheme((prev) => (prev === 'codex' ? 'parchment' : 'codex'));
+                      setShowVerbatim(!showVerbatim);
                       marioAudio.playClick();
                     }}
-                    title={statuteTheme === 'codex' ? 'Switch to Parchment Codex Mode' : 'Switch to Midnight Codex Mode'}
-                    className={`min-h-[34px] sm:min-h-[36px] px-2.5 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
-                      statuteTheme === 'parchment'
-                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-600'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-                    }`}
+                    className="min-h-[38px] px-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 text-xs font-black border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer font-display transition-all shrink-0"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span className="hidden sm:inline">{statuteTheme === 'codex' ? 'Parchment' : 'Midnight'}</span>
-                  </button>
-
-                  {/* Font Size Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStatuteFontSize((prev) => (prev === 'normal' ? 'large' : 'normal'));
-                      marioAudio.playClick();
-                    }}
-                    title="Toggle Text Sizing"
-                    className={`min-h-[34px] sm:min-h-[36px] px-2.5 rounded-xl text-xs font-bold border inline-flex items-center gap-1 cursor-pointer transition-colors ${
-                      statuteTheme === 'parchment'
-                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-600'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-                    }`}
-                  >
-                    <span className="font-mono text-xs font-black">A{statuteFontSize === 'large' ? '+' : ''}</span>
-                  </button>
-
-                  {/* Save to Study Notes Button */}
-                  <button
-                    type="button"
-                    onClick={handleSaveStatuteToNotes}
-                    title="Save Codal Provision into Study Notes"
-                    className={`min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs ${
-                      statuteSavedToNotes
-                        ? 'bg-emerald-600 text-white border-emerald-700'
-                        : statuteTheme === 'parchment'
-                        ? 'bg-amber-200/80 hover:bg-amber-300 text-amber-950 border-amber-600'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-                    }`}
-                  >
-                    {statuteSavedToNotes ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-white shrink-0" />
-                        <span className="text-white font-bold">Saved!</span>
-                      </>
-                    ) : (
-                      <>
-                        <BookmarkPlus className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <span className="hidden sm:inline">Save Note</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Copy Provision Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (topic.verbatimProvision) {
-                        navigator.clipboard.writeText(topic.verbatimProvision);
-                        setVerbatimCopied(true);
-                        marioAudio.playCoin();
-                        setTimeout(() => setVerbatimCopied(false), 2000);
-                      }
-                    }}
-                    className={`min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs ${
-                      statuteTheme === 'parchment'
-                        ? 'bg-amber-200/80 hover:bg-amber-300 text-amber-950 border-amber-600'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
-                    }`}
-                  >
-                    {verbatimCopied ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="text-emerald-400 font-bold">Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Expand / Collapse Provision Scroll */}
-                  <button
-                    type="button"
-                    onClick={() => setShowVerbatim(!showVerbatim)}
-                    className="min-h-[34px] sm:min-h-[36px] px-3 sm:px-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 text-xs font-black border border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer font-display transition-all"
-                  >
-                    <span>{showVerbatim ? 'Close Scroll' : 'Read Provision'}</span>
+                    <span>{showVerbatim ? 'Close Codex Scroll' : 'Open Verbatim Codex'}</span>
                     {showVerbatim ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                 </div>
               </div>
 
+              {/* Courtroom-Grade Verbatim Codal Viewer */}
               {showVerbatim && (
-                <div className="space-y-3 animate-in fade-in duration-200">
-                  <div
-                    className={`rounded-xl p-4 sm:p-6 border-2 select-text allow-text-select relative ${
-                      statuteTheme === 'parchment'
-                        ? 'bg-[#fffef8] border-amber-700/40 text-stone-900 shadow-[inset_0_2px_12px_rgba(180,83,9,0.08)]'
-                        : 'bg-[#0c121e] border-amber-400/50 text-slate-100 shadow-inner'
-                    }`}
-                  >
-                    {/* Header Ribbon Inside Codex */}
-                    <div
-                      className={`flex items-center justify-between gap-2 border-b pb-2 mb-3 text-[11px] font-mono ${
-                        statuteTheme === 'parchment'
-                          ? 'border-amber-700/20 text-amber-900 font-bold'
-                          : 'border-slate-800 text-amber-300'
-                      }`}
-                    >
-                      <span className="font-bold flex items-center gap-1.5">
-                        <BookOpen
-                          className={`w-3.5 h-3.5 ${
-                            statuteTheme === 'parchment' ? 'text-amber-800' : 'text-amber-400'
-                          }`}
-                        />
-                        <span>OFFICIAL STATUTORY TEXT · LABOR CODE OF THE PHILIPPINES</span>
-                      </span>
-                      <span
-                        className={`text-[10px] hidden sm:inline ${
-                          statuteTheme === 'parchment' ? 'text-amber-800' : 'text-slate-400'
-                        }`}
-                      >
-                        Unedited Codification
-                      </span>
-                    </div>
-
-                    <div
-                      className={`whitespace-pre-wrap leading-relaxed ${
-                        statuteFontSize === 'large' ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'
-                      } ${
-                        statuteTheme === 'parchment'
-                          ? 'text-stone-900 font-serif'
-                          : 'text-slate-100 font-sans font-medium'
-                      }`}
-                    >
-                      {topic.verbatimProvision}
-                    </div>
-
-                    {/* Footer citation stamp */}
-                    <div
-                      className={`mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono ${
-                        statuteTheme === 'parchment'
-                          ? 'border-amber-700/20 text-amber-900'
-                          : 'border-slate-800/80 text-slate-400'
-                      }`}
-                    >
-                      <span>Source: Bureau of Working Conditions (DOLE)</span>
-                      <span
-                        className={`${
-                          statuteTheme === 'parchment'
-                            ? 'text-amber-950 font-black'
-                            : 'text-amber-400/90 font-bold'
-                        }`}
-                      >
-                        Labor Standards Codification
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <VerbatimCodalViewer
+                  statuteId={topic.id}
+                  citation={topic.badge}
+                  title={topic.title}
+                  verbatim={topic.verbatimProvision}
+                  summary={topic.summary}
+                  keyRule={topic.keyDoctrines?.[0]}
+                  worldBadge={topic.worldId}
+                  initialTheme="parchment"
+                  searchQuery={searchQuery}
+                  onSaveToNotes={handleSaveStatuteToNotes}
+                  isSavedToNotes={statuteSavedToNotes}
+                />
               )}
             </div>
           )}

@@ -29,6 +29,7 @@ import {
   saveStudyNotes,
   createStudyNote,
 } from '../utils/engagementFeatures';
+import { VerbatimCodalViewer } from './VerbatimCodalViewer';
 
 export type CitationCategory =
   | 'all'
@@ -917,7 +918,8 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<CitationCategory>('all');
   const [selectedWorld, setSelectedWorld] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'codex'>('cards');
+  const [selectedCodexId, setSelectedCodexId] = useState<string | null>(null);
   const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -1140,6 +1142,22 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                 <Table className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Digest Table</span>
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('codex');
+                  marioAudio.playClick();
+                }}
+                className={`min-h-[34px] px-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+                  viewMode === 'codex'
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-[0_1px_0_#000]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Continuous Verbatim Codal Reader View"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Codex Reader</span>
+              </button>
             </div>
 
             {/* Speech Rate Button */}
@@ -1280,8 +1298,110 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
         </div>
       </div>
 
-      {/* Main Display: Compact Table vs Detailed Cards */}
-      {viewMode === 'table' ? (
+      {/* Main Display: Codex Reader vs Compact Table vs Detailed Cards */}
+      {viewMode === 'codex' ? (
+        <div className="space-y-4">
+          {/* Fast-jump Provision Track */}
+          <div className="p-3.5 rounded-2xl bg-slate-900 border-2 border-slate-800 shadow-[3px_3px_0_#000] space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-mono font-black uppercase text-amber-300 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>SELECT STATUTE FOR CODEX READING ({filteredCitations.length}):</span>
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                Philippine Labor Standards Codal
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar scroll-smooth">
+              {filteredCitations.map((item) => {
+                const isSelected = (selectedCodexId || filteredCitations[0]?.id) === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCodexId(item.id);
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[32px] px-3 rounded-xl text-xs font-mono font-black whitespace-nowrap cursor-pointer transition-all border ${
+                      isSelected
+                        ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000] scale-102'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                    }`}
+                  >
+                    {item.citation.split(',')[0]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Codex Reader */}
+          {(() => {
+            const activeItem =
+              filteredCitations.find((c) => c.id === (selectedCodexId || filteredCitations[0]?.id)) ||
+              filteredCitations[0];
+            if (!activeItem) {
+              return (
+                <div className="p-8 text-center bg-slate-900 border-2 border-slate-800 rounded-3xl text-slate-400 font-bold">
+                  No provisions found for this filter.
+                </div>
+              );
+            }
+            const activeIdx = filteredCitations.findIndex((c) => c.id === activeItem.id);
+            return (
+              <div className="space-y-3">
+                {/* Prev / Next Provision Nav Header */}
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+                  <button
+                    type="button"
+                    disabled={activeIdx <= 0}
+                    onClick={() => {
+                      if (activeIdx > 0) {
+                        setSelectedCodexId(filteredCitations[activeIdx - 1].id);
+                        marioAudio.playClick();
+                      }
+                    }}
+                    className="min-h-[32px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold border border-slate-700 cursor-pointer disabled:cursor-not-allowed inline-flex items-center gap-1"
+                  >
+                    <span>&larr; Previous</span>
+                  </button>
+                  <span className="font-mono text-[11px] text-amber-300 font-bold">
+                    Statute {activeIdx + 1} of {filteredCitations.length}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={activeIdx >= filteredCitations.length - 1}
+                    onClick={() => {
+                      if (activeIdx < filteredCitations.length - 1) {
+                        setSelectedCodexId(filteredCitations[activeIdx + 1].id);
+                        marioAudio.playClick();
+                      }
+                    }}
+                    className="min-h-[32px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold border border-slate-700 cursor-pointer disabled:cursor-not-allowed inline-flex items-center gap-1"
+                  >
+                    <span>Next &rarr;</span>
+                  </button>
+                </div>
+
+                <VerbatimCodalViewer
+                  statuteId={activeItem.id}
+                  citation={activeItem.citation}
+                  title={activeItem.title}
+                  verbatim={activeItem.verbatimProvision}
+                  summary={activeItem.summary}
+                  keyRule={activeItem.keyRule}
+                  worldBadge={activeItem.worldBadge}
+                  initialTheme="parchment"
+                  searchQuery={searchQuery}
+                  onSaveToNotes={() => handleSaveToNotes(activeItem)}
+                  isSavedToNotes={savedNoteIds[activeItem.id]}
+                />
+              </div>
+            );
+          })()}
+        </div>
+      ) : viewMode === 'table' ? (
         <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl overflow-hidden shadow-[4px_4px_0_#000]">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
@@ -1386,25 +1506,20 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                         </tr>
                         {isExpanded && (
                           <tr className="bg-slate-950/95">
-                            <td colSpan={4} className="p-4 border-t border-b border-emerald-500/30">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-mono text-xs font-black uppercase text-emerald-300">
-                                    EXACT VERBATIM CODAL PROVISION ({item.citation})
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleCopyCitation(item, true)}
-                                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-700 inline-flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Copy className="w-3 h-3" />
-                                    <span>Copy Verbatim</span>
-                                  </button>
-                                </div>
-                                <pre className="font-mono text-xs text-slate-200 whitespace-pre-wrap break-words leading-relaxed bg-slate-900/90 p-3 rounded-lg border border-slate-800 select-text">
-                                  {highlightText(item.verbatimProvision, searchQuery)}
-                                </pre>
-                              </div>
+                            <td colSpan={4} className="p-3 sm:p-4 border-t border-b border-emerald-500/30">
+                              <VerbatimCodalViewer
+                                statuteId={item.id}
+                                citation={item.citation}
+                                title={item.title}
+                                verbatim={item.verbatimProvision}
+                                summary={item.summary}
+                                keyRule={item.keyRule}
+                                worldBadge={item.worldBadge}
+                                initialTheme="midnight"
+                                searchQuery={searchQuery}
+                                onSaveToNotes={() => handleSaveToNotes(item)}
+                                isSavedToNotes={savedNoteIds[item.id]}
+                              />
                             </td>
                           </tr>
                         )}
@@ -1581,36 +1696,21 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                   {isExpanded && (
                     <div
                       data-testid={`verbatim-box-${item.id}`}
-                      className="mt-3 p-4 sm:p-5 rounded-2xl bg-slate-950 border-2 border-emerald-400/80 text-slate-100 space-y-3 animate-in fade-in duration-150 shadow-inner"
+                      className="mt-3"
                     >
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-                          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-300 font-mono">
-                            EXACT VERBATIM CODAL TEXT ({item.citation})
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyCitation(item, true)}
-                          className="min-h-[32px] px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-bold border border-slate-600 inline-flex items-center gap-1.5 cursor-pointer"
-                        >
-                          {copiedId === `${item.id}-verbatim` ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-400" />
-                              <span>Copied Verbatim!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copy Verbatim Text</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                      <pre className="font-mono text-xs sm:text-[13px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words bg-slate-900/90 p-4 rounded-xl border border-slate-800 select-text">
-                        {highlightText(item.verbatimProvision, searchQuery)}
-                      </pre>
+                      <VerbatimCodalViewer
+                        statuteId={item.id}
+                        citation={item.citation}
+                        title={item.title}
+                        verbatim={item.verbatimProvision}
+                        summary={item.summary}
+                        keyRule={item.keyRule}
+                        worldBadge={item.worldBadge}
+                        initialTheme="midnight"
+                        searchQuery={searchQuery}
+                        onSaveToNotes={() => handleSaveToNotes(item)}
+                        isSavedToNotes={savedNoteIds[item.id]}
+                      />
                     </div>
                   )}
                 </div>

@@ -29,6 +29,7 @@ import {
 } from '../utils/engagementFeatures';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import { marioAudio } from '../utils/audio';
+import { VerbatimCodalViewer } from './VerbatimCodalViewer';
 
 interface StatuteLookupModalProps {
   isOpen: boolean;
@@ -602,22 +603,18 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                 </div>
 
                 {/* 1. Controlling Statutory Provision Text */}
-                <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-4 sm:p-5 border-2 border-amber-400/60 shadow-[2px_2px_0_#000] space-y-2.5">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <div className="flex items-center gap-2 text-xs font-black text-amber-300">
-                      <BookOpen className="w-4 h-4 shrink-0 text-amber-400" />
-                      <span className="font-mono uppercase tracking-wider">
-                        CONTROLLING STATUTORY PROVISION TEXT
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      Verbatim Codal Text
-                    </span>
-                  </div>
-                  <p className={`${fontClass} text-slate-100 font-medium allow-text-select select-text whitespace-pre-wrap break-words`}>
-                    {highlightText(activeEntry.statutoryText, query)}
-                  </p>
-                </section>
+                <VerbatimCodalViewer
+                  statuteId={activeEntry.id}
+                  citation={activeEntry.articleNumber}
+                  title={activeEntry.title}
+                  verbatim={activeEntry.statutoryText}
+                  keyRule={activeEntry.keyDoctrine}
+                  worldBadge={activeEntry.bookCategory}
+                  initialTheme="midnight"
+                  searchQuery={query}
+                  onSaveToNotes={() => handleSaveStatuteToNotes(activeEntry)}
+                  isSavedToNotes={savedNotesId === activeEntry.id}
+                />
 
                 {/* 2. Controlling Supreme Court Precedents */}
                 {activeEntry.supremeCourtDoctrines.length > 0 && (
