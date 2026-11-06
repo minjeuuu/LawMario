@@ -211,8 +211,8 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
   const effectiveDockSide: 'right' | 'left' = (activeTab === 'map' || isToadTipOpen) ? 'right' : dockSide;
   const positionClasses = effectiveDockSide === 'right' ? 'right-3 sm:right-6' : 'left-3 sm:left-6';
   const verticalPositionClass = isToadTipOpen
-    ? 'bottom-[370px] sm:bottom-24 md:bottom-6'
-    : 'bottom-20 md:bottom-6';
+    ? 'bottom-[380px] sm:bottom-[340px] lg:bottom-24'
+    : 'bottom-20 sm:bottom-22 lg:bottom-6';
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);
   const [doctrineIdx, setDoctrineIdx] = useState<number>(0);

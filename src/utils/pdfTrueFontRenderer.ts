@@ -72,7 +72,8 @@ export async function ensurePrintFontLoadedInBrowser(fontStyle?: string): Promis
  */
 export async function captureDomElementToPdfBytesAsync(
   elementId: string | string[],
-  orientation: 'portrait' | 'landscape'
+  orientation: 'portrait' | 'landscape',
+  fontStyle?: string
 ): Promise<Uint8Array | null> {
   if (typeof document === 'undefined') return null;
   const ids = Array.isArray(elementId) ? elementId : [elementId];
@@ -82,6 +83,9 @@ export async function captureDomElementToPdfBytesAsync(
     if (el) break;
   }
   if (!el) return null;
+
+  const fontSpec = await ensurePrintFontLoadedInBrowser(fontStyle);
+  const resolvedFontStack = fontSpec.cssFontFamily;
 
   try {
     if ('fonts' in document && document.fonts?.ready) {
@@ -99,9 +103,29 @@ export async function captureDomElementToPdfBytesAsync(
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: el.scrollWidth || undefined,
+      windowWidth: 1280,
       onclone: (clonedDoc) => {
-        // Reset preview scale transform in clone so capture is 100% unscaled retina
+        // 1. Transfer all loaded FontFace objects into the clone so canvas 2D context has exact web fonts
+        if (typeof document !== 'undefined' && document.fonts && (clonedDoc as any).fonts) {
+          try {
+            document.fonts.forEach((fontFace) => {
+              try {
+                (clonedDoc as any).fonts.add(fontFace);
+              } catch {}
+            });
+          } catch {}
+        }
+
+        // 2. Clone Google Font and custom font stylesheet links into clone head
+        try {
+          const fontLinks = document.querySelectorAll('link[rel="stylesheet"], link[href*="fonts"]');
+          fontLinks.forEach((link) => {
+            const cloneLink = link.cloneNode(true);
+            clonedDoc.head.appendChild(cloneLink);
+          });
+        } catch {}
+
+        // 3. Reset preview scale transform in clone so capture is 100% unscaled retina
         const scaledStage = clonedDoc.querySelector('[data-testid="print-scaled-stage-inner"]') as HTMLElement | null;
         if (scaledStage) {
           scaledStage.style.transform = 'none';
@@ -109,9 +133,35 @@ export async function captureDomElementToPdfBytesAsync(
         const scaledOuter = clonedDoc.querySelector('[data-testid="print-scaled-stage-outer"]') as HTMLElement | null;
         if (scaledOuter) {
           scaledOuter.style.position = 'relative';
+          scaledOuter.style.left = '0';
+          scaledOuter.style.top = '0';
           scaledOuter.style.opacity = '1';
+          scaledOuter.style.visibility = 'visible';
           scaledOuter.style.pointerEvents = 'auto';
+          scaledOuter.style.zIndex = '1';
         }
+
+        // 4. Inject explicit high-specificity font override stylesheet into clone head
+        const styleEl = clonedDoc.createElement('style');
+        styleEl.textContent = `
+          * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+          }
+          #one-page-summary-sheet,
+          #one-page-summary-sheet *:not(.preserve-system-font),
+          #official-labor-certificate,
+          #official-labor-certificate *:not(.preserve-system-font),
+          #official-scorecard-sheet,
+          #official-scorecard-sheet *:not(.preserve-system-font),
+          #printable-study-guide,
+          #printable-study-guide *:not(.preserve-system-font) {
+            font-family: ${resolvedFontStack} !important;
+          }
+        `;
+        clonedDoc.head.appendChild(styleEl);
+
+        // 5. Ensure all elements in the target sheet explicitly receive the exact font family
         const activeSheets = clonedDoc.querySelectorAll(
           '#one-page-summary-sheet, #official-labor-certificate, #official-scorecard-sheet, #printable-study-guide'
         );
@@ -120,6 +170,13 @@ export async function captureDomElementToPdfBytesAsync(
           sheetNode.style.overflow = 'visible';
           sheetNode.style.visibility = 'visible';
           sheetNode.style.opacity = '1';
+          sheetNode.style.fontFamily = resolvedFontStack;
+          sheetNode.querySelectorAll('*').forEach((child) => {
+            const childEl = child as HTMLElement;
+            if (!childEl.classList?.contains('preserve-system-font')) {
+              childEl.style.fontFamily = resolvedFontStack;
+            }
+          });
         });
       },
     });
@@ -193,7 +250,11 @@ export async function buildTrueFontStudyReviewerPdfBytesAsync(
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
   const orient = params.orientation === 'landscape' ? 'landscape' : 'portrait';
-  const snapBytes = await captureDomElementToPdfBytesAsync('printable-study-guide', orient);
+  const snapBytes = await captureDomElementToPdfBytesAsync(
+    'printable-study-guide',
+    orient,
+    params.fontStyle
+  );
   if (snapBytes) return snapBytes;
   return buildStudyGuideReviewerPdfBytes(params);
 }
@@ -205,7 +266,11 @@ export async function buildTrueFontOnePageSummaryPdfBytesAsync(
   options: OnePageSummaryPdfOptions = {}
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(options.fontStyle);
-  const snapBytes = await captureDomElementToPdfBytesAsync('one-page-summary-sheet', 'portrait');
+  const snapBytes = await captureDomElementToPdfBytesAsync(
+    'one-page-summary-sheet',
+    'portrait',
+    options.fontStyle
+  );
   if (snapBytes) return snapBytes;
   return buildOnePageSummaryPdfBytes(options);
 }
@@ -222,7 +287,11 @@ export async function buildTrueFontCertificateOrDiplomaPdfBytesAsync(
   const targetIds = isMasterDiploma
     ? ['royal-juris-diploma-sheet', 'master-diploma-printable']
     : ['official-labor-certificate'];
-  const snapBytes = await captureDomElementToPdfBytesAsync(targetIds, orient);
+  const snapBytes = await captureDomElementToPdfBytesAsync(
+    targetIds,
+    orient,
+    params.fontStyle
+  );
   if (snapBytes) return snapBytes;
   return isMasterDiploma
     ? buildMasterDiplomaPdfBytes(params)
@@ -238,7 +307,8 @@ export async function buildTrueFontScoreCardPdfBytesAsync(
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
   const snapBytes = await captureDomElementToPdfBytesAsync(
     ['official-scorecard-sheet', 'official-player-scorecard'],
-    'landscape'
+    'landscape',
+    params.fontStyle
   );
   if (snapBytes) return snapBytes;
   return buildScoreCardLandscapePdfBytes(params);

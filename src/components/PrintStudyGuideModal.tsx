@@ -2183,7 +2183,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             #official-scorecard-sheet *:not(.preserve-system-font),
             #printable-study-guide,
             #printable-study-guide *:not(.preserve-system-font) {
-              font-family: var(--print-active-font), inherit !important;
+              font-family: ${activeCssFontStack} !important;
             }
           `}</style>
 
@@ -2227,12 +2227,19 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 sheetNaturalHeightPx > 0
                   ? `${Math.ceil(sheetNaturalHeightPx * stageMetrics.effectiveScale)}px`
                   : undefined,
+              ...(previewRenderMode === 'pdf'
+                ? {
+                    position: 'fixed',
+                    top: '0px',
+                    left: '-10000px',
+                    opacity: 1,
+                    visibility: 'visible',
+                    pointerEvents: 'none',
+                    zIndex: -100,
+                  }
+                : {}),
             }}
-            className={`mx-auto transition-[width,height] duration-150 print:!w-full print:!h-auto ${
-              previewRenderMode === 'pdf'
-                ? 'absolute top-0 left-0 opacity-0 pointer-events-none -z-50'
-                : 'relative'
-            }`}
+            className="mx-auto relative transition-[width,height] duration-150 print:!w-full print:!h-auto"
           >
               <div
                 ref={sheetContentRef}
