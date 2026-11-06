@@ -4,7 +4,7 @@ import {
   ONE_PAGE_LEGAL_DEADLINES,
   ONE_PAGE_STATUTORY_LEAVE_CAPS,
 } from './onePageSummaryData';
-import { WORLDS_METADATA, ALL_LAW_TOPICS } from '../data/laborLawData';
+import { WORLDS_METADATA, ALL_LAW_TOPICS, STATUTORY_LEAVES_MASTER_ROWS } from '../data/laborLawData';
 import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
 import { REGIONAL_MINIMUM_WAGES, KASAMBAHAY_MINIMUM_WAGES } from '../data/regionalWages';
 import { GROUP_MEMBERS, StudyNoteItem } from './engagementFeatures';
@@ -2332,9 +2332,10 @@ function computeTopicModuleHeight(
     }
 
     if (rule.tableData) {
-      const cellPadY = 1.4;
-      const lineH = 3.2 * scale;
-      h += (rule.tableData.rows.length + 1) * (lineH * 1.5 + cellPadY * 2) + 3.0;
+      const cellPadY = 1.5;
+      const lineH = 3.3 * scale;
+      // Budget for wrapped multi-line cells in embedded tables
+      h += (rule.tableData.rows.length + 1) * (lineH * 2.2 + cellPadY * 2) + 4.0;
     }
   });
 
@@ -2478,15 +2479,22 @@ export function buildStudyGuideReviewerPdfBytes(
   };
 
   /**
-   * Draws a clean, multi-line wrapped table where every cell wraps strictly inside
-   * its own column width and row height expands automatically so text never overlaps.
+   * Draws a clean, multi-line wrapped table with exact column proportions,
+   * proper alignments, robust word wrapping (no overflow), zebra rows,
+   * and clean multi-page continuation.
+   * Returns the ending Y coordinate.
    */
   const drawWrappedTable = (
     headers: string[],
     rows: string[][],
-    colFractions?: number[]
-  ) => {
-    if (headers.length === 0) return;
+    colFractions?: number[],
+    startX: number = marginX,
+    tableWidth: number = contentW,
+    initialY?: number,
+    colAlignments?: ('left' | 'center' | 'right')[]
+  ): number => {
+    if (headers.length === 0) return initialY ?? y;
+    let tableY = initialY !== undefined ? initialY : y;
     const colCount = headers.length;
     const fractions =
       colFractions && colFractions.length === colCount
@@ -2496,14 +2504,16 @@ export function buildStudyGuideReviewerPdfBytes(
         : colCount === 3
         ? [0.28, 0.36, 0.36]
         : colCount === 4
-        ? [0.25, 0.2, 0.27, 0.28]
+        ? [0.24, 0.26, 0.22, 0.28]
+        : colCount === 5
+        ? [0.24, 0.18, 0.19, 0.19, 0.20]
         : Array.from({ length: colCount }, () => 1 / colCount);
 
-    const colWidths = fractions.map((f) => f * contentW);
-    const cellPadX = 1.6;
-    const cellPadY = 1.4;
-    const fontSz = 6.7 * scale;
-    const lineH = 3.2 * scale;
+    const colWidths = fractions.map((f) => f * tableWidth);
+    const cellPadX = 1.8;
+    const cellPadY = 1.5;
+    const fontSz = 6.6 * scale;
+    const lineH = 3.3 * scale;
 
     const renderRow = (cells: string[], isHeader: boolean, rowIdx: number) => {
       doc.setFont(ff, isHeader ? fp.headingStyle : fp.bodyStyle);
@@ -2511,15 +2521,17 @@ export function buildStudyGuideReviewerPdfBytes(
 
       const wrappedCells = colWidths.map((cw, cIdx) => {
         const txt = sanitizePdfText(cells[cIdx] || '');
-        const maxW = Math.max(8, cw - cellPadX * 2);
-        const safeTxt = txt.replace(/(\S{24})/g, '$1 ');
+        const maxW = Math.max(6, cw - cellPadX * 2);
+        // Break any unbroken token longer than 18 chars to prevent horizontal clipping
+        const safeTxt = txt.replace(/(\S{18})/g, '$1 ');
         return doc.splitTextToSize(safeTxt, maxW);
       });
       const maxLines = Math.max(1, ...wrappedCells.map((lines) => lines.length));
       const rowH = maxLines * lineH + cellPadY * 2;
 
-      if (y + rowH + 1 > pageH - marginBottom) {
+      if (tableY + rowH + 1 > pageH - marginBottom) {
         addThemedPage();
+        tableY = marginTop;
         if (!isHeader) {
           renderRow(headers, true, 0);
         }
@@ -2533,13 +2545,13 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.setFillColor(...theme.pageBg);
       }
       doc.setDrawColor(...theme.borderMuted);
-      doc.setLineWidth(0.18);
-      doc.rect(marginX, y, contentW, rowH, 'FD');
+      doc.setLineWidth(0.2);
+      doc.rect(startX, tableY, tableWidth, rowH, 'FD');
 
-      let curX = marginX;
+      let curX = startX;
       colWidths.forEach((cw, cIdx) => {
         if (cIdx > 0) {
-          doc.line(curX, y, curX, y + rowH);
+          doc.line(curX, tableY, curX, tableY + rowH);
         }
         doc.setTextColor(...(isHeader ? theme.badgeText : theme.bodyText));
         doc.setFont(
@@ -2547,19 +2559,34 @@ export function buildStudyGuideReviewerPdfBytes(
           isHeader ? fp.headingStyle : cIdx === 0 ? fp.subHeadingStyle : fp.bodyStyle
         );
         doc.setFontSize(fontSz);
+
+        const align = isHeader ? 'left' : colAlignments?.[cIdx] || 'left';
         const cellLines = wrappedCells[cIdx];
         cellLines.forEach((cline, lIdx) => {
-          doc.text(cline, curX + cellPadX, y + cellPadY + (lIdx + 0.82) * lineH);
+          const textY = tableY + cellPadY + (lIdx + 0.82) * lineH;
+          if (align === 'right') {
+            doc.text(cline, curX + cw - cellPadX, textY, { align: 'right' });
+          } else if (align === 'center') {
+            doc.text(cline, curX + cw / 2, textY, { align: 'center' });
+          } else {
+            doc.text(cline, curX + cellPadX, textY);
+          }
         });
         curX += cw;
       });
 
-      y += rowH;
+      tableY += rowH;
     };
 
     renderRow(headers, true, 0);
     rows.forEach((r, idx) => renderRow(r, false, idx));
-    y += 2.5;
+    tableY += 3.0;
+
+    // Sync global y if this was called from the top-level sections
+    if (initialY === undefined) {
+      y = tableY;
+    }
+    return tableY;
   };
 
   // Masthead (y = marginTop to marginTop + 21.0)
@@ -2884,47 +2911,61 @@ export function buildStudyGuideReviewerPdfBytes(
     });
   }
 
-  // I. Statutory Pay Multiplier Matrix (Multi-line wrapped table — zero overlap!)
+  // I. Statutory Pay Multiplier Matrix (4 columns matching web preview with right-aligned rates)
   if (params.includeMultipliers !== false) {
     writeSectionHeading('I. STATUTORY PAY MULTIPLIER MATRIX (DOLE BWC)', 'Arts. 86, 87, 93-94');
     const multRows = LABOR_BENEFITS_MULTIPLIER_LIST.map((row) => {
       const pct = `${(row.multiplierDecimal * 100).toFixed(1).replace(/\.0$/, '')}%`;
-      return [row.benefit, pct, `${row.scenario} (${row.formula})`];
+      return [row.benefit, row.scenario, pct, row.formula];
     });
-    drawWrappedTable(['Benefit / Day Type', 'Rate', 'Applicable Scenario & Formula'], multRows, [
-      0.26,
-      0.14,
-      0.6,
-    ]);
+    drawWrappedTable(
+      ['Benefit Category', 'Scenario / Day Type', 'Rate', 'Statutory Formula'],
+      multRows,
+      [0.22, 0.33, 0.13, 0.32],
+      marginX,
+      contentW,
+      undefined,
+      ['left', 'left', 'right', 'left']
+    );
   }
 
-  // II. 17 Regions Minimum Wage Matrix (Multi-line wrapped table — zero overlap!)
+  // II. 17 Regions Minimum Wage Matrix (5 columns matching web preview with right-aligned rates)
   if (params.includeRegionalWages !== false) {
     writeSectionHeading('II. 17 REGIONS MINIMUM WAGE & KASAMBAHAY MATRIX', 'R.A. 6727 & R.A. 10361');
     const wageRows = REGIONAL_MINIMUM_WAGES.map((rw, idx) => {
       const kas = KASAMBAHAY_MINIMUM_WAGES[idx];
-      return [rw.region, rw.nonAgri, rw.agri, kas ? kas.minimumWage : '-'];
+      return [rw.region, rw.effectivity, rw.nonAgri, rw.agri, kas ? kas.minimumWage : '—'];
     });
     drawWrappedTable(
-      ['Region', 'Non-Agriculture Daily', 'Agriculture Daily', 'Kasambahay Monthly'],
+      ['Region', 'Effectivity', 'Non-Agriculture', 'Agriculture', 'Kasambahay / Mo.'],
       wageRows,
-      [0.32, 0.24, 0.22, 0.22]
+      [0.26, 0.18, 0.19, 0.19, 0.18],
+      marginX,
+      contentW,
+      undefined,
+      ['left', 'left', 'right', 'right', 'right']
     );
   }
 
-  // III. World 6 Statutory Leaves Matrix
+  // III. World 6 Statutory Leaves Master Matrix (5 columns matching web preview)
   if (params.includeLeavesMatrix !== false) {
     writeSectionHeading('III. WORLD 6 STATUTORY LEAVES COMPARISON MATRIX', 'Art. 95 & Special Laws');
-    const leaveRows = ONE_PAGE_STATUTORY_LEAVE_CAPS.map((lv) => [
-      `${lv.leaveName} (${lv.citation})`,
-      lv.cap,
-      lv.rule,
+    const leaveRows = STATUTORY_LEAVES_MASTER_ROWS.map((lv) => [
+      lv.leave,
+      params.includeLegalCitations !== false ? lv.basis : 'Statutory',
+      lv.duration,
+      lv.eligibility,
+      lv.conversion,
     ]);
-    drawWrappedTable(['Statutory Leave & Basis', 'Paid Cap', 'Key Eligibility & Commutability Rule'], leaveRows, [
-      0.3,
-      0.2,
-      0.5,
-    ]);
+    drawWrappedTable(
+      ['Statutory Leave', 'Legal Basis', 'Paid Duration', 'Key Eligibility', 'Cash Commutation & Payor'],
+      leaveRows,
+      [0.20, 0.15, 0.19, 0.24, 0.22],
+      marginX,
+      contentW,
+      undefined,
+      ['left', 'left', 'left', 'left', 'left']
+    );
   }
 
   // IV. Unabridged Modules Breakdown
@@ -3198,10 +3239,17 @@ export function buildStudyGuideReviewerPdfBytes(
           });
         }
 
-        // Table
+        // Embedded Module Table (drawn in-place inside module card without jumping or overlapping!)
         if (rule.tableData) {
-          drawWrappedTable(rule.tableData.headers, rule.tableData.rows);
-          curY = y;
+          curY = drawWrappedTable(
+            rule.tableData.headers,
+            rule.tableData.rows,
+            undefined,
+            marginX + cardPadX,
+            innerW,
+            curY
+          );
+          y = curY;
         }
       });
 

@@ -114,6 +114,59 @@ export const ALL_LAW_TOPICS: LawTopic[] = RAW_LAW_TOPICS.map((topic) => {
   };
 });
 
+export interface StatutoryLeaveMasterRow {
+  leave: string;
+  basis: string;
+  duration: string;
+  eligibility: string;
+  conversion: string;
+}
+
+export const STATUTORY_LEAVES_MASTER_ROWS: readonly StatutoryLeaveMasterRow[] = [
+  {
+    leave: 'Service Incentive Leave (SIL)',
+    basis: 'Art. 95, Labor Code',
+    duration: '5 working days / year',
+    eligibility: 'Rank-and-file with >= 1 year service (excludes <10 workers)',
+    conversion: 'Commutable to cash at year-end if unused',
+  },
+  {
+    leave: 'Expanded Maternity Leave',
+    basis: 'R.A. No. 11210',
+    duration: '105d live (+15d solo) / 60d miscarriage',
+    eligibility: 'Every female worker per pregnancy regardless of civil status',
+    conversion: 'Full pay (SSS + salary diff.); up to 7d transferable; non-cumulative',
+  },
+  {
+    leave: 'Paternity Leave',
+    basis: 'R.A. No. 8187',
+    duration: '7 calendar days (+ up to 7d from mother = 14d)',
+    eligibility: 'Married male cohabiting with legitimate spouse; first 4 deliveries',
+    conversion: 'Full pay by employer; non-cumulative & non-convertible to cash',
+  },
+  {
+    leave: 'Solo Parent Parental Leave',
+    basis: 'R.A. 8972 / R.A. 11861',
+    duration: '7 working days / year',
+    eligibility: 'Valid Solo Parent ID + >= 6 months service (reduced from 1 yr)',
+    conversion: 'Non-cumulative; forfeited if unused unless CBA stipulates',
+  },
+  {
+    leave: 'Special Gynecological Leave',
+    basis: 'R.A. No. 9710 (Sec. 18)',
+    duration: 'Up to 2 months (full pay)',
+    eligibility: '>= 6 mos continuous aggregate service in last 12 mos + surgery',
+    conversion: 'Non-cumulative & non-convertible to cash',
+  },
+  {
+    leave: 'VAWC Victim Paid Leave',
+    basis: 'R.A. No. 9262 (Sec. 43)',
+    duration: 'Up to 10 days (extendible per BPO/TPO/PPO)',
+    eligibility: 'Female victim-survivor with Barangay/Prosecutor/Court cert.',
+    conversion: 'Non-cumulative & non-convertible to cash; administrative sanction if denied',
+  },
+];
+
 export {
   MODULE_1_HOURS_OF_WORK,
   MODULE_2_REST_HOLIDAYS_13TH,

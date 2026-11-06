@@ -122,6 +122,10 @@ import {
   Magnet,
   Trophy,
   RotateCcw,
+  Star,
+  Tv,
+  Zap,
+  Flame,
 } from 'lucide-react';
 import { GameDoctrinesModal } from './GameDoctrinesModal';
 
@@ -261,6 +265,78 @@ export const GameVault: React.FC<GameVaultProps> = ({
   );
   const [showBestPlays, setShowBestPlays] = useState<boolean>(true);
   const [boostNotice, setBoostNotice] = useState<string | null>(null);
+
+  const [frenzyMeter, setFrenzyMeter] = useState<number>(0);
+  const [frenzyActive, setFrenzyActive] = useState<boolean>(false);
+  const [frenzySeconds, setFrenzySeconds] = useState<number>(0);
+  const [crtScanlines, setCrtScanlines] = useState<boolean>(false);
+  const [floatingPopups, setFloatingPopups] = useState<
+    { id: number; text: string; subText?: string; color: string }[]
+  >([]);
+
+  const spawnFloatingPopup = (text: string, color: string = 'amber', subText?: string) => {
+    const id = Date.now() + Math.random();
+    setFloatingPopups((prev) => [...prev.slice(-3), { id, text, subText, color }]);
+    setTimeout(() => {
+      setFloatingPopups((prev) => prev.filter((p) => p.id !== id));
+    }, 1300);
+  };
+
+  const triggerFrenzy = () => {
+    setFrenzyActive(true);
+    setFrenzySeconds(10);
+    setFrenzyMeter(100);
+    marioAudio.playPowerUp();
+    spawnFloatingPopup('SUPER STAR FRENZY x3 ACTIVE!', 'rainbow', '10s Massive Multipliers!');
+    setBoostNotice('Super Star Frenzy Active! 3x Coin Multiplier for 10s!');
+  };
+
+  useEffect(() => {
+    if (!frenzyActive) return;
+    const timer = setInterval(() => {
+      setFrenzySeconds((sec) => {
+        if (sec <= 1) {
+          setFrenzyActive(false);
+          setFrenzyMeter(0);
+          setBoostNotice('Super Star Frenzy ended');
+          return 0;
+        }
+        return sec - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [frenzyActive]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (e.key === 'r' || e.key === 'R') {
+        setReplayNonce((n) => n + 1);
+        marioAudio.playPipe();
+        spawnFloatingPopup('QUICK RESTART [R]!', 'amber', 'Ready!');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const getGameStarRating = (gameId: string): number => {
+    const bp = bestPlays.find((p) => p.gameId === gameId);
+    if (!bp) return 0;
+    if (bp.bestScore >= 800 || bp.bestCoins >= 16) return 3;
+    if (bp.bestScore >= 400 || bp.bestCoins >= 8) return 2;
+    if (bp.bestScore > 0 || bp.bestCoins > 0 || bp.playsCount > 0) return 1;
+    return 0;
+  };
 
   useEffect(() => {
     const syncMagnet = () => {
@@ -406,7 +482,8 @@ export const GameVault: React.FC<GameVaultProps> = ({
 
   const handleEarnCoins = (amount: number) => {
     const magnetBonus = coinMagnetActive && amount > 0 ? Math.max(1, Math.round(amount * 0.25)) : 0;
-    const finalAmount = (doublePayoutActive ? amount * 2 : amount) + magnetBonus;
+    const multiplier = (doublePayoutActive ? 2 : 1) * (frenzyActive ? 3 : 1);
+    const finalAmount = amount * multiplier + magnetBonus;
     if (onEarnCoins && finalAmount > 0) {
       onEarnCoins(finalAmount);
     } else {
@@ -415,6 +492,26 @@ export const GameVault: React.FC<GameVaultProps> = ({
     if (finalAmount > 0) {
       marioAudio.playCoin();
       dispatchDailyMissionEvent('arcade_play', 1);
+
+      const sub = frenzyActive
+        ? '3x STAR FRENZY!'
+        : doublePayoutActive
+        ? '2x BOOST ACTIVE'
+        : undefined;
+      spawnFloatingPopup(`+${finalAmount} COINS!`, frenzyActive ? 'rainbow' : 'amber', sub);
+
+      if (!frenzyActive) {
+        setFrenzyMeter((prev) => {
+          const charge = Math.max(15, amount * 10);
+          const next = Math.min(100, prev + charge);
+          if (next >= 100) {
+            triggerFrenzy();
+            return 100;
+          }
+          return next;
+        });
+      }
+
       const found = games.find((gm) => gm.id === activeGame);
       if (found && typeof window !== 'undefined') {
         const next = recordArcadeBestPlay(
@@ -1256,6 +1353,33 @@ export const GameVault: React.FC<GameVaultProps> = ({
             </button>
             <button
               type="button"
+              data-testid="arcade-boost-frenzy-btn"
+              onClick={() => {
+                if (coins < 10 || frenzyActive) return;
+                setCoins((c) => Math.max(0, c - 10));
+                marioAudio.playPowerUp();
+                setFrenzyMeter((prev) => {
+                  const next = Math.min(100, prev + 35);
+                  if (next >= 100) {
+                    triggerFrenzy();
+                    return 100;
+                  }
+                  return next;
+                });
+                setBoostNotice('Spent 10 Coins · +35% Frenzy Charge!');
+              }}
+              disabled={coins < 10 || frenzyActive}
+              className={`min-h-[38px] px-3 rounded-xl text-xs font-black border inline-flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap ${
+                frenzyActive
+                  ? 'bg-amber-400 text-slate-950 border-black animate-pulse'
+                  : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-400/60 disabled:opacity-40'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <span>{frenzyActive ? 'Frenzy Active (3x)' : 'Charge Frenzy (10c)'}</span>
+            </button>
+            <button
+              type="button"
               data-testid="arcade-instant-replay-btn"
               onClick={() => {
                 setReplayNonce((n) => n + 1);
@@ -1326,13 +1450,182 @@ export const GameVault: React.FC<GameVaultProps> = ({
           ))}
       </div>
 
-      {/* Active Game Surface First on Mobile for Immediate Thumb Reach, Followed by Full Game Shelf */}
+      {/* Retro Arcade Cabinet Frame & Active Game Stage */}
       <div
-        id="active-vault-game-stage"
-        key={`${activeGame}-${replayNonce}`}
-        className="relative z-10 select-none w-full max-w-full min-w-0"
-        onContextMenu={(e) => e.preventDefault()}
+        data-testid="arcade-cabinet-frame"
+        className={`relative rounded-2xl sm:rounded-3xl border-3 sm:border-4 transition-all duration-300 ${
+          frenzyActive
+            ? 'border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950'
+            : 'border-slate-950 shadow-[4px_4px_0_#000] bg-slate-950'
+        } p-2 sm:p-3 space-y-2`}
       >
+        {/* Arcade Cabinet Marquee Header Bar */}
+        <div
+          data-testid="arcade-cabinet-marquee"
+          className="bg-slate-900 border-2 border-slate-800 rounded-xl sm:rounded-2xl p-2 sm:p-2.5 flex flex-wrap items-center justify-between gap-2"
+        >
+          {/* Active Game Info & 3-Star Rating */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 border border-black shadow-[0_1px_0_#000]">
+              {activeGameMeta.icon}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] sm:text-xs font-black font-display text-white truncate">
+                  {activeGameMeta.title}
+                </span>
+                <span className="text-[8.5px] font-black font-mario px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 uppercase shrink-0">
+                  {activeGameMeta.badge}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3].map((starIdx) => (
+                  <Star
+                    key={starIdx}
+                    className={`w-3 h-3 ${
+                      getGameStarRating(activeGame) >= starIdx
+                        ? 'fill-amber-400 text-amber-500'
+                        : 'fill-slate-800 text-slate-700'
+                    }`}
+                  />
+                ))}
+                <span className="text-[9.5px] font-black font-mono text-amber-300 ml-0.5">
+                  {getGameStarRating(activeGame)}/3 Stars
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Super Star Frenzy Gauge & Quick Controls */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {/* Frenzy Meter Gauge */}
+            <div
+              data-testid="arcade-frenzy-meter"
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border transition-colors ${
+                frenzyActive
+                  ? 'bg-amber-400/20 border-amber-400 text-amber-300 animate-pulse'
+                  : 'bg-slate-950 border-slate-700 text-slate-300'
+              }`}
+            >
+              <Flame
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  frenzyActive ? 'text-amber-400 animate-bounce' : 'text-slate-500'
+                }`}
+              />
+              <div className="flex flex-col">
+                <div className="flex items-center justify-between gap-2 text-[9px] font-black font-mario">
+                  <span>{frenzyActive ? `FRENZY x3 (${frenzySeconds}s)` : 'STAR FRENZY'}</span>
+                  <span>{frenzyActive ? 'MAX' : `${Math.round(frenzyMeter)}%`}</span>
+                </div>
+                <div className="w-20 sm:w-28 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700 mt-0.5">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      frenzyActive
+                        ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-amber-300'
+                        : 'bg-amber-400'
+                    }`}
+                    style={{ width: `${frenzyActive ? 100 : frenzyMeter}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Retro CRT Toggle */}
+            <button
+              type="button"
+              data-testid="arcade-crt-toggle-btn"
+              onClick={() => {
+                setCrtScanlines((v) => !v);
+                marioAudio.playClick();
+              }}
+              title="Toggle Retro CRT Scanlines & Screen Glow"
+              className={`min-h-[34px] px-2 rounded-xl text-[10.5px] font-black border inline-flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap ${
+                crtScanlines
+                  ? 'bg-cyan-500 text-slate-950 border-cyan-400'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+              }`}
+            >
+              <Tv className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">CRT FX</span>
+            </button>
+
+            {/* Quick Restart [R] */}
+            <button
+              type="button"
+              data-testid="arcade-quick-restart-btn"
+              onClick={() => {
+                setReplayNonce((n) => n + 1);
+                marioAudio.playPipe();
+                spawnFloatingPopup('QUICK RESTART [R]!', 'amber', 'Ready!');
+              }}
+              title="Quick Restart (Hotkey: R)"
+              className="min-h-[34px] px-2.5 rounded-xl text-[10.5px] font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border border-black inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+            >
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+              <span>Retry [R]</span>
+            </button>
+
+            {/* Random Game */}
+            <button
+              type="button"
+              data-testid="arcade-marquee-random-btn"
+              onClick={handleRandomGame}
+              title="Shuffle Random Game"
+              className="min-h-[34px] px-2 rounded-xl text-[10.5px] font-black bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+            >
+              <Shuffle className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Shuffle</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Active Game Surface Inside Cabinet Frame */}
+        <div
+          id="active-vault-game-stage"
+          key={`${activeGame}-${replayNonce}`}
+          className="relative z-10 select-none w-full max-w-full min-w-0 overflow-hidden rounded-xl sm:rounded-2xl"
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {/* Floating Popups Overlay */}
+          {floatingPopups.length > 0 && (
+            <div
+              data-testid="arcade-floating-popups"
+              className="pointer-events-none absolute inset-0 z-50 flex flex-col items-center justify-center gap-2 overflow-hidden"
+            >
+              {floatingPopups.map((p) => (
+                <div
+                  key={p.id}
+                  className={`animate-bounce px-4 py-2 rounded-2xl border-2 border-black font-mario shadow-[0_4px_0_#000] text-center ${
+                    p.color === 'rainbow'
+                      ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-yellow-300 text-slate-950'
+                      : 'bg-amber-400 text-slate-950'
+                  }`}
+                >
+                  <div className="text-base sm:text-xl font-black tracking-wider uppercase drop-shadow-sm">
+                    {p.text}
+                  </div>
+                  {p.subText && (
+                    <div className="text-[10px] font-extrabold uppercase tracking-wide opacity-90">
+                      {p.subText}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Retro CRT Scanlines Overlay */}
+          {crtScanlines && (
+            <div
+              data-testid="arcade-crt-overlay"
+              className="pointer-events-none absolute inset-0 z-40 rounded-xl"
+              style={{
+                backgroundImage:
+                  'repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 1px, transparent 1px, transparent 3px)',
+                boxShadow: 'inset 0 0 45px rgba(0,0,0,0.7)',
+              }}
+            />
+          )}
         {activeGame === 'coin_rush' && (
           <CoinRushArcadeGame
             equippedAvatar={equippedAvatar}
@@ -1690,6 +1983,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
             onQuizCompleted={onQuizCompleted}
           />
         )}
+        </div>
       </div>
 
       {/* Genre Category Filter Strip for All 47 Playable Games */}
@@ -1757,6 +2051,8 @@ export const GameVault: React.FC<GameVaultProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {shelfGames.map((g) => {
                     const isSelected = activeGame === g.id;
+                    const starRating = getGameStarRating(g.id);
+                    const cardBest = bestPlays.find((bp) => bp.gameId === g.id);
                     return (
                       <button
                         key={g.id}
@@ -1800,6 +2096,44 @@ export const GameVault: React.FC<GameVaultProps> = ({
                             <p className="text-xs font-semibold leading-relaxed mt-1 text-slate-700">
                               {g.desc}
                             </p>
+                          </div>
+
+                          {/* 3-Star Mastery Badge & High Score */}
+                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-900/10">
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3].map((starIdx) => (
+                                <Star
+                                  key={starIdx}
+                                  className={`w-3.5 h-3.5 ${
+                                    starRating >= starIdx
+                                      ? 'fill-amber-400 text-amber-500'
+                                      : isSelected
+                                      ? 'fill-slate-900/20 text-slate-900/30'
+                                      : 'fill-slate-200 text-slate-300'
+                                  }`}
+                                />
+                              ))}
+                              <span
+                                className={`text-[10px] font-black font-mono ml-1 ${
+                                  isSelected ? 'text-slate-900' : 'text-slate-600'
+                                }`}
+                              >
+                                {starRating}/3 Stars
+                              </span>
+                            </div>
+                            {cardBest ? (
+                              <span
+                                className={`text-[10px] font-mono font-bold ${
+                                  isSelected ? 'text-slate-950 font-black' : 'text-emerald-700'
+                                }`}
+                              >
+                                Best: {cardBest.bestScore} pts
+                              </span>
+                            ) : (
+                              <span className="text-[9.5px] font-bold text-slate-400">
+                                Unplayed
+                              </span>
+                            )}
                           </div>
                         </div>
 
