@@ -101,43 +101,14 @@ export async function captureDomElementToPdfBytesAsync(
     const targetW = orientation === 'portrait' ? 794 : 1123;
 
     const canvas = await html2canvas(el, {
-      scale: 2.5,
+      scale: 2,
       width: targetW,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: 1280,
-      onclone: (clonedDoc) => {
-        // 1. Inject full Google Fonts stylesheet directly into clone head for instant 1:1 font resolution
-        try {
-          const gfLink = clonedDoc.createElement('link');
-          gfLink.rel = 'stylesheet';
-          gfLink.href =
-            'https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bricolage+Grotesque:wght@400;500;700;800&family=Caveat:wght@400;600;700&family=Cinzel:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;700&family=DotGothic16&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Fira+Code:wght@400;600;700&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Fredoka:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600;700&family=Inconsolata:wght@400;600;700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Lexend:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@400;600;700;800&family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Sans:wght@400;500;600;700;800&family=Orbitron:wght@400;600;700;800&family=Oswald:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Pixelify+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Public+Sans:wght@400;600;700;800&family=Quicksand:wght@500;600;700&family=Silkscreen:wght@400;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Urbanist:wght@400;600;700;800&family=VT323&display=swap';
-          clonedDoc.head.appendChild(gfLink);
-        } catch {}
-
-        // 2. Clone all stylesheets and link tags from main document
-        try {
-          const fontLinks = document.querySelectorAll('link[rel="stylesheet"], link[href*="fonts"]');
-          fontLinks.forEach((link) => {
-            const cloneLink = link.cloneNode(true);
-            clonedDoc.head.appendChild(cloneLink);
-          });
-        } catch {}
-
-        // 3. Transfer loaded FontFace objects if document.fonts is accessible
-        if (typeof document !== 'undefined' && document.fonts && (clonedDoc as any).fonts) {
-          try {
-            document.fonts.forEach((fontFace) => {
-              try {
-                (clonedDoc as any).fonts.add(fontFace);
-              } catch {}
-            });
-          } catch {}
-        }
-
-        // 4. Force clone stage & target elements to natural unscaled A4 dimensions (794px portrait / 1123px landscape)
+      windowWidth: targetW,
+      onclone: async (clonedDoc) => {
+        // 1. Force clone stage & target elements to unscaled natural A4 dimensions without margins or transforms
         const scaledOuter = clonedDoc.querySelector('[data-testid="print-scaled-stage-outer"]') as HTMLElement | null;
         if (scaledOuter) {
           scaledOuter.style.position = 'relative';
@@ -152,7 +123,8 @@ export async function captureDomElementToPdfBytesAsync(
           scaledOuter.style.visibility = 'visible';
           scaledOuter.style.pointerEvents = 'auto';
           scaledOuter.style.zIndex = '1';
-          scaledOuter.style.margin = '0 auto';
+          scaledOuter.style.margin = '0';
+          scaledOuter.style.padding = '0';
         }
 
         const scaledStage = clonedDoc.querySelector('[data-testid="print-scaled-stage-inner"]') as HTMLElement | null;
@@ -162,7 +134,8 @@ export async function captureDomElementToPdfBytesAsync(
           scaledStage.style.maxWidth = `${targetW}px`;
           scaledStage.style.minWidth = `${targetW}px`;
           scaledStage.style.height = 'auto';
-          scaledStage.style.margin = '0 auto';
+          scaledStage.style.margin = '0';
+          scaledStage.style.padding = '0';
         }
 
         const clonedTarget = clonedDoc.getElementById(el.id);
@@ -171,13 +144,16 @@ export async function captureDomElementToPdfBytesAsync(
           clonedTarget.style.maxWidth = `${targetW}px`;
           clonedTarget.style.minWidth = `${targetW}px`;
           clonedTarget.style.transform = 'none';
-          clonedTarget.style.margin = '0 auto';
+          clonedTarget.style.margin = '0';
+          clonedTarget.style.boxSizing = 'border-box';
         }
 
-        // 5. Explicitly set CSS custom property and inject high-priority font-family override
+        // 2. Explicitly set CSS custom property and inject high-priority font-family override
         clonedDoc.documentElement.style.setProperty('--print-active-font', resolvedFontStack, 'important');
         if (clonedDoc.body) {
           clonedDoc.body.style.setProperty('--print-active-font', resolvedFontStack, 'important');
+          clonedDoc.body.style.margin = '0';
+          clonedDoc.body.style.padding = '0';
         }
 
         const styleEl = clonedDoc.createElement('style');
@@ -189,30 +165,16 @@ export async function captureDomElementToPdfBytesAsync(
           :root {
             --print-active-font: ${resolvedFontStack} !important;
           }
-          #one-page-summary-sheet,
-          #one-page-summary-sheet *,
-          #official-labor-certificate,
-          #official-labor-certificate *,
-          #official-scorecard-sheet,
-          #official-scorecard-sheet *,
-          #official-player-scorecard,
-          #official-player-scorecard *,
-          #master-diploma-printable,
-          #master-diploma-printable *,
-          #royal-juris-diploma-sheet,
-          #royal-juris-diploma-sheet *,
-          #printable-study-guide,
-          #printable-study-guide *,
-          .dynamic-print-font-target,
-          .dynamic-print-font-target * {
+          #${el.id},
+          #${el.id} *:not(.preserve-system-font) {
             font-family: ${resolvedFontStack} !important;
           }
         `;
         clonedDoc.head.appendChild(styleEl);
 
-        // 6. Ensure all elements in the target sheet explicitly receive the exact font family via setProperty important
+        // 3. Ensure all elements in the target sheet explicitly receive the exact font family via setProperty important
         const activeSheets = clonedDoc.querySelectorAll(
-          '#one-page-summary-sheet, #official-labor-certificate, #official-scorecard-sheet, #official-player-scorecard, #master-diploma-printable, #royal-juris-diploma-sheet, #printable-study-guide'
+          `#${el.id}, #one-page-summary-sheet, #official-labor-certificate, #official-scorecard-sheet, #official-player-scorecard, #master-diploma-printable, #royal-juris-diploma-sheet, #printable-study-guide`
         );
         activeSheets.forEach((node) => {
           const sheetNode = node as HTMLElement;
@@ -227,6 +189,15 @@ export async function captureDomElementToPdfBytesAsync(
             }
           });
         });
+
+        if ((clonedDoc as any).fonts?.ready) {
+          try {
+            await Promise.race([
+              (clonedDoc as any).fonts.ready,
+              new Promise((resolve) => setTimeout(resolve, 400)),
+            ]);
+          } catch {}
+        }
       },
     });
 
@@ -242,10 +213,14 @@ export async function captureDomElementToPdfBytesAsync(
       compress: true,
     });
 
-    // Single-page fit with small 8% tolerance to prevent unintentional blank pages
-    if (canvasAspect <= pageAspect * 1.08) {
-      const imgData = canvas.toDataURL('image/jpeg', 0.96);
-      doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH, undefined, 'FAST');
+    // Single-page fit (summary sheet, certificate, scorecard):
+    if (canvasAspect <= pageAspect * 1.05) {
+      const imgData = canvas.toDataURL('image/png');
+      const renderW = pageW;
+      const renderH = (canvas.height / canvas.width) * pageW;
+      const finalH = Math.min(pageH, renderH);
+      const yOffset = renderH < pageH ? Math.max(0, (pageH - renderH) / 2) : 0;
+      doc.addImage(imgData, 'PNG', 0, yOffset, renderW, finalH, undefined, 'FAST');
     } else {
       // Multi-page slicing: cleanly divide tall canvas into crisp A4 pages
       const sliceHeightPx = Math.floor(canvas.width * pageAspect);
@@ -275,11 +250,11 @@ export async function captureDomElementToPdfBytesAsync(
           );
         }
 
-        const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+        const sliceImgData = sliceCanvas.toDataURL('image/png');
         if (i > 0) {
           doc.addPage('a4', orientation);
         }
-        doc.addImage(sliceImgData, 'JPEG', 0, 0, pageW, pageH, undefined, 'FAST');
+        doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
       }
     }
 

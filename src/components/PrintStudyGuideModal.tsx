@@ -194,7 +194,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [simDailyWage, setSimDailyWage] = useState<number>(645);
   const [showMultiplierSim, setShowMultiplierSim] = useState<boolean>(false);
   const [pdfDownloadedNotice, setPdfDownloadedNotice] = useState(false);
-  const [pdfEngineMode, setPdfEngineMode] = useState<'canvas' | 'vector'>('canvas');
   const [formatOptions, setFormatOptions] = useState<PrintGuideFormatOptions>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -423,18 +422,18 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
     const runPreviewBuild = async () => {
       let bytes: Uint8Array;
-      if (pdfEngineMode === 'vector') {
-        if (documentMode === 'summary') {
-          bytes = buildOnePageSummaryPdfBytes({
-            candidateName: candidateName.trim() || undefined,
-            dateLabel: currentDate,
-            colorAccent: formatOptions.colorAccent,
-            fontStyle: formatOptions.fontStyle,
-            includeWatermark,
-            watermarkText: formatOptions.watermarkText,
-          });
-        } else if (documentMode === 'certificate') {
-          bytes = buildCertificatePdfBytes({
+      if (documentMode === 'summary') {
+        bytes = await buildTrueFontOnePageSummaryPdfBytesAsync({
+          candidateName: candidateName.trim() || undefined,
+          dateLabel: currentDate,
+          colorAccent: formatOptions.colorAccent,
+          fontStyle: formatOptions.fontStyle,
+          includeWatermark,
+          watermarkText: formatOptions.watermarkText,
+        });
+      } else if (documentMode === 'certificate') {
+        bytes = await buildTrueFontCertificateOrDiplomaPdfBytesAsync(
+          {
             recipientName:
               candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
             honors: certificateHonors,
@@ -444,100 +443,42 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             colorAccent: formatOptions.colorAccent,
             fontStyle: formatOptions.fontStyle,
             orientation: certOrientation,
-          });
-        } else if (documentMode === 'scorecard') {
-          bytes = buildScoreCardLandscapePdfBytes(buildCurrentScoreCardParams());
-        } else {
-          bytes = buildStudyGuideReviewerPdfBytes({
-            orientation: pageOrientation,
-            candidateName: candidateName.trim() || undefined,
-            completedTopicIds,
-            topics: filteredTopics,
-            selectedWorlds,
-            includeGroupMembers,
-            includeProgress,
-            includeMultipliers,
-            includeRegionalWages,
-            includeLeavesMatrix,
-            includePersonalNotes,
-            includeBarTips: formatOptions.includeBarTips,
-            includeLegalCitations: formatOptions.includeLegalCitations,
-            matricesOnlyMode,
-            studyNotes: resolvedNotes,
-            colorAccent: formatOptions.colorAccent,
-            fontStyle: formatOptions.fontStyle,
-            paperMargins,
-            fontSizeScale,
-            includeCheckboxes,
-            includeWatermark,
-            watermarkText: formatOptions.watermarkText,
-            includeFormulasCheatSheet,
-            includeFourFoldControlTest,
-            includeTwoNoticeChecklist,
-            includeRetirementFormulaBox,
-            includeHonorPledge,
-            blankNoteLinesCount: formatOptions.blankNoteLinesCount,
-          });
-        }
+          },
+          false
+        );
+      } else if (documentMode === 'scorecard') {
+        bytes = await buildTrueFontScoreCardPdfBytesAsync(buildCurrentScoreCardParams());
       } else {
-        if (documentMode === 'summary') {
-          bytes = await buildTrueFontOnePageSummaryPdfBytesAsync({
-            candidateName: candidateName.trim() || undefined,
-            dateLabel: currentDate,
-            colorAccent: formatOptions.colorAccent,
-            fontStyle: formatOptions.fontStyle,
-            includeWatermark,
-            watermarkText: formatOptions.watermarkText,
-          });
-        } else if (documentMode === 'certificate') {
-          bytes = await buildTrueFontCertificateOrDiplomaPdfBytesAsync(
-            {
-              recipientName:
-                candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
-              honors: certificateHonors,
-              completedCount,
-              totalCount: totalTopics,
-              dateLabel: currentDate,
-              colorAccent: formatOptions.colorAccent,
-              fontStyle: formatOptions.fontStyle,
-              orientation: certOrientation,
-            },
-            false
-          );
-        } else if (documentMode === 'scorecard') {
-          bytes = await buildTrueFontScoreCardPdfBytesAsync(buildCurrentScoreCardParams());
-        } else {
-          bytes = await buildTrueFontStudyReviewerPdfBytesAsync({
-            orientation: pageOrientation,
-            candidateName: candidateName.trim() || undefined,
-            completedTopicIds,
-            topics: filteredTopics,
-            selectedWorlds,
-            includeGroupMembers,
-            includeProgress,
-            includeMultipliers,
-            includeRegionalWages,
-            includeLeavesMatrix,
-            includePersonalNotes,
-            includeBarTips: formatOptions.includeBarTips,
-            includeLegalCitations: formatOptions.includeLegalCitations,
-            matricesOnlyMode,
-            studyNotes: resolvedNotes,
-            colorAccent: formatOptions.colorAccent,
-            fontStyle: formatOptions.fontStyle,
-            paperMargins,
-            fontSizeScale,
-            includeCheckboxes,
-            includeWatermark,
-            watermarkText: formatOptions.watermarkText,
-            includeFormulasCheatSheet,
-            includeFourFoldControlTest,
-            includeTwoNoticeChecklist,
-            includeRetirementFormulaBox,
-            includeHonorPledge,
-            blankNoteLinesCount: formatOptions.blankNoteLinesCount,
-          });
-        }
+        bytes = await buildTrueFontStudyReviewerPdfBytesAsync({
+          orientation: pageOrientation,
+          candidateName: candidateName.trim() || undefined,
+          completedTopicIds,
+          topics: filteredTopics,
+          selectedWorlds,
+          includeGroupMembers,
+          includeProgress,
+          includeMultipliers,
+          includeRegionalWages,
+          includeLeavesMatrix,
+          includePersonalNotes,
+          includeBarTips: formatOptions.includeBarTips,
+          includeLegalCitations: formatOptions.includeLegalCitations,
+          matricesOnlyMode,
+          studyNotes: resolvedNotes,
+          colorAccent: formatOptions.colorAccent,
+          fontStyle: formatOptions.fontStyle,
+          paperMargins,
+          fontSizeScale,
+          includeCheckboxes,
+          includeWatermark,
+          watermarkText: formatOptions.watermarkText,
+          includeFormulasCheatSheet,
+          includeFourFoldControlTest,
+          includeTwoNoticeChecklist,
+          includeRetirementFormulaBox,
+          includeHonorPledge,
+          blankNoteLinesCount: formatOptions.blankNoteLinesCount,
+        });
       }
 
       if (cancelled) return;
@@ -617,126 +558,64 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   };
 
   const handleDownloadPdf = async () => {
-    if (pdfEngineMode === 'vector') {
-      if (documentMode === 'summary') {
-        marioAudio.playCoin();
-        downloadOnePageSummaryA4Pdf({
-          candidateName: candidateName.trim() || undefined,
-          dateLabel: currentDate,
-          colorAccent: formatOptions.colorAccent,
-          fontStyle: formatOptions.fontStyle,
-          includeWatermark,
-          watermarkText: formatOptions.watermarkText,
-        });
-      } else if (documentMode === 'certificate') {
-        marioAudio.playQuizComplete();
-        downloadCertificatePdf({
-          recipientName:
-            candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
-          honors: certificateHonors,
-          completedCount,
-          totalCount: totalTopics,
-          dateLabel: currentDate,
-          colorAccent: formatOptions.colorAccent,
-          fontStyle: formatOptions.fontStyle,
-          orientation: certOrientation,
-        });
-      } else if (documentMode === 'scorecard') {
-        marioAudio.playQuizComplete();
-        downloadScoreCardLandscapePdf(buildCurrentScoreCardParams());
-      } else {
-        marioAudio.playCoin();
-        downloadStudyGuideReviewerPdf({
-          orientation: pageOrientation,
-          candidateName: candidateName.trim() || undefined,
-          completedTopicIds,
-          topics: filteredTopics,
-          selectedWorlds,
-          includeGroupMembers,
-          includeProgress,
-          includeMultipliers,
-          includeRegionalWages,
-          includeLeavesMatrix,
-          includePersonalNotes,
-          includeBarTips: formatOptions.includeBarTips,
-          includeLegalCitations: formatOptions.includeLegalCitations,
-          matricesOnlyMode,
-          studyNotes: resolvedNotes,
-          colorAccent: formatOptions.colorAccent,
-          fontStyle: formatOptions.fontStyle,
-          paperMargins,
-          fontSizeScale,
-          includeCheckboxes,
-          includeWatermark,
-          watermarkText: formatOptions.watermarkText,
-          includeFormulasCheatSheet,
-          includeFourFoldControlTest,
-          includeTwoNoticeChecklist,
-          includeRetirementFormulaBox,
-          includeHonorPledge,
-          blankNoteLinesCount: formatOptions.blankNoteLinesCount,
-        });
-      }
+    if (documentMode === 'summary') {
+      marioAudio.playCoin();
+      await downloadTrueFontOnePageSummaryPdfAsync({
+        candidateName: candidateName.trim() || undefined,
+        dateLabel: currentDate,
+        colorAccent: formatOptions.colorAccent,
+        fontStyle: formatOptions.fontStyle,
+        includeWatermark,
+        watermarkText: formatOptions.watermarkText,
+      });
+    } else if (documentMode === 'certificate') {
+      marioAudio.playQuizComplete();
+      await downloadTrueFontCertificatePdfAsync({
+        recipientName:
+          candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
+        honors: certificateHonors,
+        completedCount,
+        totalCount: totalTopics,
+        dateLabel: currentDate,
+        colorAccent: formatOptions.colorAccent,
+        fontStyle: formatOptions.fontStyle,
+        orientation: certOrientation,
+      });
+    } else if (documentMode === 'scorecard') {
+      marioAudio.playQuizComplete();
+      await downloadTrueFontScoreCardPdfAsync(buildCurrentScoreCardParams());
     } else {
-      if (documentMode === 'summary') {
-        marioAudio.playCoin();
-        await downloadTrueFontOnePageSummaryPdfAsync({
-          candidateName: candidateName.trim() || undefined,
-          dateLabel: currentDate,
-          colorAccent: formatOptions.colorAccent,
-          fontStyle: formatOptions.fontStyle,
-          includeWatermark,
-          watermarkText: formatOptions.watermarkText,
-        });
-      } else if (documentMode === 'certificate') {
-        marioAudio.playQuizComplete();
-        await downloadTrueFontCertificatePdfAsync({
-          recipientName:
-            candidateName.trim() || playerName || 'Distinguished Labor Standards Scholar',
-          honors: certificateHonors,
-          completedCount,
-          totalCount: totalTopics,
-          dateLabel: currentDate,
-          colorAccent: formatOptions.colorAccent,
-          fontStyle: formatOptions.fontStyle,
-          orientation: certOrientation,
-        });
-      } else if (documentMode === 'scorecard') {
-        marioAudio.playQuizComplete();
-        await downloadTrueFontScoreCardPdfAsync(buildCurrentScoreCardParams());
-      } else {
-        marioAudio.playCoin();
-        await downloadTrueFontStudyReviewerPdfAsync({
-          orientation: pageOrientation,
-          candidateName: candidateName.trim() || undefined,
-          completedTopicIds,
-          topics: filteredTopics,
-          selectedWorlds,
-          includeGroupMembers,
-          includeProgress,
-          includeMultipliers,
-          includeRegionalWages,
-          includeLeavesMatrix,
-          includePersonalNotes,
-          includeBarTips: formatOptions.includeBarTips,
-          includeLegalCitations: formatOptions.includeLegalCitations,
-          matricesOnlyMode,
-          studyNotes: resolvedNotes,
-          colorAccent: formatOptions.colorAccent,
-          fontStyle: formatOptions.fontStyle,
-          paperMargins,
-          fontSizeScale,
-          includeCheckboxes,
-          includeWatermark,
-          watermarkText: formatOptions.watermarkText,
-          includeFormulasCheatSheet,
-          includeFourFoldControlTest,
-          includeTwoNoticeChecklist,
-          includeRetirementFormulaBox,
-          includeHonorPledge,
-          blankNoteLinesCount: formatOptions.blankNoteLinesCount,
-        });
-      }
+      marioAudio.playCoin();
+      await downloadTrueFontStudyReviewerPdfAsync({
+        orientation: pageOrientation,
+        candidateName: candidateName.trim() || undefined,
+        completedTopicIds,
+        topics: filteredTopics,
+        selectedWorlds,
+        includeGroupMembers,
+        includeProgress,
+        includeMultipliers,
+        includeRegionalWages,
+        includeLeavesMatrix,
+        includePersonalNotes,
+        includeBarTips: formatOptions.includeBarTips,
+        includeLegalCitations: formatOptions.includeLegalCitations,
+        matricesOnlyMode,
+        studyNotes: resolvedNotes,
+        colorAccent: formatOptions.colorAccent,
+        fontStyle: formatOptions.fontStyle,
+        paperMargins,
+        fontSizeScale,
+        includeCheckboxes,
+        includeWatermark,
+        watermarkText: formatOptions.watermarkText,
+        includeFormulasCheatSheet,
+        includeFourFoldControlTest,
+        includeTwoNoticeChecklist,
+        includeRetirementFormulaBox,
+        includeHonorPledge,
+        blankNoteLinesCount: formatOptions.blankNoteLinesCount,
+      });
     }
     setPdfDownloadedNotice(true);
     window.setTimeout(() => setPdfDownloadedNotice(false), 2600);
@@ -1035,41 +914,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 <SlidersHorizontal className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>{showControlPanel ? 'Hide Options' : 'Options'}</span>
               </button>
-
-              <div className="hidden sm:inline-flex items-center rounded-xl bg-slate-900 border border-slate-700 p-0.5 shrink-0">
-                <button
-                  type="button"
-                  data-testid="pdf-engine-canvas-btn"
-                  onClick={() => {
-                    setPdfEngineMode('canvas');
-                    marioAudio.playClick();
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                    pdfEngineMode === 'canvas'
-                      ? 'bg-amber-400 text-slate-950 shadow-xs'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                  title="True Font & Layout (1:1 Preview Match) - Exact chosen font, Mario icons, and layout identical to preview"
-                >
-                  True Font (1:1 Preview)
-                </button>
-                <button
-                  type="button"
-                  data-testid="pdf-engine-vector-btn"
-                  onClick={() => {
-                    setPdfEngineMode('vector');
-                    marioAudio.playClick();
-                  }}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    pdfEngineMode === 'vector'
-                      ? 'bg-amber-400 text-slate-950 shadow-xs'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="Vector PDF - Standard PostScript text"
-                >
-                  Vector Text
-                </button>
-              </div>
 
               <button
                 type="button"
@@ -2229,13 +2073,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                   : undefined,
               ...(previewRenderMode === 'pdf'
                 ? {
-                    position: 'fixed',
+                    position: 'absolute',
                     top: '0px',
-                    left: '-10000px',
-                    opacity: 1,
-                    visibility: 'visible',
+                    left: '0px',
+                    opacity: 0,
                     pointerEvents: 'none',
-                    zIndex: -100,
+                    zIndex: -10,
                   }
                 : {}),
             }}
