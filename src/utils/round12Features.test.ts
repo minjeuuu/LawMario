@@ -28,9 +28,9 @@ import {
   buildTrueFontCertificateOrDiplomaPdfBytesAsync,
 } from './pdfTrueFontRenderer';
 
-test('Print Studio exposes 44 color themes and 36 distinct true-rendered fonts with legacy alias compatibility', () => {
-  assert.equal(EXTENDED_PRINT_COLOR_THEMES.length, 44);
-  assert.equal(EXTENDED_PRINT_FONT_CATALOG.length, 36);
+test('Print Studio exposes 52 color themes and 44 distinct true-rendered fonts with legacy alias compatibility', () => {
+  assert.equal(EXTENDED_PRINT_COLOR_THEMES.length, 52);
+  assert.equal(EXTENDED_PRINT_FONT_CATALOG.length, 44);
 
   const playfair = resolveExtendedPrintFont('playfair_royal');
   assert.equal(playfair.primaryFamily, 'Playfair Display');

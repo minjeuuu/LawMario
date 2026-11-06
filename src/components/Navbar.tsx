@@ -587,18 +587,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 data-testid="navbar-powerups-slot"
                 className="inline-flex items-center gap-0.5 sm:gap-1 shrink-0 min-w-fit"
               >
-                {equippedRing && equippedRing !== 'ring_none' && (
-                  <button
-                    type="button"
-                    onClick={onOpenShop}
-                    title={`${resolvedEquippedRing.name}: ${resolvedEquippedRing.perk} — Click to visit Toad's Shop`}
-                    data-testid="navbar-equipped-ring-badge"
-                    className="h-7 px-1.5 sm:px-2 inline-flex items-center justify-center gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg border-2 border-black shadow-[0_1px_0_#000] cursor-pointer text-[9.5px] leading-none shrink-0"
-                  >
-                    <Award className="w-3 h-3 text-slate-950 shrink-0" />
-                    <span className="font-mario text-[8px] uppercase">{resolvedEquippedRing.badge}</span>
-                  </button>
-                )}
                 {superStarRemainingLabel || invincibleRemainingLabel || doubleXpRemainingLabel ? (
                   <button
                     type="button"
@@ -829,7 +817,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {showQuickAudioSliders && (
                   <div
                     data-testid="navbar-audio-sliders-popover"
-                    className="fixed inset-x-3 top-14 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-slate-950/98 border-3 border-amber-400 rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-[90] text-white space-y-3.5 backdrop-blur-md"
+                    className="fixed top-14 right-3 sm:right-6 w-[calc(100vw-1.5rem)] sm:w-80 max-w-sm bg-slate-950/98 border-3 border-amber-400 rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-[90] text-white space-y-3.5 backdrop-blur-md max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain pb-6"
                   >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <div className="flex items-center gap-2">
@@ -1139,7 +1127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {showMoreToolsMenu && (
                   <div
                     data-testid="navbar-more-tools-popover"
-                    className="mario-menu-press2p fixed inset-x-3 top-14 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-slate-950/98 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-[90] text-white space-y-2.5 backdrop-blur-md max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain"
+                    className="mario-menu-press2p fixed top-14 right-3 sm:right-6 w-[calc(100vw-1.5rem)] sm:w-88 max-w-sm bg-slate-950/98 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-[90] text-white space-y-2.5 backdrop-blur-md max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain pb-6"
                   >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <span className="text-[10px] font-black uppercase text-amber-400 font-mario">

@@ -24,7 +24,6 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
-  Printer,
   Calculator,
   Star,
 } from 'lucide-react';
@@ -47,7 +46,6 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
-  invokeBrowserPrint,
 } from '../utils/printHelper';
 import { getPrintFontCssStack } from '../utils/round11Features';
 import {
@@ -196,7 +194,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const [simDailyWage, setSimDailyWage] = useState<number>(645);
   const [showMultiplierSim, setShowMultiplierSim] = useState<boolean>(false);
   const [pdfDownloadedNotice, setPdfDownloadedNotice] = useState(false);
-  const [pdfEngineMode, setPdfEngineMode] = useState<'vector' | 'canvas'>('vector');
+  const [pdfEngineMode, setPdfEngineMode] = useState<'canvas' | 'vector'>('canvas');
   const [formatOptions, setFormatOptions] = useState<PrintGuideFormatOptions>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -1041,70 +1039,44 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               <div className="hidden sm:inline-flex items-center rounded-xl bg-slate-900 border border-slate-700 p-0.5 shrink-0">
                 <button
                   type="button"
-                  data-testid="pdf-engine-vector-btn"
-                  onClick={() => {
-                    setPdfEngineMode('vector');
-                    marioAudio.playClick();
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                    pdfEngineMode === 'vector'
-                      ? 'bg-amber-400 text-slate-950 shadow-xs'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                  title="Vector PDF: True copyable, selectable and searchable vector text (Recommended - Zero screenshot blur)"
-                >
-                  Vector Text (Copyable)
-                </button>
-                <button
-                  type="button"
                   data-testid="pdf-engine-canvas-btn"
                   onClick={() => {
                     setPdfEngineMode('canvas');
                     marioAudio.playClick();
                   }}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
                     pdfEngineMode === 'canvas'
-                      ? 'bg-slate-700 text-white shadow-xs'
+                      ? 'bg-amber-400 text-slate-950 shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="True Font & Layout (1:1 Preview Match) - Exact chosen font, Mario icons, and layout identical to preview"
+                >
+                  True Font (1:1 Preview)
+                </button>
+                <button
+                  type="button"
+                  data-testid="pdf-engine-vector-btn"
+                  onClick={() => {
+                    setPdfEngineMode('vector');
+                    marioAudio.playClick();
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    pdfEngineMode === 'vector'
+                      ? 'bg-amber-400 text-slate-950 shadow-xs'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title="Graphic Snapshot: Canvas image rendering"
+                  title="Vector PDF - Standard PostScript text"
                 >
-                  Graphic
+                  Vector Text
                 </button>
               </div>
 
               <button
                 type="button"
-                data-testid="browser-print-action-btn"
-                onClick={() => {
-                  marioAudio.playCoin();
-                  const isLand = isLandscapeDocument;
-                  const orient = isLand ? 'landscape' : 'portrait';
-                  const margin =
-                    documentMode === 'certificate' || documentMode === 'scorecard'
-                      ? '6mm'
-                      : isLand
-                      ? '8mm 10mm'
-                      : '8mm';
-                  invokeBrowserPrint({
-                    orientation: orient,
-                    marginCss: margin,
-                    fontStack: activeCssFontStack,
-                  });
-                }}
-                className="min-h-[42px] justify-center inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0"
-                title="Open system print dialog (Ctrl+P / Cmd+P) applying the exact chosen font"
-              >
-                <Printer className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">Print (Ctrl+P)</span>
-                <span className="sm:hidden">Print</span>
-              </button>
-
-              <button
-                type="button"
                 data-testid="download-active-pdf-btn"
                 onClick={handleDownloadPdf}
-                className="min-h-[42px] flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_2px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0"
+                className="min-h-[42px] flex-1 sm:flex-initial justify-center inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform"
+                title="Download high-fidelity PDF applying the exact chosen font, styling, and Mario graphics"
               >
                 <FileDown className="w-4 h-4 shrink-0" />
                 <span>
@@ -2201,7 +2173,21 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               : 'p-2.5 sm:p-5 bg-slate-950/60'
           }`}
         >
-          {previewRenderMode === 'pdf' ? (
+          {/* Scoped CSS font inheritance style so all headings, bodies, badges, and numbers use chosen font stack */}
+          <style>{`
+            #one-page-summary-sheet,
+            #one-page-summary-sheet *:not(.preserve-system-font),
+            #official-labor-certificate,
+            #official-labor-certificate *:not(.preserve-system-font),
+            #official-scorecard-sheet,
+            #official-scorecard-sheet *:not(.preserve-system-font),
+            #printable-study-guide,
+            #printable-study-guide *:not(.preserve-system-font) {
+              font-family: var(--print-active-font), inherit !important;
+            }
+          `}</style>
+
+          {previewRenderMode === 'pdf' && (
             <div
               data-testid="generated-pdf-file-preview-card"
               className="max-w-5xl mx-auto h-full min-h-[380px] flex flex-col gap-3"
@@ -2231,18 +2217,23 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 </div>
               )}
             </div>
-          ) : (
-            <div
-              data-testid="print-scaled-stage-outer"
-              style={{
-                width: `${stageMetrics.scaledWidthPx}px`,
-                height:
-                  sheetNaturalHeightPx > 0
-                    ? `${Math.ceil(sheetNaturalHeightPx * stageMetrics.effectiveScale)}px`
-                    : undefined,
-              }}
-              className="mx-auto relative transition-[width,height] duration-150 print:!w-full print:!h-auto"
-            >
+          )}
+
+          <div
+            data-testid="print-scaled-stage-outer"
+            style={{
+              width: `${stageMetrics.scaledWidthPx}px`,
+              height:
+                sheetNaturalHeightPx > 0
+                  ? `${Math.ceil(sheetNaturalHeightPx * stageMetrics.effectiveScale)}px`
+                  : undefined,
+            }}
+            className={`mx-auto transition-[width,height] duration-150 print:!w-full print:!h-auto ${
+              previewRenderMode === 'pdf'
+                ? 'absolute top-0 left-0 opacity-0 pointer-events-none -z-50'
+                : 'relative'
+            }`}
+          >
               <div
                 ref={sheetContentRef}
                 data-testid="print-scaled-stage-inner"
@@ -3793,7 +3784,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
           )}
               </div>
             </div>
-          )}
         </div>
       </div>
     </div>

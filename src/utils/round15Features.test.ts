@@ -60,9 +60,9 @@ class MemoryStorage implements StorageLike {
   }
 }
 
-test('All 44 Print Studio themes and 36 fonts (including DM Sans) apply distinctly to PDF exports', () => {
-  assert.equal(EXTENDED_PRINT_COLOR_THEMES.length, 44);
-  assert.equal(EXTENDED_PRINT_FONT_CATALOG.length, 36);
+test('All 52 Print Studio themes and 44 fonts (including DM Sans) apply distinctly to PDF exports', () => {
+  assert.equal(EXTENDED_PRINT_COLOR_THEMES.length, 52);
+  assert.equal(EXTENDED_PRINT_FONT_CATALOG.length, 44);
 
   // Every theme produces distinct primary/accent RGB values in resolvePdfThemeAndFont
   const seenPalettes = new Set<string>();

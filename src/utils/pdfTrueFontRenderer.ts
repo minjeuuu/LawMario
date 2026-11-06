@@ -46,10 +46,18 @@ export async function ensurePrintFontLoadedInBrowser(fontStyle?: string): Promis
     await Promise.race([
       Promise.allSettled([
         document.fonts.load(`400 16px ${familyQuoted}`),
+        document.fonts.load(`600 16px ${familyQuoted}`),
         document.fonts.load(`700 18px ${familyQuoted}`),
+        document.fonts.load(`800 20px ${familyQuoted}`),
       ]),
       new Promise((resolve) => setTimeout(resolve, 650)),
     ]);
+    if (document.fonts.ready) {
+      await Promise.race([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 400)),
+      ]);
+    }
   } catch {
     // Proceed gracefully if offline or system font
   }
@@ -76,12 +84,44 @@ export async function captureDomElementToPdfBytesAsync(
   if (!el) return null;
 
   try {
+    if ('fonts' in document && document.fonts?.ready) {
+      try {
+        await Promise.race([
+          document.fonts.ready,
+          new Promise((resolve) => setTimeout(resolve, 500)),
+        ]);
+      } catch {}
+    }
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
     const canvas = await html2canvas(el, {
       scale: 2.5,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
       windowWidth: el.scrollWidth || undefined,
+      onclone: (clonedDoc) => {
+        // Reset preview scale transform in clone so capture is 100% unscaled retina
+        const scaledStage = clonedDoc.querySelector('[data-testid="print-scaled-stage-inner"]') as HTMLElement | null;
+        if (scaledStage) {
+          scaledStage.style.transform = 'none';
+        }
+        const scaledOuter = clonedDoc.querySelector('[data-testid="print-scaled-stage-outer"]') as HTMLElement | null;
+        if (scaledOuter) {
+          scaledOuter.style.position = 'relative';
+          scaledOuter.style.opacity = '1';
+          scaledOuter.style.pointerEvents = 'auto';
+        }
+        const activeSheets = clonedDoc.querySelectorAll(
+          '#one-page-summary-sheet, #official-labor-certificate, #official-scorecard-sheet, #printable-study-guide'
+        );
+        activeSheets.forEach((node) => {
+          const sheetNode = node as HTMLElement;
+          sheetNode.style.overflow = 'visible';
+          sheetNode.style.visibility = 'visible';
+          sheetNode.style.opacity = '1';
+        });
+      },
     });
 
     const pageW = orientation === 'portrait' ? 210 : 297;
