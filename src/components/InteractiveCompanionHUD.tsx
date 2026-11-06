@@ -11,6 +11,7 @@ import {
   Award,
   X,
   MessageCircle,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { MarioCharacterAvatar, MarioAvatar } from './MarioIcons';
 import {
@@ -20,6 +21,7 @@ import {
 import { marioAudio } from '../utils/audio';
 
 const COMPANION_AFFECTION_STORAGE_KEY = 'mario_companion_affection_v2';
+const COMPANION_DOCK_STORAGE_KEY = 'mario_companion_dock_side_v1';
 
 interface CompanionAffectionData {
   affectionXp: number; // 0 to 100 per level
@@ -154,6 +156,8 @@ interface InteractiveCompanionHUDProps {
   onEarnCoins: (amount: number) => void;
   coins: number;
   completedTopicsCount: number;
+  isToadTipOpen?: boolean;
+  activeTab?: string;
 }
 
 export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = ({
@@ -163,6 +167,8 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
   onEarnCoins,
   coins,
   completedTopicsCount,
+  isToadTipOpen = false,
+  activeTab = 'map',
 }) => {
   // If user selected none, fallback gracefully to Lawyer Toad as default interactive tutor
   const effectiveCompanionId: StudyCompanionId =
@@ -180,6 +186,21 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
     }
     return false;
   });
+
+  const [dockSide, setDockSide] = useState<'right' | 'left'>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return (localStorage.getItem(COMPANION_DOCK_STORAGE_KEY) as 'right' | 'left') || 'right';
+      } catch {
+        return 'right';
+      }
+    }
+    return 'right';
+  });
+
+  // If Toad's Pro Tip is open or we are on the dashboard map tab, force docking to the right so they NEVER overlap
+  const effectiveDockSide: 'right' | 'left' = (activeTab === 'map' || isToadTipOpen) ? 'right' : dockSide;
+  const positionClasses = effectiveDockSide === 'right' ? 'right-3 sm:right-6' : 'left-3 sm:left-6';
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);
   const [doctrineIdx, setDoctrineIdx] = useState<number>(0);
@@ -326,12 +347,12 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
   const activeDoctrine = HIGH_YIELD_LEGAL_DOCTRINES[doctrineIdx];
   const displayedSpeech = customQuote || currentMeta.speech || activeDoctrine.rule;
 
-  // Minimized Floating Mario Badge
+  // Minimized Floating Mario Badge — Anchored to designated side without ever colliding with Toad's Pro Tip
   if (isMinimized) {
     return (
       <div
         data-testid="study-companion-widget-minimized"
-        className="fixed bottom-20 lg:bottom-6 left-4 z-40 print:hidden animate-fade-in"
+        className={`fixed bottom-20 lg:bottom-6 ${positionClasses} z-40 print:hidden animate-fade-in`}
       >
         <button
           type="button"
@@ -363,7 +384,7 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
     <aside
       data-testid="study-companion-widget"
       aria-label="Interactive Mario Study Companion HUD"
-      className="fixed bottom-20 lg:bottom-6 left-3 sm:left-5 z-40 max-w-[340px] sm:max-w-[380px] w-[calc(100vw-1.5rem)] print:hidden select-none animate-in fade-in slide-in-from-bottom-2 duration-200"
+      className={`fixed bottom-20 lg:bottom-6 ${positionClasses} z-40 max-w-[340px] sm:max-w-[380px] w-[calc(100vw-1.5rem)] print:hidden select-none animate-in fade-in slide-in-from-bottom-2 duration-200`}
     >
       <div className="relative bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-3 border-black text-white rounded-2xl sm:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.85)] p-3 sm:p-4 space-y-2.5 overflow-hidden ring-2 ring-amber-400/80">
         {/* Floating Heart Particles */}
@@ -419,6 +440,23 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
 
           {/* Top Controls */}
           <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                const next = effectiveDockSide === 'right' ? 'left' : 'right';
+                setDockSide(next);
+                try {
+                  localStorage.setItem(COMPANION_DOCK_STORAGE_KEY, next);
+                } catch {
+                  // ignore
+                }
+                marioAudio.playClick();
+              }}
+              title={`Dock Companion to ${effectiveDockSide === 'right' ? 'Left' : 'Right'} Side`}
+              className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+            </button>
             <button
               type="button"
               onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}

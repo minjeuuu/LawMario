@@ -190,6 +190,7 @@ import {
   Bell,
   Search,
   Swords,
+  Calculator,
 } from 'lucide-react';
 import {
   sortModuleTopics,
@@ -2371,7 +2372,7 @@ export default function App() {
   return (
     <div
       data-study-font={appStudyFont}
-      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-16 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
+      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-28 lg:pb-12 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
     >
       {/* Main Navigation Container — Safe Top Padding so UI is never cropped on mobile */}
       <div className="sticky top-0 z-40 w-full bg-[#0f172a] safe-top-nav">
@@ -5090,6 +5091,8 @@ export default function App() {
           onEarnCoins={handleEarnCoins}
           coins={coins}
           completedTopicsCount={completedTopicIds.length}
+          activeTab={activeTab}
+          isToadTipOpen={activeTab === 'map' && showToadTip}
         />
       </ErrorBoundary>
 
@@ -5178,35 +5181,52 @@ export default function App() {
         data-testid="mobile-bottom-nav"
         className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 border-t-2 border-amber-400 px-1 py-1 [@media(max-height:500px)]:py-0.5 grid grid-cols-5 w-full gap-1 lg:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.6)] select-none safe-bottom-dock print:hidden"
       >
-        {[
-          { id: 'map', label: 'Map', icon: <Compass className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-          { id: 'modules', label: 'Modules', icon: <BookOpen className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-          { id: 'flashcards', label: 'Cards', icon: <HelpCircle className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-          { id: 'quiz', label: 'Quiz', icon: <Trophy className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-          { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-        ].map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                setActiveTab(tab.id);
-                marioAudio.playTabSwitch();
-              }}
-              className={`min-h-[50px] h-[52px] [@media(max-height:500px)]:min-h-[38px] [@media(max-height:500px)]:h-[38px] w-full min-w-0 flex-1 flex flex-col [@media(max-height:500px)]:flex-row [@media(max-height:500px)]:gap-1.5 items-center justify-center py-1 [@media(max-height:500px)]:py-0.5 px-0.5 rounded-xl transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-amber-400 text-slate-950 font-black shadow-[0_2px_0_#000]'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              {tab.icon}
-              <span className="text-[8px] sm:text-[9px] font-black tracking-tighter font-mario mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
+        {(() => {
+          const defaultTabs = [
+            { id: 'map', label: 'Map', icon: <Compass className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            { id: 'modules', label: 'Modules', icon: <BookOpen className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            { id: 'flashcards', label: 'Cards', icon: <HelpCircle className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            { id: 'quiz', label: 'Quiz', icon: <Trophy className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+          ];
+
+          const extraTabsMap: Record<string, { label: string; icon: React.ReactNode }> = {
+            calculator: { label: 'Calc', icon: <Calculator className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            shop: { label: 'Shop', icon: <ShoppingBag className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            wages_matrix: { label: 'Wages', icon: <LayoutGrid className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            citations: { label: 'Citations', icon: <Scale className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+            holidays: { label: 'Holidays', icon: <Calendar className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
+          };
+
+          const isDefaultTab = defaultTabs.some((t) => t.id === activeTab);
+          const tabsToRender = isDefaultTab || !extraTabsMap[activeTab]
+            ? defaultTabs
+            : [...defaultTabs.slice(0, 4), { id: activeTab, ...extraTabsMap[activeTab] }];
+
+          return tabsToRender.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  marioAudio.playTabSwitch();
+                }}
+                className={`min-h-[50px] h-[52px] [@media(max-height:500px)]:min-h-[38px] [@media(max-height:500px)]:h-[38px] w-full min-w-0 flex-1 flex flex-col [@media(max-height:500px)]:flex-row [@media(max-height:500px)]:gap-1.5 items-center justify-center py-1 [@media(max-height:500px)]:py-0.5 px-0.5 rounded-xl transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-amber-400 text-slate-950 font-black shadow-[0_2px_0_#000]'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                {tab.icon}
+                <span className="text-[8px] sm:text-[9px] font-black tracking-tighter font-mario mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
+                  {tab.label}
+                </span>
+              </button>
+            );
+          });
+        })()}
       </nav>
 
       {/* Floating Toad's Pro Tip Dialog on Dashboard (Anchored Bottom-Left with Safe Responsive Containment) */}

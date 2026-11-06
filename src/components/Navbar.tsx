@@ -339,7 +339,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     marioAudio.playTabSwitch();
     if (e && e.currentTarget) {
       try {
-        (e.currentTarget as HTMLElement).scrollIntoView({ inline: 'nearest', behavior: 'smooth' });
+        const btn = e.currentTarget as HTMLElement;
+        const navEl = btn.closest('nav');
+        if (navEl && typeof navEl.scrollTo === 'function') {
+          const navRect = navEl.getBoundingClientRect();
+          const btnRect = btn.getBoundingClientRect();
+          const targetLeft = navEl.scrollLeft + (btnRect.left - navRect.left) - (navRect.width - btnRect.width) / 2;
+          navEl.scrollTo({ left: targetLeft, behavior: 'smooth' });
+        }
       } catch {
         // ignore
       }
@@ -1625,7 +1632,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               marioAudio.playCoin();
             }}
             data-testid="navbar-goal-streak-mobile"
-            className="w-full flex md:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] hover:bg-slate-900 border-b border-slate-800/80 text-[10px] font-bold cursor-pointer text-left"
+            className="w-full flex lg:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] hover:bg-slate-900 border-b border-slate-800/80 text-[10px] font-bold cursor-pointer text-left"
           >
             <span className="inline-flex items-center gap-1 text-amber-300 tabular-nums whitespace-nowrap">
               <Flame className="w-3 h-3 text-orange-400 shrink-0" />
@@ -1670,11 +1677,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Desktop & Tablet Navigation — Responsive Royal Tabs, Tablet-Safe, Zero Horizontal Scroll */}
+          {/* Desktop Navigation — Responsive Royal Tabs, Zero Horizontal Scroll */}
           <nav
             aria-label="Primary Navigation"
             data-testid="desktop-primary-nav"
-            className="hidden md:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between"
+            className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between scroll-smooth"
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => {
               const isSansTab =
@@ -1709,29 +1716,46 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Mobile Phone 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
+          {/* Mobile & Tablet 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
           <div
             data-testid="mobile-utility-nav-row"
-            className="grid grid-cols-5 md:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
+            className="grid grid-cols-5 lg:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
           >
-            <button
-              type="button"
-              data-testid="navbar-mobile-menu-btn"
-              aria-expanded={isMobileMenuOpen}
-              onClick={() => {
-                setIsMobileMenuOpen(!isMobileMenuOpen);
-                marioAudio.playClick();
-              }}
-              className="font-sans min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border-2 border-black font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap overflow-hidden"
-            >
-              <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
-              <span className="truncate block max-w-full text-center">Menu</span>
-              <ChevronDown
-                className={`hidden sm:inline w-3 h-3 text-slate-400 shrink-0 transition-transform ${
-                  isMobileMenuOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
+            {(() => {
+              const activeItemMeta = navCategories.flatMap((cat) => cat.items).find((item) => item.id === activeTab);
+              const isExtraActiveTab = !['map', 'modules', 'flashcards', 'quiz', 'vault'].includes(activeTab) && Boolean(activeItemMeta);
+
+              return (
+                <button
+                  type="button"
+                  data-testid="navbar-mobile-menu-btn"
+                  aria-expanded={isMobileMenuOpen}
+                  onClick={() => {
+                    setIsMobileMenuOpen(!isMobileMenuOpen);
+                    marioAudio.playClick();
+                  }}
+                  className={`font-sans min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl border-2 border-black font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap overflow-hidden transition-all ${
+                    isExtraActiveTab
+                      ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                      : 'bg-slate-800 hover:bg-slate-700 text-white'
+                  }`}
+                >
+                  {isExtraActiveTab && activeItemMeta ? (
+                    <span className="shrink-0">{activeItemMeta.icon}</span>
+                  ) : (
+                    <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+                  )}
+                  <span className="truncate block max-w-full text-center">
+                    {isExtraActiveTab && activeItemMeta ? activeItemMeta.shortLabel : 'Menu'}
+                  </span>
+                  <ChevronDown
+                    className={`hidden sm:inline w-3 h-3 ${isExtraActiveTab ? 'text-slate-950' : 'text-slate-400'} shrink-0 transition-transform ${
+                      isMobileMenuOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+              );
+            })()}
 
             {onOpenGlobalSearch && (
               <button
