@@ -1650,7 +1650,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               marioAudio.playCoin();
             }}
             data-testid="navbar-goal-streak-mobile"
-            className="w-full flex md:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] hover:bg-slate-900 border-b border-slate-800/80 text-[10px] font-bold cursor-pointer text-left"
+            className="w-full flex lg:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] hover:bg-slate-900 border-b border-slate-800/80 text-[10px] font-bold cursor-pointer text-left"
           >
             <span className="inline-flex items-center gap-1 text-amber-300 tabular-nums whitespace-nowrap">
               <Flame className="w-3 h-3 text-orange-400 shrink-0" />
@@ -1695,11 +1695,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Desktop & Tablet Navigation — Responsive Royal Tabs, Tablet-Safe, Zero Horizontal Scroll */}
+          {/* Desktop Navigation — Responsive Royal Tabs, Zero Horizontal Scroll */}
           <nav
             aria-label="Primary Navigation"
             data-testid="desktop-primary-nav"
-            className="hidden md:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between scroll-smooth"
+            className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between scroll-smooth"
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => {
               const isSansTab =
@@ -1734,10 +1734,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Mobile Phone 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
+          {/* Mobile & Tablet 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
           <div
             data-testid="mobile-utility-nav-row"
-            className="grid grid-cols-5 md:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
+            className="grid grid-cols-5 lg:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
           >
             {(() => {
               const activeItemMeta = navCategories.flatMap((cat) => cat.items).find((item) => item.id === activeTab);
@@ -1892,7 +1892,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {isMobileMenuOpen && (
           <div
             data-testid="navbar-mobile-menu-drawer"
-            className="mario-menu-press2p block md:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
+            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
           >
             {/* Active Super Star 2X Banner inside Mobile Drawer when active */}
             {superStarRemainingLabel && (
