@@ -1,4 +1,5 @@
 import html2canvas from 'html2canvas';
+import { toCanvas as htmlToImageCanvas } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import {
   OnePageSummaryPdfOptions,
@@ -100,106 +101,59 @@ export async function captureDomElementToPdfBytesAsync(
 
     const targetW = orientation === 'portrait' ? 794 : 1122;
 
-    const canvas = await html2canvas(el, {
-      scale: 2,
-      width: targetW,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      windowWidth: targetW,
-      scrollX: 0,
-      scrollY: 0,
-      x: 0,
-      y: 0,
-      onclone: async (clonedDoc) => {
-        // 1. Force root styling to avoid unclipped canvas or horizontal shifts
-        clonedDoc.documentElement.style.margin = '0';
-        clonedDoc.documentElement.style.padding = '0';
-        clonedDoc.documentElement.style.width = `${targetW}px`;
-        clonedDoc.documentElement.style.overflow = 'visible';
+    let canvas: HTMLCanvasElement | null = null;
 
-        if (clonedDoc.body) {
-          clonedDoc.body.style.margin = '0';
-          clonedDoc.body.style.padding = '0';
-          clonedDoc.body.style.backgroundColor = '#ffffff';
-          clonedDoc.body.style.width = `${targetW}px`;
-          clonedDoc.body.style.overflow = 'visible';
-          clonedDoc.body.style.setProperty('--print-active-font', resolvedFontStack, 'important');
-        }
+    // PRIMARY RENDER ENGINE: html-to-image
+    // Uses the browser's native Blink/WebKit layout & SVG foreignObject engine,
+    // embedding true Google WebFonts, Mario vector SVGs, and CSS grids directly into canvas.
+    try {
+      canvas = await htmlToImageCanvas(el, {
+        pixelRatio: 2,
+        width: targetW,
+        backgroundColor: '#ffffff',
+        style: {
+          transform: 'none',
+          margin: '0',
+          width: `${targetW}px`,
+          minWidth: `${targetW}px`,
+          maxWidth: `${targetW}px`,
+          boxSizing: 'border-box',
+          fontFamily: resolvedFontStack,
+        },
+      });
+    } catch (primaryErr) {
+      console.warn('html-to-image native rasterization failed, attempting html2canvas fallback:', primaryErr);
+    }
 
-        // 2. Locate cloned target element and isolate it into body so modal dialogs,
-        // scrolls, and wrappers cannot crop or offset it!
-        const clonedTarget = clonedDoc.getElementById(el.id);
-        if (clonedTarget) {
-          const allBodyChildren = Array.from(clonedDoc.body.children);
-          for (const child of allBodyChildren) {
-            if (!child.contains(clonedTarget)) {
-              child.remove();
-            }
+    // SECONDARY FALLBACK: html2canvas
+    if (!canvas) {
+      canvas = await html2canvas(el, {
+        scale: 2,
+        width: targetW,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: targetW,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: async (clonedDoc) => {
+          clonedDoc.documentElement.style.setProperty('--print-active-font', resolvedFontStack, 'important');
+          if (clonedDoc.body) {
+            clonedDoc.body.style.setProperty('--print-active-font', resolvedFontStack, 'important');
           }
-          clonedDoc.body.appendChild(clonedTarget);
-
-          clonedTarget.style.position = 'relative';
-          clonedTarget.style.top = '0';
-          clonedTarget.style.left = '0';
-          clonedTarget.style.width = `${targetW}px`;
-          clonedTarget.style.maxWidth = `${targetW}px`;
-          clonedTarget.style.minWidth = `${targetW}px`;
-          clonedTarget.style.transform = 'none';
-          clonedTarget.style.margin = '0';
-          clonedTarget.style.boxSizing = 'border-box';
-          clonedTarget.style.overflow = 'visible';
-          clonedTarget.style.opacity = '1';
-          clonedTarget.style.visibility = 'visible';
-        }
-
-        // 3. Inject CSS custom property and font-family priority overrides
-        clonedDoc.documentElement.style.setProperty('--print-active-font', resolvedFontStack, 'important');
-        const styleEl = clonedDoc.createElement('style');
-        styleEl.textContent = `
-          * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            box-sizing: border-box;
+          const target = clonedDoc.getElementById(el!.id);
+          if (target) {
+            target.style.width = `${targetW}px`;
+            target.style.transform = 'none';
+            target.style.margin = '0';
+            target.style.boxSizing = 'border-box';
+            target.style.setProperty('font-family', resolvedFontStack, 'important');
           }
-          :root {
-            --print-active-font: ${resolvedFontStack} !important;
-          }
-          #${el.id},
-          #${el.id} *:not(.preserve-system-font) {
-            font-family: ${resolvedFontStack} !important;
-          }
-        `;
-        clonedDoc.head.appendChild(styleEl);
+        },
+      });
+    }
 
-        // 4. Ensure all elements in the target sheet receive the active font-family
-        const activeSheets = clonedDoc.querySelectorAll(
-          `#${el.id}, #one-page-summary-sheet, #official-labor-certificate, #official-scorecard-sheet, #official-player-scorecard, #master-diploma-printable, #royal-juris-diploma-sheet, #printable-study-guide`
-        );
-        activeSheets.forEach((node) => {
-          const sheetNode = node as HTMLElement;
-          sheetNode.style.overflow = 'visible';
-          sheetNode.style.visibility = 'visible';
-          sheetNode.style.opacity = '1';
-          sheetNode.style.setProperty('font-family', resolvedFontStack, 'important');
-          sheetNode.querySelectorAll('*').forEach((child) => {
-            const childEl = child as HTMLElement;
-            if (!childEl.classList?.contains('preserve-system-font')) {
-              childEl.style.setProperty('font-family', resolvedFontStack, 'important');
-            }
-          });
-        });
-
-        if ((clonedDoc as any).fonts?.ready) {
-          try {
-            await Promise.race([
-              (clonedDoc as any).fonts.ready,
-              new Promise((resolve) => setTimeout(resolve, 400)),
-            ]);
-          } catch {}
-        }
-      },
-    });
+    if (!canvas) return null;
 
     const pageW = orientation === 'portrait' ? 210 : 297;
     const pageH = orientation === 'portrait' ? 297 : 210;
