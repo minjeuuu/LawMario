@@ -408,6 +408,67 @@ describe('Review Required (>14 days), Boss Battle Log, Study Sprint, Statute Loo
 
     const ra11210 = lookupStatutesByQuery('11210');
     assert.equal(ra11210[0].articleNumber, 'RA 11210');
+
+    const pd851 = lookupStatutesByQuery('PD 851');
+    assert.ok(pd851.length >= 1);
+    assert.equal(pd851[0].articleNumber, 'PD 851');
+    assert.ok(pd851[0].title.includes('13th-Month Pay'));
+
+    // Test book scope filtering logic with digit stripping
+    const allProvisions = lookupStatutesByQuery('');
+    assert.ok(allProvisions.length >= 20);
+
+    const book3Provisions = allProvisions.filter((entry) => {
+      const artNum = entry.articleNumber.toUpperCase();
+      const digitsOnly = artNum.replace(/[^0-9]/g, '');
+      const num = digitsOnly ? parseInt(digitsOnly, 10) : NaN;
+      return (!isNaN(num) && num >= 82 && num <= 100) || artNum.includes('94') || artNum.includes('95');
+    });
+    assert.ok(book3Provisions.length >= 10);
+    assert.ok(book3Provisions.some((p) => p.articleNumber === '82'));
+    assert.ok(book3Provisions.some((p) => p.articleNumber === '94'));
+
+    const postEmploymentProvisions = allProvisions.filter((entry) => {
+      const artNum = entry.articleNumber.toUpperCase();
+      const code = entry.codeLabel.toUpperCase();
+      const digitsOnly = artNum.replace(/[^0-9]/g, '');
+      const num = digitsOnly ? parseInt(digitsOnly, 10) : NaN;
+      return (
+        (!isNaN(num) && num >= 297 && num <= 306) ||
+        code.includes('297') ||
+        code.includes('298') ||
+        code.includes('302') ||
+        code.includes('306') ||
+        artNum.includes('297') ||
+        artNum.includes('298') ||
+        artNum.includes('302') ||
+        artNum.includes('306')
+      );
+    });
+    assert.ok(postEmploymentProvisions.some((p) => p.articleNumber === '297'));
+    assert.ok(postEmploymentProvisions.some((p) => p.articleNumber === '302'));
+    assert.ok(postEmploymentProvisions.some((p) => p.articleNumber === '306'));
+
+    const specialLaws = allProvisions.filter((entry) => {
+      const artNum = entry.articleNumber.toUpperCase();
+      const code = entry.codeLabel.toUpperCase();
+      return (
+        code.includes('RA') ||
+        code.includes('PD') ||
+        code.includes('D.O.') ||
+        code.includes('REPUBLIC ACT') ||
+        code.includes('PRESIDENTIAL DECREE') ||
+        code.includes('R.A.') ||
+        code.includes('P.D.') ||
+        artNum.includes('RA') ||
+        artNum.includes('PD') ||
+        artNum.includes('D.O.')
+      );
+    });
+    assert.ok(specialLaws.some((s) => s.articleNumber === 'PD 851'));
+    assert.ok(specialLaws.some((s) => s.articleNumber === 'RA 11210'));
+    assert.ok(specialLaws.some((s) => s.articleNumber === 'RA 10361'));
+    assert.ok(specialLaws.some((s) => s.articleNumber === 'RA 11313'));
   });
 
   it('creates and filters study notes by categoryTag', () => {

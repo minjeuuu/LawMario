@@ -1394,7 +1394,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                   worldBadge={activeItem.worldBadge}
                   initialTheme="parchment"
                   searchQuery={searchQuery}
-                  onSaveToNotes={() => handleSaveToNotes(activeItem)}
+                  onSaveToNotes={() => handleSaveCitationToNotes(activeItem)}
                   isSavedToNotes={savedNoteIds[activeItem.id]}
                   variant="codex-reader"
                 />
@@ -1518,7 +1518,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                                 worldBadge={item.worldBadge}
                                 initialTheme="midnight"
                                 searchQuery={searchQuery}
-                                onSaveToNotes={() => handleSaveToNotes(item)}
+                                onSaveToNotes={() => handleSaveCitationToNotes(item)}
                                 isSavedToNotes={savedNoteIds[item.id]}
                                 variant="modal"
                               />
@@ -1710,7 +1710,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                         worldBadge={item.worldBadge}
                         initialTheme="midnight"
                         searchQuery={searchQuery}
-                        onSaveToNotes={() => handleSaveToNotes(item)}
+                        onSaveToNotes={() => handleSaveCitationToNotes(item)}
                         isSavedToNotes={savedNoteIds[item.id]}
                         variant="modal"
                       />

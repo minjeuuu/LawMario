@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Search,
@@ -105,6 +105,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [fontSizeScale, setFontSizeScale] = useState<'sm' | 'base' | 'lg'>('base');
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialQuery) {
@@ -113,11 +114,35 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   }, [initialQuery]);
 
   useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 75);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen && typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       setSpeakingId(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+    }
+  }, [selectedId]);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -139,25 +164,58 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     return rawResults.filter((entry) => {
       const artNum = entry.articleNumber.toUpperCase();
       const code = entry.codeLabel.toUpperCase();
+      const digitsOnly = artNum.replace(/[^0-9]/g, '');
+      const num = digitsOnly ? parseInt(digitsOnly, 10) : NaN;
 
       if (selectedBook === 'book3') {
-        const num = parseInt(artNum, 10);
         return (!isNaN(num) && num >= 82 && num <= 100) || artNum.includes('94') || artNum.includes('95');
       }
       if (selectedBook === 'wages_contracting') {
-        const num = parseInt(artNum, 10);
-        return (!isNaN(num) && num >= 97 && num <= 129) || code.includes('106') || code.includes('WAGE');
+        return (
+          (!isNaN(num) && num >= 97 && num <= 129) ||
+          code.includes('106') ||
+          code.includes('WAGE') ||
+          code.includes('174') ||
+          artNum.includes('106')
+        );
       }
       if (selectedBook === 'post_employment') {
-        const num = parseInt(artNum, 10);
-        return (!isNaN(num) && num >= 297 && num <= 302) || code.includes('297') || code.includes('298');
+        return (
+          (!isNaN(num) && num >= 297 && num <= 306) ||
+          code.includes('297') ||
+          code.includes('298') ||
+          code.includes('302') ||
+          code.includes('306') ||
+          artNum.includes('297') ||
+          artNum.includes('298') ||
+          artNum.includes('302') ||
+          artNum.includes('306')
+        );
       }
       if (selectedBook === 'special_laws') {
-        return code.includes('RA') || code.includes('PD') || code.includes('D.O.');
+        return (
+          code.includes('RA') ||
+          code.includes('PD') ||
+          code.includes('D.O.') ||
+          code.includes('REPUBLIC ACT') ||
+          code.includes('PRESIDENTIAL DECREE') ||
+          code.includes('R.A.') ||
+          code.includes('P.D.') ||
+          artNum.includes('RA') ||
+          artNum.includes('PD') ||
+          artNum.includes('D.O.')
+        );
       }
       return true;
     });
   }, [rawResults, selectedBook]);
+
+  // Keep selectedId valid when results change
+  useEffect(() => {
+    if (results.length > 0 && !results.some((r) => r.id === selectedId)) {
+      setSelectedId(results[0].id);
+    }
+  }, [results, selectedId]);
 
   const activeEntry: StatuteLookupEntry | null = useMemo(() => {
     if (results.length === 0) return null;
@@ -359,6 +417,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
           <div className="relative">
             <Search className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
+              ref={inputRef}
               type="text"
               data-testid="statute-lookup-input"
               aria-label="Enter Labor Code Article number, Republic Act, or keyword"
@@ -605,15 +664,15 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                 {/* 1. Controlling Statutory Provision Text */}
                 <VerbatimCodalViewer
                   statuteId={activeEntry.id}
-                  citation={activeEntry.articleNumber}
+                  citation={activeEntry.codeLabel}
                   title={activeEntry.title}
                   verbatim={activeEntry.statutoryText}
-                  keyRule={activeEntry.keyDoctrine}
-                  worldBadge={activeEntry.bookCategory}
+                  keyRule={activeEntry.supremeCourtDoctrines?.[0] || activeEntry.interpretationTips?.[0] || ''}
+                  worldBadge={activeEntry.codeLabel}
                   initialTheme="parchment"
                   searchQuery={query}
                   onSaveToNotes={() => handleSaveStatuteToNotes(activeEntry)}
-                  isSavedToNotes={savedNotesId === activeEntry.id}
+                  isSavedToNotes={savedNoteId === activeEntry.id}
                   variant="modal"
                 />
 
