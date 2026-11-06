@@ -165,7 +165,7 @@ export function getMenuButtonTypography(
   if (fontSetting === 'clean_sans') {
     return {
       className:
-        'font-sans font-black text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs tracking-tight',
+        'font-sans font-black text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs tracking-tight normal-case',
       fontTag: 'sans',
       isPixel: false,
     };
@@ -241,7 +241,7 @@ export function getMobileDrawerButtonTypography(
 
   if (fontSetting === 'clean_sans') {
     return {
-      className: 'font-sans font-black text-xs',
+      className: 'font-sans font-black text-xs normal-case',
       fontTag: 'sans',
       isPixel: false,
     };

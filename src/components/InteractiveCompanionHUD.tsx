@@ -207,12 +207,35 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
     return 'right';
   });
 
-  // If Toad's Pro Tip is open or we are on the dashboard map tab, force docking to the right so they NEVER overlap
-  const effectiveDockSide: 'right' | 'left' = (activeTab === 'map' || isToadTipOpen) ? 'right' : dockSide;
+  const isReadingTab = Boolean(
+    activeTab && ['modules', 'citations', 'holidays', 'regions', 'wages_matrix'].includes(activeTab)
+  );
+
+  const [hasExplicitUserDockPreference] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem(COMPANION_DOCK_STORAGE_KEY) !== null;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  // If Toad's Pro Tip is open or we are on the dashboard map tab, force docking to the right so they NEVER overlap.
+  // On reading tabs with AutoScrollController anchored on bottom-right, default to left to prevent covering scroll buttons.
+  const effectiveDockSide: 'right' | 'left' = (activeTab === 'map' || isToadTipOpen)
+    ? 'right'
+    : (isReadingTab && !hasExplicitUserDockPreference)
+      ? 'left'
+      : dockSide;
+
   const positionClasses = effectiveDockSide === 'right' ? 'right-3 sm:right-6' : 'left-3 sm:left-6';
   const verticalPositionClass = isToadTipOpen
     ? 'bottom-[380px] sm:bottom-[340px] lg:bottom-24'
-    : 'bottom-20 sm:bottom-22 lg:bottom-6';
+    : isReadingTab && effectiveDockSide === 'right'
+      ? 'bottom-36 sm:bottom-40 lg:bottom-24'
+      : 'bottom-20 sm:bottom-22 lg:bottom-6';
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);
   const [doctrineIdx, setDoctrineIdx] = useState<number>(0);

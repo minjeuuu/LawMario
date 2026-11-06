@@ -1691,9 +1691,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => {
               const isSansTab =
-                item.id === 'wages_matrix' || item.id === 'calculator' || item.id === 'shop';
+                item.id === 'wages_matrix' ||
+                item.id === 'calculator' ||
+                item.id === 'shop' ||
+                item.id === 'citations';
               const labelTypography = isSansTab
-                ? 'font-sans font-black text-[9px] sm:text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs'
+                ? 'font-sans font-bold normal-case text-[9px] sm:text-[9.5px] min-[1180px]:text-[10.5px] xl:text-xs'
                 : 'font-mario font-bold text-[6.5px] sm:text-[7px] min-[1180px]:text-[7.5px] xl:text-[8.5px] 2xl:text-[9.5px] tracking-tighter';
               return (
                 <button
@@ -1709,9 +1712,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 >
                   {item.icon}
-                  <span className="xl:hidden text-[7px] min-[1180px]:text-[7.5px]">{item.shortLabel}</span>
-                  <span className="hidden xl:inline 2xl:hidden">{item.shortLabel}</span>
-                  <span className="hidden 2xl:inline">{item.label}</span>
+                  <span className="xl:hidden text-[7px] min-[1180px]:text-[7.5px] normal-case">{item.shortLabel}</span>
+                  <span className="hidden xl:inline 2xl:hidden normal-case">{item.shortLabel}</span>
+                  <span className="hidden 2xl:inline normal-case">{item.label}</span>
                   {item.badge && (
                     <span className="hidden 2xl:inline-block text-[8px] bg-red-600 text-white px-1.5 py-0.5 rounded font-mario font-bold leading-none">
                       {item.badge}
@@ -1801,7 +1804,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => handleTabClick('calculator')}
               aria-label="Open Wage, Overtime & 13th Month Pay Calculator"
               title="Open Wage, Overtime & 13th Month Pay Calculator"
-              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer transition-colors overflow-hidden ${
+              className={`font-sans normal-case min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl font-bold text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer transition-colors overflow-hidden ${
                 activeTab === 'calculator'
                   ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
                   : 'bg-cyan-950/90 text-cyan-100 hover:bg-cyan-900 border-cyan-400/70'
@@ -1819,7 +1822,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={() => handleTabClick('shop')}
-              className={`min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer overflow-hidden ${
+              className={`font-sans normal-case min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl font-bold text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs border-2 border-black leading-none whitespace-nowrap cursor-pointer overflow-hidden ${
                 activeTab === 'shop'
                   ? 'bg-amber-400 text-slate-950 shadow-[0_1px_0_#000]'
                   : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
@@ -2485,7 +2488,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           }`}
                         >
                           {item.icon}
-                          <span className="truncate">{item.label}</span>
+                          <span className="truncate font-sans font-bold normal-case text-xs">{item.label}</span>
                         </button>
                       );
                     })}

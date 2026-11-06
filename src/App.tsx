@@ -5292,7 +5292,7 @@ export default function App() {
                 }`}
               >
                 {tab.icon}
-                <span className="text-[8px] sm:text-[9px] font-black tracking-tighter font-mario mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
+                <span className="text-[9px] sm:text-[10px] font-sans font-bold normal-case mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
                   {tab.label}
                 </span>
               </button>

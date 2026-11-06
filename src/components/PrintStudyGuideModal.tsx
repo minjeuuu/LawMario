@@ -2263,7 +2263,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-theme={activeExtendedTheme.id}
                     data-font={activeExtendedFont.id}
                     style={activeSheetDynamicStyle}
-                    className={`${summaryPaperBgClass} ${bodyFontClass} p-6 rounded-2xl border-2 shadow-2xl w-full space-y-4 select-text overflow-hidden`}
+                    className={`${summaryPaperBgClass} ${bodyFontClass} p-4 sm:p-5 rounded-2xl border-2 shadow-2xl w-full space-y-2.5 select-text overflow-hidden`}
                   >
                     {/* A4 Sheet Header */}
                     <div
@@ -2272,28 +2272,28 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         color: activeExtendedTheme.headerTextHex,
                         borderColor: activeExtendedTheme.borderHex,
                       }}
-                      className={`border-b-2 ${headingBorderClass} px-4 py-3 rounded-xl flex items-end justify-between gap-3`}
+                      className={`border-b-2 ${headingBorderClass} px-3.5 py-2.5 rounded-xl flex items-end justify-between gap-3`}
                     >
-                      <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-xs">
-                          <MarioSuperStarIcon size={24} />
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-xs">
+                          <MarioSuperStarIcon size={20} />
                         </div>
                         <div className="min-w-0">
                           <span
                             style={{ color: activeExtendedTheme.headerTextHex }}
-                            className="text-[10px] font-black uppercase tracking-widest opacity-90 block"
+                            className="text-[9px] font-black uppercase tracking-wider opacity-90 block truncate"
                           >
                             PHILIPPINE LABOR STANDARDS · ONE-PAGE A4 MASTER SUMMARY · {activeExtendedTheme.name.toUpperCase()}
                           </span>
                           <h2
                             style={{ color: activeExtendedTheme.headerTextHex }}
-                            className="text-xl sm:text-2xl font-black tracking-tight"
+                            className="text-lg sm:text-xl font-black tracking-tight leading-tight"
                           >
                             KEY LEGAL FORMULAS, MULTIPLIERS &amp; STATUTORY DEADLINES
                           </h2>
                           <p
                             style={{ color: activeExtendedTheme.headerTextHex }}
-                            className="text-xs opacity-90 font-medium"
+                            className="text-[10px] sm:text-[10.5px] opacity-90 font-medium leading-tight truncate"
                           >
                             P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 &amp; R.A. 11861
                           </p>
@@ -2301,7 +2301,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       </div>
                       <div
                         style={{ color: activeExtendedTheme.headerTextHex }}
-                        className="text-right text-[11px] font-mono opacity-95 shrink-0"
+                        className="text-right text-[10px] font-mono opacity-95 shrink-0"
                       >
                         {candidateName.trim() && (
                           <div className="font-bold">{candidateName.trim()}</div>
@@ -2312,7 +2312,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </div>
 
                     {/* Two-Column A4 Core Grid: Left = Formulas, Right = Deadlines */}
-                    <div className="grid grid-cols-2 gap-4 items-start">
+                    <div className="grid grid-cols-2 gap-3 items-start">
                       {/* Column 1: Key Legal Formulas */}
                       <div
                         style={{
@@ -2326,13 +2326,13 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             backgroundColor: activeExtendedTheme.tableHeadBgHex,
                             color: activeExtendedTheme.headerTextHex,
                           }}
-                          className={`${summaryBannerHeaderClass} px-3 py-2 flex items-center justify-between gap-2`}
+                          className={`${summaryBannerHeaderClass} px-3 py-1.5 flex items-center justify-between gap-2`}
                         >
-                          <span className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5">
-                            <MarioCoinBlockIcon size={16} />
+                          <span className="text-[11px] font-black uppercase tracking-wide flex items-center gap-1.5">
+                            <MarioCoinBlockIcon size={14} />
                             <span>I. Key Statutory Pay Formulas ({ONE_PAGE_LEGAL_FORMULAS.length})</span>
                           </span>
-                          <span className="text-[10px] font-mono opacity-85">Arts. 87–97 · 302</span>
+                          <span className="text-[9.5px] font-mono opacity-85">Arts. 87–97 · 302</span>
                         </div>
                         <div className="divide-y divide-slate-200">
                           {ONE_PAGE_LEGAL_FORMULAS.map((f, idx) => (
@@ -2343,7 +2343,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                   ? { backgroundColor: activeExtendedTheme.tableStripeBgHex }
                                   : { backgroundColor: '#FFFFFF' }
                               }
-                              className="px-3 py-1.5 text-[11px] leading-snug space-y-0.5"
+                              className="px-2.5 py-1 text-[10px] sm:text-[10.5px] leading-snug space-y-0.5"
                             >
                               <div className="flex items-baseline justify-between gap-2">
                                 <span
@@ -2354,20 +2354,20 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                 </span>
                                 <span
                                   style={{ color: activeExtendedTheme.mutedTextHex }}
-                                  className="font-mono text-[10px] shrink-0"
+                                  className="font-mono text-[9px] shrink-0"
                                 >
                                   {f.citation}
                                 </span>
                               </div>
                               <div
                                 style={{ color: activeExtendedTheme.accentHex }}
-                                className="font-mono font-black text-[11px] break-words [overflow-wrap:anywhere]"
+                                className="font-mono font-black text-[10.5px] sm:text-[11px] break-words [overflow-wrap:anywhere]"
                               >
                                 {f.formula}
                               </div>
                               <p
                                 style={{ color: activeExtendedTheme.mutedTextHex }}
-                                className="text-[10.5px] break-words [overflow-wrap:anywhere]"
+                                className="text-[9.5px] sm:text-[10px] break-words [overflow-wrap:anywhere]"
                               >
                                 {f.note}
                               </p>
@@ -2389,13 +2389,13 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             backgroundColor: activeExtendedTheme.tableHeadBgHex,
                             color: activeExtendedTheme.headerTextHex,
                           }}
-                          className={`${summaryBannerHeaderClass} px-3 py-2 flex items-center justify-between gap-2`}
+                          className={`${summaryBannerHeaderClass} px-3 py-1.5 flex items-center justify-between gap-2`}
                         >
-                          <span className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5">
-                            <MarioWarpPipeIcon size={16} />
+                          <span className="text-[11px] font-black uppercase tracking-wide flex items-center gap-1.5">
+                            <MarioWarpPipeIcon size={14} />
                             <span>II. Prescriptive &amp; Procedural Deadlines ({ONE_PAGE_LEGAL_DEADLINES.length})</span>
                           </span>
-                          <span className="text-[10px] font-mono opacity-85">Arts. 297–306</span>
+                          <span className="text-[9.5px] font-mono opacity-85">Arts. 297–306</span>
                         </div>
                         <div className="divide-y divide-slate-200">
                           {ONE_PAGE_LEGAL_DEADLINES.map((d, idx) => (
@@ -2406,7 +2406,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                   ? { backgroundColor: activeExtendedTheme.tableStripeBgHex }
                                   : { backgroundColor: '#FFFFFF' }
                               }
-                              className="px-3 py-1.5 text-[11px] leading-snug space-y-0.5"
+                              className="px-2.5 py-1 text-[10px] sm:text-[10.5px] leading-snug space-y-0.5"
                             >
                               <div className="flex items-baseline justify-between gap-2">
                                 <span
@@ -2417,14 +2417,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                 </span>
                                 <span
                                   style={{ color: activeExtendedTheme.accentHex }}
-                                  className="font-mono font-black shrink-0 tabular-nums"
+                                  className="font-mono font-black shrink-0 tabular-nums text-[10px] sm:text-[10.5px]"
                                 >
                                   {d.deadline}
                                 </span>
                               </div>
                               <p
                                 style={{ color: activeExtendedTheme.mutedTextHex }}
-                                className="text-[10.5px] break-words [overflow-wrap:anywhere]"
+                                className="text-[9.5px] sm:text-[10px] break-words [overflow-wrap:anywhere]"
                               >
                                 <span className="font-semibold">{d.citation}:</span> {d.reckoningRule}
                               </p>
@@ -2435,7 +2435,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </div>
 
                     {/* Mario 8-Bit Brick Divider Strip */}
-                    <MarioBrickStrip className="w-full h-2 rounded my-1 shadow-2xs" />
+                    <MarioBrickStrip className="w-full h-1.5 rounded my-0.5 shadow-2xs" />
 
                     {/* Bottom A4 Strip: World 6 Statutory Leave Caps & Core Doctrines */}
                     <div
@@ -2443,39 +2443,39 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         backgroundColor: activeExtendedTheme.accentSoftBgHex,
                         borderColor: activeExtendedTheme.borderHex,
                       }}
-                      className={`border-2 rounded-xl p-3 space-y-2 ${subtleBoxClass}`}
+                      className={`border-2 rounded-xl p-2.5 space-y-1.5 ${subtleBoxClass}`}
                     >
                       <div
                         style={{ borderColor: activeExtendedTheme.borderHex }}
-                        className="flex flex-wrap items-center justify-between gap-1 border-b pb-1.5"
+                        className="flex flex-wrap items-center justify-between gap-1 border-b pb-1"
                       >
                         <span
                           style={{ color: activeExtendedTheme.bodyTextHex }}
-                          className="text-xs font-black uppercase flex items-center gap-1.5"
+                          className="text-[11px] font-black uppercase flex items-center gap-1.5"
                         >
-                          <MarioMushroomIcon size={16} variant="1up" />
+                          <MarioMushroomIcon size={14} variant="1up" />
                           <span>III. World 6 Statutory Leave Caps &amp; Core Tests</span>
                         </span>
                         <span
                           style={{ color: activeExtendedTheme.mutedTextHex }}
-                          className="text-[10px] font-mono"
+                          className="text-[9.5px] font-mono"
                         >
                           One-Page Printer-Friendly A4 Reference
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-[11px]">
+                      <div className="grid grid-cols-3 gap-2 text-[10px] sm:text-[10.5px]">
                         {ONE_PAGE_STATUTORY_LEAVE_CAPS.map((lv) => (
                           <div
                             key={lv.leaveName}
-                            className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5"
+                            className="bg-white border border-slate-200 rounded-lg px-2 py-1"
                           >
                             <div className="flex items-baseline justify-between gap-1">
-                              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere]">{lv.leaveName}</span>
-                              <span className="font-mono font-black text-amber-800 tabular-nums shrink-0">
+                              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] text-[10px]">{lv.leaveName}</span>
+                              <span className="font-mono font-black text-amber-800 tabular-nums shrink-0 text-[10px]">
                                 {lv.cap}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-600 block break-words [overflow-wrap:anywhere]">
+                            <span className="text-[9px] text-slate-600 block break-words [overflow-wrap:anywhere] leading-tight">
                               {lv.citation} · {lv.rule}
                             </span>
                           </div>
@@ -2490,18 +2490,18 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         borderColor: activeExtendedTheme.borderHex,
                         color: activeExtendedTheme.bodyTextHex,
                       }}
-                      className={`border-2 rounded-xl p-2.5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10.5px] ${subtleBoxClass}`}
+                      className={`border-2 rounded-xl p-2 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[10px] ${subtleBoxClass}`}
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-black uppercase tracking-wider text-[10px] text-amber-900 bg-amber-400 border border-amber-600 px-2 py-0.5 rounded shadow-xs inline-flex items-center gap-1">
-                          <MarioSuperStarIcon size={14} />
+                        <span className="font-black uppercase tracking-wider text-[9px] text-amber-900 bg-amber-400 border border-amber-600 px-1.5 py-0.5 rounded shadow-xs inline-flex items-center gap-1">
+                          <MarioSuperStarIcon size={12} />
                           <span>Research Cohort (9 Members)</span>
                         </span>
-                        <span className="font-semibold text-slate-900 text-[10.5px] break-words [overflow-wrap:anywhere]">
+                        <span className="font-semibold text-slate-900 text-[10px] break-words [overflow-wrap:anywhere]">
                           CORPUZ (Main Creator) · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
                         </span>
                       </div>
-                      <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                      <span className="text-[9px] text-slate-500 font-mono shrink-0">
                         P.D. No. 442 Master Summary · {activeExtendedFont.name}
                       </span>
                     </div>
