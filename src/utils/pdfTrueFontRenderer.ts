@@ -65,11 +65,103 @@ export async function ensurePrintFontLoadedInBrowser(fontStyle?: string): Promis
   return spec;
 }
 
+const targetedFontEmbedCssCache = new Map<string, string>();
+
 /**
- * Captures a live DOM element with html2canvas at High-DPI (2.5x retina)
- * embedding the true rendered web font into a standard A4 PDF document.
- * Includes automatic multi-page slicing so tall review sheets are paginated
- * cleanly without vertical squashing or distortion.
+ * Fetches targeted, self-contained @font-face CSS for only the active Google Web Font family,
+ * converting external woff2 URLs into base64 data URIs so html-to-image renders instantly
+ * without network stalls or parsing hundreds of unused fonts.
+ */
+export async function getTargetedFontEmbedCss(fontFamily: string): Promise<string> {
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') {
+    return '';
+  }
+  const cleanFamily = fontFamily.replace(/['"]/g, '').trim();
+  if (
+    !cleanFamily ||
+    cleanFamily.toLowerCase().includes('system') ||
+    cleanFamily.toLowerCase().includes('sans-serif') ||
+    cleanFamily.toLowerCase().includes('serif') ||
+    cleanFamily.toLowerCase().includes('monospace') ||
+    cleanFamily.toLowerCase() === 'georgia' ||
+    cleanFamily.toLowerCase() === 'arial' ||
+    cleanFamily.toLowerCase() === 'courier'
+  ) {
+    return '';
+  }
+
+  if (targetedFontEmbedCssCache.has(cleanFamily)) {
+    return targetedFontEmbedCssCache.get(cleanFamily)!;
+  }
+
+  try {
+    const googleFontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
+      cleanFamily
+    )}:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap`;
+
+    let res = await fetch(googleFontUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+
+    if (!res.ok) {
+      res = await fetch(
+        `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily)}&display=swap`,
+        {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          },
+        }
+      );
+    }
+
+    if (!res.ok) return '';
+
+    let cssText = await res.text();
+
+    const urlMatches = Array.from(cssText.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g));
+    const uniqueUrls = Array.from(new Set(urlMatches.map((m) => m[1])));
+
+    const fontReplacements = await Promise.all(
+      uniqueUrls.map(async (url) => {
+        try {
+          const fontRes = await fetch(url);
+          if (!fontRes.ok) return { url, dataUri: url };
+          const blob = await fontRes.blob();
+          const dataUri = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          return { url, dataUri };
+        } catch {
+          return { url, dataUri: url };
+        }
+      })
+    );
+
+    for (const { url, dataUri } of fontReplacements) {
+      if (dataUri && dataUri.startsWith('data:')) {
+        cssText = cssText.split(url).join(dataUri);
+      }
+    }
+
+    targetedFontEmbedCssCache.set(cleanFamily, cssText);
+    return cssText;
+  } catch (err) {
+    console.warn(`Could not embed web font "${cleanFamily}":`, err);
+    return '';
+  }
+}
+
+/**
+ * Captures live DOM preview element at Ultra-HD resolution (3.2x master standard, 307+ DPI)
+ * embedding the true selected web font, exact CSS card layouts, alignments, and Mario SVG elements
+ * into a standard A4 PDF document. Includes module boundary-aware slicing so cards are never severed.
  */
 export async function captureDomElementToPdfBytesAsync(
   elementId: string | string[],
@@ -88,35 +180,81 @@ export async function captureDomElementToPdfBytesAsync(
   const fontSpec = await ensurePrintFontLoadedInBrowser(fontStyle);
   const resolvedFontStack = fontSpec.cssFontFamily;
 
+  // Pre-fetch targeted self-contained fontEmbedCSS for this specific active family
+  const fontEmbedCSS = await getTargetedFontEmbedCss(fontSpec.primaryFamily);
+
+  const targetW = orientation === 'portrait' ? 794 : 1122;
+  const pageW = orientation === 'portrait' ? 210 : 297;
+  const pageH = orientation === 'portrait' ? 297 : 210;
+  const pageAspect = pageH / pageW;
+
+  const singlePageElementIds = [
+    'one-page-summary-sheet',
+    'official-labor-certificate',
+    'official-scorecard-sheet',
+    'official-player-scorecard',
+    'master-diploma-printable',
+    'royal-juris-diploma-sheet',
+  ];
+  const isSinglePage = ids.some((id) => singlePageElementIds.includes(id));
+
+  // Create isolated off-screen sandbox to eliminate parent scale, transforms, or opacity overrides
+  const sandbox = document.createElement('div');
+  sandbox.style.position = 'fixed';
+  sandbox.style.left = '-99999px';
+  sandbox.style.top = '0';
+  sandbox.style.width = `${targetW}px`;
+  sandbox.style.margin = '0';
+  sandbox.style.padding = '0';
+  sandbox.style.border = 'none';
+  sandbox.style.zIndex = '-9999';
+  sandbox.style.opacity = '1';
+  sandbox.style.visibility = 'visible';
+  sandbox.style.pointerEvents = 'none';
+  sandbox.style.backgroundColor = '#ffffff';
+
+  const clone = el.cloneNode(true) as HTMLElement;
+  clone.style.width = `${targetW}px`;
+  clone.style.maxWidth = `${targetW}px`;
+  clone.style.margin = '0';
+  clone.style.transform = 'none';
+  clone.style.opacity = '1';
+  clone.style.visibility = 'visible';
+  clone.style.position = 'relative';
+  clone.style.boxSizing = 'border-box';
+  clone.style.setProperty('font-family', resolvedFontStack, 'important');
+  clone.style.setProperty('--print-active-font', resolvedFontStack, 'important');
+
+  sandbox.appendChild(clone);
+  document.body.appendChild(sandbox);
+
   try {
     if ('fonts' in document && document.fonts?.ready) {
       try {
         await Promise.race([
           document.fonts.ready,
-          new Promise((resolve) => setTimeout(resolve, 500)),
+          new Promise((resolve) => setTimeout(resolve, 350)),
         ]);
       } catch {}
     }
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    await new Promise((resolve) => setTimeout(resolve, 60));
 
-    const targetW = orientation === 'portrait' ? 794 : 1122;
-    const targetH = el.offsetHeight || (orientation === 'portrait' ? 1123 : 794);
+    const targetH = clone.scrollHeight || (orientation === 'portrait' ? 1123 : 794);
     const renderScale = 3.2; // 300+ DPI Ultra-HD print master standard
     const highResW = Math.round(targetW * renderScale);
     const highResH = Math.round(targetH * renderScale);
 
     let canvas: HTMLCanvasElement | null = null;
 
-    // PRIMARY RENDER ENGINE: html-to-image
-    // Uses the browser's native Blink/WebKit layout & SVG foreignObject engine,
-    // embedding true Google WebFonts, Mario vector SVGs, and CSS grids directly into canvas.
+    // PRIMARY RENDER ENGINE: html-to-image with targeted fontEmbedCSS
     try {
-      canvas = await htmlToImageCanvas(el, {
+      canvas = await htmlToImageCanvas(clone, {
         width: highResW,
         height: highResH,
         canvasWidth: highResW,
         canvasHeight: highResH,
         backgroundColor: '#ffffff',
+        fontEmbedCSS: fontEmbedCSS || undefined,
         style: {
           transform: `scale(${renderScale})`,
           transformOrigin: 'top left',
@@ -128,13 +266,33 @@ export async function captureDomElementToPdfBytesAsync(
         },
       });
     } catch (primaryErr) {
-      console.warn('html-to-image native rasterization failed, attempting html2canvas fallback:', primaryErr);
+      console.warn('html-to-image with fontEmbedCSS failed, retrying without fontEmbedCSS:', primaryErr);
+      try {
+        canvas = await htmlToImageCanvas(clone, {
+          width: highResW,
+          height: highResH,
+          canvasWidth: highResW,
+          canvasHeight: highResH,
+          backgroundColor: '#ffffff',
+          style: {
+            transform: `scale(${renderScale})`,
+            transformOrigin: 'top left',
+            width: `${targetW}px`,
+            height: `${targetH}px`,
+            margin: '0',
+            boxSizing: 'border-box',
+            fontFamily: resolvedFontStack,
+          },
+        });
+      } catch (secondaryErr) {
+        console.warn('Secondary html-to-image failed, falling back to html2canvas:', secondaryErr);
+      }
     }
 
-    // SECONDARY FALLBACK: html2canvas
+    // SECONDARY FALLBACK: High-DPI html2canvas
     if (!canvas) {
-      canvas = await html2canvas(el, {
-        scale: 2,
+      canvas = await html2canvas(clone, {
+        scale: 2.5,
         width: targetW,
         useCORS: true,
         logging: false,
@@ -142,28 +300,10 @@ export async function captureDomElementToPdfBytesAsync(
         windowWidth: targetW,
         scrollX: 0,
         scrollY: 0,
-        onclone: async (clonedDoc) => {
-          clonedDoc.documentElement.style.setProperty('--print-active-font', resolvedFontStack, 'important');
-          if (clonedDoc.body) {
-            clonedDoc.body.style.setProperty('--print-active-font', resolvedFontStack, 'important');
-          }
-          const target = clonedDoc.getElementById(el!.id);
-          if (target) {
-            target.style.width = `${targetW}px`;
-            target.style.transform = 'none';
-            target.style.margin = '0';
-            target.style.boxSizing = 'border-box';
-            target.style.setProperty('font-family', resolvedFontStack, 'important');
-          }
-        },
       });
     }
 
     if (!canvas) return null;
-
-    const pageW = orientation === 'portrait' ? 210 : 297;
-    const pageH = orientation === 'portrait' ? 297 : 210;
-    const pageAspect = pageH / pageW;
 
     const doc = new jsPDF({
       orientation,
@@ -171,16 +311,6 @@ export async function captureDomElementToPdfBytesAsync(
       format: 'a4',
       compress: true,
     });
-
-    const singlePageElementIds = [
-      'one-page-summary-sheet',
-      'official-labor-certificate',
-      'official-scorecard-sheet',
-      'official-player-scorecard',
-      'master-diploma-printable',
-      'royal-juris-diploma-sheet',
-    ];
-    const isSinglePage = ids.some((id) => singlePageElementIds.includes(id));
 
     if (isSinglePage) {
       // Guaranteed Single-Page Fit with Aspect Ratio Preservation:
@@ -205,9 +335,32 @@ export async function captureDomElementToPdfBytesAsync(
       const xOffset = Math.max(0, (pageW - renderW) / 2);
       const yOffset = Math.max(0, (pageH - renderH) / 2);
 
-      doc.addImage(imgData, 'PNG', xOffset, yOffset, renderW, renderH, undefined, 'FAST');
+      doc.addImage(imgData, 'PNG', xOffset, yOffset, renderW, renderH, undefined, 'SLOW');
     } else {
-      // Multi-Page Slicing: cleanly divide tall reviewer canvas into crisp A4 pages
+      // Multi-Page Module Boundary-Aware Slicing:
+      // Reads exact DOM block positions so no topic module or card is severed mid-text.
+      const breakBlocks = Array.from(
+        clone.querySelectorAll(
+          '#print-sec-masthead, #printable-study-guide > section, #print-sec-matrices > section, .print-topic-module, footer, [data-testid="print-matrix-multipliers"], [data-testid="print-matrix-regional-wages"], [data-testid="print-matrix-statutory-leaves"], .break-inside-avoid'
+        )
+      ) as HTMLElement[];
+
+      const blockBoundaries = breakBlocks
+        .map((b) => {
+          let top = 0;
+          let curr: HTMLElement | null = b;
+          while (curr && curr !== clone) {
+            top += curr.offsetTop;
+            curr = curr.offsetParent as HTMLElement | null;
+          }
+          return {
+            topPx: Math.round(top * renderScale),
+            bottomPx: Math.round((top + b.offsetHeight) * renderScale),
+          };
+        })
+        .filter((b) => b.bottomPx > b.topPx)
+        .sort((a, b) => a.topPx - b.topPx);
+
       const nominalSliceHeightPx = Math.floor(canvas.width * pageAspect);
       let currentY = 0;
       let pageIndex = 0;
@@ -228,41 +381,62 @@ export async function captureDomElementToPdfBytesAsync(
           const sliceImgData = sliceCanvas.toDataURL('image/png');
           if (pageIndex > 0) doc.addPage('a4', orientation);
           const renderH = (remainingH / nominalSliceHeightPx) * pageH;
-          doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, renderH, undefined, 'FAST');
+          doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, renderH, undefined, 'SLOW');
           break;
         }
 
-        // Search for a clean whitespace gap between 75% and 100% of nominalSliceHeightPx
-        let bestCutY = currentY + nominalSliceHeightPx;
-        const minScanY = currentY + Math.floor(nominalSliceHeightPx * 0.75);
-        const maxScanY = currentY + nominalSliceHeightPx - 8;
+        const maxPageY = currentY + nominalSliceHeightPx;
+        const minAllowedCutY = currentY + Math.floor(nominalSliceHeightPx * 0.55);
 
-        try {
-          const sampleCtx = canvas.getContext('2d');
-          if (sampleCtx) {
-            const scanW = Math.min(canvas.width, 160);
-            const scanStartX = Math.floor((canvas.width - scanW) / 2);
-            for (let testY = maxScanY; testY >= minScanY; testY -= 4) {
-              const pixelData = sampleCtx.getImageData(scanStartX, testY, scanW, 1).data;
-              let isWhitespace = true;
-              for (let px = 0; px < pixelData.length; px += 16) {
-                const r = pixelData[px];
-                const g = pixelData[px + 1];
-                const b = pixelData[px + 2];
-                if (r < 240 || g < 240 || b < 240) {
-                  isWhitespace = false;
+        // Find clean cut point:
+        // Priority 1: A module boundary between minAllowedCutY and maxPageY
+        let bestCutY = -1;
+
+        const crossingBlock = blockBoundaries.find(
+          (b) => b.topPx >= minAllowedCutY && b.topPx < maxPageY && b.bottomPx > maxPageY
+        );
+
+        if (crossingBlock) {
+          bestCutY = crossingBlock.topPx;
+        } else {
+          const candidateBlocks = blockBoundaries.filter(
+            (b) => b.topPx >= minAllowedCutY && b.topPx <= maxPageY
+          );
+          if (candidateBlocks.length > 0) {
+            bestCutY = candidateBlocks[candidateBlocks.length - 1].topPx;
+          }
+        }
+
+        // Priority 2: If no DOM block boundary found in range, use whitespace pixel scanner
+        if (bestCutY <= currentY) {
+          bestCutY = maxPageY;
+          try {
+            const sampleCtx = canvas.getContext('2d');
+            if (sampleCtx) {
+              const scanW = Math.min(canvas.width, 240);
+              const scanStartX = Math.floor((canvas.width - scanW) / 2);
+              for (let testY = maxPageY - 8; testY >= minAllowedCutY; testY -= 4) {
+                const pixelData = sampleCtx.getImageData(scanStartX, testY, scanW, 1).data;
+                let isWhitespace = true;
+                for (let px = 0; px < pixelData.length; px += 16) {
+                  const r = pixelData[px];
+                  const g = pixelData[px + 1];
+                  const b = pixelData[px + 2];
+                  if (r < 240 || g < 240 || b < 240) {
+                    isWhitespace = false;
+                    break;
+                  }
+                }
+                if (isWhitespace) {
+                  bestCutY = testY;
                   break;
                 }
               }
-              if (isWhitespace) {
-                bestCutY = testY;
-                break;
-              }
             }
-          }
-        } catch {}
+          } catch {}
+        }
 
-        const sliceH = bestCutY - currentY;
+        const sliceH = Math.max(1, bestCutY - currentY);
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = canvas.width;
         sliceCanvas.height = sliceH;
@@ -275,7 +449,7 @@ export async function captureDomElementToPdfBytesAsync(
         const sliceImgData = sliceCanvas.toDataURL('image/png');
         if (pageIndex > 0) doc.addPage('a4', orientation);
         const renderH = (sliceH / nominalSliceHeightPx) * pageH;
-        doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, renderH, undefined, 'FAST');
+        doc.addImage(sliceImgData, 'PNG', 0, 0, pageW, renderH, undefined, 'SLOW');
 
         currentY = bestCutY;
         pageIndex++;
@@ -285,51 +459,98 @@ export async function captureDomElementToPdfBytesAsync(
     const arrayBuffer = doc.output('arraybuffer');
     return new Uint8Array(arrayBuffer);
   } catch (err) {
-    console.warn('True font DOM canvas snapshot failed, falling back to vector renderer:', err);
+    console.warn('True font DOM canvas snapshot failed:', err);
     return null;
+  } finally {
+    if (sandbox.parentNode) {
+      sandbox.parentNode.removeChild(sandbox);
+    }
   }
 }
 
 /**
- * 1. Multi-Page Unabridged Reviewer PDF rendered as 100% Vector PDF (real PDF, zero images).
+ * 1. Multi-Page Unabridged Reviewer PDF rendered with exact preview fonts, layout, and Mario icons.
  */
 export async function buildTrueFontStudyReviewerPdfBytesAsync(
   params: StudyGuideReviewerPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
+  if (typeof document !== 'undefined') {
+    const snap = await captureDomElementToPdfBytesAsync(
+      'printable-study-guide',
+      params.orientation,
+      params.fontStyle
+    );
+    if (snap && snap.length > 0) {
+      return snap;
+    }
+  }
   return buildStudyGuideReviewerPdfBytes(params);
 }
 
 /**
- * 2. Exact 1-Page A4 Summary Sheet rendered as 100% Vector PDF (real PDF, zero images).
+ * 2. Exact 1-Page A4 Summary Sheet rendered with exact preview fonts, layout, and Mario icons.
  */
 export async function buildTrueFontOnePageSummaryPdfBytesAsync(
   options: OnePageSummaryPdfOptions = {}
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(options.fontStyle);
+  if (typeof document !== 'undefined') {
+    const snap = await captureDomElementToPdfBytesAsync(
+      'one-page-summary-sheet',
+      'portrait',
+      options.fontStyle
+    );
+    if (snap && snap.length > 0) {
+      return snap;
+    }
+  }
   return buildOnePageSummaryPdfBytes(options);
 }
 
 /**
- * 3. Executive Mastery Certificate OR Royal Grand Master Diploma rendered as 100% Vector PDF (real PDF, zero images).
+ * 3. Executive Mastery Certificate OR Royal Grand Master Diploma rendered with exact preview fonts, layout, and Mario icons.
  */
 export async function buildTrueFontCertificateOrDiplomaPdfBytesAsync(
   params: CertificatePdfParams,
   isMasterDiploma: boolean = false
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
+  if (typeof document !== 'undefined') {
+    const targetIds = isMasterDiploma
+      ? ['master-diploma-printable', 'royal-juris-diploma-sheet', 'official-labor-certificate']
+      : ['official-labor-certificate', 'master-diploma-printable'];
+    const snap = await captureDomElementToPdfBytesAsync(
+      targetIds,
+      params.orientation,
+      params.fontStyle
+    );
+    if (snap && snap.length > 0) {
+      return snap;
+    }
+  }
   return isMasterDiploma
     ? buildMasterDiplomaPdfBytes(params)
     : buildCertificatePdfBytes(params);
 }
 
 /**
- * 4. Official Hero Score Card Landscape PDF rendered as 100% Vector PDF (real PDF, zero images).
+ * 4. Official Hero Score Card Landscape PDF rendered with exact preview fonts, layout, and Mario icons.
  */
 export async function buildTrueFontScoreCardPdfBytesAsync(
   params: ScoreCardPdfParams
 ): Promise<Uint8Array> {
   await ensurePrintFontLoadedInBrowser(params.fontStyle);
+  if (typeof document !== 'undefined') {
+    const snap = await captureDomElementToPdfBytesAsync(
+      ['official-scorecard-sheet', 'official-player-scorecard'],
+      'landscape',
+      params.fontStyle
+    );
+    if (snap && snap.length > 0) {
+      return snap;
+    }
+  }
   return buildScoreCardLandscapePdfBytes(params);
 }
 
