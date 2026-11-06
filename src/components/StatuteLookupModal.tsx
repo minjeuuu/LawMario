@@ -6,6 +6,7 @@ import {
   BookOpen,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   Copy,
   Check,
   X,
@@ -105,11 +106,13 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [fontSizeScale, setFontSizeScale] = useState<'sm' | 'base' | 'lg'>('base');
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'list' | 'detail'>('list');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialQuery) {
       setQuery(initialQuery);
+      setMobileTab('detail');
     }
   }, [initialQuery]);
 
@@ -221,6 +224,25 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     if (results.length === 0) return null;
     return results.find((r) => r.id === selectedId) || results[0];
   }, [results, selectedId]);
+
+  const currentIndex = useMemo(() => {
+    if (!activeEntry) return -1;
+    return results.findIndex((r) => r.id === activeEntry.id);
+  }, [results, activeEntry]);
+
+  const handlePrevStatute = () => {
+    if (currentIndex > 0) {
+      setSelectedId(results[currentIndex - 1].id);
+      marioAudio.playClick();
+    }
+  };
+
+  const handleNextStatute = () => {
+    if (currentIndex >= 0 && currentIndex < results.length - 1) {
+      setSelectedId(results[currentIndex + 1].id);
+      marioAudio.playClick();
+    }
+  };
 
   if (!isOpen || typeof document === 'undefined') return null;
 
@@ -355,37 +377,37 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[85] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 print:hidden overflow-y-auto"
+      className="fixed inset-0 z-[85] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-1 sm:p-4 print:hidden overflow-y-auto"
     >
-      <div className="w-full max-w-5xl max-h-[92dvh] bg-gradient-to-b from-[#171923] via-[#0f172a] to-[#090d16] text-white rounded-3xl border-4 border-amber-400 shadow-[0_10px_0_#000] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="w-full max-w-5xl h-[98dvh] sm:h-[92dvh] max-h-[98dvh] sm:max-h-[92dvh] bg-gradient-to-b from-[#171923] via-[#0f172a] to-[#090d16] text-white rounded-2xl sm:rounded-3xl border-3 sm:border-4 border-amber-400 shadow-[0_10px_0_#000] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="bg-slate-950 px-4 sm:px-6 py-4 border-b-2 border-slate-800 flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
-              <Scale className="w-6 h-6" />
+        <div className="bg-slate-950 px-3 sm:px-6 py-3 sm:py-4 border-b-2 border-slate-800 flex items-center justify-between gap-2.5 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-slate-950 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+              <Scale className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-amber-400 font-mono tracking-wider block truncate">
-                  INSTANT CODAL &amp; JURISPRUDENCE FINDER
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mono tracking-wider block truncate">
+                  INSTANT CODAL FINDER
                 </span>
-                <span className="text-slate-400 text-xs font-bold">
+                <span className="text-slate-400 text-[11px] sm:text-xs font-bold">
                   · {results.length} Provisions
                 </span>
               </div>
-              <h2 className="text-lg sm:text-2xl font-black font-display text-white truncate">
+              <h2 className="text-base sm:text-2xl font-black font-display text-white truncate">
                 Philippine Labor Statute &amp; Codal Lookup
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Font scale control */}
             <button
               type="button"
               onClick={handleCycleFontSize}
               title="Toggle reading font size (Small, Normal, Large)"
-              className="min-h-[38px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+              className="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] sm:text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Font: {fontSizeScale.toUpperCase()}</span>
             </button>
@@ -395,9 +417,9 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
               type="button"
               onClick={handleCycleSpeechRate}
               title="Toggle Text-to-Speech narration rate"
-              className="min-h-[38px] px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-xs font-bold inline-flex items-center gap-1 cursor-pointer tabular-nums"
+              className="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-[11px] sm:text-xs font-bold inline-flex items-center gap-1 cursor-pointer tabular-nums"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <SlidersHorizontal className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{speechRate}x</span>
             </button>
 
@@ -405,15 +427,15 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Close Statute Lookup"
-              className="min-w-[42px] min-h-[42px] rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white border-2 border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition-colors"
+              className="min-w-[38px] min-h-[38px] sm:min-w-[42px] sm:min-h-[42px] rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white border-2 border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* Search Input, Book Scope & Quick Article Buttons */}
-        <div className="bg-slate-950/90 px-4 sm:px-6 py-3.5 border-b border-slate-800 space-y-2.5 shrink-0">
+        <div className="bg-slate-950/90 px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-slate-800 space-y-2 shrink-0">
           <div className="relative">
             <Search className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -426,7 +448,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                 setQuery(e.target.value);
               }}
               placeholder="Type Article or Law # (e.g., 87, Art. 94, 106, 297, RA 11210, overtime, SIL)..."
-              className="w-full bg-slate-900 text-white placeholder-slate-400 text-xs sm:text-sm font-bold pl-10 pr-20 py-2.5 rounded-xl border-2 border-slate-700 focus:outline-none focus:border-amber-400"
+              className="w-full bg-slate-900 text-white placeholder-slate-400 text-xs sm:text-sm font-bold pl-10 pr-20 py-2 sm:py-2.5 rounded-xl border-2 border-slate-700 focus:outline-none focus:border-amber-400"
             />
             {query && (
               <button
@@ -451,7 +473,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                     setSelectedBook(bf.id);
                     marioAudio.playClick();
                   }}
-                  className={`min-h-[32px] px-3 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
+                  className={`min-h-[30px] sm:min-h-[32px] px-2.5 sm:px-3 rounded-lg text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
                     isSelected
                       ? 'bg-amber-400 text-slate-950 border-2 border-black font-black'
                       : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700'
@@ -465,7 +487,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
 
           {/* Quick Article Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-1 border-t border-slate-800/60">
-            <span className="text-[11px] font-bold text-slate-400 shrink-0 mr-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 shrink-0 mr-1">
               Quick Articles:
             </span>
             {QUICK_STATUTE_NUMBERS.map((num) => {
@@ -478,9 +500,10 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                   type="button"
                   onClick={() => {
                     setQuery(num);
+                    setMobileTab('detail');
                     marioAudio.playClick();
                   }}
-                  className={`min-h-[30px] px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold border shrink-0 cursor-pointer transition-colors ${
+                  className={`min-h-[28px] sm:min-h-[30px] px-2 sm:px-2.5 py-0.5 rounded-lg text-[11px] sm:text-xs font-mono font-bold border shrink-0 cursor-pointer transition-colors ${
                     isCurrent
                       ? 'bg-amber-400 text-slate-950 border-black font-black'
                       : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-slate-700'
@@ -493,10 +516,53 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
           </div>
         </div>
 
-        {/* Split Results & Detail Pane */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 min-h-0">
+        {/* Mobile View Mode Segmented Tab Bar (Phone-Friendly) */}
+        <div className="lg:hidden flex items-center bg-slate-900 border-b border-slate-800 p-1.5 gap-1.5 shrink-0">
+          <button
+            type="button"
+            data-testid="statute-mobile-tab-list"
+            onClick={() => {
+              setMobileTab('list');
+              marioAudio.playClick();
+            }}
+            className={`flex-1 min-h-[38px] py-1.5 px-3 rounded-xl text-xs font-black inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              mobileTab === 'list'
+                ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 shrink-0" />
+            <span>Provisions ({results.length})</span>
+          </button>
+          <button
+            type="button"
+            data-testid="statute-mobile-tab-detail"
+            onClick={() => {
+              setMobileTab('detail');
+              marioAudio.playClick();
+            }}
+            disabled={!activeEntry}
+            className={`flex-1 min-h-[38px] py-1.5 px-3 rounded-xl text-xs font-black inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 ${
+              mobileTab === 'detail'
+                ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[0_2px_0_#000]'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Scale className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">
+              {activeEntry ? activeEntry.codeLabel : 'Dossier View'}
+            </span>
+          </button>
+        </div>
+
+        {/* Split Results & Detail Pane (Adaptive Dual-Pane on Desktop, Full-Pane on Mobile) */}
+        <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-0">
           {/* Left Result List */}
-          <div className="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4 space-y-2 max-h-56 lg:max-h-none overflow-y-auto bg-slate-950/60">
+          <div
+            className={`lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-800 p-2.5 sm:p-4 space-y-2 overflow-y-auto bg-slate-950/70 h-full ${
+              mobileTab === 'list' ? 'block' : 'hidden lg:block'
+            }`}
+          >
             <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
               <span>Matched Provisions</span>
               <span className="font-mono text-amber-300 tabular-nums">{results.length} found</span>
@@ -528,9 +594,10 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                     data-testid={`statute-result-${item.id}`}
                     onClick={() => {
                       setSelectedId(item.id);
+                      setMobileTab('detail');
                       marioAudio.playClick();
                     }}
-                    className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all cursor-pointer space-y-1 ${
+                    className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border-2 transition-all cursor-pointer space-y-1 ${
                       isSelected
                         ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 border-black shadow-[0_2px_0_#000] -translate-y-0.5'
                         : 'bg-slate-900 hover:bg-slate-850 text-slate-100 border-slate-800 hover:border-slate-700'
@@ -556,9 +623,52 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
           </div>
 
           {/* Right Detailed Statute View */}
-          <div className="lg:col-span-8 p-4 sm:p-6 space-y-5 overflow-y-auto">
+          <div
+            className={`lg:col-span-8 p-3 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto h-full ${
+              mobileTab === 'detail' ? 'block' : 'hidden lg:block'
+            }`}
+          >
             {activeEntry ? (
               <>
+                {/* Mobile Return & Quick Flip Navigation Bar */}
+                <div className="lg:hidden flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 text-xs shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileTab('list');
+                      marioAudio.playClick();
+                    }}
+                    className="min-h-[34px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold border border-slate-700 inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+                    <span>All Provisions ({results.length})</span>
+                  </button>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      disabled={currentIndex <= 0}
+                      onClick={handlePrevStatute}
+                      aria-label="Previous Statute"
+                      className="min-h-[34px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 font-black border border-slate-700 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      &larr; Prev
+                    </button>
+                    <span className="font-mono text-[11px] text-slate-300 font-bold tabular-nums px-1">
+                      {currentIndex + 1}/{results.length}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={currentIndex >= results.length - 1}
+                      onClick={handleNextStatute}
+                      aria-label="Next Statute"
+                      className="min-h-[34px] px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 font-black border border-slate-700 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      Next &rarr;
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-slate-800">
                   <div className="space-y-1 min-w-0">
                     <span className="text-xs font-mono font-black text-amber-300 block">
@@ -730,7 +840,21 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                   </section>
                 )}
               </>
-            ) : null}
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center p-8 text-center text-slate-400 space-y-3">
+                <Scale className="w-12 h-12 text-slate-600" />
+                <p className="text-sm font-bold">
+                  Select a statute provision to view its complete codified text and Supreme Court precedents.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMobileTab('list')}
+                  className="lg:hidden px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow-[0_2px_0_#000]"
+                >
+                  Browse Provisions ({results.length})
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

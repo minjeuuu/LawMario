@@ -6,6 +6,8 @@ import {
   MarioStarIcon,
   MarioBooIcon,
   MarioThwompIcon,
+  MarioMushroomIcon,
+  MarioFlagIcon,
 } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
 import { drawUniqueFromDeck } from '../utils/gameQuestionDeck';
@@ -1526,6 +1528,7 @@ const InteractiveMasterArcadeStage: React.FC<{
   correctIndex: number;
   onPickOption: (idx: number) => void;
   streak: number;
+  eliminatedIndices?: Set<number>;
 }> = ({
   gameTitle,
   stageNum,
@@ -1534,6 +1537,7 @@ const InteractiveMasterArcadeStage: React.FC<{
   pickedOption,
   correctIndex,
   onPickOption,
+  eliminatedIndices,
 }) => {
   const [trainWhistleActive, setTrainWhistleActive] = useState(false);
   const [yoshiTrackLever, setYoshiTrackLever] = useState<number>(0);
@@ -1610,10 +1614,13 @@ const InteractiveMasterArcadeStage: React.FC<{
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices?.has(i);
               const isSelected = pickedOption === i;
               const isRight = i === correctIndex;
               let trackColor = 'bg-slate-950/95 hover:bg-emerald-950/80 border-slate-700 text-slate-100';
-              if (pickedOption !== null) {
+              if (isEliminated) {
+                trackColor = 'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
                 if (isRight) {
                   trackColor = 'bg-emerald-600 text-white border-black ring-2 ring-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.8)]';
                 } else if (isSelected) {
@@ -1627,8 +1634,8 @@ const InteractiveMasterArcadeStage: React.FC<{
                 <button
                   key={i}
                   type="button"
-                  disabled={pickedOption !== null}
-                  onClick={() => onPickOption(i)}
+                  disabled={pickedOption !== null || isEliminated}
+                  onClick={() => !isEliminated && onPickOption(i)}
                   className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${trackColor}`}
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
@@ -1637,10 +1644,13 @@ const InteractiveMasterArcadeStage: React.FC<{
                     </span>
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
-                  {pickedOption !== null && isRight && (
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
                     <span className="text-[10px] font-mario text-amber-300 shrink-0 mt-0.5">CLEAR!</span>
                   )}
-                  {pickedOption !== null && isSelected && !isRight && (
+                  {pickedOption !== null && isSelected && !isRight && !isEliminated && (
                     <MarioThwompIcon className="w-5 h-5 shrink-0" />
                   )}
                 </button>
@@ -1718,10 +1728,13 @@ const InteractiveMasterArcadeStage: React.FC<{
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 relative z-10">
             {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices?.has(i);
               const isSelected = pickedOption === i;
               const isRight = i === correctIndex;
               let ghostBox = 'bg-slate-950/95 hover:bg-indigo-950/80 border-slate-700 text-slate-100';
-              if (pickedOption !== null) {
+              if (isEliminated) {
+                ghostBox = 'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
                 if (isRight) {
                   ghostBox = 'bg-indigo-600 text-white border-black ring-2 ring-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.8)]';
                 } else if (isSelected) {
@@ -1735,15 +1748,18 @@ const InteractiveMasterArcadeStage: React.FC<{
                 <button
                   key={i}
                   type="button"
-                  disabled={pickedOption !== null}
-                  onClick={() => onPickOption(i)}
+                  disabled={pickedOption !== null || isEliminated}
+                  onClick={() => !isEliminated && onPickOption(i)}
                   className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${ghostBox}`}
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
                     <MarioBooIcon className="w-5 h-5 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
-                  {pickedOption !== null && isRight && (
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
                     <span className="text-[10px] font-mario text-emerald-300 shrink-0 mt-0.5">VACUUMED!</span>
                   )}
                 </button>
@@ -1805,10 +1821,13 @@ const InteractiveMasterArcadeStage: React.FC<{
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices?.has(i);
               const isSelected = pickedOption === i;
               const isRight = i === correctIndex;
               let starStyle = 'bg-slate-950/95 hover:bg-sky-950/80 border-slate-700 text-slate-100';
-              if (pickedOption !== null) {
+              if (isEliminated) {
+                starStyle = 'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
                 if (isRight) {
                   starStyle = 'bg-sky-400 text-slate-950 border-black ring-2 ring-sky-200 font-black shadow-[0_0_12px_rgba(56,189,248,0.8)]';
                 } else if (isSelected) {
@@ -1822,10 +1841,12 @@ const InteractiveMasterArcadeStage: React.FC<{
                 <button
                   key={i}
                   type="button"
-                  disabled={pickedOption !== null}
+                  disabled={pickedOption !== null || isEliminated}
                   onClick={() => {
-                    setAimAngle(30 + i * 35);
-                    onPickOption(i);
+                    if (!isEliminated) {
+                      setAimAngle(30 + i * 35);
+                      onPickOption(i);
+                    }
                   }}
                   className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${starStyle}`}
                 >
@@ -1833,7 +1854,10 @@ const InteractiveMasterArcadeStage: React.FC<{
                     <MarioStarIcon className="w-5 h-5 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
-                  {pickedOption !== null && isRight && (
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
                     <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">ALIGNED!</span>
                   )}
                 </button>
@@ -1885,10 +1909,13 @@ const InteractiveMasterArcadeStage: React.FC<{
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices?.has(i);
               const isSelected = pickedOption === i;
               const isRight = i === correctIndex;
               let chuteStyle = 'bg-slate-950/95 hover:bg-pink-950/80 border-slate-700 text-slate-100';
-              if (pickedOption !== null) {
+              if (isEliminated) {
+                chuteStyle = 'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
                 if (isRight) {
                   chuteStyle = 'bg-pink-400 text-slate-950 border-black ring-2 ring-pink-200 font-black shadow-[0_0_12px_rgba(236,72,153,0.8)]';
                 } else if (isSelected) {
@@ -1902,15 +1929,18 @@ const InteractiveMasterArcadeStage: React.FC<{
                 <button
                   key={i}
                   type="button"
-                  disabled={pickedOption !== null}
-                  onClick={() => onPickOption(i)}
+                  disabled={pickedOption !== null || isEliminated}
+                  onClick={() => !isEliminated && onPickOption(i)}
                   className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${chuteStyle}`}
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
                     <Stamp className="w-5 h-5 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
-                  {pickedOption !== null && isRight && (
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
                     <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">STAMPED!</span>
                   )}
                 </button>
@@ -1974,10 +2004,13 @@ const InteractiveMasterArcadeStage: React.FC<{
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {options.map((opt, i) => {
+              const isEliminated = eliminatedIndices?.has(i);
               const isSelected = pickedOption === i;
               const isRight = i === correctIndex;
               let vaultStyle = 'bg-slate-950/95 hover:bg-amber-950/80 border-slate-700 text-slate-100';
-              if (pickedOption !== null) {
+              if (isEliminated) {
+                vaultStyle = 'opacity-30 line-through bg-slate-950/50 border-slate-800 text-slate-600 cursor-not-allowed';
+              } else if (pickedOption !== null) {
                 if (isRight) {
                   vaultStyle = 'bg-amber-400 text-slate-950 border-black ring-2 ring-amber-200 font-black shadow-[0_0_12px_rgba(251,191,36,0.8)]';
                 } else if (isSelected) {
@@ -1991,10 +2024,12 @@ const InteractiveMasterArcadeStage: React.FC<{
                 <button
                   key={i}
                   type="button"
-                  disabled={pickedOption !== null}
+                  disabled={pickedOption !== null || isEliminated}
                   onClick={() => {
-                    setVaultDialDeg(45 + i * 90);
-                    onPickOption(i);
+                    if (!isEliminated) {
+                      setVaultDialDeg(45 + i * 90);
+                      onPickOption(i);
+                    }
                   }}
                   className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${vaultStyle}`}
                 >
@@ -2002,7 +2037,10 @@ const InteractiveMasterArcadeStage: React.FC<{
                     <Coins className="w-5 h-5 shrink-0 mt-0.5" />
                     <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                   </div>
-                  {pickedOption !== null && isRight && (
+                  {isEliminated && (
+                    <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
+                  )}
+                  {pickedOption !== null && isRight && !isEliminated && (
                     <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">CRACKED!</span>
                   )}
                 </button>
@@ -2065,8 +2103,11 @@ const InteractiveMasterArcadeStage: React.FC<{
           {options.map((opt, i) => {
             const isSelected = pickedOption === i;
             const isRight = i === correctIndex;
+            const isEliminated = eliminatedIndices?.has(i);
             let scaleStyle = 'bg-slate-950/95 hover:bg-stone-900 border-slate-700 text-slate-100';
-            if (pickedOption !== null) {
+            if (isEliminated) {
+              scaleStyle = 'bg-slate-900/40 text-slate-600 border-slate-800 line-through opacity-40 cursor-not-allowed';
+            } else if (pickedOption !== null) {
               if (isRight) {
                 scaleStyle = 'bg-amber-400 text-slate-950 border-black ring-2 ring-amber-200 font-black shadow-[0_0_12px_rgba(245,158,11,0.8)]';
               } else if (isSelected) {
@@ -2080,7 +2121,7 @@ const InteractiveMasterArcadeStage: React.FC<{
               <button
                 key={i}
                 type="button"
-                disabled={pickedOption !== null}
+                disabled={pickedOption !== null || isEliminated}
                 onClick={() => onPickOption(i)}
                 className={`p-3 rounded-xl border-2 text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer ${scaleStyle}`}
               >
@@ -2088,6 +2129,9 @@ const InteractiveMasterArcadeStage: React.FC<{
                   <Scale className="w-5 h-5 shrink-0 mt-0.5" />
                   <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
                 </div>
+                {isEliminated && (
+                  <span className="text-[10px] font-mario text-rose-400/80 shrink-0 mt-0.5">ZAPPED!</span>
+                )}
                 {pickedOption !== null && isRight && (
                   <span className="text-[10px] font-mario text-slate-950 shrink-0 mt-0.5">BALANCED!</span>
                 )}
@@ -2136,6 +2180,17 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
   const [streak, setStreak] = useState(0);
   const [pickedOption, setPickedOption] = useState<number | null>(null);
 
+  // Arcade Power-Ups & Speedrunner Engine
+  const [mushroomUsesLeft, setMushroomUsesLeft] = useState(2);
+  const [eliminatedIndices, setEliminatedIndices] = useState<Set<number>>(new Set());
+  const [feverStars, setFeverStars] = useState(0);
+  const [isFeverActive, setIsFeverActive] = useState(false);
+  const [showRadarClue, setShowRadarClue] = useState(false);
+  const [radarUsesLeft, setRadarUsesLeft] = useState(2);
+  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState(false);
+  const [shieldAbsorbedHit, setShieldAbsorbedHit] = useState(false);
+
   const startRun = useCallback(() => {
     const fresh = drawUniqueFromDeck(
       `master_vault_${gameTitle}`,
@@ -2155,37 +2210,112 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
     setScore(0);
     setStreak(0);
     setPickedOption(null);
+    setMushroomUsesLeft(2);
+    setEliminatedIndices(new Set());
+    setFeverStars(0);
+    setIsFeverActive(false);
+    setShowRadarClue(false);
+    setRadarUsesLeft(2);
+    setSecondsLeft(15);
+    setSpeedBonusAwarded(false);
+    setShieldAbsorbedHit(false);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
   }, [bank, deckCount, gameTitle]);
 
   const currentItem = deck[currentIdx];
 
+  // Speedrunner 15s Countdown Clock
+  useEffect(() => {
+    if (phase !== 'PLAYING' || pickedOption !== null) return;
+    if (secondsLeft <= 0) {
+      handleChooseOption(-1);
+      return;
+    }
+    const timer = setInterval(() => {
+      setSecondsLeft((s) => s - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [phase, pickedOption, secondsLeft]);
+
+  const handleMushroomZap = () => {
+    if (mushroomUsesLeft <= 0 || !currentItem || pickedOption !== null || eliminatedIndices.size > 0) return;
+    const wrongIndices = currentItem.options
+      .map((_, i) => i)
+      .filter((i) => i !== currentItem.correctIndex && !eliminatedIndices.has(i));
+    if (wrongIndices.length === 0) return;
+    const toZap = wrongIndices.slice(0, 2);
+    setEliminatedIndices(new Set([...eliminatedIndices, ...toZap]));
+    setMushroomUsesLeft((m) => Math.max(0, m - 1));
+    marioAudio.playPowerUp();
+  };
+
+  const handleRadarClue = () => {
+    if (radarUsesLeft <= 0 && !showRadarClue) return;
+    if (pickedOption !== null) return;
+    const next = !showRadarClue;
+    setShowRadarClue(next);
+    if (next) {
+      setRadarUsesLeft((r) => Math.max(0, r - 1));
+      marioAudio.playCoin();
+    }
+  };
+
   const handleChooseOption = (idx: number) => {
     if (pickedOption !== null || !currentItem) return;
     setPickedOption(idx);
     const isCorrect = idx === currentItem.correctIndex;
+    const isFast = secondsLeft >= 8;
+
     if (isCorrect) {
       const nextScore = score + 1;
       const nextStreak = streak + 1;
       setScore(nextScore);
       setStreak(nextStreak);
-      onEarnCoins(nextStreak >= 3 ? 5 : 3);
+
+      let coinReward = nextStreak >= 3 ? 5 : 3;
+      if (isFast) {
+        coinReward += 5;
+        setSpeedBonusAwarded(true);
+      }
+      if (isFeverActive) {
+        coinReward *= 2;
+        setIsFeverActive(false);
+        setFeverStars(0);
+      } else {
+        const nextStars = feverStars + 1;
+        if (nextStars >= 3) {
+          setIsFeverActive(true);
+          setFeverStars(3);
+          marioAudio.playPowerUp();
+        } else {
+          setFeverStars(nextStars);
+        }
+      }
+
+      onEarnCoins(coinReward);
       awardUserXp({ amount: 25 + nextStreak * 5, reason: `${gameTitle} Stage Cleared` });
       marioAudio.playCoin();
     } else {
-      const nextHearts = hearts - 1;
-      setHearts(nextHearts);
       setStreak(0);
-      marioAudio.playWrongAnswer();
-      if (nextHearts <= 0) {
-        awardUserXp({ amount: 15, reason: `${gameTitle} Effort` });
-        onQuizCompleted?.({
-          worldCode: reportWorldCode,
-          correctCount: score,
-          totalCount: deck.length,
-          topicTitle: gameTitle,
-        });
+      if (isFeverActive) {
+        setShieldAbsorbedHit(true);
+        setIsFeverActive(false);
+        setFeverStars(0);
+        marioAudio.playPowerUp();
+      } else {
+        const nextHearts = hearts - 1;
+        setHearts(nextHearts);
+        marioAudio.playWrongAnswer();
+        if (nextHearts <= 0) {
+          awardUserXp({ amount: 15, reason: `${gameTitle} Effort` });
+          onQuizCompleted?.({
+            worldCode: reportWorldCode,
+            correctCount: score,
+            totalCount: deck.length,
+            topicTitle: gameTitle,
+          });
+        }
       }
     }
   };
@@ -2210,6 +2340,11 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
     }
     setCurrentIdx((i) => i + 1);
     setPickedOption(null);
+    setEliminatedIndices(new Set());
+    setShowRadarClue(false);
+    setSecondsLeft(15);
+    setSpeedBonusAwarded(false);
+    setShieldAbsorbedHit(false);
     marioAudio.playJump();
   };
 
@@ -2282,14 +2417,150 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
         )}
 
         {phase === 'PLAYING' && currentItem && (
-          <div className="space-y-5">
+          <div className="space-y-4">
+            {/* Mini-Mario Interactive Stage Map Track */}
+            <div className="bg-slate-900/90 border-2 border-slate-700 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2 overflow-x-auto">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-400 flex items-center justify-center">
+                  <Train className="w-3.5 h-3.5 text-emerald-400" />
+                </div>
+                <span className="text-[10px] font-black uppercase text-amber-300 font-mario hidden sm:inline">
+                  Track:
+                </span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 px-1">
+                {deck.map((_, idx) => {
+                  const isPast = idx < currentIdx;
+                  const isCurr = idx === currentIdx;
+                  return (
+                    <div key={idx} className="flex items-center gap-1 shrink-0">
+                      <div
+                        className={`flex items-center justify-center rounded-xl font-mario text-[10px] transition-all ${
+                          isCurr
+                            ? 'w-8 h-8 bg-amber-400 text-slate-950 font-black border-2 border-black scale-110 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
+                            : isPast
+                            ? 'w-6 h-6 bg-emerald-600/60 text-emerald-100 border border-emerald-400 font-bold'
+                            : 'w-6 h-6 bg-slate-800 text-slate-500 border border-slate-700'
+                        }`}
+                      >
+                        {isCurr ? (
+                          <MarioCharacterAvatar character={equippedAvatar} className="w-5 h-5" />
+                        ) : isPast ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                        ) : (
+                          <span>{idx + 1}</span>
+                        )}
+                      </div>
+                      {idx < deck.length - 1 && (
+                        <div
+                          className={`h-0.5 w-2 sm:w-3 ${
+                            isPast ? 'bg-emerald-400' : 'bg-slate-700'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="flex items-center gap-1 shrink-0 pl-1">
+                  <div className="w-6 h-6 rounded-xl bg-amber-500/30 border border-amber-400 flex items-center justify-center">
+                    <MarioFlagIcon className="w-3.5 h-3.5 text-amber-300" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Arcade Action Bar: 15s Speedrunner Timer, Star Fever Rush, 50/50 Mushroom Zap, Radar Clue */}
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900 border-2 border-slate-800 rounded-2xl p-2.5 sm:p-3">
+              {/* Speedrunner Clock & Star Fever Meter */}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 font-mono font-black text-xs tabular-nums ${
+                    secondsLeft <= 5
+                      ? 'bg-rose-950 border-rose-500 text-rose-300 animate-pulse'
+                      : secondsLeft <= 8
+                      ? 'bg-amber-950/80 border-amber-500 text-amber-300'
+                      : 'bg-slate-950 border-slate-700 text-slate-200'
+                  }`}
+                >
+                  <Clock className={`w-3.5 h-3.5 ${secondsLeft <= 5 ? 'text-rose-400' : 'text-amber-400'}`} />
+                  <span>{secondsLeft}s</span>
+                  {secondsLeft >= 8 && pickedOption === null && (
+                    <span className="text-[9px] font-mario text-emerald-400 uppercase hidden sm:inline">
+                      +5 Speed
+                    </span>
+                  )}
+                </div>
+
+                <div
+                  className={`flex items-center gap-1 px-2 py-1 rounded-xl border-2 transition-all ${
+                    isFeverActive
+                      ? 'bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)] animate-pulse'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-[10px] font-mario font-black">
+                    {isFeverActive ? 'FEVER 2X SHIELD' : `STAR ${feverStars}/3`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Powerup Lifelines */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={mushroomUsesLeft <= 0 || pickedOption !== null || eliminatedIndices.size > 0}
+                  onClick={handleMushroomZap}
+                  className={`min-h-[34px] px-2.5 py-1 rounded-xl border-2 text-xs font-black inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                    mushroomUsesLeft > 0 && pickedOption === null && eliminatedIndices.size === 0
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white border-black shadow-[0_2px_0_#000]'
+                      : 'bg-slate-800 text-slate-500 border-slate-700 opacity-50 cursor-not-allowed'
+                  }`}
+                  title="50/50 Mushroom Zap: Strike out 2 incorrect choices"
+                >
+                  <MarioMushroomIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span>50/50 Zap ({mushroomUsesLeft})</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={radarUsesLeft <= 0 && !showRadarClue}
+                  onClick={handleRadarClue}
+                  className={`min-h-[34px] px-2.5 py-1 rounded-xl border-2 text-xs font-black inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                    showRadarClue
+                      ? 'bg-emerald-400 text-slate-950 border-black font-black'
+                      : radarUsesLeft > 0
+                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white border-black shadow-[0_2px_0_#000]'
+                      : 'bg-slate-800 text-slate-500 border-slate-700 opacity-50 cursor-not-allowed'
+                  }`}
+                  title="Statutory Radar Clue: Reveal controlling provision hint"
+                >
+                  <Compass className="w-3.5 h-3.5 shrink-0" />
+                  <span>Radar ({radarUsesLeft})</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Radar Clue Panel */}
+            {showRadarClue && currentItem && (
+              <div className="bg-indigo-950/90 border-2 border-indigo-400 rounded-2xl p-3 text-indigo-100 flex items-start gap-2.5">
+                <Compass className="w-4 h-4 text-cyan-300 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="text-[10px] font-mario text-cyan-300 uppercase block">STATUTORY RADAR CLUE</span>
+                  <p className="text-xs font-bold leading-snug">
+                    Controlling Legal Basis: <span className="font-mono text-amber-300">{currentItem.statute}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-300">
               <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-amber-300 max-w-full break-words">
                 Case #{currentIdx + 1}: {currentItem.headline}
               </span>
               {streak >= 2 && (
                 <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-black">
-                  {streak}x Streak Bonus Active!
+                  {streak}x Streak Active!
                 </span>
               )}
             </div>
@@ -2311,6 +2582,7 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
               correctIndex={currentItem.correctIndex}
               onPickOption={handleChooseOption}
               streak={streak}
+              eliminatedIndices={eliminatedIndices}
             />
 
             {/* Feedback & Advance Panel */}
@@ -2319,6 +2591,8 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
                 className={`rounded-2xl p-4 border-2 space-y-1.5 ${
                   pickedOption === currentItem.correctIndex
                     ? 'bg-emerald-950/70 border-emerald-500 text-emerald-100'
+                    : shieldAbsorbedHit
+                    ? 'bg-sky-950/70 border-sky-400 text-sky-100'
                     : 'bg-rose-950/70 border-rose-500 text-rose-100'
                 }`}
               >
@@ -2328,11 +2602,21 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
                       <>
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                         <span>STATUTORY HIT!</span>
+                        {speedBonusAwarded && (
+                          <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-mario text-[9px]">
+                            +5 SPEED BONUS!
+                          </span>
+                        )}
+                      </>
+                    ) : shieldAbsorbedHit ? (
+                      <>
+                        <ShieldCheck className="w-4 h-4 text-sky-300 shrink-0" />
+                        <span>STAR SHIELD BLOCKED DAMAGE! (HEARTS SAFE)</span>
                       </>
                     ) : (
                       <>
                         <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        <span>MISSED RULING (-1 HEART)</span>
+                        <span>{pickedOption === -1 ? "TIME'S UP! (-1 HEART)" : "MISSED RULING (-1 HEART)"}</span>
                       </>
                     )}
                   </span>

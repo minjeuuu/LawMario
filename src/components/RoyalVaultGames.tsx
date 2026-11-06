@@ -1,9 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { MarioAvatar } from '../types/laborLaw';
 import {
   MarioCharacterAvatar,
   MarioCoinIcon,
   MarioStarIcon,
+  MarioMushroomIcon,
+  MarioFlagIcon,
 } from './MarioIcons';
 import { marioAudio } from '../utils/audio';
 import { drawUniqueFromDeck, shuffleChoiceOptions } from '../utils/gameQuestionDeck';
@@ -31,6 +33,8 @@ import {
   Gauge,
   Sparkles,
   Trophy,
+  Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import { awardUserXp } from '../utils/levelProgressionService';
 
@@ -1026,6 +1030,17 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
   const [pickedOption, setPickedOption] = useState<number | null>(null);
   const [startedAtMs, setStartedAtMs] = useState<number>(() => Date.now());
 
+  // Arcade Power-Ups & Speedrunner Engine
+  const [mushroomUsesLeft, setMushroomUsesLeft] = useState(2);
+  const [eliminatedIndices, setEliminatedIndices] = useState<Set<number>>(new Set());
+  const [feverStars, setFeverStars] = useState(0);
+  const [isFeverActive, setIsFeverActive] = useState(false);
+  const [showRadarClue, setShowRadarClue] = useState(false);
+  const [radarUsesLeft, setRadarUsesLeft] = useState(2);
+  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState(false);
+  const [shieldAbsorbedHit, setShieldAbsorbedHit] = useState(false);
+
   const startRun = useCallback(() => {
     const drawn = drawUniqueFromDeck(deckKey, bank, Math.min(5, bank.length)).map((item) => {
       const shuf = shuffleChoiceOptions(item.options, item.correctIndex);
@@ -1041,6 +1056,15 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
     setScore(0);
     setStreak(0);
     setPickedOption(null);
+    setMushroomUsesLeft(2);
+    setEliminatedIndices(new Set());
+    setFeverStars(0);
+    setIsFeverActive(false);
+    setShowRadarClue(false);
+    setRadarUsesLeft(2);
+    setSecondsLeft(15);
+    setSpeedBonusAwarded(false);
+    setShieldAbsorbedHit(false);
     setStartedAtMs(Date.now());
     setPhase('PLAYING');
     marioAudio.playPowerUp();
@@ -1048,20 +1072,87 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
 
   const currentItem = deck[currentIdx];
 
+  // Speedrunner 15s Countdown Clock
+  useEffect(() => {
+    if (phase !== 'PLAYING' || pickedOption !== null) return;
+    if (secondsLeft <= 0) {
+      handleChoose(-1);
+      return;
+    }
+    const timer = setInterval(() => {
+      setSecondsLeft((s) => s - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [phase, pickedOption, secondsLeft]);
+
+  const handleMushroomZap = () => {
+    if (mushroomUsesLeft <= 0 || !currentItem || pickedOption !== null || eliminatedIndices.size > 0) return;
+    const wrongIndices = currentItem.options
+      .map((_, i) => i)
+      .filter((i) => i !== currentItem.correctIndex && !eliminatedIndices.has(i));
+    if (wrongIndices.length === 0) return;
+    const toZap = wrongIndices.slice(0, 2);
+    setEliminatedIndices(new Set([...eliminatedIndices, ...toZap]));
+    setMushroomUsesLeft((m) => Math.max(0, m - 1));
+    marioAudio.playPowerUp();
+  };
+
+  const handleRadarClue = () => {
+    if (radarUsesLeft <= 0 && !showRadarClue) return;
+    if (pickedOption !== null) return;
+    const next = !showRadarClue;
+    setShowRadarClue(next);
+    if (next) {
+      setRadarUsesLeft((r) => Math.max(0, r - 1));
+      marioAudio.playCoin();
+    }
+  };
+
   const handleChoose = (idx: number) => {
     if (pickedOption !== null || !currentItem) return;
     setPickedOption(idx);
-    if (idx === currentItem.correctIndex) {
+    const isCorrect = idx === currentItem.correctIndex;
+    const isFast = secondsLeft >= 8;
+
+    if (isCorrect) {
       const nextStreak = streak + 1;
       setScore((s) => s + 1);
       setStreak(nextStreak);
-      onEarnCoins?.(nextStreak >= 2 ? 4 : 3);
+
+      let coinReward = nextStreak >= 2 ? 4 : 3;
+      if (isFast) {
+        coinReward += 5;
+        setSpeedBonusAwarded(true);
+      }
+      if (isFeverActive) {
+        coinReward *= 2;
+        setIsFeverActive(false);
+        setFeverStars(0);
+      } else {
+        const nextStars = feverStars + 1;
+        if (nextStars >= 3) {
+          setIsFeverActive(true);
+          setFeverStars(3);
+          marioAudio.playPowerUp();
+        } else {
+          setFeverStars(nextStars);
+        }
+      }
+
+      onEarnCoins?.(coinReward);
       awardUserXp({ amount: 25 + nextStreak * 5, reason: `${gameTitle} Stage Cleared` });
       marioAudio.playCoin();
     } else {
       setStreak(0);
-      setHearts((h) => Math.max(0, h - 1));
-      marioAudio.playWrongAnswer();
+      if (isFeverActive) {
+        setShieldAbsorbedHit(true);
+        setIsFeverActive(false);
+        setFeverStars(0);
+        marioAudio.playPowerUp();
+      } else {
+        setHearts((h) => Math.max(0, h - 1));
+        marioAudio.playWrongAnswer();
+      }
     }
   };
 
@@ -1098,6 +1189,11 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
 
     setCurrentIdx((i) => i + 1);
     setPickedOption(null);
+    setEliminatedIndices(new Set());
+    setShowRadarClue(false);
+    setSecondsLeft(15);
+    setSpeedBonusAwarded(false);
+    setShieldAbsorbedHit(false);
     marioAudio.playClick();
   };
 
@@ -1159,6 +1255,137 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
 
         {phase === 'PLAYING' && currentItem && (
           <div className="space-y-4">
+            {/* Mini-Mario Interactive Stage Map Track */}
+            <div className="bg-slate-900/90 border-2 border-slate-700 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2 overflow-x-auto">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[10px] font-black uppercase text-amber-300 font-mario hidden sm:inline">
+                  Course:
+                </span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 px-1">
+                {deck.map((_, idx) => {
+                  const isPast = idx < currentIdx;
+                  const isCurr = idx === currentIdx;
+                  return (
+                    <div key={idx} className="flex items-center gap-1 shrink-0">
+                      <div
+                        className={`flex items-center justify-center rounded-xl font-mario text-[10px] transition-all ${
+                          isCurr
+                            ? 'w-8 h-8 bg-amber-400 text-slate-950 font-black border-2 border-black scale-110 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
+                            : isPast
+                            ? 'w-6 h-6 bg-emerald-600/60 text-emerald-100 border border-emerald-400 font-bold'
+                            : 'w-6 h-6 bg-slate-800 text-slate-500 border border-slate-700'
+                        }`}
+                      >
+                        {isCurr ? (
+                          <MarioCharacterAvatar character={equippedAvatar} className="w-5 h-5" />
+                        ) : isPast ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                        ) : (
+                          <span>{idx + 1}</span>
+                        )}
+                      </div>
+                      {idx < deck.length - 1 && (
+                        <div
+                          className={`h-0.5 w-2 sm:w-3 ${
+                            isPast ? 'bg-emerald-400' : 'bg-slate-700'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="flex items-center gap-1 shrink-0 pl-1">
+                  <div className="w-6 h-6 rounded-xl bg-amber-500/30 border border-amber-400 flex items-center justify-center">
+                    <MarioFlagIcon className="w-3.5 h-3.5 text-amber-300" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Arcade Action Bar: 15s Speedrunner Timer, Star Fever, 50/50 Mushroom Zap, Radar Clue */}
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900 border-2 border-slate-800 rounded-2xl p-2.5 sm:p-3">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 font-mono font-black text-xs tabular-nums ${
+                    secondsLeft <= 5
+                      ? 'bg-rose-950 border-rose-500 text-rose-300 animate-pulse'
+                      : secondsLeft <= 8
+                      ? 'bg-amber-950/80 border-amber-500 text-amber-300'
+                      : 'bg-slate-950 border-slate-700 text-slate-200'
+                  }`}
+                >
+                  <Clock className={`w-3.5 h-3.5 ${secondsLeft <= 5 ? 'text-rose-400' : 'text-amber-400'}`} />
+                  <span>{secondsLeft}s</span>
+                  {secondsLeft >= 8 && pickedOption === null && (
+                    <span className="text-[9px] font-mario text-emerald-400 uppercase hidden sm:inline">
+                      +5 Speed
+                    </span>
+                  )}
+                </div>
+
+                <div
+                  className={`flex items-center gap-1 px-2 py-1 rounded-xl border-2 transition-all ${
+                    isFeverActive
+                      ? 'bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)] animate-pulse'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-[10px] font-mario font-black">
+                    {isFeverActive ? 'FEVER 2X SHIELD' : `STAR ${feverStars}/3`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={mushroomUsesLeft <= 0 || pickedOption !== null || eliminatedIndices.size > 0}
+                  onClick={handleMushroomZap}
+                  className={`min-h-[34px] px-2.5 py-1 rounded-xl border-2 text-xs font-black inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                    mushroomUsesLeft > 0 && pickedOption === null && eliminatedIndices.size === 0
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white border-black shadow-[0_2px_0_#000]'
+                      : 'bg-slate-800 text-slate-500 border-slate-700 opacity-50 cursor-not-allowed'
+                  }`}
+                  title="50/50 Mushroom Zap: Strike out 2 incorrect choices"
+                >
+                  <MarioMushroomIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span>50/50 Zap ({mushroomUsesLeft})</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={radarUsesLeft <= 0 && !showRadarClue}
+                  onClick={handleRadarClue}
+                  className={`min-h-[34px] px-2.5 py-1 rounded-xl border-2 text-xs font-black inline-flex items-center gap-1.5 cursor-pointer transition-all ${
+                    showRadarClue
+                      ? 'bg-emerald-400 text-slate-950 border-black font-black'
+                      : radarUsesLeft > 0
+                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white border-black shadow-[0_2px_0_#000]'
+                      : 'bg-slate-800 text-slate-500 border-slate-700 opacity-50 cursor-not-allowed'
+                  }`}
+                  title="Statutory Radar Clue: Reveal controlling provision hint"
+                >
+                  <Compass className="w-3.5 h-3.5 shrink-0" />
+                  <span>Radar ({radarUsesLeft})</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Radar Clue Panel */}
+            {showRadarClue && currentItem && (
+              <div className="bg-indigo-950/90 border-2 border-indigo-400 rounded-2xl p-3 text-indigo-100 flex items-start gap-2.5">
+                <Compass className="w-4 h-4 text-cyan-300 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="text-[10px] font-mario text-cyan-300 uppercase block">STATUTORY RADAR CLUE</span>
+                  <p className="text-xs font-bold leading-snug">
+                    Controlling Legal Basis: <span className="font-mono text-amber-300">{currentItem.statute}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
             <ThematicRoyalGameVisualizer
               gameTitle={gameTitle}
               stageNum={currentIdx}
@@ -1187,8 +1414,11 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
               {currentItem.options.map((opt, idx) => {
                 const isPicked = pickedOption === idx;
                 const isRight = idx === currentItem.correctIndex;
+                const isEliminated = eliminatedIndices.has(idx);
                 let btnTone = 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-100';
-                if (pickedOption !== null) {
+                if (isEliminated) {
+                  btnTone = 'bg-slate-950/40 border-slate-800 text-slate-600 line-through opacity-40 cursor-not-allowed';
+                } else if (pickedOption !== null) {
                   if (isRight) {
                     btnTone = 'bg-emerald-500/25 border-emerald-400 text-emerald-100 ring-2 ring-emerald-400';
                   } else if (isPicked) {
@@ -1201,14 +1431,19 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
                   <button
                     key={idx}
                     type="button"
-                    disabled={pickedOption !== null}
+                    disabled={pickedOption !== null || isEliminated}
                     onClick={() => handleChoose(idx)}
-                    className={`min-h-[54px] p-3.5 rounded-2xl border-2 text-left flex items-start gap-3 transition-all cursor-pointer ${btnTone}`}
+                    className={`min-h-[54px] p-3.5 rounded-2xl border-2 text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${btnTone}`}
                   >
-                    <span className="w-7 h-7 rounded-lg bg-black border border-slate-700 text-amber-300 font-black font-mario text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      {String.fromCharCode(65 + idx)}
-                    </span>
-                    <span className="text-xs sm:text-sm font-bold leading-snug">{opt}</span>
+                    <div className="flex items-start gap-3 min-w-0">
+                      <span className="w-7 h-7 rounded-lg bg-black border border-slate-700 text-amber-300 font-black font-mario text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        {String.fromCharCode(65 + idx)}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold leading-snug">{opt}</span>
+                    </div>
+                    {isEliminated && (
+                      <span className="text-[10px] font-mario text-rose-400/80 shrink-0 mt-0.5">ZAPPED!</span>
+                    )}
                   </button>
                 );
               })}
@@ -1219,6 +1454,8 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
                 className={`rounded-2xl p-4 border-2 space-y-1.5 ${
                   pickedOption === currentItem.correctIndex
                     ? 'bg-emerald-950/75 border-emerald-500 text-emerald-100'
+                    : shieldAbsorbedHit
+                    ? 'bg-sky-950/70 border-sky-400 text-sky-100'
                     : 'bg-rose-950/75 border-rose-500 text-rose-100'
                 }`}
               >
@@ -1228,11 +1465,21 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
                       <>
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                         <span>DOCTRINE LOCKED IN!</span>
+                        {speedBonusAwarded && (
+                          <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-mario text-[9px]">
+                            +5 SPEED BONUS!
+                          </span>
+                        )}
+                      </>
+                    ) : shieldAbsorbedHit ? (
+                      <>
+                        <ShieldCheck className="w-4 h-4 text-sky-300 shrink-0" />
+                        <span>STAR SHIELD BLOCKED DAMAGE! (HEARTS SAFE)</span>
                       </>
                     ) : (
                       <>
                         <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        <span>MISSED TRAP (-1 HEART)</span>
+                        <span>{pickedOption === -1 ? "TIME'S UP! (-1 HEART)" : "MISSED TRAP (-1 HEART)"}</span>
                       </>
                     )}
                   </span>

@@ -186,6 +186,43 @@ export type VaultGameId =
   | 'dry_bones_crypt'
   | 'pauline_wage_concert';
 
+export const PURE_ACTION_GAME_IDS = new Set<VaultGameId>([
+  'coin_rush',
+  'pipe_whack_violation',
+  'yoshi_egg_catch',
+  'bowser_axe_timing',
+  'chomp_tug_of_war',
+  'catcher',
+  'whack',
+  'hammer_blitz',
+  'chrono_blitz',
+  'kamek_duel',
+  'run2d',
+  'island3d',
+  'skybridge_dash',
+  'kart',
+  'kart_wage_drift',
+  'koopa_pinball',
+  'koopa_breaker',
+  'yoshi_toss',
+  'payroll_stamp_desk',
+  'toad_conveyor_sorter',
+  'pipe_sorter',
+  'sorter',
+  'shy_conveyor',
+  'mansion',
+  'luigi_ghost_clause',
+  'union_tower_defense',
+  'commissioner_sim',
+  'codal_word_hunt',
+  'peach_block_match',
+  'memory',
+  'bridge',
+  'toad_slots',
+  'lakitu_climber',
+  'courtroom',
+]);
+
 export const GameVault: React.FC<GameVaultProps> = ({
   equippedAvatar,
   setEquippedAvatar,
@@ -198,6 +235,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
   const [replayNonce, setReplayNonce] = useState<number>(0);
   const [genreFilter, setGenreFilter] = useState<
     | 'all'
+    | 'pure_action'
     | 'action_reflex'
     | 'platformer_kart'
     | 'inspection_sim'
@@ -1102,7 +1140,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
                   <optgroup key={cat.id} label={`${cat.label} (${catGames.length})`}>
                     {catGames.map((gm) => (
                       <option key={`opt-${gm.id}`} value={gm.id}>
-                        {gm.title} — {gm.genre} [{gm.badge}]
+                        {PURE_ACTION_GAME_IDS.has(gm.id) ? '[ACTION] ' : ''}{gm.title} — {gm.genre} [{gm.badge}]
                       </option>
                     ))}
                   </optgroup>
@@ -1661,6 +1699,10 @@ export const GameVault: React.FC<GameVaultProps> = ({
       >
         {[
           { id: 'all' as const, label: `All Games (${games.length})` },
+          {
+            id: 'pure_action' as const,
+            label: `Pure Action & Physics (${games.filter((gm) => PURE_ACTION_GAME_IDS.has(gm.id)).length})`,
+          },
           ...GAME_CATEGORY_META.map((cat) => ({
             id: cat.id,
             label: `${cat.shortLabel} (${games.filter((gm) => gm.category === cat.id).length})`,
@@ -1686,9 +1728,12 @@ export const GameVault: React.FC<GameVaultProps> = ({
 
       {/* Organized Category Shelves */}
       <div className="space-y-6" data-testid="arcade-organized-shelves">
-        {GAME_CATEGORY_META.filter((cat) => genreFilter === 'all' || genreFilter === cat.id).map(
+        {GAME_CATEGORY_META.filter((cat) => genreFilter === 'all' || genreFilter === 'pure_action' || genreFilter === cat.id).map(
           (cat) => {
-            const shelfGames = games.filter((gm) => gm.category === cat.id);
+            const shelfGames = games.filter(
+              (gm) => gm.category === cat.id && (genreFilter !== 'pure_action' || PURE_ACTION_GAME_IDS.has(gm.id))
+            );
+            if (shelfGames.length === 0) return null;
             return (
               <section
                 key={cat.id}
