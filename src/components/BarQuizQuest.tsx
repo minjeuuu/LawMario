@@ -102,7 +102,7 @@ import {
   dispatchDailyMissionEvent,
   createFreshShuffledDeck,
 } from '../utils/round11Features';
-import { resolveUniversalCardFrame } from '../utils/round12Features';
+import { resolveUniversalCardFrame, resolveEquippedRing } from '../utils/round12Features';
 
 interface DigitalBadge {
   id: string;
@@ -179,6 +179,7 @@ interface BarQuizQuestProps {
   onSpendCoins?: (cost: number) => boolean;
   onOpenLeaderboard?: () => void;
   equippedCardFrame?: string;
+  equippedRing?: string;
   flagpoleStreak?: FlagpoleStreakState;
   onUpdateFlagpoleStreak?: (next: FlagpoleStreakState) => void;
   onAwardBonusXp?: (xp: number) => void;
@@ -212,6 +213,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   onSpendCoins,
   onOpenLeaderboard,
   equippedCardFrame = 'frame_default',
+  equippedRing = 'ring_none',
   flagpoleStreak,
   onUpdateFlagpoleStreak,
   onAwardBonusXp,
@@ -219,6 +221,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
   onRecordSectionAnswer,
 }) => {
   const resolvedQuizFrame = resolveUniversalCardFrame(equippedCardFrame);
+  const resolvedRing = resolveEquippedRing(equippedRing);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [activeMode, setActiveMode] = useState<
     | 'quick'
@@ -1848,6 +1851,15 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {resolvedRing.id !== 'ring_none' && (
+              <span
+                title={`Active Relic Ring: ${resolvedRing.name} — ${resolvedRing.perkEffect}`}
+                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-black text-[10px] font-mono border border-black shadow-xs shrink-0"
+              >
+                <Award className="w-3 h-3 shrink-0" />
+                <span className="truncate max-w-[100px]">{resolvedRing.name.split(' ')[0]}</span>
+              </span>
+            )}
             {typeof params.lives === 'number' && (
               <div
                 data-testid="quiz-mario-lives-indicator"

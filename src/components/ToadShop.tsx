@@ -42,6 +42,8 @@ import {
   resolveExtendedPrintTheme,
   resolveCompanionInteraction,
   resolveUniversalCardFrame,
+  resolveEquippedRing,
+  type MarioEquippedRing,
 } from '../utils/round12Features';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import confetti from 'canvas-confetti';
@@ -137,6 +139,8 @@ interface ToadShopProps {
   onEquipCompanion?: (id: StudyCompanionId) => void;
   equippedCardFrame?: CardFrameId;
   onEquipCardFrame?: (id: CardFrameId) => void;
+  equippedRing?: MarioEquippedRing;
+  onEquipRing?: (id: MarioEquippedRing) => void;
   onBoostStreak?: (days: number) => void;
   onOpenLeaderboard?: () => void;
   appStudyFont?: AppStudyFontId;
@@ -514,6 +518,64 @@ export const CARD_FRAME_ITEMS: ShopItem[] = [
     price: 220,
     description: 'Blazing solar flame trim celebrating 100% mastery across all Philippine Labor Standards.',
     badge: 'Supernova Bar',
+  },
+];
+
+export const RING_ITEMS: ShopItem[] = [
+  {
+    id: 'ring_curatorial_gold',
+    name: 'Matthew’s Curatorial Gold Signet Ring',
+    category: 'ring',
+    ringId: 'ring_curatorial_gold',
+    price: 95,
+    description:
+      'Commemorative curatorial signet honoring craftsmanship and relentless diligence in Philippine legal education. Passively multiplies all gold coin drops by 1.25x!',
+    badge: 'Creator Relic',
+    perkEffect: '+25% Gold Coins earned across all modules, quizzes, and games!',
+  },
+  {
+    id: 'ring_one_up',
+    name: '1-Up Life Ring of Resilience',
+    category: 'ring',
+    ringId: 'ring_one_up',
+    price: 80,
+    description:
+      'Infused with the emerald essence of 1-Up Mushrooms, granting an extra heart/shield in Castle Quest & Boss Battles so one wrong answer does not defeat you.',
+    badge: 'Boss Defense',
+    perkEffect: 'Adds +1 Extra Heart / Mistake Shield in Castle Quests & Boss Battles!',
+  },
+  {
+    id: 'ring_star_immunity',
+    name: 'Invincible Star Road Signet',
+    category: 'ring',
+    ringId: 'ring_star_immunity',
+    price: 85,
+    description:
+      'Blessed by Star Road arpeggios, granting divine immunity on tricky Bar Exam trap questions with a free retry opportunity.',
+    badge: 'Daily Shield',
+    perkEffect: 'Free retry protection against tough Bar exam traps!',
+  },
+  {
+    id: 'ring_speed_boot',
+    name: 'Koopa Swift-Feet Sprint Ring',
+    category: 'ring',
+    ringId: 'ring_speed_boot',
+    price: 60,
+    description:
+      'Lightweight enchanted silver ring that accelerates Pomodoro study blocks and speed tests, earning bonus coins.',
+    badge: 'Focus Sprint',
+    perkEffect: '+30 Bonus Coins on completing 25-Minute Focus Pomodoro sprints!',
+  },
+  {
+    id: 'ring_scholar_ruby',
+    name: 'Bar Laureate Ruby Signet Ring',
+    category: 'ring',
+    ringId: 'ring_scholar_ruby',
+    price: 90,
+    description:
+      'Crimson gemstone worn by high-ranking labor law scholars preparing for the Bar Exams, multiplying XP gains.',
+    badge: 'Mastery XP',
+    perkEffect: '+15% XP multiplier on all quizzes and stage completions!',
   },
 ];
 
@@ -1264,6 +1326,8 @@ export const ToadShop: React.FC<ToadShopProps> = ({
   onEquipCompanion,
   equippedCardFrame = 'frame_default',
   onEquipCardFrame,
+  equippedRing = 'ring_curatorial_gold',
+  onEquipRing,
   onBoostStreak,
   onOpenLeaderboard,
   appStudyFont = 'jakarta',
@@ -1381,6 +1445,14 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     return 'frame_default';
   });
 
+  const [localRing, setLocalRing] = useState<MarioEquippedRing>(() => {
+    if (equippedRing && equippedRing !== 'ring_none') return equippedRing;
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('mario_equipped_ring_v1') as MarioEquippedRing) || 'ring_curatorial_gold';
+    }
+    return 'ring_curatorial_gold';
+  });
+
   const [localSuperStarEndsAt, setLocalSuperStarEndsAt] = useState<number>(() => {
     if (superStarEndsAt > 0) return superStarEndsAt;
     if (typeof window !== 'undefined') {
@@ -1418,6 +1490,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
   const effectiveShortcutActive = shortcutMapActive || localShortcutMap;
   const activeCompanion = onEquipCompanion ? equippedCompanion : localCompanion;
   const activeFrame = onEquipCardFrame ? equippedCardFrame : localCardFrame;
+  const activeRing = onEquipRing ? equippedRing : localRing;
 
   const [themePackFilter, setThemePackFilter] = useState<'all' | 'pro_study' | 'arcade'>('all');
   const [equippedSoundPack, setEquippedSoundPack] = useState<SoundPackId>(() => {
@@ -1829,6 +1902,18 @@ export const ToadShop: React.FC<ToadShopProps> = ({
     onEquipCardFrame?.(frameId);
   };
 
+  const handleEquipRingChoice = (ringId: MarioEquippedRing) => {
+    marioAudio.playPowerUp();
+    setLocalRing(ringId);
+    try {
+      localStorage.setItem('mario_equipped_ring_v1', ringId);
+      window.dispatchEvent(new CustomEvent('mario-equip-ring', { detail: ringId }));
+    } catch {
+      // ignore
+    }
+    onEquipRing?.(ringId);
+  };
+
   const handleBuyItem = (item: ShopItem) => {
     if (coins < item.price) {
       marioAudio.playStomp();
@@ -1861,6 +1946,8 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       handleEquipCompanionChoice(item.companionId);
     } else if (item.category === 'frame' && item.frameId) {
       handleEquipFrameChoice(item.frameId);
+    } else if (item.category === 'ring' && item.ringId) {
+      handleEquipRingChoice(item.ringId);
     } else if (item.category === 'title') {
       handleEquipTitle(item.name);
     }
@@ -3478,6 +3565,8 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   <span>Companion: {activeCompanion !== 'comp_none' ? resolveCompanionInteraction(activeCompanion).name : 'None Summoned'}</span>
                   <span className="text-slate-400 font-sans text-xs">·</span>
                   <span>Frame: {resolveUniversalCardFrame(activeFrame).label}</span>
+                  <span className="text-slate-400 font-sans text-xs">·</span>
+                  <span className="text-amber-300">Ring: {resolveEquippedRing(activeRing).name}</span>
                 </div>
                 {activeCompanion !== 'comp_none' && (
                   <p className="text-xs text-slate-300 font-semibold italic mt-0.5">
@@ -3506,6 +3595,16 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   className="min-h-[38px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs border border-slate-600 cursor-pointer"
                 >
                   Default Frame
+                </button>
+              )}
+              {activeRing !== 'ring_none' && (
+                <button
+                  type="button"
+                  data-testid="unequip-ring-btn"
+                  onClick={() => handleEquipRingChoice('ring_none')}
+                  className="min-h-[38px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-600 cursor-pointer"
+                >
+                  Unequip Ring
                 </button>
               )}
             </div>
@@ -3696,6 +3795,104 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                           className="min-h-[42px] px-3.5 rounded-xl font-black text-xs bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white border-2 border-black shadow-[0_2px_0_#000] cursor-pointer leading-tight"
                         >
                           Unlock Frame
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 3: ANCIENT POWER-UP RELIC RINGS */}
+          <div className="space-y-3 pt-6 border-t-2 border-slate-700">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-display flex items-center gap-2">
+                <Crown className="w-5 h-5 text-amber-500" />
+                <span>ANCIENT POWER-UP RELIC RINGS ({RING_ITEMS.length})</span>
+              </h2>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                Equip statutory rings to gain passive coin multipliers, boss mistake shields, and daily retries
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+              {RING_ITEMS.map((item) => {
+                const isUnlocked = unlockedItemIds.includes(item.id) || item.id === 'ring_curatorial_gold';
+                const isEquipped = activeRing === item.ringId;
+                const ringMeta = resolveEquippedRing(item.ringId);
+
+                return (
+                  <div
+                    key={item.id}
+                    data-testid={`shop-ring-${item.id}`}
+                    className={`rounded-3xl border-3 border-black p-4 flex flex-col justify-between shadow-[4px_4px_0_#000] transition-transform ${
+                      isEquipped
+                        ? 'bg-amber-100/90 dark:bg-amber-950/70 ring-2 ring-amber-400'
+                        : 'bg-white dark:bg-slate-900'
+                    }`}
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-300 border border-black font-mario">
+                          {item.badge}
+                        </span>
+                        {isEquipped && (
+                          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 border border-black font-mario">
+                            EQUIPPED
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-950 border-2 border-amber-400 text-white flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 border border-black flex items-center justify-center font-black shadow-xs shrink-0">
+                          <Crown className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-mono text-emerald-400 uppercase font-black block">
+                            ACTIVE PERK
+                          </span>
+                          <span className="text-xs font-bold text-amber-200 block leading-tight">
+                            {item.perkEffect}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 className="font-black text-slate-950 dark:text-white text-base font-display">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t-2 border-slate-200 dark:border-slate-800 mt-4 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-black text-xs sm:text-sm text-slate-950 dark:text-amber-300 tabular-nums">
+                        <MarioCoinIcon className="w-4 h-4 shrink-0" />
+                        <span>{item.price} Coins</span>
+                      </span>
+                      {isUnlocked ? (
+                        <button
+                          type="button"
+                          data-testid={`equip-ring-${item.id}`}
+                          onClick={() => item.ringId && handleEquipRingChoice(item.ringId)}
+                          disabled={isEquipped}
+                          className={`min-h-[42px] px-3.5 rounded-xl font-black text-xs border-2 border-black cursor-pointer leading-tight ${
+                            isEquipped
+                              ? 'bg-emerald-500 text-slate-950 cursor-default shadow-none'
+                              : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-[0_2px_0_#000]'
+                          }`}
+                        >
+                          {isEquipped ? 'Equipped' : 'Equip Ring'}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          data-testid={`buy-ring-${item.id}`}
+                          onClick={() => handleBuyItem(item)}
+                          disabled={coins < item.price}
+                          className="min-h-[42px] px-3.5 rounded-xl font-black text-xs bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white border-2 border-black shadow-[0_2px_0_#000] cursor-pointer leading-tight"
+                        >
+                          Unlock Ring
                         </button>
                       )}
                     </div>

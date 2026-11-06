@@ -187,7 +187,22 @@ export const GlobalStudyHubModal: React.FC<GlobalStudyHubModalProps> = ({
           {studyModes.map((mode) => (
             <div
               key={mode.id}
-              className="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-slate-800 hover:border-amber-400/80 rounded-2xl p-4 transition-all flex flex-col justify-between gap-3 group shadow-sm text-left"
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                marioAudio.playCoin();
+                onLaunchMode(mode.id);
+                onClose();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  marioAudio.playCoin();
+                  onLaunchMode(mode.id);
+                  onClose();
+                }
+              }}
+              className="bg-slate-900/90 hover:bg-slate-800/90 border-2 border-slate-800 hover:border-amber-400 rounded-2xl p-4 transition-all flex flex-col justify-between gap-3 group shadow-sm text-left cursor-pointer active:scale-[0.99] focus:outline-hidden focus:ring-2 focus:ring-amber-400"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -215,17 +230,12 @@ export const GlobalStudyHubModal: React.FC<GlobalStudyHubModalProps> = ({
                 </p>
               </div>
 
-              <button
-                onClick={() => {
-                  marioAudio.playCoin();
-                  onLaunchMode(mode.id);
-                  onClose();
-                }}
-                className="w-full py-2 px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase rounded-xl border-2 border-black shadow-[0_2px_0_#000] cursor-pointer flex items-center justify-center gap-1.5 active:translate-y-0.5 transition-all"
+              <div
+                className="w-full py-2 px-3 bg-amber-400 group-hover:bg-amber-300 text-slate-950 font-black text-xs uppercase rounded-xl border-2 border-black shadow-[0_2px_0_#000] flex items-center justify-center gap-1.5 transition-all"
               >
-                Launch Session
+                <span>Launch Session</span>
                 <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              </div>
             </div>
           ))}
         </div>

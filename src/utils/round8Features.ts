@@ -2366,6 +2366,41 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
     keywords: ['undertime', 'offset', 'overtime'],
   },
   {
+    id: 'art-89',
+    articleNumber: '89',
+    codeLabel: 'Art. 89, Labor Code',
+    title: 'Emergency Overtime Work (Mandatory Overtime Grounds)',
+    worldId: 'world1',
+    topicId: 'm1-fwa-cww-meals-ot',
+    statutoryText:
+      'Any employee may be required by the employer to perform overtime work in any of the following cases: (a) When the country is at war or when any other national or local emergency has been declared by the National Assembly or the Chief Executive; (b) When it is necessary to prevent loss of life or property, or in case of imminent danger to public safety due to an actual or impending emergency in the locality caused by serious accidents, fire, flood, typhoon, earthquake, epidemic, or other disaster or calamity; (c) When there is urgent work to be performed on machines, installations, or equipment, in order to avoid serious loss or damage to the employer or some other cause of similar nature; (d) When the work is necessary to prevent loss or damage to perishable goods; and (e) Where the completion or continuation of the work started before the eighth hour is necessary to prevent serious obstruction or prejudice to the business or operations of the employer. Any employee required to render overtime work under this Article shall be paid the additional compensation required in this Chapter.',
+    supremeCourtDoctrines: [
+      'PNB v. PNB Employees Association: An employee cannot validly refuse emergency overtime ordered under Art. 89; unjustified refusal constitutes insubordination / willful disobedience.',
+    ],
+    interpretationTips: [
+      'General Rule: Overtime is VOLUNTARY. Exception: Overtime is COMPULSORY only under the 5 exclusive circumstances specified in Art. 89.',
+      'Even when overtime is compulsory under Art. 89, the employee must still be paid the statutory overtime premium (125% or 130%+).',
+    ],
+    keywords: ['emergency overtime', 'compulsory overtime', 'perishable goods', 'calamity', 'urgent work', 'war'],
+  },
+  {
+    id: 'art-90',
+    articleNumber: '90',
+    codeLabel: 'Art. 90, Labor Code',
+    title: 'Computation of Additional Compensation (Regular Wage Cash Base)',
+    worldId: 'world1',
+    topicId: 'm1-overtime-pay',
+    statutoryText:
+      'For purposes of computing overtime and other additional remuneration as required by this Chapter, the "regular wage" of an employee shall include the cash wage only, without deduction on account of facilities provided by the employer.',
+    supremeCourtDoctrines: [
+      'Bisig ng Manggagawa sa Concrete Aggregates Inc. v. NLRC: Overtime pay computation base is the regular basic cash wage, excluding premiums, allowances, and facilities deductions.',
+    ],
+    interpretationTips: [
+      'Facilities (board and lodging) are NOT deducted when computing the base hourly rate for overtime and night shift differential.',
+    ],
+    keywords: ['regular wage', 'cash wage', 'overtime base', 'facilities deduction'],
+  },
+  {
     id: 'art-91',
     articleNumber: '91',
     codeLabel: 'Art. 91–93, Labor Code',
@@ -2383,6 +2418,40 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
       'Compulsory rest day work is permitted only in statutory emergencies (calamity, urgent machinery repair, abnormal workload, perishable goods, continuous-process nature).',
     ],
     keywords: ['rest day', 'weekly rest', '24 hours', 'religious', '130%', '150%'],
+  },
+  {
+    id: 'art-92',
+    articleNumber: '92',
+    codeLabel: 'Art. 92, Labor Code',
+    title: 'When Employer May Require Work on a Rest Day',
+    worldId: 'world2',
+    topicId: 'm2-rest-periods',
+    statutoryText:
+      'The employer may require his employees to work on any day: (a) In case of actual or impending emergencies caused by serious accident, fire, flood, typhoon, earthquake, epidemic or other disaster or calamity to prevent loss of life and property, or imminent danger to public safety; (b) In cases of urgent work to be performed on the machinery, equipment, or installation, to avoid serious loss which the employer would otherwise suffer; (c) In the event of abnormal pressure of work due to special circumstances, where the employer cannot ordinarily be expected to resort to other measures; (d) To prevent serious loss of perishable goods; (e) Where the nature of the work requires continuous operations and the stoppage of work may result in irreparable injury or loss to the employer; and (f) Under other circumstances analogous or similar to the foregoing as determined by the Secretary of Labor and Employment.',
+    supremeCourtDoctrines: [
+      'Mandatory Rest Day Work: Work on a rest day cannot be compelled except under the specific statutory exceptions in Art. 92.',
+    ],
+    interpretationTips: [
+      'Working on a rest day entitles the worker to +30% premium (130% total); if that rest day is also a Special Day, the rate is 150%; if a Regular Holiday, the rate is 260%!',
+    ],
+    keywords: ['rest day work', 'compulsory rest day', 'abnormal pressure', 'continuous operations'],
+  },
+  {
+    id: 'art-93',
+    articleNumber: '93',
+    codeLabel: 'Art. 93, Labor Code',
+    title: 'Compensation for Rest Day, Sunday or Holiday Work',
+    worldId: 'world2',
+    topicId: 'm2-rest-periods',
+    statutoryText:
+      '(a) Where an employee is made or permitted to work on his scheduled rest day, he shall be paid an additional compensation of at least thirty percent (30%) of his regular wage. An employee shall be entitled to such additional compensation for work performed on Sunday only when it is his established rest day. (b) When the nature of the work of the employee is such that he has no normal workdays and no scheduled rest days, and can be said to have performed work on Sundays and holidays, he shall be paid an additional compensation of at least thirty percent (30%) of his regular wage for work performed on Sundays and holidays. (c) Work performed on any special holiday shall be paid an additional compensation of at least thirty percent (30%) of the regular wage of the employee. Where such holiday work falls on the employee\'s scheduled rest day, he shall be entitled to an additional compensation of at least fifty percent (50%) of his regular wage.',
+    supremeCourtDoctrines: [
+      'Wellington Investment and Manufacturing Corp. v. Trajano: Premium pay for rest day and special holiday work is purely statutory; an employee is entitled to 130% for rest day or special day, and 150% when a special day falls on a scheduled rest day.',
+    ],
+    interpretationTips: [
+      'Rest Day = 130% | Special Non-Working Day = 130% | Special Day on Rest Day = 150% | Regular Holiday = 200% | Regular Holiday on Rest Day = 260% | Double Holiday = 300% | Double Holiday on Rest Day = 390%!',
+    ],
+    keywords: ['rest day pay', '130%', '150%', 'special day rest day', 'sunday work'],
   },
   {
     id: 'art-94',
@@ -2440,6 +2509,24 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
     keywords: ['service charge', '11360', '100%', 'hotels', 'restaurants', 'managerial'],
   },
   {
+    id: 'art-97',
+    articleNumber: '97',
+    codeLabel: 'Art. 97, Labor Code',
+    title: 'Definitions: Wage, Remuneration & Facilities',
+    worldId: 'world3',
+    topicId: 'm3-wage-principles',
+    statutoryText:
+      '"Wage" paid to any employee shall mean the remuneration or earnings, however designated, capable of being expressed in terms of money, whether fixed or ascertained on a time, task, piece, or commission basis, or other method of calculating the same, which is payable by an employer to an employee under a written or unwritten contract of employment for work done or to be done, or for services rendered or to be rendered, and includes the fair and reasonable value, as determined by the Secretary of Labor and Employment, of board, lodging, or other facilities customarily furnished by the employer to the employee. "Fair and reasonable value" shall not include any profit to the employer, or to any person affiliated with the employer.',
+    supremeCourtDoctrines: [
+      'Our Haus Realty Development Corp. v. Parian (G.R. No. 204651): Deductions for board and lodging facilities are invalid unless: (1) proof that such facilities are customarily furnished in the industry; (2) employee voluntarily accepted in writing; and (3) facilities are charged at fair and reasonable value without employer profit.',
+      'Facilities vs Supplements Test: Facilities are items for the benefit and convenience of the worker and his family; Supplements are extra remuneration or benefits given for the convenience of the employer.',
+    ],
+    interpretationTips: [
+      'Supplements can NEVER be deducted from minimum wage; Facilities can be deducted ONLY upon meeting all 3 Our Haus Realty criteria.',
+    ],
+    keywords: ['wage definition', 'facilities', 'supplements', 'our haus', 'board and lodging', 'fair value'],
+  },
+  {
     id: 'art-100',
     articleNumber: '100',
     codeLabel: 'Art. 100, Labor Code',
@@ -2458,6 +2545,76 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
     keywords: ['non-diminution', 'diminution', 'company practice', 'bonus', 'benefits'],
   },
   {
+    id: 'art-102',
+    articleNumber: '102',
+    codeLabel: 'Art. 102, Labor Code',
+    title: 'Forms of Payment (Legal Tender Only — No Promissory Notes or Tokens)',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'No employer shall pay the wages of an employee by means of promissory notes, vouchers, coupons, tokens, tickets, chits, or any object other than legal tender, even when expressly requested by the employee. Payment of wages by check or money order shall be allowed when such manner of payment is customary on the date of effectivity of this Code, or is necessary because of special circumstances as specified in appropriate regulations to be issued by the Secretary of Labor and Employment or as stipulated in a collective bargaining agreement.',
+    supremeCourtDoctrines: [
+      'Congson v. NLRC: Payment of wages through fish caught or company chits is strictly illegal; wages must be paid in Philippine legal tender.',
+    ],
+    interpretationTips: [
+      'Even with the employee\'s written request, payment in goods, company store vouchers, or promissory notes is void under Art. 102.',
+      'Bank ATM payroll payment is permitted under DOLE regulations provided the ATM is accessible within 1 km or 15 minutes travel time, no bank fees charged to employee, and employer issues itemized pay slips.',
+    ],
+    keywords: ['legal tender', 'forms of payment', 'vouchers', 'tokens', 'atm payroll', 'checks'],
+  },
+  {
+    id: 'art-103',
+    articleNumber: '103',
+    codeLabel: 'Art. 103, Labor Code',
+    title: 'Time of Payment (At Least Once Every Two Weeks / 16 Days)',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'Wages shall be paid at least once every two (2) weeks or twice a month at intervals not exceeding sixteen (16) days. If on account of force majeure or circumstances beyond the employer’s control, payment of wages on or within the time herein provided cannot be made, the employer shall pay the wages immediately after such force majeure or circumstances have ceased. No employer shall make payment with less frequency than once a month.',
+    supremeCourtDoctrines: [
+      'Payment intervals can never exceed 16 days; force majeure only suspends payment until the impediment ceases.',
+    ],
+    interpretationTips: [
+      'Standard payroll periods: 15th and 30th of the month, or every other Friday.',
+      'For piece-rate or task workers whose work cannot be finished in 2 weeks, payments must be made at intervals not exceeding 16 days in proportion to the work completed.',
+    ],
+    keywords: ['time of payment', 'two weeks', '16 days', 'payroll interval', 'force majeure'],
+  },
+  {
+    id: 'art-104',
+    articleNumber: '104',
+    codeLabel: 'Art. 104, Labor Code',
+    title: 'Place of Payment (At or Near the Workplace)',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'Payment of wages shall be made at or near the place of undertaking, except as otherwise provided by regulations issued by the Secretary of Labor and Employment where payment in a place other than the workplace is necessary because of the distance, road conditions or other circumstances.',
+    supremeCourtDoctrines: [
+      'Prohibition on Bar/Tavern Payments: Payment of wages in bars, night clubs, drinking establishments, gambling halls, or places where liquor is sold is strictly prohibited except for employees employed therein.',
+    ],
+    interpretationTips: [
+      'Payment must be at the workplace during work hours or immediately after work.',
+    ],
+    keywords: ['place of payment', 'workplace', 'bar prohibited'],
+  },
+  {
+    id: 'art-105',
+    articleNumber: '105',
+    codeLabel: 'Art. 105, Labor Code',
+    title: 'Direct Payment of Wages (Exceptions: Force Majeure, Heirs & Family Member)',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'Wages shall be paid directly to the workers to whom they are due, except: (a) In cases of force majeure rendering such payment impossible or under other special circumstances to be determined by the Secretary of Labor and Employment in appropriate regulations, in which case, the worker may be paid through another person under written authority by the worker; (b) Where the worker has died, in which case, the employer may pay the wages of the deceased worker to the proper heirs without the necessity of intestate proceedings upon execution of an affidavit; and (c) In cases where the worker is authorized by the employer in writing to pay his wages to a member of his family.',
+    supremeCourtDoctrines: [
+      'Deceased Worker Wage Claims: Wages of a deceased worker may be paid directly to heirs upon execution of an affidavit under Art. 105(b) without need for letters of administration or court proceedings.',
+    ],
+    interpretationTips: [
+      'Third-party wage collection is prohibited unless supported by a valid written Special Power of Attorney or under the 3 statutory exceptions.',
+    ],
+    keywords: ['direct payment', 'heirs', 'affidavit', 'family member', 'force majeure'],
+  },
+  {
     id: 'art-106',
     articleNumber: '106',
     codeLabel: 'Art. 106–109, Labor Code & DOLE D.O. 174-17',
@@ -2474,6 +2631,41 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
       'Distinguish liability: In Legitimate Contracting, the principal is solidarily liable ONLY for unpaid wages/labor standards; in Labor-Only Contracting, the principal becomes the DIRECT EMPLOYER for all purposes including illegal dismissal and regularization!',
     ],
     keywords: ['contracting', 'labor-only', 'do 174', '174', '5 million', 'solidary', 'principal'],
+  },
+  {
+    id: 'art-110',
+    articleNumber: '110',
+    codeLabel: 'Art. 110, Labor Code & R.A. 6715',
+    title: 'Worker Preference in Case of Bankruptcy or Liquidation',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'In the event of bankruptcy or liquidation of an employer\'s business, his workers shall enjoy first preference as regards their wages and other monetary claims, any provisions of law to the contrary notwithstanding. Such unpaid wages and monetary claims shall be paid in full before claims of the government and other creditors may be paid.',
+    supremeCourtDoctrines: [
+      'Republic v. Peralta (G.R. No. L-56568): Art. 110 creates a PREFERENCE, not a lien; it applies only in formal insolvency, bankruptcy, or judicial liquidation proceedings.',
+      'DBP v. NLRC: Mortgage liens under the Civil Code (specific mortgage on real/personal property) take priority over the general preference of workers under Art. 110, unless insolvency is judicially declared.',
+    ],
+    interpretationTips: [
+      'Worker preference requires formal judicial insolvency or liquidation proceedings; workers cannot extrajudicially seize company assets without legal process.',
+    ],
+    keywords: ['worker preference', 'bankruptcy', 'liquidation', 'peralta', 'insolvency', 'first preference'],
+  },
+  {
+    id: 'art-111',
+    articleNumber: '111',
+    codeLabel: 'Art. 111, Labor Code',
+    title: 'Attorney\'s Fees in Wage Recovery (Maximum 10%)',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      '(a) In cases of unlawful withholding of wages, the culpable party may be assessed attorney\'s fees equivalent to ten percent (10%) of the amount of wages recovered. (b) It shall be unlawful for any person to demand or accept, in any proceeding or administrative negotiation for the recovery of wages, attorney\'s fees which exceed the amount agreed upon or that provided in this Article.',
+    supremeCourtDoctrines: [
+      'Traders Royal Bank Employees Union-Independent v. NLRC: Art. 111 regulates two distinct kinds of attorney\'s fees: extraordinary (awarded against the losing employer as damages/costs, capped at 10%) and ordinary (contractual compensation paid by the client to his counsel).',
+    ],
+    interpretationTips: [
+      'Statutory attorney\'s fees awarded against the employer in labor standards cases are strictly capped at 10% of the recovered wages.',
+    ],
+    keywords: ['attorney fees', '10%', 'wage recovery', 'unlawful withholding'],
   },
   {
     id: 'art-113',
@@ -2513,6 +2705,98 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
     keywords: ['wage distortion', 'prubankers', 'pineda', 'rtwpb', 'minimum wage'],
   },
   {
+    id: 'art-128',
+    articleNumber: '128',
+    codeLabel: 'Art. 128, Labor Code (Visitorial Power)',
+    title: 'Visitorial and Enforcement Power of the Secretary of Labor',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'The Secretary of Labor and Employment or his duly authorized representatives, including labor regulation officers, shall have access to employer\'s records and premises at any time of the day or night whenever work is being undertaken therein, and the right to copy therefrom, to question any employee and investigate any fact, condition or matter which may be necessary to determine violations or which may aid in the enforcement of this Code and of any labor law, wage order or rules and regulations issued pursuant thereto. In cases where the relationship of employer-employee still exists, the Secretary of Labor and Employment or his duly authorized representatives shall have the power to issue compliance orders to give effect to the labor standards provisions of this Code and other labor legislation based on the findings of labor employment and enforcement officers or industrial safety engineers made in the course of inspection.',
+    supremeCourtDoctrines: [
+      'People’s Broadcasting Service (Bombo Radyo Phils.) v. Secretary of Labor (G.R. No. 179652): Under Art. 128(b), the DOLE Secretary has the power to determine the existence of an employer-employee relationship in the course of exercising visitorial and enforcement powers, subject to judicial review.',
+      'Maternity Children’s Hospital v. Secretary of Labor: Visitorial power applies regardless of the amount of money claims, provided employer-employee relationship still exists!',
+    ],
+    interpretationTips: [
+      'Distinguish Art. 128 from Art. 129: Under Art. 128 (Visitorial Power), employer-employee relationship MUST exist, and there is NO monetary limit (can be millions). Under Art. 129, claims can arise even if separated, but claim must NOT exceed ₱5,000 per employee and must NOT include claim for reinstatement.',
+    ],
+    keywords: ['visitorial power', 'art 128', 'bombo radyo', 'compliance order', 'dole inspection'],
+  },
+  {
+    id: 'art-129',
+    articleNumber: '129',
+    codeLabel: 'Art. 129, Labor Code (Simple Money Claims)',
+    title: 'Recovery of Wages & Simple Money Claims Not Exceeding ₱5,000',
+    worldId: 'world3',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'Upon complaint of any interested party, the Regional Director of the Department of Labor and Employment or any of the duly authorized hearing officers of the Department is empowered, through summary proceeding and after due notice, to hear and decide any matter involving the recovery of wages and other monetary claims and benefits, including legal interest, owing to an employee or person employed in domestic or household service or househelper under this Code, arising from employer-employee relations: Provided, That such complaint does not include a claim for reinstatement: Provided further, That the aggregate money claims of each employee or househelper does not exceed Five thousand pesos (₱5,000.00).',
+    supremeCourtDoctrines: [
+      'Brokenshire Memorial Hospital v. Minister of Labor: Regional Director’s jurisdiction under Art. 129 requires 3 concurrent elements: (1) claim arises from employer-employee relations; (2) NO claim for reinstatement; and (3) total claim does not exceed ₱5,000 per worker.',
+    ],
+    interpretationTips: [
+      'If the money claim exceeds ₱5,000 OR includes a prayer for reinstatement, exclusive original jurisdiction belongs to the Labor Arbiter under Art. 224 [formerly 217], not Art. 129!',
+    ],
+    keywords: ['simple money claims', '5000 pesos', 'art 129', 'regional director', 'summary proceeding'],
+  },
+  {
+    id: 'art-294',
+    articleNumber: '294',
+    codeLabel: 'Art. 294 [formerly Art. 279], Labor Code',
+    title: 'Security of Tenure • Reinstatement & Full Backwages',
+    worldId: 'world5',
+    topicId: 'm5-valid-dismissal-remedies',
+    statutoryText:
+      'In cases of regular employment, the employer shall not terminate the services of an employee except for a just cause or when authorized by this Title. An employee who is unjustly dismissed from work shall be entitled to reinstatement without loss of seniority rights and other privileges and to his full backwages, inclusive of allowances, and to his other benefits or their monetary equivalent computed from the time his compensation was withheld from him up to the time of his actual reinstatement.',
+    supremeCourtDoctrines: [
+      'Bustamante v. NLRC (G.R. No. 111651): Full backwages must be computed without any deduction of earnings derived elsewhere during the period of illegal dismissal.',
+      'Doctrine of Strained Relations: Reinstatement may be substituted with separation pay (1 month pay per year of service) only when personal animosity between the parties is so intense that reinstatement is no longer feasible.',
+    ],
+    interpretationTips: [
+      'Two primary twin remedies for illegal dismissal: (1) Reinstatement without loss of seniority, AND (2) Full Backwages from dismissal until actual reinstatement.',
+      'If reinstatement is impossible due to strained relations, closure, or abolition of position, separation pay in lieu of reinstatement is granted IN ADDITION to full backwages.',
+    ],
+    keywords: ['security of tenure', 'reinstatement', 'backwages', 'bustamante', 'strained relations', '279'],
+  },
+  {
+    id: 'art-295',
+    articleNumber: '295',
+    codeLabel: 'Art. 295 [formerly Art. 280], Labor Code',
+    title: 'Regular and Casual Employment (The 4 Tiers of Employment)',
+    worldId: 'world5',
+    topicId: 'm5-valid-dismissal-remedies',
+    statutoryText:
+      'The provisions of written agreement to the contrary notwithstanding and regardless of the oral agreement of the parties, an employment shall be deemed to be regular where the employee has been engaged to perform activities which are usually necessary or desirable in the usual business or trade of the employer, except where the employment has been fixed for a specific project or undertaking the completion or determination of which has been determined at the time of the engagement of the employee or where the work or service to be performed is seasonal in nature and the employment is for the duration of the season. An employment shall be deemed to be casual if it is not covered by the preceding paragraph: Provided, That any employee who has rendered at least one year of service, whether such service is continuous or broken, shall be considered a regular employee with respect to the activity in which he is employed and his employment shall continue while such activity exists.',
+    supremeCourtDoctrines: [
+      'Brent School v. Zamora (G.R. No. 48494): Fixed-term employment contracts are valid only if: (1) fixed period was agreed upon knowingly and voluntarily without duress; and (2) employer and employee dealt on more or less equal terms without moral dominance.',
+      'Four Tiers of Employment: (1) Regular by Nature (necessary/desirable); (2) Regular by Casual 1-Year (continuous or broken); (3) Project; and (4) Seasonal.',
+    ],
+    interpretationTips: [
+      'Repeated rehiring of project employees for identical tasks in successive projects over many years can ripen into regular employment (Maraguinot v. NLRC).',
+      'Casual employees become regular by operation of law upon completing 1 year of total service (whether continuous or broken) with respect to the activity performed.',
+    ],
+    keywords: ['regular employment', 'casual', 'project', 'seasonal', 'fixed term', 'brent', '280', 'four tiers'],
+  },
+  {
+    id: 'art-296',
+    articleNumber: '296',
+    codeLabel: 'Art. 296 [formerly Art. 281], Labor Code',
+    title: 'Probationary Employment (6-Month Cap & Reasonable Standards Made Known)',
+    worldId: 'world5',
+    topicId: 'm5-valid-dismissal-remedies',
+    statutoryText:
+      'Probationary employment shall not exceed six (6) months from the date the employee started working, unless it is covered by an apprenticeship agreement stipulating a longer period. The services of an employee who has been engaged on a probationary basis may be terminated for a just cause or when he fails to qualify as a regular employee in accordance with reasonable standards made known by the employer to the employee at the time of his engagement. An employee who is allowed to work after a probationary period shall be considered a regular employee.',
+    supremeCourtDoctrines: [
+      'Abbott Laboratories v. Alcaraz (G.R. No. 192571): The employer must make known the reasonable performance standards to the probationary employee AT THE TIME OF ENGAGEMENT; failure to do so renders the employee a REGULAR employee from day one!',
+      'Automatic Regularization: If an employee is permitted to work even ONE DAY past the 6-month probationary period, he automatically becomes a regular employee by operation of law.',
+    ],
+    interpretationTips: [
+      'Two grounds for terminating probationary employment: (1) Just or Authorized Cause under Arts. 297–299; or (2) Failure to qualify under reasonable standards made known at the time of engagement.',
+      'Due process for terminating a probationary employee for failure to qualify requires a written notice served within a reasonable time before the effective date.',
+    ],
+    keywords: ['probationary', '6 months', 'reasonable standards', 'abbott', 'automatic regularization', '281'],
+  },
+  {
     id: 'art-297',
     articleNumber: '297',
     codeLabel: 'Art. 297 [formerly Art. 282], Labor Code',
@@ -2546,6 +2830,41 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
       'Closure DUE TO serious business losses = ZERO separation pay (employer must prove losses via audited financial statements).',
     ],
     keywords: ['authorized cause', '283', '284', 'redundancy', 'retrenchment', 'separation pay', 'jaka', 'disease'],
+  },
+  {
+    id: 'art-300',
+    articleNumber: '300',
+    codeLabel: 'Art. 300 [formerly Art. 285], Labor Code',
+    title: 'Termination by Employee (30-Day Written Resignation Notice vs Just Causes)',
+    worldId: 'world5',
+    topicId: 'm5-valid-dismissal-remedies',
+    statutoryText:
+      '(a) An employee may terminate without just cause the employee-employer relationship by serving a written notice on the employer at least one (1) month in advance. The employer upon whom no such notice was served may hold the employee liable for damages. (b) An employee may put an end to the relationship without serving any notice on the employer for any of the following just causes: 1. Serious insult by the employer or his representative on the honor and person of the employee; 2. Inhuman and unbearable treatment accorded the employee by the employer or his representative; 3. Commission of a crime or offense by the employer or his representative against the person of the employee or any of the immediate members of his family; and 4. Other causes analogous to any of the foregoing.',
+    supremeCourtDoctrines: [
+      'Constructive Dismissal: Involuntary resignation resulting from unbearable, discriminatory, hostile, or oppressive working conditions created by the employer is legally CONSTRUCTIVE DISMISSAL.',
+    ],
+    interpretationTips: [
+      'Voluntary Resignation without just cause requires 30-DAY advance written notice; employer may waive the 30-day notice period at its discretion.',
+      'Constructive Dismissal entitles the employee to full backwages, separation pay/reinstatement, and damages.',
+    ],
+    keywords: ['resignation', '30 days notice', 'constructive dismissal', 'just causes for employee', '285'],
+  },
+  {
+    id: 'art-301',
+    articleNumber: '301',
+    codeLabel: 'Art. 301 [formerly Art. 286], Labor Code',
+    title: 'Floating Status / Temporary Suspension of Operations (6-Month Maximum)',
+    worldId: 'world5',
+    topicId: 'm5-valid-dismissal-remedies',
+    statutoryText:
+      'The bona-fide suspension of the operation of a business or undertaking for a period not exceeding six (6) months, or the fulfillment by the employee of a military or civic duty shall not terminate employment. In all such cases, the employer shall reinstate the employee to his former position without loss of seniority rights if he indicates his desire to resume his work not later than one (1) month from the resumption of operations of his employer or from his relief from the military or civic duty.',
+    supremeCourtDoctrines: [
+      'PT&T v. NLRC: Floating status or off-detail exceeding SIX (6) MONTHS without recall or re-assignment constitutes constructive illegal dismissal, entitling the worker to separation pay and backwages.',
+    ],
+    interpretationTips: [
+      '6-Month Rule: Floating status is strictly limited to a MAXIMUM of 6 months. After 6 months, the employer must either: (1) recall the employee, or (2) retrench the employee with statutory separation pay.',
+    ],
+    keywords: ['floating status', 'temporary suspension', '6 months cap', 'off detail', '286', 'constructive dismissal'],
   },
   {
     id: 'art-302',
@@ -2621,36 +2940,167 @@ export const STATUTE_LOOKUP_CATALOG: readonly StatuteLookupEntry[] = [
     id: 'ra-10361',
     articleNumber: 'RA 10361',
     codeLabel: 'Republic Act No. 10361',
-    title: 'Batas Kasambahay (Domestic Workers Act)',
+    title: 'Domestic Workers Act / Batas Kasambahay',
     worldId: 'world4',
     topicId: 'm4-minors-kasambahay-homework',
     statutoryText:
-      'Domestic workers (general househelp, yaya, cook, gardener, laundry person) performing regular domestic work in an occupational household are entitled to minimum wage, 8-hour daily aggregate rest, 24-hour weekly rest, 13th-month pay, SSS/PhilHealth/Pag-IBIG coverage (employer-paid if wage < ₱5,000), and 5-day annual SIL.',
+      'SECTION 4. Coverage. — This Act shall apply to all domestic workers employed and working within the country, including general househelp, nursemaid or "yaya", cook, gardener, laundry person, but excluding family drivers and persons performing work occasionally or sporadically.\n\nSECTION 24. Health and Safety. — The employer shall safeguard the health and safety of the domestic worker in accordance with principles and standard rules.\n\nSECTION 29. Service Incentive Leave. — A domestic worker who has rendered at least one (1) year of service shall be entitled to an annual service incentive leave of five (5) days with pay: Provided, That any unused portion of said annual leave shall not be cumulative and shall not be convertible to cash.\n\nSECTION 30. Social and Other Benefits. — A domestic worker who has rendered at least one (1) month of service shall be covered by the Social Security System (SSS), the Philippine Health Insurance Corporation (PhilHealth), and the Home Development Mutual Fund or Pag-IBIG. If the domestic worker receives a monthly wage of less than Five thousand pesos (P5,000.00), the employer shall pay the premium payments in full.',
     supremeCourtDoctrines: [
-      'Atienza v. Saluta (G.R. No. 233413): A personal/family driver is NOT covered by R.A. 10361 (which repealed Civil Code/Labor Code househelper provisions only as to enumerated kasambahay roles) and is governed by the Civil Code.',
+      'Atienza v. Saluta (G.R. No. 233413): A personal or family driver is NOT covered by R.A. 10361 (which repealed Civil Code/Labor Code househelper provisions only as to enumerated kasambahay roles) and is governed by the Civil Code contract of carriage and service.',
     ],
     interpretationTips: [
       'Family drivers are EXCLUDED from R.A. 10361.',
-      'Kasambahay 5-day SIL after 1 year of service is NON-CUMULATIVE and NON-CONVERTIBLE to cash (opposite of Art. 95 regular employees!).',
+      'Kasambahay 5-day SIL after 1 year of service is strictly NON-CUMULATIVE and NON-CONVERTIBLE to cash (opposite of Art. 95 regular employees!).',
+      'If monthly wage is below ₱5,000, 100% of SSS/PhilHealth/Pag-IBIG contributions must be paid solely by the employer without salary deduction.',
     ],
-    keywords: ['kasambahay', '10361', 'domestic worker', 'family driver', '5000'],
+    keywords: ['kasambahay', '10361', 'domestic worker', 'family driver', '5000', 'sil non-cumulative'],
   },
   {
     id: 'ra-11313',
     articleNumber: 'RA 11313',
     codeLabel: 'Republic Act No. 11313',
-    title: 'Safe Spaces Act (Bawal Bastos Law) vs. R.A. 7877',
+    title: 'Safe Spaces Act (Bawal Bastos Law) in the Workplace',
     worldId: 'world5',
     topicId: 'm5-harassment-safe-spaces',
     statutoryText:
-      'Gender-based sexual harassment in workplaces includes unwelcome sexual actions, remarks, or online conduct whether between peers, by a superior, or by a subordinate toward a superior. Employers must establish an independent Committee on Decorum and Investigation (CODI).',
+      'SECTION 16. Workplace Gender-Based Sexual Harassment. — The crime of gender-based sexual harassment in the workplace includes the following:\n(a) An act, series of acts, or online conduct involving any unwelcome sexual advance, request or demand for a sexual favor, or other verbal or physical behavior of a sexual nature, committed by an employer, employee, co-worker, or other person in the workplace;\n(b) Conduct of a sexual nature and other conduct based on sex affecting the dignity of a person, which is unwelcome, unreasonable, and offensive to the recipient;\n(c) Conduct that creates an intimidating, hostile, or humiliating working environment for the recipient.\n\nSECTION 17. Duties of Employers. — Employers shall have the duty to:\n(a) Disseminate or post in a conspicuous place a copy of this Act;\n(b) Provide measures to prevent gender-based sexual harassment in the workplace;\n(c) Create an independent internal mechanism or a Committee on Decorum and Investigation (CODI) to investigate and resolve complaints within ten (10) working days.',
     supremeCourtDoctrines: [
-      'Peer & Subordinate Liability Doctrine: Unlike R.A. 7877 (which required authority, influence, or moral ascendancy), R.A. 11313 penalizes peer-to-peer and subordinate-to-superior workplace harassment as well as online harassment.',
+      'Peer & Subordinate Liability Doctrine: Unlike R.A. 7877 (which required authority, influence, or moral ascendancy), R.A. 11313 penalizes peer-to-peer and subordinate-to-superior workplace harassment as well as online workplace stalking and harassment.',
     ],
     interpretationTips: [
-      'CODI must investigate and resolve complaints within ten (10) working days or period prescribed by IRR; employer failure to establish CODI incurs direct statutory fines.',
+      'CODI must investigate and resolve complaints within ten (10) working days; employer failure to establish CODI or address reported harassment incurs direct statutory fines and civil damages.',
     ],
-    keywords: ['safe spaces', '11313', '7877', 'sexual harassment', 'codi', 'peer'],
+    keywords: ['safe spaces', '11313', '7877', 'sexual harassment', 'codi', 'peer', '10 days'],
+  },
+  {
+    id: 'ra-11360',
+    articleNumber: 'RA 11360',
+    codeLabel: 'Republic Act No. 11360',
+    title: 'Service Charges Equal Distribution Act (Amending Art. 96)',
+    worldId: 'world2',
+    topicId: 'm2-service-charges',
+    statutoryText:
+      'SECTION 1. Article 96 of the Labor Code of the Philippines is hereby amended to read as follows:\n\n"ART. 96. Service Charges. — All service charges collected by hotels, restaurants and similar establishments shall be distributed completely and equally among the covered workers, except managerial employees as defined herein.\n\nIn the event that the minimum wage is increased by law or wage order, service charges paid to the covered workers shall not be considered in determining the employer’s compliance with the minimum wage law."',
+    supremeCourtDoctrines: [
+      'DOLE Department Order No. 206, Series of 2019: Fully implements the 100% equal distribution rule to all rank-and-file and supervisory personnel, abolishing the historical 85%-15% sharing scheme (where 15% was previously retained by management for breakages and pilferage).',
+    ],
+    interpretationTips: [
+      '100% of collected service charges belong to workers — ZERO percent is retained by management for breakage or loss.',
+      'Distributed completely and equally based on hours worked during the collection cycle, paid not less than once every two (2) weeks or twice a month.',
+      'Service charges CANNOT be credited as compliance with statutory minimum wages.',
+    ],
+    keywords: ['service charge', '11360', 'art 96', '100 percent', 'hotel', 'restaurant'],
+  },
+  {
+    id: 'ra-11165',
+    articleNumber: 'RA 11165',
+    codeLabel: 'Republic Act No. 11165',
+    title: 'Telecommuting Act & Principle of Fair Treatment',
+    worldId: 'world4',
+    topicId: 'm4-women-pwd-solo-telecommute',
+    statutoryText:
+      'SECTION 5. Fair Treatment. — The employer shall ensure that the telecommuting employee is given the same treatment as comparable employees working at the employer’s premises. All telecommuting employees shall:\n(a) Receive a rate of pay, including overtime and night shift differential, and other similar monetary benefits not lower than those provided in applicable laws and collective bargaining agreements;\n(b) Have the right to rest periods, regular holidays, and special nonworking days;\n(c) Have the same or equivalent workload and performance standards as comparable on-site employees;\n(d) Have the same access to training and career development opportunities as comparable workers;\n(e) Receive appropriate training on the technical equipment and performance guidelines.',
+    supremeCourtDoctrines: [
+      'Fair Treatment & Parity Principle: Telecommuting contracts must be mutual and voluntary. Remote workers are regular employees entitled to equivalent wages, overtime, NSD, rest days, security of tenure, and unionization rights.',
+    ],
+    interpretationTips: [
+      'Telecommuting is voluntary on both employer and employee parts (unless DOLE declares emergency work-from-home guidelines).',
+      'Remote workers are entitled to full overtime pay and night shift differential for work rendered beyond 8 hours or between 10 PM and 6 AM.',
+    ],
+    keywords: ['telecommuting', '11165', 'remote work', 'wfh', 'fair treatment', 'work from home'],
+  },
+  {
+    id: 'ra-8187',
+    articleNumber: 'RA 8187',
+    codeLabel: 'Republic Act No. 8187',
+    title: 'Paternity Leave Act of 1996 (7 Paid Days)',
+    worldId: 'world6',
+    topicId: 'm6-paternity-leave',
+    statutoryText:
+      'SECTION 2. Paternity Leave Benefit. — Notwithstanding any law, rules and regulations to the contrary, every married male employee in the private and public sectors shall be entitled to a paternity leave of seven (7) days with full pay for the first four (4) deliveries of the legitimate spouse with whom he is cohabiting.\n\nSECTION 3. Definition of Terms. — For purposes of this Act, "Paternity Leave" refers to the benefits granted to a married male employee allowing him not to report for work for seven (7) days but continuing to earn the compensation therefor, on the condition that his spouse has delivered a child or suffered a miscarriage for purposes of enabling him to effectively lend support to his wife during her period of recovery and/or in the nursing of the newly-born child.',
+    supremeCourtDoctrines: [
+      'Cohabitation & Legitimacy Condition: Paternity leave requires (1) valid marriage, (2) cohabitation with spouse, and (3) live birth or miscarriage/ETP (capped at first 4 deliveries). Under R.A. 11210, married fathers may receive an additional 7 days allocated from the mother’s 105-day leave (total 14 days).',
+    ],
+    interpretationTips: [
+      'Paternity leave is strictly for the first 4 deliveries of the legitimate cohabiting spouse.',
+      'Unused paternity leave cannot be converted to cash at year end unless stipulated in the employment contract or CBA.',
+    ],
+    keywords: ['paternity', '8187', '7 days', 'married', 'cohabitation', 'first 4 deliveries'],
+  },
+  {
+    id: 'ra-11861',
+    articleNumber: 'RA 11861',
+    codeLabel: 'Republic Act No. 11861',
+    title: 'Expanded Solo Parents Welfare Act (Amending R.A. 8972)',
+    worldId: 'world6',
+    topicId: 'm6-solo-parents-leave',
+    statutoryText:
+      'SECTION 7. Parental Leave. — In addition to leave privileges under existing laws, any solo parent employee who has rendered service of at least six (6) months, regardless of employment status, shall be granted a parental leave of seven (7) working days with full pay each year.\n\nSECTION 8. Work Discrimination. — No employer shall discriminate against any solo parent employee with respect to terms and conditions of employment on account of his or her status.\n\nSECTION 9. Flexible Work Schedule. — The employer shall provide a flexible work schedule for solo parents: Provided, That the same shall not affect individual and company productivity.',
+    supremeCourtDoctrines: [
+      'Lowered Service Threshold: R.A. 11861 reduced the tenure threshold from one (1) full year down to at least six (6) months of service to qualify for the 7-day paid parental leave, provided the worker presents a valid Solo Parent Identification Card (SPIC).',
+    ],
+    interpretationTips: [
+      'Service threshold is SIX (6) MONTHS (not 1 year!).',
+      'Parental leave of 7 working days is granted annually with full pay, non-cumulative and non-convertible to cash.',
+      'Solo parents also receive an additional 15 paid days under R.A. 11210 Maternity Leave (total 120 paid days).',
+    ],
+    keywords: ['solo parent', '11861', '8972', '7 days', '6 months service', 'spic', 'flexible schedule'],
+  },
+  {
+    id: 'ra-9262',
+    articleNumber: 'RA 9262',
+    codeLabel: 'Republic Act No. 9262',
+    title: 'Anti-Violence Against Women and Their Children Act (10-Day Paid VAWC Leave)',
+    worldId: 'world6',
+    topicId: 'm6-vawc-leave',
+    statutoryText:
+      'SECTION 43. Entitled to Leave. — Victims under this Act shall be entitled to take a paid leave of absence up to ten (10) days in addition to other paid leaves under the Labor Code and Civil Service Rules and regulations, extendible when the necessity arises as specified in the protection order.\n\nAny employer who prejudices the right of the person under this section shall be penalized in accordance with the provisions of the Labor Code and Civil Service Rules and regulations. Likewise, an employer who refuses to grant such leave shall be liable for contempt of court.',
+    supremeCourtDoctrines: [
+      'Mandatory Employer Grant: Section 43 confers an absolute right to up to 10 paid leave days to attend to medical and legal concerns arising from physical, sexual, psychological, or economic violence. An employer who refuses is liable for contempt of court.',
+    ],
+    interpretationTips: [
+      '10 paid days granted upon submission of certification from Punong Barangay, Kagawad, Prosecutor, or Clerk of Court.',
+      'Extendible beyond 10 days if specified in a Barangay Protection Order (BPO) or Temporary/Permanent Protection Order (TPO/PPO).',
+      'Unused VAWC leave is non-cumulative and non-commutable to cash.',
+    ],
+    keywords: ['vawc', '9262', '10 days', 'protection order', 'paid leave', 'violence against women'],
+  },
+  {
+    id: 'ra-9710',
+    articleNumber: 'RA 9710',
+    codeLabel: 'Republic Act No. 9710',
+    title: 'Magna Carta of Women (Special Leave for Gynecological Surgeries)',
+    worldId: 'world6',
+    topicId: 'm6-gynecological-leave',
+    statutoryText:
+      'SECTION 18. Special Leave Benefits for Women. — A woman employee having rendered continuous aggregate employment service of at least six (6) months for the last twelve (12) months shall be entitled to a special leave benefit of two (2) months with full pay based on her gross monthly compensation following surgery caused by gynecological disorders.',
+    supremeCourtDoctrines: [
+      'Gross Monthly Compensation Standard: Gynecological surgery special leave is paid for up to TWO (2) FULL MONTHS based on gross monthly compensation (basic pay plus mandatory allowances), requiring only 6 months aggregate service in the last 12 months.',
+    ],
+    interpretationTips: [
+      'Maximum duration: Up to TWO (2) MONTHS with full pay.',
+      'Qualifying service: At least 6 months continuous aggregate service in the preceding 12 months.',
+      'Covers surgeries caused by gynecological disorders (e.g. hysterectomy, myomectomy, mastectomy, ovarian cystectomy). Non-convertible to cash.',
+    ],
+    keywords: ['magna carta of women', '9710', 'gynecological', '2 months', 'surgery', 'special leave'],
+  },
+  {
+    id: 'do-174',
+    articleNumber: 'DO 174',
+    codeLabel: 'DOLE Department Order No. 174, Series of 2017',
+    title: 'Rules Implementing Articles 106 to 109 on Contracting & Subcontracting',
+    worldId: 'world2',
+    topicId: 'm3-payment-contracting-distortion',
+    statutoryText:
+      'SECTION 3. Prohibition against Labor-Only Contracting. — Labor-only contracting is strictly prohibited. For purposes of this Rule, labor-only contracting refers to an arrangement where the contractor or subcontractor merely recruits, supplies or places workers to perform a job, work or service for a principal, and any of the following elements are present:\n(a) The contractor does not have substantial capital OR investment in the form of tools, equipment, machineries, work premises, among others;\n(b) The contractor’s employees are performing activities which are directly related to the main business of the principal; OR\n(c) The contractor does not exercise the right of control over the performance of the work of the employee.\n\nSECTION 3(l). Substantial Capital. — Refers to paid-up capital stock/shares of at least Five Million Pesos (P5,000,000.00) in the case of corporations, partnerships and cooperatives; or a net worth of at least Five Million Pesos (P5,000,000.00) in the case of single proprietorship.',
+    supremeCourtDoctrines: [
+      'Solidary Liability & Direct Employer Doctrine: In labor-only contracting, the contractor is treated merely as an agent of the principal, and the principal is deemed the direct employer of the workers for all purposes with solidary liability for all wage and money claims.',
+    ],
+    interpretationTips: [
+      'Substantial capital benchmark: At least ₱5,000,000.00 paid-up capital (corporation) or net worth (single proprietorship).',
+      'The presence of EITHER lack of substantial capital/tools OR lack of control establishes prohibited labor-only contracting.',
+    ],
+    keywords: ['do 174', 'contracting', 'subcontracting', 'labor-only', '5000000', 'substantial capital', 'control'],
   },
 ];
 

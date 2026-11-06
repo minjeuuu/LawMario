@@ -2466,3 +2466,103 @@ export function hitMarioMysteryLawBlock(params: {
     dailyCoinCapReached: nextHitCountToday >= MYSTERY_BLOCK_DAILY_COIN_CAP,
   };
 }
+
+// ============================================================================
+// 8. TOAD'S TREASURE VAULT: EQUIPPABLE RELIC RINGS
+// ============================================================================
+
+export type MarioEquippedRing =
+  | 'ring_none'
+  | 'ring_curatorial_gold'
+  | 'ring_one_up'
+  | 'ring_star_immunity'
+  | 'ring_speed_boot'
+  | 'ring_scholar_ruby';
+
+export interface MarioRingMeta {
+  id: MarioEquippedRing;
+  name: string;
+  badge: string;
+  price: number;
+  description: string;
+  perkEffect: string;
+  iconName: 'ring' | 'crown' | 'heart' | 'star' | 'zap' | 'gem';
+  colorClass: string;
+  badgeClasses: string;
+}
+
+export const MARIO_RINGS_CATALOG: Record<MarioEquippedRing, MarioRingMeta> = {
+  ring_none: {
+    id: 'ring_none',
+    name: 'No Ring Equipped',
+    badge: 'Empty Slot',
+    price: 0,
+    description: 'No active relic ring equipped.',
+    perkEffect: 'No passive buff active.',
+    iconName: 'ring',
+    colorClass: 'text-slate-400 border-slate-700 bg-slate-900',
+    badgeClasses: 'bg-slate-800 text-slate-400 border-slate-700',
+  },
+  ring_curatorial_gold: {
+    id: 'ring_curatorial_gold',
+    name: 'Matthew’s Curatorial Gold Signet Ring',
+    badge: 'Curator Relic',
+    price: 95,
+    description: 'Commemorative curatorial signet honoring craftsmanship and relentless diligence in Philippine legal education.',
+    perkEffect: '+25% Gold Coins earned across all modules, quizzes, and games!',
+    iconName: 'crown',
+    colorClass: 'text-amber-300 border-amber-400 bg-amber-950/80',
+    badgeClasses: 'bg-amber-400 text-slate-950 border-black',
+  },
+  ring_one_up: {
+    id: 'ring_one_up',
+    name: '1-Up Life Ring of Resilience',
+    badge: 'Boss Defense',
+    price: 80,
+    description: 'Infused with the green essence of 1-Up Mushrooms, preventing fatal failure on difficult codal questions.',
+    perkEffect: 'Adds +1 Extra Heart / Mistake Shield in Castle Quests & Boss Battles!',
+    iconName: 'heart',
+    colorClass: 'text-emerald-300 border-emerald-400 bg-emerald-950/80',
+    badgeClasses: 'bg-emerald-500 text-slate-950 border-black',
+  },
+  ring_star_immunity: {
+    id: 'ring_star_immunity',
+    name: 'Invincible Star Road Signet',
+    badge: 'Daily Shield',
+    price: 85,
+    description: 'Blessed by Star Road arpeggios, granting divine immunity on tricky Bar Exam trap questions.',
+    perkEffect: 'Free retry protection against tough Bar exam traps!',
+    iconName: 'star',
+    colorClass: 'text-yellow-300 border-yellow-400 bg-yellow-950/80',
+    badgeClasses: 'bg-yellow-400 text-slate-950 border-black',
+  },
+  ring_speed_boot: {
+    id: 'ring_speed_boot',
+    name: 'Koopa Swift-Feet Sprint Ring',
+    badge: 'Focus Sprint',
+    price: 60,
+    description: 'Lightweight enchanted silver ring that accelerates Pomodoro study blocks and speed tests.',
+    perkEffect: '+30 Bonus Coins on completing 25-Minute Focus Pomodoro sprints!',
+    iconName: 'zap',
+    colorClass: 'text-sky-300 border-sky-400 bg-sky-950/80',
+    badgeClasses: 'bg-sky-400 text-slate-950 border-black',
+  },
+  ring_scholar_ruby: {
+    id: 'ring_scholar_ruby',
+    name: 'Bar Laureate Ruby Signet Ring',
+    badge: 'Mastery XP',
+    price: 90,
+    description: 'Crimson gemstone worn by high-ranking labor law scholars preparing for the Bar Exams.',
+    perkEffect: '+15% XP multiplier on all quizzes and stage completions!',
+    iconName: 'gem',
+    colorClass: 'text-rose-300 border-rose-400 bg-rose-950/80',
+    badgeClasses: 'bg-rose-500 text-white border-black',
+  },
+};
+
+export function resolveEquippedRing(ringId?: string): MarioRingMeta {
+  if (ringId && ringId in MARIO_RINGS_CATALOG) {
+    return MARIO_RINGS_CATALOG[ringId as MarioEquippedRing];
+  }
+  return MARIO_RINGS_CATALOG.ring_none;
+}

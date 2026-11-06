@@ -93,10 +93,19 @@ export type ShopCategory =
   | 'avatar'
   | 'companion'
   | 'frame'
+  | 'ring'
   | 'perk'
   | 'soundpack'
   | 'title'
   | 'certificate';
+
+export type MarioEquippedRing =
+  | 'ring_none'
+  | 'ring_curatorial_gold'
+  | 'ring_one_up'
+  | 'ring_star_immunity'
+  | 'ring_speed_boot'
+  | 'ring_scholar_ruby';
 
 export type SoundPackId =
   | 'sound_default'
@@ -160,6 +169,7 @@ export interface ShopItem {
   soundPackId?: SoundPackId;
   companionId?: StudyCompanionId;
   frameId?: CardFrameId;
+  ringId?: MarioEquippedRing;
   luxuryFrameId?: string;
   luxuryAuraId?: string;
   luxuryCartridgeId?: string;

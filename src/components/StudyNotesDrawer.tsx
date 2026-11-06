@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { jsPDF } from 'jspdf';
 import {
   NotebookPen,
   Plus,
@@ -17,6 +18,8 @@ import {
   Calendar,
   GripVertical,
   FileDown,
+  Download,
+  FileText,
 } from 'lucide-react';
 import {
   StudyNoteItem,
@@ -405,6 +408,118 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
     }
 
     setTimeout(() => setCopiedAllNotes(false), 2200);
+  };
+
+  const handleExportAllNotesMarkdown = () => {
+    if (notes.length === 0) return;
+    const lines = [
+      '# PHILIPPINE LABOR LAW STUDY NOTES & CODALS',
+      `# Compiled by: ${typeof window !== 'undefined' ? localStorage.getItem('mario_player_name') || 'Mario Scholar' : 'Mario Scholar'}`,
+      `# Date: ${new Date().toLocaleDateString()}`,
+      `# Total Notes: ${notes.length}`,
+      '==================================================\n',
+      ...notes.map((n, i) => [
+        `## [${i + 1}] ${n.title}`,
+        `**World**: ${getWorldBadgeLabel(n.worldTag)} | **Tag**: ${n.categoryTag || 'General'}`,
+        `*Last Updated: ${new Date(n.updatedAt).toLocaleDateString()}*`,
+        '',
+        n.content,
+        '\n---',
+      ].join('\n')),
+      '\nSuper Mario Labor Adventure · Philippine Labor Standards Memory Aid',
+    ];
+    const fullText = lines.join('\n');
+    navigator.clipboard?.writeText(fullText);
+    setCopiedAllNotes(true);
+    marioAudio.playPowerUp();
+
+    try {
+      const blob = new Blob([fullText], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Mario-Labor-Law-Study-Notes-${Date.now()}.md`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // ignore
+    }
+
+    setTimeout(() => setCopiedAllNotes(false), 2200);
+  };
+
+  const handleExportAllNotesPdf = () => {
+    if (notes.length === 0) return;
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentWidth = pageWidth - margin * 2;
+      let y = margin;
+
+      // Header Banner
+      doc.setFillColor(15, 23, 42); // slate-900
+      doc.roundedRect(margin, y, contentWidth, 22, 3, 3, 'F');
+      doc.setTextColor(251, 191, 36); // amber-400
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.text('SUPER MARIO PHILIPPINE LABOR LAW · OFFICIAL STUDY NOTEBOOK', margin + 6, y + 8);
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      const studentName = typeof window !== 'undefined' ? localStorage.getItem('mario_player_name') || 'Mario Scholar' : 'Mario Scholar';
+      doc.text(`${studentName} · ${notes.length} Codal Notes`, margin + 6, y + 16);
+      y += 28;
+
+      notes.forEach((n, idx) => {
+        if (y > pageHeight - 35) {
+          doc.addPage();
+          y = margin;
+        }
+
+        // Note Card Header
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(203, 213, 225);
+        doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'FD');
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text(`[${idx + 1}] ${n.title}`, margin + 3, y + 5.5);
+        y += 11;
+
+        // Meta Tag
+        doc.setTextColor(100, 116, 139);
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(7.5);
+        doc.text(`World: ${getWorldBadgeLabel(n.worldTag)} | Tag: ${n.categoryTag || 'General'}`, margin + 2, y);
+        y += 4.5;
+
+        // Content
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(30, 41, 59);
+        const lines = doc.splitTextToSize(n.content, contentWidth - 4);
+        for (let i = 0; i < lines.length; i++) {
+          if (y > pageHeight - 15) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(lines[i], margin + 2, y);
+          y += 4;
+        }
+        y += 6;
+      });
+
+      doc.save(`Mario-Labor-Law-Notes-${Date.now()}.pdf`);
+      marioAudio.playPowerUp();
+    } catch {
+      // ignore
+    }
   };
 
   const handleToggleHighlightLine = (noteId: string, lineIndex: number) => {
@@ -986,25 +1101,45 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                   )}
 
                   {notes.length > 0 && (
-                    <button
-                      type="button"
-                      data-testid="export-all-notes-btn"
-                      onClick={handleExportAllNotes}
-                      title="Export all saved study notes as text/markdown document and copy to clipboard"
-                      className="ml-auto px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 cursor-pointer inline-flex items-center gap-1.5 transition-colors"
-                    >
-                      {copiedAllNotes ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400 shrink-0" />
-                          <span className="text-emerald-300">Exported!</span>
-                        </>
-                      ) : (
-                        <>
-                          <FileDown className="w-3 h-3 text-amber-400 shrink-0" />
-                          <span>Export Notes (.txt)</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleExportAllNotesPdf}
+                        title="Download notes notebook as formatted PDF"
+                        className="px-2 py-1 rounded-lg text-[10px] font-black bg-red-600 hover:bg-red-500 text-white border border-black cursor-pointer inline-flex items-center gap-1 shadow-xs"
+                      >
+                        <FileDown className="w-3 h-3 shrink-0" />
+                        <span>PDF</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleExportAllNotesMarkdown}
+                        title="Export notes as Markdown (.md)"
+                        className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <Download className="w-3 h-3 text-amber-400 shrink-0" />
+                        <span>.MD</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="export-all-notes-btn"
+                        onClick={handleExportAllNotes}
+                        title="Export all saved study notes as text and copy to clipboard"
+                        className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 cursor-pointer inline-flex items-center gap-1"
+                      >
+                        {copiedAllNotes ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                            <span className="text-emerald-300">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="w-3 h-3 text-cyan-400 shrink-0" />
+                            <span>.TXT</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

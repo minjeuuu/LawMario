@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { jsPDF } from 'jspdf';
 import {
   Search,
   Scale,
@@ -14,9 +15,12 @@ import {
   Square,
   BookmarkPlus,
   Download,
+  FileDown,
   SlidersHorizontal,
   Gavel,
   ShieldAlert,
+  ChevronDown,
+  Type,
 } from 'lucide-react';
 import {
   STATUTE_LOOKUP_CATALOG,
@@ -41,6 +45,7 @@ interface StatuteLookupModalProps {
 
 const QUICK_STATUTE_NUMBERS: readonly string[] = [
   '82',
+  '83',
   '84',
   '86',
   '87',
@@ -58,8 +63,15 @@ const QUICK_STATUTE_NUMBERS: readonly string[] = [
   '306',
   'PD 851',
   'RA 11210',
+  'RA 11360',
+  'RA 11165',
+  'RA 8187',
+  'RA 11861',
+  'RA 9262',
+  'RA 9710',
   'RA 10361',
   'RA 11313',
+  'DO 174',
 ];
 
 type BookScopeFilter = 'all' | 'book3' | 'wages_contracting' | 'post_employment' | 'special_laws';
@@ -105,6 +117,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [fontSizeScale, setFontSizeScale] = useState<'sm' | 'base' | 'lg'>('base');
+  const [statuteFontFamily, setStatuteFontFamily] = useState<'serif' | 'sans' | 'mono' | 'playfair'>('serif');
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'list' | 'detail'>('list');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -184,13 +197,32 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
       }
       if (selectedBook === 'post_employment') {
         return (
-          (!isNaN(num) && num >= 297 && num <= 306) ||
+          (!isNaN(num) && num >= 279 && num <= 306) ||
+          code.includes('279') ||
+          code.includes('280') ||
+          code.includes('281') ||
+          code.includes('282') ||
+          code.includes('283') ||
+          code.includes('285') ||
+          code.includes('286') ||
+          code.includes('287') ||
+          code.includes('291') ||
+          code.includes('294') ||
+          code.includes('295') ||
+          code.includes('296') ||
           code.includes('297') ||
           code.includes('298') ||
+          code.includes('300') ||
+          code.includes('301') ||
           code.includes('302') ||
           code.includes('306') ||
+          artNum.includes('294') ||
+          artNum.includes('295') ||
+          artNum.includes('296') ||
           artNum.includes('297') ||
           artNum.includes('298') ||
+          artNum.includes('300') ||
+          artNum.includes('301') ||
           artNum.includes('302') ||
           artNum.includes('306')
         );
@@ -310,6 +342,127 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
     marioAudio.playCoin();
   };
 
+  const handleDownloadSingleStatutePdf = (entry: StatuteLookupEntry) => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentWidth = pageWidth - margin * 2;
+      let y = margin;
+
+      // Header Banner
+      doc.setFillColor(15, 23, 42); // slate-900
+      doc.roundedRect(margin, y, contentWidth, 24, 3, 3, 'F');
+      doc.setTextColor(251, 191, 36); // amber-400
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('REPUBLIC OF THE PHILIPPINES · LABOR LAW CODEX', margin + 6, y + 8);
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(13);
+      doc.text(entry.codeLabel || 'Statutory Provision', margin + 6, y + 17);
+      y += 30;
+
+      // Title
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      const titleLines = doc.splitTextToSize(entry.title, contentWidth);
+      doc.text(titleLines, margin, y);
+      y += titleLines.length * 5 + 4;
+
+      // Statutory Text
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(51, 65, 85);
+      const statuteLines = doc.splitTextToSize(entry.statutoryText, contentWidth);
+      for (let i = 0; i < statuteLines.length; i++) {
+        if (y > pageHeight - 20) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(statuteLines[i], margin, y);
+        y += 4.5;
+      }
+      y += 4;
+
+      // Supreme Court Precedents
+      if (entry.supremeCourtDoctrines.length > 0) {
+        if (y > pageHeight - 30) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFillColor(240, 253, 244);
+        doc.setDrawColor(34, 197, 94);
+        doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'FD');
+        doc.setTextColor(20, 83, 45);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.text('KEY SUPREME COURT CONTROLLING PRECEDENTS', margin + 4, y + 5.5);
+        y += 12;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(30, 41, 59);
+        entry.supremeCourtDoctrines.forEach((docText, idx) => {
+          const docLines = doc.splitTextToSize(`${idx + 1}. ${docText}`, contentWidth - 4);
+          for (let i = 0; i < docLines.length; i++) {
+            if (y > pageHeight - 20) {
+              doc.addPage();
+              y = margin;
+            }
+            doc.text(docLines[i], margin + 2, y);
+            y += 4.2;
+          }
+          y += 2;
+        });
+      }
+
+      // Bar Exam Traps & Interpretation Guidance
+      if (entry.interpretationTips.length > 0) {
+        if (y > pageHeight - 30) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFillColor(238, 242, 255);
+        doc.setDrawColor(99, 102, 241);
+        doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'FD');
+        doc.setTextColor(49, 46, 129);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.text('BAR EXAM TRAPS & INTERPRETATION GUIDANCE', margin + 4, y + 5.5);
+        y += 12;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(30, 41, 59);
+        entry.interpretationTips.forEach((tipText, idx) => {
+          const tipLines = doc.splitTextToSize(`• ${tipText}`, contentWidth - 4);
+          for (let i = 0; i < tipLines.length; i++) {
+            if (y > pageHeight - 20) {
+              doc.addPage();
+              y = margin;
+            }
+            doc.text(tipLines[i], margin + 2, y);
+            y += 4.2;
+          }
+          y += 2;
+        });
+      }
+
+      const safeName = entry.articleNumber.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      doc.save(`statute_${safeName}_official_dossier.pdf`);
+      marioAudio.playPowerUp();
+    } catch {
+      // fallback
+    }
+  };
+
   const handleNarrateEntry = (entry: StatuteLookupEntry) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     if (speakingId === entry.id) {
@@ -374,6 +527,7 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
       aria-modal="true"
       aria-label="Labor Code Statute Lookup Tool"
       data-testid="statute-lookup-modal"
+      data-codal-font={statuteFontFamily}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -402,14 +556,36 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Font Style Dropdown */}
+            <div className="relative inline-flex items-center">
+              <label htmlFor="statute-modal-font-select" className="sr-only">Font Style</label>
+              <select
+                id="statute-modal-font-select"
+                value={statuteFontFamily}
+                onChange={(e) => {
+                  setStatuteFontFamily(e.target.value as any);
+                  marioAudio.playClick();
+                }}
+                title="Select Font Style (Serif, Sans, Mono, Playfair)"
+                className="min-h-[36px] sm:min-h-[38px] pl-2.5 pr-7 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-[11px] sm:text-xs font-bold cursor-pointer appearance-none"
+              >
+                <option value="serif">Serif (Court)</option>
+                <option value="sans">Sans (Inter)</option>
+                <option value="mono">Mono (Code)</option>
+                <option value="playfair">Playfair</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 absolute right-2 pointer-events-none text-slate-400" />
+            </div>
+
             {/* Font scale control */}
             <button
               type="button"
               onClick={handleCycleFontSize}
-              title="Toggle reading font size (Small, Normal, Large)"
+              title="Toggle reading text size (Small, Base, Large)"
               className="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] sm:text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>Font: {fontSizeScale.toUpperCase()}</span>
+              <Type className="w-3 h-3 text-amber-400" />
+              <span>{fontSizeScale.toUpperCase()}</span>
             </button>
 
             {/* Speech rate control */}
@@ -720,6 +896,17 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
                           <span>Copy</span>
                         </>
                       )}
+                    </button>
+
+                    {/* Download PDF Dossier Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadSingleStatutePdf(activeEntry)}
+                      title="Download complete formatted statute dossier as official PDF"
+                      className="min-h-[38px] px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer active:translate-y-0.5"
+                    >
+                      <FileDown className="w-3.5 h-3.5" />
+                      <span>PDF Dossier</span>
                     </button>
 
                     {/* Download Markdown Dossier Button */}

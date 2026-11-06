@@ -374,14 +374,11 @@ export function getTopicQuickCheck(topic: LawTopic): TopicQuickCheckItem {
     topic.rules?.[0]?.heading ||
     `Covers core workplace standards under ${topic.badge}.`;
 
-  const truncatedCorrect =
-    primaryRule.length > 125 ? `${primaryRule.slice(0, 122).trim()}...` : primaryRule;
-
   return {
     topicId: topic.id,
     question: `Which statement accurately reflects the governing workplace rule under "${topic.title}" (${topic.badge})?`,
     options: [
-      truncatedCorrect,
+      primaryRule,
       'Coverage is purely optional and applies only if written in a private company memo.',
       'Benefits can be unilaterally waived or reduced below statutory minimums at any time.',
       'Applies exclusively to corporate directors and managerial officers.',

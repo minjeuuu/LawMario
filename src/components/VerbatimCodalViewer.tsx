@@ -439,6 +439,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
   return (
     <div
       data-testid={statuteId ? `verbatim-viewer-${statuteId}` : 'verbatim-codal-viewer'}
+      data-codal-font={fontFamily}
       className={`rounded-2xl border-2 p-3.5 sm:p-5 space-y-3.5 relative overflow-hidden transition-colors duration-200 ${containerThemeClass} ${className}`}
     >
       {/* Decorative Watermark Seal */}
@@ -944,7 +945,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
 
         {/* Content Body: Line-Numbered or Block-Parsed */}
         {showLineNumbers ? (
-          <div className={`space-y-1 font-mono ${sizeClass} ${leadingClass}`}>
+          <div data-codal-font={fontFamily} className={`space-y-1 ${fontClass} ${sizeClass} ${leadingClass}`}>
             {splitVerbatimIntoNumberedLines(verbatim).map(({ lineNumber, text }) => (
               <div key={lineNumber} className="flex items-start gap-3 hover:bg-amber-500/10 rounded px-1 -mx-1">
                 <span
@@ -961,7 +962,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
             ))}
           </div>
         ) : (
-          <div className={`space-y-3.5 ${fontClass} ${sizeClass} ${leadingClass}`}>
+          <div data-codal-font={fontFamily} className={`space-y-3.5 ${fontClass} ${sizeClass} ${leadingClass}`}>
             {blocks.map((block, idx) => {
               if (block.type === 'article-header') {
                 return (

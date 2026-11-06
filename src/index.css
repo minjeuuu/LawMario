@@ -1512,8 +1512,26 @@ body.printing-scorecard-only {
   .app-study-font-dm-sans,
   .app-study-font-bricolage,
   .app-study-font-jetbrains-mono
-) main :is(p, li, td, th, blockquote, h3, h4):not(.font-mario):not(.font-mono) {
+) main :is(p, li, td, th, blockquote, h3, h4):not(.font-mario):not(.font-mono):not([data-codal-font]):not([data-codal-font] *) {
   font-family: var(--font-primary);
+}
+
+/* Verbatim Statutory Codal Viewer Explicit Dynamic Font Cascades (100% cascade across title, body & subsections) */
+[data-codal-font="serif"],
+[data-codal-font="serif"] *:not(.font-mario) {
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, Cambria, serif !important;
+}
+[data-codal-font="sans"],
+[data-codal-font="sans"] *:not(.font-mario) {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif !important;
+}
+[data-codal-font="mono"],
+[data-codal-font="mono"] *:not(.font-mario) {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', 'Courier New', monospace !important;
+}
+[data-codal-font="playfair"],
+[data-codal-font="playfair"] *:not(.font-mario) {
+  font-family: 'Playfair Display', 'Cinzel', Georgia, serif !important;
 }
 
 /* Topic Card Zero-Latency Section Rendering & Offscreen Content Visibility */

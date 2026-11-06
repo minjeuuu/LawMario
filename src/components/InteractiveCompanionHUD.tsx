@@ -12,11 +12,16 @@ import {
   X,
   MessageCircle,
   ArrowLeftRight,
+  Crown,
 } from 'lucide-react';
 import { MarioCharacterAvatar, MarioAvatar } from './MarioIcons';
 import {
   resolveCompanionInteraction,
+  resolveUniversalCardFrame,
+  resolveEquippedRing,
   StudyCompanionId,
+  type CardFrameId,
+  type MarioEquippedRing,
 } from '../utils/round12Features';
 import { marioAudio } from '../utils/audio';
 
@@ -158,6 +163,8 @@ interface InteractiveCompanionHUDProps {
   completedTopicsCount: number;
   isToadTipOpen?: boolean;
   activeTab?: string;
+  equippedCardFrame?: CardFrameId;
+  equippedRing?: MarioEquippedRing;
 }
 
 export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = ({
@@ -169,6 +176,8 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
   completedTopicsCount,
   isToadTipOpen = false,
   activeTab = 'map',
+  equippedCardFrame = 'frame_default',
+  equippedRing = 'ring_none',
 }) => {
   // If user selected none, fallback gracefully to Lawyer Toad as default interactive tutor
   const effectiveCompanionId: StudyCompanionId =
@@ -201,6 +210,9 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
   // If Toad's Pro Tip is open or we are on the dashboard map tab, force docking to the right so they NEVER overlap
   const effectiveDockSide: 'right' | 'left' = (activeTab === 'map' || isToadTipOpen) ? 'right' : dockSide;
   const positionClasses = effectiveDockSide === 'right' ? 'right-3 sm:right-6' : 'left-3 sm:left-6';
+  const verticalPositionClass = isToadTipOpen
+    ? 'bottom-[370px] sm:bottom-24 md:bottom-6'
+    : 'bottom-20 md:bottom-6';
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);
   const [doctrineIdx, setDoctrineIdx] = useState<number>(0);
@@ -344,6 +356,9 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
     completedTopicsCount + affection.patsCount
   );
 
+  const resolvedUniversalFrame = resolveUniversalCardFrame(equippedCardFrame || 'frame_default');
+  const resolvedRing = resolveEquippedRing(equippedRing);
+
   const activeDoctrine = HIGH_YIELD_LEGAL_DOCTRINES[doctrineIdx];
   const displayedSpeech = customQuote || currentMeta.speech || activeDoctrine.rule;
 
@@ -352,7 +367,7 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
     return (
       <div
         data-testid="study-companion-widget-minimized"
-        className={`fixed bottom-20 lg:bottom-6 ${positionClasses} z-40 print:hidden animate-fade-in`}
+        className={`fixed ${verticalPositionClass} ${positionClasses} z-40 print:hidden animate-fade-in`}
       >
         <button
           type="button"
@@ -360,7 +375,13 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
           title="Open Interactive Study Companion HUD"
           className="group relative flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-2 border-amber-400 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.7)] hover:border-amber-300 hover:scale-105 active:scale-95 transition-all cursor-pointer"
         >
-          <div className="relative w-8 h-8 rounded-xl bg-amber-400 border border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
+          <div
+            className={`relative w-9 h-9 rounded-xl bg-amber-400 border-2 flex items-center justify-center shrink-0 shadow-[0_2px_0_#000] ${
+              equippedCardFrame && equippedCardFrame !== 'frame_default'
+                ? resolvedUniversalFrame.borderClasses
+                : 'border-black'
+            }`}
+          >
             <MarioCharacterAvatar character={currentMeta.avatarKey as MarioAvatar} className="w-6 h-6" />
             <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border border-black flex items-center justify-center">
               <Sparkles className="w-2 h-2 text-slate-950" />
@@ -384,9 +405,9 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
     <aside
       data-testid="study-companion-widget"
       aria-label="Interactive Mario Study Companion HUD"
-      className={`fixed bottom-20 lg:bottom-6 ${positionClasses} z-40 max-w-[340px] sm:max-w-[380px] w-[calc(100vw-1.5rem)] print:hidden select-none animate-in fade-in slide-in-from-bottom-2 duration-200`}
+      className={`fixed ${verticalPositionClass} ${positionClasses} z-40 max-w-[350px] sm:max-w-[400px] w-[calc(100vw-1.5rem)] print:hidden select-none animate-in fade-in slide-in-from-bottom-2 duration-200`}
     >
-      <div className="relative bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-3 border-black text-white rounded-2xl sm:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.85)] p-3 sm:p-4 space-y-2.5 overflow-hidden ring-2 ring-amber-400/80">
+      <div className="relative bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-3 border-black text-white rounded-2xl sm:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.85)] p-3.5 sm:p-4 space-y-3 overflow-hidden ring-2 ring-amber-400/80">
         {/* Floating Heart Particles */}
         {heartsFloating && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-50">
@@ -399,15 +420,17 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
 
         {/* Top Header Bar */}
         <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
               onClick={handlePetCompanion}
               title="Click to Pet Companion!"
-              className={`relative w-10 h-10 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-black flex items-center justify-center shrink-0 cursor-pointer shadow-[0_2px_0_#000] hover:scale-105 active:scale-95 transition-all ${
-                petAnimationPulse ? 'ring-4 ring-rose-400 animate-pulse' : ''
-              }`}
+              className={`relative w-12 h-12 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 flex items-center justify-center shrink-0 cursor-pointer shadow-[0_2px_0_#000] hover:scale-105 active:scale-95 transition-all ${
+                equippedCardFrame && equippedCardFrame !== 'frame_default'
+                  ? resolvedUniversalFrame.borderClasses
+                  : 'border-black'
+              } ${petAnimationPulse ? 'ring-4 ring-rose-400 animate-pulse' : ''}`}
             >
-              <MarioCharacterAvatar character={currentMeta.avatarKey as MarioAvatar} className="w-7 h-7" />
+              <MarioCharacterAvatar character={currentMeta.avatarKey as MarioAvatar} className="w-8 h-8" />
               <div className="absolute -bottom-1 -right-1 bg-black text-amber-300 text-[8px] font-black font-mono px-1 rounded-sm border border-amber-400 leading-none">
                 Lv.{affection.level}
               </div>
@@ -526,19 +549,53 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
           </div>
         )}
 
-        {/* Speech Bubble with Tail */}
-        <div className="relative bg-slate-950/90 border border-slate-700/80 rounded-xl p-2.5 text-slate-200 text-[11px] leading-relaxed shadow-inner">
-          <p className="line-clamp-3 font-medium text-slate-100">
-            {displayedSpeech}
-          </p>
-          <div className="mt-1 flex items-center justify-between text-[9px] text-slate-400 border-t border-slate-800/80 pt-1 font-mono">
-            <span>Pats: {affection.patsCount} · Affection XP: {affection.affectionXp}/100</span>
+        {/* Equipped Relic Ring Passive Perk Display */}
+        {resolvedRing.id !== 'ring_none' && (
+          <div className="flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/90 border border-amber-400/70 text-[10px] font-mono text-amber-200 shadow-xs">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="font-bold truncate text-white">{resolvedRing.name}</span>
+            </div>
+            <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-mario shrink-0">
+              {resolvedRing.badge}
+            </span>
+          </div>
+        )}
+
+        {/* Speech Bubble with Tail & Full Uncropped Doctrine / Advice */}
+        <div className="relative bg-slate-950/95 border-2 border-amber-400/60 rounded-2xl p-3 text-slate-200 text-xs leading-relaxed shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)] space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] text-amber-300 font-bold border-b border-slate-800/80 pb-1">
+            <span className="flex items-center gap-1 font-mario text-[8px] uppercase tracking-wider text-amber-400">
+              <MessageCircle className="w-3 h-3 text-amber-400 shrink-0" />
+              <span>{currentMeta.name.split(' ')[0]}&apos;s Doctrine Guidance</span>
+            </span>
+            <span className="font-mono text-[9px] text-emerald-300 flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+              <span>
+                {affection.happiness >= 90
+                  ? 'Ecstatic'
+                  : affection.happiness >= 70
+                  ? 'Joyful'
+                  : 'Attentive'}
+              </span>
+            </span>
+          </div>
+          <div className="max-h-36 overflow-y-auto overscroll-contain pr-1 font-medium text-slate-100 text-xs leading-relaxed select-text space-y-1">
+            <p className="whitespace-pre-wrap">{displayedSpeech}</p>
+            {activeDoctrine.citation && (
+              <span className="text-[10px] text-amber-300 font-mono block italic">
+                Citation: {activeDoctrine.citation}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between text-[9px] text-slate-400 border-t border-slate-800/80 pt-1.5 font-mono">
+            <span>Pats: {affection.patsCount} · Level XP: {affection.affectionXp}/100</span>
             <button
               type="button"
               onClick={handleNextDoctrine}
               className="text-amber-300 hover:text-amber-200 font-bold underline cursor-pointer"
             >
-              Ask Next Doctrine &rarr;
+              Next Doctrine &rarr;
             </button>
           </div>
         </div>

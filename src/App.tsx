@@ -150,8 +150,11 @@ import {
   GlobalStudyHubModal,
   GlobalStudyLaunchMode,
 } from './components/GlobalStudyHubModal';
+import { StatutoryMultiplierDrillModal } from './components/StatutoryMultiplierDrillModal';
+import { ReverseCitationRecitationModal } from './components/ReverseCitationRecitationModal';
+import { PomodoroSprintModal } from './components/PomodoroSprintModal';
 import { FlagpoleStreakWidget } from './components/FlagpoleStreakWidget';
-import { resolveCompanionInteraction } from './utils/round12Features';
+import { resolveCompanionInteraction, type MarioEquippedRing } from './utils/round12Features';
 import {
   ArrowRight,
   ShoppingBag,
@@ -988,6 +991,29 @@ export default function App() {
     return 'frame_default';
   });
 
+  const [equippedRing, setEquippedRing] = useState<MarioEquippedRing>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('mario_equipped_ring_v1') as MarioEquippedRing | null;
+        if (stored) return stored;
+      } catch {
+        return 'ring_curatorial_gold';
+      }
+    }
+    return 'ring_curatorial_gold';
+  });
+
+  const handleEquipRing = (ringId: MarioEquippedRing) => {
+    setEquippedRing(ringId);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('mario_equipped_ring_v1', ringId);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   useEffect(() => {
     const onCompanionEquipped = (e: Event) => {
       const custom = e as CustomEvent<StudyCompanionId>;
@@ -997,11 +1023,17 @@ export default function App() {
       const custom = e as CustomEvent<CardFrameId>;
       if (custom.detail) setEquippedCardFrame(custom.detail);
     };
+    const onRingEquipped = (e: Event) => {
+      const custom = e as CustomEvent<MarioEquippedRing>;
+      if (custom.detail) setEquippedRing(custom.detail);
+    };
     window.addEventListener('mario-equip-companion', onCompanionEquipped);
     window.addEventListener('mario-equip-card-frame', onFrameEquipped);
+    window.addEventListener('mario-equip-ring', onRingEquipped);
     return () => {
       window.removeEventListener('mario-equip-companion', onCompanionEquipped);
       window.removeEventListener('mario-equip-card-frame', onFrameEquipped);
+      window.removeEventListener('mario-equip-ring', onRingEquipped);
     };
   }, []);
 
@@ -1404,6 +1436,9 @@ export default function App() {
   }, [sectionAttemptsLog]);
 
   const [isGlobalStudyHubOpen, setIsGlobalStudyHubOpen] = useState(false);
+  const [isMultiplierDrillOpen, setIsMultiplierDrillOpen] = useState(false);
+  const [isReverseCitationOpen, setIsReverseCitationOpen] = useState(false);
+  const [isPomodoroSprintOpen, setIsPomodoroSprintOpen] = useState(false);
 
   const recordTopicEngagement = (topicId: string) => {
     if (!topicId) return;
@@ -1835,20 +1870,28 @@ export default function App() {
   };
 
   const handleEarnCoin = () => {
-    const reward = computeEffectiveCoinReward(1, {
+    const baseReward = computeEffectiveCoinReward(1, {
       isSuperStarActive: checkLive2xActive(),
       hasMushroomCoinCharm: hasMushroomCoinCharm(),
     });
-    setCoins((c) => c + reward);
+    const finalReward =
+      equippedRing === 'ring_curatorial_gold'
+        ? Math.ceil(baseReward * 1.25)
+        : baseReward;
+    setCoins((c) => c + finalReward);
   };
 
   const handleEarnCoins = (amount: number) => {
     if (amount <= 0) return;
-    const reward = computeEffectiveCoinReward(amount, {
+    const baseReward = computeEffectiveCoinReward(amount, {
       isSuperStarActive: checkLive2xActive(),
       hasMushroomCoinCharm: false,
     });
-    setCoins((c) => c + reward);
+    const finalReward =
+      equippedRing === 'ring_curatorial_gold'
+        ? Math.ceil(baseReward * 1.25)
+        : baseReward;
+    setCoins((c) => c + finalReward);
   };
 
   // Wrapper for GameVault so arcade coin pickups also receive active 2x buffs
@@ -2095,22 +2138,14 @@ export default function App() {
       setQuizExternalLaunch((prev) => ({ mode: 'flashback', nonce: (prev?.nonce || 0) + 1 }));
       marioAudio.playPowerUp();
     } else if (mode === 'multiplier_test') {
-      setIsDoleCalculatorOpen(true);
-      setActiveTab('calculator');
+      setIsMultiplierDrillOpen(true);
       marioAudio.playCoin();
     } else if (mode === 'reverse_citation') {
-      setActiveTab('flashcards');
-      setQuickStudyLaunchId((prev) => prev + 1);
+      setIsReverseCitationOpen(true);
       marioAudio.playPowerUp();
     } else if (mode === 'pomodoro_sprint') {
-      setActiveTab('modules');
+      setIsPomodoroSprintOpen(true);
       marioAudio.playPowerUp();
-      window.setTimeout(() => {
-        const el =
-          document.getElementById('modules-study-sprint-container') ||
-          document.querySelector('[data-testid="modules-study-sprint-timer"]');
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
     } else if (mode === 'flagpole_quiz') {
       setActiveTab('quiz');
       setQuizExternalLaunch((prev) => ({ mode: 'quick', nonce: (prev?.nonce || 0) + 1 }));
@@ -2397,6 +2432,7 @@ export default function App() {
           isBonusClaimedToday={isBonusClaimedToday}
           equippedAvatar={equippedAvatar}
           equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
           colorMode={colorMode}
           onToggleColorMode={() => handleToggleColorMode()}
           unlockedAchievementsCount={unlockedAchievementsCount}
@@ -2791,6 +2827,7 @@ export default function App() {
               onAwardBonusXp={handleAwardBonusXp}
               equippedAvatar={equippedAvatar}
           equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
               onStartDailyQuiz={() => {
                 setActiveTab('quiz');
                 setQuizExternalLaunch((prev) => ({ mode: 'quick', nonce: (prev?.nonce || 0) + 1 }));
@@ -2843,6 +2880,7 @@ export default function App() {
               fontSize={fontSize}
               equippedAvatar={equippedAvatar}
           equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
               setEquippedAvatar={setEquippedAvatar}
               completedTopicIds={completedTopicIds}
               onToggleTopicComplete={handleToggleTopicComplete}
@@ -3033,6 +3071,7 @@ export default function App() {
               }}
               equippedAvatar={equippedAvatar}
           equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
               favoriteCount={bookmarkedTopicIds.length}
               showFavoritesOnly={moduleStatusFilter === 'bookmarked'}
               onToggleFavoritesFilter={() => {
@@ -3972,10 +4011,10 @@ export default function App() {
                                   <span className="text-xs font-bold text-lime-300 block">
                                     05. Interactive Slide Check (+3 Coins)
                                   </span>
-                                  <p className="text-sm sm:text-base font-extrabold text-white">
+                                  <p className="text-sm sm:text-base font-extrabold text-white leading-relaxed break-words [overflow-wrap:anywhere] whitespace-normal">
                                     {slideCheck.question}
                                   </p>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  <div className="flex flex-col gap-2.5 w-full">
                                     {slideCheck.options.map((opt, oIdx) => {
                                       const picked = slideQuizChoice === oIdx;
                                       const isRight = oIdx === slideCheck.correctIndex;
@@ -3992,23 +4031,28 @@ export default function App() {
                                               marioAudio.playWrongAnswer();
                                             }
                                           }}
-                                          className={`min-h-[44px] p-3 rounded-xl border-2 text-left text-xs sm:text-sm font-bold cursor-pointer ${
+                                          className={`w-full min-h-[48px] h-auto p-3.5 rounded-xl border-2 text-left text-xs sm:text-sm font-bold cursor-pointer flex items-start gap-2.5 break-words [overflow-wrap:anywhere] whitespace-normal leading-relaxed transition-all ${
                                             slideQuizChoice !== null
                                               ? isRight
-                                                ? 'bg-emerald-500 text-slate-950 border-black'
+                                                ? 'bg-emerald-500 text-slate-950 border-black font-black'
                                                 : picked
-                                                ? 'bg-rose-500 text-white border-black'
+                                                ? 'bg-rose-500 text-white border-black font-black'
                                                 : 'bg-slate-950/60 text-slate-400 border-slate-800'
                                               : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
                                           }`}
                                         >
-                                          {String.fromCharCode(65 + oIdx)}. {opt}
+                                          <span className="w-6 h-6 rounded-md bg-black/60 border border-slate-700 text-amber-300 font-mono font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                                            {String.fromCharCode(65 + oIdx)}
+                                          </span>
+                                          <span className="w-full min-w-0 break-words [overflow-wrap:anywhere] whitespace-normal leading-relaxed flex-1">
+                                            {opt}
+                                          </span>
                                         </button>
                                       );
                                     })}
                                   </div>
                                   {slideQuizChoice !== null && (
-                                    <p className="text-xs sm:text-sm font-semibold text-emerald-300">
+                                    <p className="text-xs sm:text-sm font-semibold text-emerald-300 leading-relaxed break-words [overflow-wrap:anywhere] whitespace-normal p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/60">
                                       {slideCheck.explanation}
                                     </p>
                                   )}
@@ -4283,6 +4327,7 @@ export default function App() {
             setActiveTheme={handleSelectActiveTheme}
             equippedAvatar={equippedAvatar}
           equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
             setEquippedAvatar={setEquippedAvatar}
             superStarEndsAt={superStarEndsAt}
             onActivateSuperStar={handleActivateSuperStar}
@@ -4292,6 +4337,8 @@ export default function App() {
             onEquipCompanion={handleEquipCompanion}
             equippedCardFrame={equippedCardFrame}
             onEquipCardFrame={handleEquipCardFrame}
+            equippedRing={equippedRing}
+            onEquipRing={handleEquipRing}
             onBoostStreak={handleBoostStreak}
             onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
             appStudyFont={appStudyFont}
@@ -4354,6 +4401,7 @@ export default function App() {
           <GameVault
             equippedAvatar={equippedAvatar}
           equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
             setEquippedAvatar={setEquippedAvatar}
             coins={coins}
             setCoins={handleArcadeSetCoins}
@@ -4405,6 +4453,7 @@ export default function App() {
             }}
             onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
             equippedCardFrame={equippedCardFrame}
+            equippedRing={equippedRing}
             flagpoleStreak={flagpoleStreakState}
             onUpdateFlagpoleStreak={setFlagpoleStreakState}
             onAwardBonusXp={handleAwardBonusXp}
@@ -4640,6 +4689,27 @@ export default function App() {
         onLaunchMode={handleLaunchGlobalStudyMode}
         activeStreakDays={flagpoleStreakState.currentStreak}
         criticalTopicsCount={sectionAttemptsLog.filter((s) => !s.isCorrect).length}
+      />
+
+      {/* Statutory Multiplier Table Speed Drill Modal */}
+      <StatutoryMultiplierDrillModal
+        isOpen={isMultiplierDrillOpen}
+        onClose={() => setIsMultiplierDrillOpen(false)}
+        onEarnCoins={handleEarnCoins}
+      />
+
+      {/* Reverse Legal Citation Recitation Modal */}
+      <ReverseCitationRecitationModal
+        isOpen={isReverseCitationOpen}
+        onClose={() => setIsReverseCitationOpen(false)}
+        onEarnCoins={handleEarnCoins}
+      />
+
+      {/* 25-Minute Focus Pomodoro Study Sprint Modal */}
+      <PomodoroSprintModal
+        isOpen={isPomodoroSprintOpen}
+        onClose={() => setIsPomodoroSprintOpen(false)}
+        onEarnCoins={handleEarnCoins}
       />
 
       {/* Level-Up Progression & Mario Avatar Unlock Modal */}
@@ -5093,6 +5163,8 @@ export default function App() {
           completedTopicsCount={completedTopicIds.length}
           activeTab={activeTab}
           isToadTipOpen={activeTab === 'map' && showToadTip}
+          equippedCardFrame={equippedCardFrame}
+          equippedRing={equippedRing}
         />
       </ErrorBoundary>
 
@@ -5179,7 +5251,7 @@ export default function App() {
       <nav
         aria-label="Mobile Bottom Navigation"
         data-testid="mobile-bottom-nav"
-        className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 border-t-2 border-amber-400 px-1 py-1 [@media(max-height:500px)]:py-0.5 grid grid-cols-5 w-full gap-1 lg:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.6)] select-none safe-bottom-dock print:hidden"
+        className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 border-t-2 border-amber-400 px-1 py-1 [@media(max-height:500px)]:py-0.5 grid grid-cols-5 w-full gap-1 md:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.6)] select-none safe-bottom-dock print:hidden"
       >
         {(() => {
           const defaultTabs = [

@@ -40,6 +40,7 @@ import {
   Activity,
   GitBranch,
   History,
+  Users,
 } from 'lucide-react';
 import { MarioCoinIcon, MarioCharacterAvatar, MarioStarIcon } from './MarioIcons';
 import { marioAudio, AudioSettings, SOUND_PACK_DEFINITIONS } from '../utils/audio';
@@ -51,6 +52,7 @@ import {
   MarioTheme,
   StudyDifficulty,
   AppStudyFontId,
+  MarioEquippedRing,
 } from '../types/laborLaw';
 import {
   UserProgressionState,
@@ -76,6 +78,7 @@ import {
   resolveEquippedNameplate,
   resolveCompanionInteraction,
   resolveUniversalCardFrame,
+  resolveEquippedRing,
   type CardFrameId,
 } from '../utils/round12Features';
 import {
@@ -107,6 +110,7 @@ interface NavbarProps {
   isBonusClaimedToday: boolean;
   equippedAvatar?: MarioAvatar;
   equippedCardFrame?: CardFrameId;
+  equippedRing?: MarioEquippedRing;
   colorMode: ColorMode;
   onToggleColorMode: () => void;
   unlockedAchievementsCount?: number;
@@ -181,6 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isBonusClaimedToday,
   equippedAvatar = 'mario',
   equippedCardFrame = 'frame_default',
+  equippedRing = 'ring_none',
   colorMode,
   onToggleColorMode,
   unlockedAchievementsCount = 0,
@@ -263,6 +268,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const companionMeta = resolveCompanionInteraction(equippedCompanionId);
   const resolvedEquippedFrame = resolveUniversalCardFrame(equippedCardFrame);
+  const resolvedEquippedRing = resolveEquippedRing(equippedRing);
 
   const effectiveDailyGoal = normalizeDailyGoalMinutes(dailyGoalMinutes);
   const dailyGoalProgress = computeDailyStudyGoalProgress(
@@ -430,7 +436,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header
         data-testid="main-navbar"
-        className="bg-gradient-to-b from-[#171226] via-[#13192b] to-[#0f172a] border-b-4 border-slate-950 shadow-[0_5px_0_rgba(0,0,0,0.65)] text-white select-none w-full max-w-full overflow-x-clip print:hidden relative z-40"
+        className="bg-gradient-to-b from-[#171226] via-[#13192b] to-[#0f172a] border-b-4 border-slate-950 shadow-[0_5px_0_rgba(0,0,0,0.65)] text-white select-none w-full max-w-full overflow-visible print:hidden relative z-40"
       >
         {/* Royal Gold Top Rim Accent */}
         <div
@@ -442,7 +448,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {!zenMode && (
           <div
             data-testid="navbar-top-status-row"
-            className="bg-gradient-to-r from-[#0d1220] via-[#151d32] to-[#0d1220] border-b border-amber-400/20 px-1.5 sm:px-3.5 py-1.5 flex items-center justify-between gap-2 text-xs font-semibold w-full max-w-full min-w-0 overflow-hidden"
+            className="bg-gradient-to-r from-[#0d1220] via-[#151d32] to-[#0d1220] border-b border-amber-400/20 px-1.5 sm:px-3.5 py-1.5 flex items-center justify-between gap-2 text-xs font-semibold w-full max-w-full min-w-0 overflow-visible relative z-50"
           >
             {/* Zone 1: Hero Logo, Profile Button, Level Progression & Desktop Goal Streak Consistency Capsule */}
             <div className="flex items-center gap-1 sm:gap-2 min-w-0 shrink-0">
@@ -581,6 +587,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 data-testid="navbar-powerups-slot"
                 className="inline-flex items-center gap-0.5 sm:gap-1 shrink-0 min-w-fit"
               >
+                {equippedRing && equippedRing !== 'ring_none' && (
+                  <button
+                    type="button"
+                    onClick={onOpenShop}
+                    title={`${resolvedEquippedRing.name}: ${resolvedEquippedRing.perk} — Click to visit Toad's Shop`}
+                    data-testid="navbar-equipped-ring-badge"
+                    className="h-7 px-1.5 sm:px-2 inline-flex items-center justify-center gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg border-2 border-black shadow-[0_1px_0_#000] cursor-pointer text-[9.5px] leading-none shrink-0"
+                  >
+                    <Award className="w-3 h-3 text-slate-950 shrink-0" />
+                    <span className="font-mario text-[8px] uppercase">{resolvedEquippedRing.badge}</span>
+                  </button>
+                )}
                 {superStarRemainingLabel || invincibleRemainingLabel || doubleXpRemainingLabel ? (
                   <button
                     type="button"
@@ -781,7 +799,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               })()}
 
               {/* 7. Dedicated Audio Mixer Popover (Inline on sm+ screens; also in mobile drawer) */}
-              <div ref={mixerRef} className="relative hidden sm:block shrink-0">
+              <div ref={mixerRef} className="relative hidden sm:block shrink-0 z-50">
                 <button
                   type="button"
                   onClick={() => {
@@ -811,7 +829,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {showQuickAudioSliders && (
                   <div
                     data-testid="navbar-audio-sliders-popover"
-                    className="fixed inset-x-3 top-14 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-slate-950/95 border-3 border-amber-400 rounded-2xl p-4 shadow-[6px_6px_0_#000] z-50 text-white space-y-3.5 backdrop-blur-md"
+                    className="fixed inset-x-3 top-14 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-slate-950/98 border-3 border-amber-400 rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-[90] text-white space-y-3.5 backdrop-blur-md"
                   >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <div className="flex items-center gap-2">
@@ -1096,7 +1114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
 
               {/* 8. Clean Overflow 'Tools' Menu (Inline on sm+ screens; full quick tools in mobile drawer) */}
-              <div ref={moreToolsRef} className="relative hidden sm:block shrink-0">
+              <div ref={moreToolsRef} className="relative hidden sm:block shrink-0 z-50">
                 <button
                   type="button"
                   onClick={() => {
@@ -1121,7 +1139,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {showMoreToolsMenu && (
                   <div
                     data-testid="navbar-more-tools-popover"
-                    className="mario-menu-press2p absolute right-0 top-full mt-2 w-80 bg-slate-950/95 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[6px_6px_0_#000] z-50 text-white space-y-2.5 backdrop-blur-md max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain"
+                    className="mario-menu-press2p fixed inset-x-3 top-14 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-slate-950/98 border-3 border-amber-400 rounded-2xl p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-[90] text-white space-y-2.5 backdrop-blur-md max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain"
                   >
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
@@ -1632,7 +1650,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               marioAudio.playCoin();
             }}
             data-testid="navbar-goal-streak-mobile"
-            className="w-full flex lg:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] hover:bg-slate-900 border-b border-slate-800/80 text-[10px] font-bold cursor-pointer text-left"
+            className="w-full flex md:hidden items-center justify-between gap-2 px-2.5 py-1 bg-[#0b1324] hover:bg-slate-900 border-b border-slate-800/80 text-[10px] font-bold cursor-pointer text-left"
           >
             <span className="inline-flex items-center gap-1 text-amber-300 tabular-nums whitespace-nowrap">
               <Flame className="w-3 h-3 text-orange-400 shrink-0" />
@@ -1661,7 +1679,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Main Navigation Row: Royal Arcade Tabs, Zero Horizontal Scroll & Zero Crop Across All Viewports */}
-        <div className="px-1.5 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 xl:gap-2 w-full max-w-full min-w-0">
+        <div className="px-1.5 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1.5 xl:gap-2 w-full max-w-full min-w-0 relative z-20">
           {/* Zen Restore Button */}
           {zenMode && (
             <button
@@ -1677,11 +1695,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Desktop Navigation — Responsive Royal Tabs, Zero Horizontal Scroll */}
+          {/* Desktop & Tablet Navigation — Responsive Royal Tabs, Tablet-Safe, Zero Horizontal Scroll */}
           <nav
             aria-label="Primary Navigation"
             data-testid="desktop-primary-nav"
-            className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between scroll-smooth"
+            className="hidden md:flex items-center gap-0.5 xl:gap-1.5 flex-nowrap flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5 justify-start xl:justify-between scroll-smooth"
           >
             {navCategories.flatMap((cat) => cat.items).map((item) => {
               const isSansTab =
@@ -1716,10 +1734,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Mobile & Tablet 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
+          {/* Mobile Phone 5-Column Equal Grid Utility Row (Zero Overflow & Zero Text Spill Outside Frames) */}
           <div
             data-testid="mobile-utility-nav-row"
-            className="grid grid-cols-5 lg:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
+            className="grid grid-cols-5 md:hidden items-center w-full gap-0.5 min-[360px]:gap-1 sm:gap-1.5 min-w-0"
           >
             {(() => {
               const activeItemMeta = navCategories.flatMap((cat) => cat.items).find((item) => item.id === activeTab);
@@ -1874,7 +1892,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {isMobileMenuOpen && (
           <div
             data-testid="navbar-mobile-menu-drawer"
-            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
+            className="mario-menu-press2p block md:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
           >
             {/* Active Super Star 2X Banner inside Mobile Drawer when active */}
             {superStarRemainingLabel && (

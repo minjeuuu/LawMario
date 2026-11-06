@@ -148,7 +148,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
       role="dialog"
       aria-label="Mushroom Sound Settings"
       data-testid="audio-settings-modal"
-      className="fixed inset-0 z-[140] flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-xs overflow-y-auto overscroll-contain touch-pan-y select-none print:hidden"
+      className="fixed inset-0 z-[160] flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-xs overflow-y-auto overscroll-contain touch-pan-y select-none print:hidden"
     >
       <div className="bg-[#1e293b] text-white w-full max-w-lg rounded-3xl border-4 border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden flex flex-col max-h-[90vh] my-auto">
         {/* Modal Header */}
@@ -305,14 +305,14 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
                         : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 text-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-1.5 mb-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-1 min-w-0">
                       <span className="font-black text-xs sm:text-sm font-display text-white truncate min-w-0 flex-1">
                         {track.name}
                       </span>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black font-mono border border-black shrink-0 whitespace-nowrap uppercase tracking-wider ${track.accentClass}`}
+                        className={`px-1.5 py-0.5 rounded text-[8px] font-black font-mono border border-black shrink-0 whitespace-nowrap uppercase tracking-tight max-w-[85px] truncate ${track.accentClass}`}
                       >
-                        {isSelected && isMusicActive ? 'LIVE' : track.shortName}
+                        {isSelected && isMusicActive ? 'LIVE' : track.id === 'underground' ? 'CAVERN' : track.shortName}
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-300 font-medium leading-snug">
