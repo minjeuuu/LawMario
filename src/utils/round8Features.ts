@@ -1803,16 +1803,98 @@ export function computeA4PreviewStageMetrics(params: {
   };
 }
 
+const EXTENDED_TO_LEGACY_THEME_MAP: Record<string, string> = {
+  classic_navy: 'executive_navy',
+  ink_saver_bw: 'ink_saver_bw',
+  mario_crimson: 'supreme_court_crimson',
+  emerald_counsel: 'forest_dole_emerald',
+  royal_parchment: 'vintage_parchment',
+  rosalina_cobalt: 'starlight_cobalt',
+  peach_rosewood: 'peach_blossom_rose',
+  waluigi_amethyst: 'royal_amethyst',
+  dole_teal: 'teal_tribunal',
+  nlrc_burgundy: 'supreme_court_crimson',
+  oxford_indigo: 'indigo_jurisprudence',
+  mahogany_bench: 'terracotta_codal',
+  olive_chancery: 'forest_dole_emerald',
+  charcoal_gold: 'bowser_obsidian_gold',
+  cobalt_blueprint: 'starlight_cobalt',
+  terracotta_codal: 'terracotta_codal',
+  pine_solicitor: 'forest_dole_emerald',
+  plum_magistrate: 'royal_amethyst',
+  arctic_slate: 'arctic_glacier',
+  starlight_bronze: 'bowser_obsidian_gold',
+  yoshi_island_jade: 'yoshi_jade_lime',
+  donut_plains_ochre: 'solarized_amber',
+  vanilla_dome_sapphire: 'starlight_cobalt',
+  forest_illusion_moss: 'luigi_mansion_jade',
+  bowser_fortress_ember: 'bowser_obsidian_gold',
+  peach_sky_sanctuary: 'sakura_editorial',
+  toad_bazaar_vermilion: 'sunset_coral',
+  daisy_sarasaland_amber: 'solarized_amber',
+  wario_bullion_vault: 'wario_royal_gold',
+  espresso_roast_linen: 'midnight_espresso',
+  midnight_indigo_copper: 'indigo_jurisprudence',
+  pastel_mint_highlighter: 'mint_dole_ledger',
+  pastel_sky_highlighter: 'starlight_cobalt',
+  pastel_lavender_codex: 'royal_amethyst',
+  pastel_butter_legalpad: 'golden_crown_ivory',
+};
+
+const EXTENDED_TO_LEGACY_FONT_MAP: Record<string, string> = {
+  jakarta_sans: 'modern_sans',
+  classic_serif: 'editorial_serif',
+  tabular_mono: 'classic_monospace',
+  editorial_garamond: 'cormorant_chancery',
+  humanist_sans: 'clean_inter',
+  georgia_bench: 'formal_georgia',
+  palatino_chancery: 'crimson_juris',
+  baskerville_law: 'libre_baskerville',
+  cambria_statute: 'warm_charter',
+  playfair_diploma: 'playfair_royal',
+  dm_sans_clean: 'dm_sans_clean',
+  outfit_geometric: 'outfit_geometric',
+  bricolage_editorial: 'bricolage_editorial',
+  trebuchet_syllabus: 'clean_inter',
+  verdana_accessible: 'dyslexic_sans',
+  lexend_dyslexia_friendly: 'dyslexic_sans',
+  merriweather_digest: 'editorial_serif',
+  jetbrains_tabular: 'classic_monospace',
+  fira_code_audit: 'retro_mario_mono',
+  courier_docket: 'classic_monospace',
+  press_start_mario: 'retro_mario_mono',
+  cinzel_supreme: 'playfair_royal',
+  fraunces_editorial: 'editorial_serif',
+  eb_garamond_codex: 'cormorant_chancery',
+  spectral_scra: 'editorial_serif',
+  pt_serif_gazette: 'editorial_serif',
+  archivo_grotesque: 'space_grotesk',
+  oswald_condensed: 'condensed_narrow',
+  urbanist_clean: 'modern_sans',
+};
+
 export function getPrintThemeCatalogItem(colorAccent?: string): PrintThemeCatalogItem {
-  return (
-    PRINT_COLOR_THEMES.find((t) => t.id === colorAccent) || PRINT_COLOR_THEMES[0]
-  );
+  if (!colorAccent) return PRINT_COLOR_THEMES[0];
+  const direct = PRINT_COLOR_THEMES.find((t) => t.id === colorAccent);
+  if (direct) return direct;
+  const mapped = EXTENDED_TO_LEGACY_THEME_MAP[colorAccent];
+  if (mapped) {
+    const matched = PRINT_COLOR_THEMES.find((t) => t.id === mapped);
+    if (matched) return matched;
+  }
+  return PRINT_COLOR_THEMES[0];
 }
 
 export function getPrintFontCatalogItem(fontStyle?: string): PrintFontCatalogItem {
-  return (
-    PRINT_FONT_STYLES.find((f) => f.id === fontStyle) || PRINT_FONT_STYLES[0]
-  );
+  if (!fontStyle) return PRINT_FONT_STYLES[0];
+  const direct = PRINT_FONT_STYLES.find((f) => f.id === fontStyle);
+  if (direct) return direct;
+  const mapped = EXTENDED_TO_LEGACY_FONT_MAP[fontStyle];
+  if (mapped) {
+    const matched = PRINT_FONT_STYLES.find((f) => f.id === mapped);
+    if (matched) return matched;
+  }
+  return PRINT_FONT_STYLES[0];
 }
 
 // ============================================================================
