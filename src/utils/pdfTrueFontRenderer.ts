@@ -100,6 +100,10 @@ export async function captureDomElementToPdfBytesAsync(
     await new Promise((resolve) => setTimeout(resolve, 80));
 
     const targetW = orientation === 'portrait' ? 794 : 1122;
+    const targetH = el.offsetHeight || (orientation === 'portrait' ? 1123 : 794);
+    const renderScale = 3.2; // 300+ DPI Ultra-HD print master standard
+    const highResW = Math.round(targetW * renderScale);
+    const highResH = Math.round(targetH * renderScale);
 
     let canvas: HTMLCanvasElement | null = null;
 
@@ -108,15 +112,17 @@ export async function captureDomElementToPdfBytesAsync(
     // embedding true Google WebFonts, Mario vector SVGs, and CSS grids directly into canvas.
     try {
       canvas = await htmlToImageCanvas(el, {
-        pixelRatio: 2,
-        width: targetW,
+        width: highResW,
+        height: highResH,
+        canvasWidth: highResW,
+        canvasHeight: highResH,
         backgroundColor: '#ffffff',
         style: {
-          transform: 'none',
-          margin: '0',
+          transform: `scale(${renderScale})`,
+          transformOrigin: 'top left',
           width: `${targetW}px`,
-          minWidth: `${targetW}px`,
-          maxWidth: `${targetW}px`,
+          height: `${targetH}px`,
+          margin: '0',
           boxSizing: 'border-box',
           fontFamily: resolvedFontStack,
         },

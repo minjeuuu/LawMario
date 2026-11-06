@@ -1144,6 +1144,82 @@ body.printing-scorecard-only {
     break-inside: avoid !important;
     page-break-after: avoid !important;
   }
+
+  /* One-Page Summary Sheet Native Vector Print Isolation */
+  body:has(#one-page-summary-sheet) *:not(:has(#one-page-summary-sheet)):not(#one-page-summary-sheet):not(#one-page-summary-sheet *) {
+    display: none !important;
+  }
+
+  body:has(#one-page-summary-sheet) *:has(#one-page-summary-sheet) {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body:has(#one-page-summary-sheet) #one-page-summary-sheet,
+  body:has(#one-page-summary-sheet) #one-page-summary-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body:has(#one-page-summary-sheet) #one-page-summary-sheet {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Official Score Card Sheet Native Vector Print Isolation */
+  body:has(#official-scorecard-sheet) *:not(:has(#official-scorecard-sheet)):not(#official-scorecard-sheet):not(#official-scorecard-sheet *) {
+    display: none !important;
+  }
+
+  body:has(#official-scorecard-sheet) *:has(#official-scorecard-sheet) {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body:has(#official-scorecard-sheet) #official-scorecard-sheet,
+  body:has(#official-scorecard-sheet) #official-scorecard-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body:has(#official-scorecard-sheet) #official-scorecard-sheet {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
 
 /* Responsive Game Viewport & Canvas Scaling */
