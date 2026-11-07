@@ -76,7 +76,7 @@ export const LevelProgressionModal: React.FC<LevelProgressionModalProps> = ({
               <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-300 font-mario block break-words">
                 PLAYER PROGRESSION &amp; CHARACTER AVATARS
               </span>
-              <h2 className="text-sm sm:text-xl font-black font-display text-white truncate sm:break-words">
+              <h2 className="text-sm sm:text-xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 Level {progression.level}: {progression.title}
               </h2>
             </div>

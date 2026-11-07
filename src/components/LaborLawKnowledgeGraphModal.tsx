@@ -144,10 +144,10 @@ export const LaborLawKnowledgeGraphModal: React.FC<LaborLawKnowledgeGraphModalPr
               <Network className="w-6 h-6" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-cyan-300 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-cyan-300 font-mario block leading-tight">
                 INTERACTIVE SVG CONCEPT TOPOLOGY (PAN &amp; ZOOM)
               </span>
-              <h2 className="text-base sm:text-xl font-black font-display text-white truncate">
+              <h2 className="text-base sm:text-xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 LABOR LAW STATUTORY KNOWLEDGE GRAPH
               </h2>
             </div>
@@ -495,7 +495,7 @@ export const LaborLawKnowledgeGraphModal: React.FC<LaborLawKnowledgeGraphModalPr
                             <span className="uppercase">{edge.relation}</span>
                             <span>{edge.label}</span>
                           </div>
-                          <p className="text-xs font-bold text-slate-200 truncate">
+                          <p className="text-xs font-bold text-slate-200 break-words [overflow-wrap:anywhere] leading-snug">
                             {peer.label}
                           </p>
                         </button>

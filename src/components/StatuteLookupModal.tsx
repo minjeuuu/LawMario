@@ -542,14 +542,14 @@ export const StatuteLookupModal: React.FC<StatuteLookupModalProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mono tracking-wider block truncate">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mono tracking-wider block">
                   INSTANT CODAL FINDER
                 </span>
                 <span className="text-slate-400 text-[11px] sm:text-xs font-bold">
                   · {results.length} Provisions
                 </span>
               </div>
-              <h2 className="text-base sm:text-2xl font-black font-display text-white truncate">
+              <h2 className="text-base sm:text-2xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 Philippine Labor Statute &amp; Codal Lookup
               </h2>
             </div>

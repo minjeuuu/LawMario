@@ -296,7 +296,7 @@ export const ToadsTrainingLogModal: React.FC<ToadsTrainingLogModalProps> = ({
               <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
                 MUSHROOM KINGDOM · ACADEMIC TELEMETRY
               </span>
-              <h2 className="text-lg sm:text-xl font-black font-display text-white truncate">
+              <h2 className="text-lg sm:text-xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 Toad&apos;s Training Log
               </h2>
             </div>
@@ -374,7 +374,7 @@ export const ToadsTrainingLogModal: React.FC<ToadsTrainingLogModalProps> = ({
                 <span className="text-[10px] font-bold uppercase">Best Day</span>
                 <Calendar className="w-4 h-4" />
               </div>
-              <div className="text-base sm:text-lg font-black text-white font-display truncate">
+              <div className="text-base sm:text-lg font-black text-white font-display break-words">
                 {summary.bestStudyDay.dayLabel}
               </div>
               <div className="text-[10px] text-cyan-300 font-mono">

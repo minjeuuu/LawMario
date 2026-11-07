@@ -164,10 +164,10 @@ export const DailyMissionModal: React.FC<DailyMissionModalProps> = ({
               <Target className="w-6 h-6" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-400 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-amber-400 font-mario block leading-tight">
                 MUSHROOM KINGDOM BOUNTY QUESTS · {dateKey}
               </span>
-              <h2 className="text-base sm:text-xl font-black font-display text-white truncate">
+              <h2 className="text-base sm:text-xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 DAILY MISSION STATUS &amp; REWARDS
               </h2>
             </div>

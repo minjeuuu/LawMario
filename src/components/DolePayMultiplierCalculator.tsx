@@ -22,6 +22,7 @@ import {
   MarioMushroomIcon,
   MarioWarpPipeIcon,
   MarioFireFlowerIcon,
+  MarioBrickStrip,
 } from './MarioPrintIcons';
 import { REGIONAL_MINIMUM_WAGES } from '../data/regionalWages';
 import { marioAudio } from '../utils/audio';
@@ -184,15 +185,37 @@ export const DolePayMultiplierCalculator: React.FC<DolePayMultiplierCalculatorPr
       formulaDescription: `₱${dailyWage.toFixed(2)} × 260%`,
     },
     {
+      id: 'special_day_rest_ot',
+      label: 'Special Day Overtime on Rest Day (Beyond 8h)',
+      multiplier: 1.95,
+      multiplierDisplay: '195% (150% × 130%)',
+      citation: 'Art. 93 par. 2, Labor Code',
+      hours: 2,
+      hourlyRate,
+      totalPesos: hourlyRate * 2 * 1.95,
+      formulaDescription: `₱${hourlyRate.toFixed(2)}/hr × 2 hrs × 195% (150% special rest day rate × 130% OT)`,
+    },
+    {
       id: 'double_holiday',
-      label: 'Double Regular Holiday (e.g. Good Friday + Araw ng Kagitingan)',
+      label: 'Double Regular Holiday (Worked First 8h)',
       multiplier: 3.0,
-      multiplierDisplay: '300%',
+      multiplierDisplay: '300% (Triple Pay)',
       citation: 'Asian Transmission Corp. v. CA',
       hours: 8,
       hourlyRate,
       totalPesos: dailyWage * 3.0,
       formulaDescription: `₱${dailyWage.toFixed(2)} × 300% (Triple Pay)`,
+    },
+    {
+      id: 'double_holiday_rest',
+      label: 'Double Regular Holiday on Scheduled Rest Day',
+      multiplier: 3.9,
+      multiplierDisplay: '390% (300% + 30% of 300%)',
+      citation: 'Asian Transmission Corp. / DOLE BWC',
+      hours: 8,
+      hourlyRate,
+      totalPesos: dailyWage * 3.9,
+      formulaDescription: `₱${dailyWage.toFixed(2)} × 390% (Double Holiday 300% + 30% rest day premium = 390%)`,
     },
   ];
 
@@ -214,9 +237,11 @@ Estimated Monthly (Factor ${workFactor}): ₱${estimatedMonthlySalary.toFixed(2)
 2. Ordinary Overtime (+2h @ 125%): ₱${(hourlyRate * 2 * 1.25).toFixed(2)}
 3. Night Differential (+2h @ 110%): +₱${(hourlyRate * 2 * 0.1).toFixed(2)}
 4. Rest Day / Special Day (130%): ₱${(dailyWage * 1.3).toFixed(2)}
-5. Regular Holiday Worked (200%): ₱${(dailyWage * 2.0).toFixed(2)}
-6. Regular Holiday on Rest Day (260%): ₱${(dailyWage * 2.6).toFixed(2)}
-7. Double Regular Holiday (300%): ₱${(dailyWage * 3.0).toFixed(2)}
+5. Special Day on Rest Day (150%): ₱${(dailyWage * 1.5).toFixed(2)}
+6. Regular Holiday Worked (200%): ₱${(dailyWage * 2.0).toFixed(2)}
+7. Regular Holiday on Rest Day (260%): ₱${(dailyWage * 2.6).toFixed(2)}
+8. Double Regular Holiday (300%): ₱${(dailyWage * 3.0).toFixed(2)}
+9. Double Holiday on Rest Day (390%): ₱${(dailyWage * 3.9).toFixed(2)}
 -----------------------------------------
 Statutory 13th Month Pay (${monthsWorkedInYear} mos): ₱${thirteenthMonthPay.toFixed(2)}
 Service Incentive Leave (5 days cash value): ₱${silCashValue.toFixed(2)}
@@ -282,6 +307,9 @@ Attribution: Corpuz (Main Creator) et al.`;
             </button>
           </div>
         </div>
+
+        {/* Mario Brick Accent Strip */}
+        <MarioBrickStrip className="w-full h-2 shrink-0" />
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 text-slate-100">
@@ -385,11 +413,26 @@ Attribution: Corpuz (Main Creator) et al.`;
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b-2 border-slate-700 gap-2">
+          <div className="flex border-b-2 border-slate-700 gap-2 overflow-x-auto scrollbar-thin">
             {[
-              { id: 'overtime', label: 'Overtime & Night Shift (Arts. 86–87)', icon: <Clock className="w-3.5 h-3.5" /> },
-              { id: 'holidays', label: 'Holidays & Rest Days (Arts. 93–94)', icon: <Calendar className="w-3.5 h-3.5" /> },
-              { id: 'benefits', label: '13th Month & Retirement (Art. 302)', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+              {
+                id: 'overtime',
+                fullLabel: 'Overtime & Night Shift (Arts. 86–87)',
+                shortLabel: 'Overtime & NSD',
+                icon: <Clock className="w-3.5 h-3.5 shrink-0" />,
+              },
+              {
+                id: 'holidays',
+                fullLabel: 'Holidays & Rest Days (Arts. 93–94)',
+                shortLabel: 'Holidays & Rest',
+                icon: <Calendar className="w-3.5 h-3.5 shrink-0" />,
+              },
+              {
+                id: 'benefits',
+                fullLabel: '13th Month & Retirement (Art. 302)',
+                shortLabel: '13th Mo. & Retire',
+                icon: <ShieldCheck className="w-3.5 h-3.5 shrink-0" />,
+              },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -398,14 +441,15 @@ Attribution: Corpuz (Main Creator) et al.`;
                   setCalcTab(tab.id as any);
                   marioAudio.playTabSwitch();
                 }}
-                className={`px-3.5 py-2 font-black text-xs rounded-t-xl border-t-2 border-x-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3.5 py-2 font-black text-xs rounded-t-xl border-t-2 border-x-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 ${
                   calcTab === tab.id
                     ? 'bg-slate-800 text-amber-300 border-amber-400'
                     : 'bg-slate-950 text-slate-400 border-transparent hover:text-slate-200'
                 }`}
               >
                 {tab.icon}
-                <span>{tab.label}</span>
+                <span className="hidden sm:inline">{tab.fullLabel}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
               </button>
             ))}
           </div>
@@ -583,6 +627,28 @@ Attribution: Corpuz (Main Creator) et al.`;
                 <div className="text-right font-mono shrink-0">
                   <span className="text-lg font-black text-emerald-400 block">₱{silCashValue.toFixed(2)}</span>
                   <span className="text-[10px] text-slate-500">₱{dailyWage.toFixed(2)} × 5 days</span>
+                </div>
+              </div>
+
+              {/* Statutory Retirement Age Benchmarks Callout */}
+              <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 text-xs space-y-2">
+                <div className="flex items-center gap-2">
+                  <MarioFireFlowerIcon size={16} />
+                  <span className="font-black uppercase text-amber-300 tracking-wide">
+                    Statutory Retirement Age Milestones (Art. 302 / R.A. 7641 &amp; R.A. 10757)
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300">
+                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-700 space-y-0.5">
+                    <span className="font-bold text-amber-300 block">General Private Sector:</span>
+                    <div>Optional: <span className="font-mono text-emerald-400 font-bold">60 years old</span> (min. 5 yrs service)</div>
+                    <div>Compulsory: <span className="font-mono text-amber-400 font-bold">65 years old</span></div>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-700 space-y-0.5">
+                    <span className="font-bold text-amber-300 block">Underground / Surface Miners (R.A. 10757):</span>
+                    <div>Optional: <span className="font-mono text-emerald-400 font-bold">50 years old</span> (min. 5 yrs service)</div>
+                    <div>Compulsory: <span className="font-mono text-amber-400 font-bold">60 years old</span></div>
+                  </div>
                 </div>
               </div>
             </div>

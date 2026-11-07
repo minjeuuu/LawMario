@@ -155,7 +155,7 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
               <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
                 {boardTab === 'coins' ? 'TOP STUDENT COIN EARNERS' : 'RANKED BY CORRECT ANSWERS'}
               </span>
-              <h2 className="text-lg sm:text-xl font-black text-white font-display truncate">
+              <h2 className="text-lg sm:text-xl font-black text-white font-display break-words [overflow-wrap:anywhere] leading-tight">
                 {boardTab === 'coins' ? 'GLOBAL COIN LEADERBOARD' : 'BAR QUIZ LEADERBOARD'}
               </h2>
             </div>

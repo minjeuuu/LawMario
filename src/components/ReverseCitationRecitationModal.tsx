@@ -271,7 +271,7 @@ export const ReverseCitationRecitationModal: React.FC<ReverseCitationRecitationM
               <span className="text-[10px] font-black uppercase text-sky-300 font-mario tracking-wider block">
                 REVERSE CITATION RECITATION
               </span>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-200 truncate">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-200 break-words [overflow-wrap:anywhere] leading-snug">
                 Doctrine to Exact Article / Republic Act Matching
               </h3>
             </div>
@@ -352,7 +352,7 @@ export const ReverseCitationRecitationModal: React.FC<ReverseCitationRecitationM
                       <span className="font-mono font-black text-sm text-amber-300">
                         {opt.citation}
                       </span>
-                      <span className="text-xs font-medium truncate mt-0.5 opacity-90">
+                      <span className="text-xs font-medium break-words [overflow-wrap:anywhere] leading-snug mt-0.5 opacity-90">
                         {opt.title}
                       </span>
                     </button>

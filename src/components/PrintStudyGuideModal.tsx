@@ -802,10 +802,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 <FileDown className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mario block truncate">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 font-mario block leading-tight">
                   A4 WHOLE-DOCUMENT PREVIEW &amp; PDF STUDIO
                 </span>
-                <h2 className="text-xs sm:text-base font-black text-white font-display truncate">
+                <h2 className="text-xs sm:text-base font-black text-white font-display break-words [overflow-wrap:anywhere] leading-tight">
                   {documentMode === 'summary'
                     ? 'ONE-PAGE A4 SUMMARY'
                     : documentMode === 'certificate'

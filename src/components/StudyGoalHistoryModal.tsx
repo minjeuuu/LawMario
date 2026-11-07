@@ -152,10 +152,10 @@ export const StudyGoalHistoryModal: React.FC<StudyGoalHistoryModalProps> = ({
               <Calendar className="w-6 h-6" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block leading-tight">
                 STUDY STREAK &amp; GOAL MILESTONE ARCHIVE
               </span>
-              <h2 className="text-base sm:text-xl font-black font-display text-white truncate">
+              <h2 className="text-base sm:text-xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 DAILY STUDY GOAL HISTORY CALENDAR
               </h2>
             </div>

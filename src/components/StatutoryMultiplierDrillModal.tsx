@@ -299,7 +299,7 @@ export const StatutoryMultiplierDrillModal: React.FC<StatutoryMultiplierDrillMod
                   DOLE BWC
                 </span>
               </div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-200 truncate">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-200 break-words [overflow-wrap:anywhere] leading-snug">
                 Philippine Labor Standards Wage Calculator Speed Test
               </h3>
             </div>

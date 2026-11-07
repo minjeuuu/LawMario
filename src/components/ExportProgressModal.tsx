@@ -541,10 +541,10 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
               <Trophy className="w-5 h-5 text-slate-950" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-400 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-amber-400 font-mario block leading-tight">
                 HIGH-DPI SHAREABLE DOSSIER
               </span>
-              <h2 className="text-base sm:text-xl font-black text-white font-display truncate">
+              <h2 className="text-base sm:text-xl font-black text-white font-display break-words [overflow-wrap:anywhere] leading-tight">
                 Score Stats Summary Card
               </h2>
             </div>

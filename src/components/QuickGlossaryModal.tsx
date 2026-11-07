@@ -222,7 +222,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                   {QUICK_GLOSSARY_TERMS.length} Codified Doctrines &amp; Terms
                 </span>
               </div>
-              <h2 className="text-sm sm:text-xl font-black font-display text-white truncate">
+              <h2 className="text-sm sm:text-xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 MUSHROOM KINGDOM LEGAL GLOSSARY
               </h2>
             </div>

@@ -501,7 +501,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   );
                 })()}
               </div>
-              <h2 className="text-base sm:text-xl font-black text-white font-display truncate">
+              <h2 className="text-base sm:text-xl font-black text-white font-display break-words [overflow-wrap:anywhere] leading-tight">
                 USER PROFILE &amp; ACHIEVEMENTS
               </h2>
             </div>

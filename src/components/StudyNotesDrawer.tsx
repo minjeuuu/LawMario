@@ -622,7 +622,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                   <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
                     PERSISTENT MNEMONIC PAD
                   </span>
-                  <h2 className="text-base sm:text-lg font-black text-white font-display truncate">
+                  <h2 className="text-base sm:text-lg font-black text-white font-display break-words">
                     STUDY NOTES ({notes.length})
                   </h2>
                 </div>
@@ -738,7 +738,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                                 <span className="text-[10px] font-mono font-bold text-emerald-300 block">
                                   {mod.worldId.toUpperCase()} · {mod.badge}
                                 </span>
-                                <span className="text-xs font-black text-white block truncate">
+                                <span className="text-xs font-black text-white block break-words [overflow-wrap:anywhere] leading-snug">
                                   {mod.title}
                                 </span>
                               </div>
@@ -849,7 +849,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                                     <span className="text-[9px] font-mono text-amber-300 font-bold block">
                                       {sched.worldId.toUpperCase()} · {sched.badge}
                                     </span>
-                                    <span className="text-xs font-extrabold text-white block truncate">
+                                    <span className="text-xs font-extrabold text-white block break-words [overflow-wrap:anywhere] leading-snug">
                                       {sched.title}
                                     </span>
                                   </div>
@@ -879,7 +879,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
               >
                 <div className="space-y-2 min-w-0">
                   <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
-                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario truncate">
+                    <span className="text-[10px] font-black uppercase text-amber-400 font-mario">
                       {editingId ? 'EDIT STUDY NOTE' : 'NEW STUDY NOTE'}
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -1226,7 +1226,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                               </>
                             )}
                           </div>
-                          <h3 className="font-black text-sm text-white font-display break-words">
+                          <h3 className="font-black text-sm text-white font-display break-words [overflow-wrap:anywhere] leading-snug">
                             {note.title}
                           </h3>
                         </div>

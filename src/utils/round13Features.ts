@@ -440,11 +440,19 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   const fingerprint = computeQuizErrorFingerprint(input);
   const basis = (input.legalBasis || 'Philippine Labor Code').trim();
   const scenarioClean = (input.scenario || '').trim();
-  const shortScenario =
-    scenarioClean.length > 56 ? `${scenarioClean.slice(0, 53).trim()}...` : scenarioClean;
+  // Crisp, mnemonic-style title without aggressive character cuts or mid-word slicing
+  let cleanHeadline = scenarioClean;
+  if (cleanHeadline.length > 140) {
+    const lastSpace = cleanHeadline.lastIndexOf(' ', 135);
+    cleanHeadline =
+      lastSpace > 40
+        ? `${cleanHeadline.slice(0, lastSpace).trim()}...`
+        : `${cleanHeadline.slice(0, 135).trim()}...`;
+  }
 
-  // Crisp, mnemonic-style title just like 1-tap mnemonic starters
-  const title = shortScenario ? `${basis} Mnemonic — ${shortScenario}` : `${basis} Mnemonic Rule`;
+  const title = cleanHeadline
+    ? `${basis} Mnemonic — ${cleanHeadline}`
+    : `${basis} Mnemonic Rule`;
 
   const explanationClean = (input.explanation || '').trim();
   const correctRuleClean = (input.correctOptionText || '').trim();
@@ -478,7 +486,7 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   lines.push(`${basis} · Ref: ${fingerprint}`);
 
   return {
-    title: title.slice(0, 110),
+    title: title.slice(0, 190),
     content: lines.join('\n'),
     worldTag: normalizeQuizWorldToNoteWorldTag(input.worldCode),
     fingerprint,

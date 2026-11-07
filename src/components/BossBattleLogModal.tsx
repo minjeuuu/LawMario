@@ -115,12 +115,12 @@ export const BossBattleLogModal: React.FC<BossBattleLogModalProps> = ({
               )}
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase text-rose-400 font-mario block truncate">
+              <span className="text-[10px] font-black uppercase text-rose-400 font-mario block leading-tight">
                 {activeLogTab === 'boss'
                   ? 'BAR MASTER DIFFICULTY TIER · PAST 10 RUNS'
                   : 'TOPIC CARD MINI-QUIZ MASTERY · PAST 15 RUNS'}
               </span>
-              <h2 className="text-lg sm:text-2xl font-black font-display text-white truncate">
+              <h2 className="text-lg sm:text-2xl font-black font-display text-white break-words [overflow-wrap:anywhere] leading-tight">
                 {activeLogTab === 'boss'
                   ? `Boss Battle Log (${entries.length}/10)`
                   : `Quick Quiz Log (${quickQuizEntries.length}/15)`}
@@ -267,7 +267,7 @@ export const BossBattleLogModal: React.FC<BossBattleLogModalProps> = ({
                           <span aria-hidden="true">·</span>
                           <span>{dateLabel}</span>
                         </div>
-                        <h3 className="text-sm sm:text-base font-black text-white font-display truncate mt-0.5">
+                        <h3 className="text-sm sm:text-base font-black text-white font-display break-words [overflow-wrap:anywhere] leading-snug mt-0.5">
                           {entry.modeLabel}
                         </h3>
                       </div>
@@ -344,7 +344,7 @@ export const BossBattleLogModal: React.FC<BossBattleLogModalProps> = ({
                         <span aria-hidden="true">·</span>
                         <span>{qq.formattedDate}</span>
                       </div>
-                      <h3 className="text-sm sm:text-base font-black text-white font-display truncate mt-0.5">
+                      <h3 className="text-sm sm:text-base font-black text-white font-display break-words [overflow-wrap:anywhere] leading-snug mt-0.5">
                         {qq.topicTitle}
                       </h3>
                     </div>

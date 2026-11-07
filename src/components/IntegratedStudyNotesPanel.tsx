@@ -440,7 +440,7 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     {note.pinned && <Pin className="w-3 h-3 text-amber-400 shrink-0 fill-current" />}
-                    <h4 className="text-xs font-black text-white truncate font-display">
+                    <h4 className="text-xs font-black text-white font-display break-words [overflow-wrap:anywhere] leading-snug">
                       {note.title}
                     </h4>
                   </div>

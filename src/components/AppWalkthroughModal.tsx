@@ -808,12 +808,12 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 <MarioMushroomIcon className="w-6 h-6" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-400 font-mario truncate">
-                  <span className="truncate">MARIO LABOR LAW ADVENTURE</span>
+                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-400 font-mario flex-wrap">
+                  <span>MARIO LABOR LAW ADVENTURE</span>
                   <span aria-hidden="true" className="shrink-0">·</span>
                   <span className="text-emerald-300 shrink-0">{MAIN_CREATOR_AUTHOR.shortBadge}</span>
                 </div>
-                <h2 className="text-xs sm:text-base md:text-lg font-black text-white font-display truncate">
+                <h2 className="text-xs sm:text-base md:text-lg font-black text-white font-display break-words [overflow-wrap:anywhere] leading-tight">
                   {activeMode === 'chapters'
                     ? `STEP-BY-STEP TOUR · CHAPTER ${stepIdx + 1} OF ${WALKTHROUGH_CHAPTERS.length}`
                     : activeMode === 'modals'

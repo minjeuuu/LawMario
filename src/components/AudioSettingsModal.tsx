@@ -158,10 +158,10 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({
               <Sliders className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             </div>
             <div className="min-w-0">
-              <span className="text-[9px] sm:text-xs font-black uppercase text-amber-400 font-mario block truncate">
+              <span className="text-[9px] sm:text-xs font-black uppercase text-amber-400 font-mario block leading-tight">
                 SOUNDSCAPES &amp; SFX MIXER
               </span>
-              <h2 className="text-base sm:text-2xl font-black text-white font-display leading-tight truncate">
+              <h2 className="text-base sm:text-2xl font-black text-white font-display leading-tight break-words [overflow-wrap:anywhere]">
                 MUSHROOM SOUND SETTINGS
               </h2>
             </div>
