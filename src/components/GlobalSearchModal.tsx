@@ -169,7 +169,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       {
         id: 'tool-research-cohort',
         title: 'Research Cohort Directory (9 Official Authors)',
-        subtitle: 'Matthew Cesar Corpuz (Main Creator), Cruz, Fanged, Fernandez, Garcia, Garvida, Mañalac, Untalan, Vila',
+        subtitle: 'Matthew Cesar Corpuz (Main Creator · Executed All Roles), Cruz, Fanged, Fernandez, Garcia, Garvida, Mañalac, Untalan, Vila',
         category: 'Tool',
         tab: 'research_cohort',
         badge: 'Authors',

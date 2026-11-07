@@ -5267,7 +5267,7 @@ export default function App() {
                 <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
                 <span>{MAIN_CREATOR_AUTHOR.shortBadge}</span>
                 <span className="text-slate-400">·</span>
-                <span className="text-slate-200">Main Creator</span>
+                <span className="text-slate-200">Main Creator (Executed All Roles)</span>
               </span>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 text-xs font-semibold text-slate-300 flex-wrap justify-center">

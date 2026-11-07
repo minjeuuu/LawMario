@@ -297,3 +297,53 @@ test('Authentic Mario vector emblems and Hero Score Card / Certificate elements 
   assert.ok(certBytes instanceof Uint8Array);
   assert.ok(certBytes.byteLength > 2000);
 });
+
+test('Matthew Cesar Corpuz is credited with executing all roles across Cohort and PDF exports', () => {
+  // 1. Group member details credit
+  const leadMember = GROUP_MEMBER_DETAILS[0];
+  assert.equal(leadMember.name, 'CORPUZ, MATTHEW CESAR');
+  assert.ok(leadMember.role.includes('Lead Creator'));
+  assert.ok(leadMember.role.includes('Executed All 9 Roles'));
+
+  // 2. One-Page Summary PDF
+  const onePageBytes = buildOnePageSummaryPdfBytes({
+    candidateName: 'Matthew Cesar Corpuz',
+    dateLabel: 'November 7, 2026',
+    colorAccent: 'executive_navy',
+    fontStyle: 'dm_sans_clean',
+  });
+  const bufOnePage = Buffer.from(onePageBytes);
+  const streamStart1 = bufOnePage.indexOf('stream\n');
+  const streamEnd1 = bufOnePage.indexOf('\nendstream', streamStart1);
+  const decompressed1 = inflateSync(bufOnePage.subarray(streamStart1 + 7, streamEnd1)).toString('latin1');
+  assert.ok(decompressed1.includes('CORPUZ'));
+  assert.ok(decompressed1.includes('Executed All Roles'));
+
+  // 3. Reviewer PDF
+  const reviewerBytes = buildStudyGuideReviewerPdfBytes({
+    allTopics: ALL_LAW_TOPICS.slice(0, 3),
+    includeGroupMembers: true,
+  });
+  const rawReviewer = Buffer.from(reviewerBytes).toString('latin1');
+  assert.ok(rawReviewer.includes('%PDF-'));
+
+  // 4. ScoreCard PDF
+  const scoreCardBytes = buildScoreCardLandscapePdfBytes({
+    playerName: 'Matthew Cesar Corpuz',
+    heroRank: 'Lead Architect',
+    heroName: 'Mario',
+    completedCount: 60,
+    totalTopics: 60,
+    coins: 999,
+    loginStreak: 10,
+    unlockedAchievementsCount: 20,
+    totalAchievementsCount: 20,
+    quizRunsCompleted: 40,
+    studyDurationFormatted: '5h 00m',
+  });
+  const bufScore = Buffer.from(scoreCardBytes);
+  const streamStartS = bufScore.indexOf('stream\n');
+  const streamEndS = bufScore.indexOf('\nendstream', streamStartS);
+  const decompressedS = inflateSync(bufScore.subarray(streamStartS + 7, streamEndS)).toString('latin1');
+  assert.ok(decompressedS.includes('Executed All Roles'));
+});

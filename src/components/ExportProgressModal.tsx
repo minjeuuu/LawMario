@@ -503,7 +503,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
     ctx.fillStyle = '#fbbf24';
     ctx.font = '700 15px "Plus Jakarta Sans", system-ui, sans-serif';
     ctx.fillText(
-      'Created by Matthew (Matthew Cesar Corpuz) · Main Creator',
+      'Created by Matthew (Matthew Cesar Corpuz) · Main Creator (Executed All Roles)',
       headerX + headerW,
       footerY
     );
@@ -756,7 +756,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 <span>Super Mario Labor Adventure · Unabridged Labor Standards</span>
               </span>
               <span className="font-semibold text-amber-300/90">
-                Created by Matthew · Main Creator
+                Created by Matthew · Main Creator (Executed All Roles)
               </span>
             </div>
           </div>

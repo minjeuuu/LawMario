@@ -1542,14 +1542,16 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   // Middle sub-line: 9 members list
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(7.0 * fScale);
-  doc.text('CORPUZ (Main Creator)', marginX + 2.8, footerY + 11.5);
+  doc.setFontSize(6.8 * fScale);
+  const leadCorpuzText = 'CORPUZ (Main Creator · Executed All Roles)';
+  doc.text(leadCorpuzText, marginX + 2.8, footerY + 11.5);
+  const leadCorpuzWidth = doc.getTextWidth(leadCorpuzText);
 
   doc.setFont(ff, fp.bodyStyle);
   doc.setTextColor(...theme.mutedText);
-  doc.setFontSize(6.8 * fScale);
+  doc.setFontSize(6.2 * fScale);
   const cohortRest = '· CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA';
-  doc.text(cohortRest, marginX + 40.0, footerY + 11.5);
+  doc.text(cohortRest, marginX + 2.8 + leadCorpuzWidth + 2.2, footerY + 11.5);
 
   // Bottom sub-line: Academic copyright & edition note
   doc.setFont(ff, fp.bodyStyle);
@@ -1820,6 +1822,12 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     doc.text('MATTHEW CESAR CORPUZ', 56, sigY + 4.5, { align: 'center' });
     doc.text('LABOR STANDARDS BOARD', W - 56, sigY + 4.5, { align: 'center' });
 
+    doc.setFont(ff, fp.bodyStyle);
+    doc.setFontSize(6.2 * cScale);
+    doc.setTextColor(...theme.mutedText);
+    doc.text('Main Creator & Sole Architect (All Roles)', 56, sigY + 8.2, { align: 'center' });
+    doc.text('Philippine Legal Research Cohort', W - 56, sigY + 8.2, { align: 'center' });
+
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
     doc.setFontSize(6.6 * cScale);
@@ -1957,7 +1965,7 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(7.0 * cScale);
   doc.setTextColor(...theme.mutedText);
-  doc.text('Main Creator & Lead Author of Memory Aid', 74, sigLineY + 9.2, { align: 'center' });
+  doc.text('Main Creator & Sole Architect (Executed All Roles)', 74, sigLineY + 9.2, { align: 'center' });
 
   // Official Seal with Super Star inside
   doc.setFillColor(...theme.accent);
@@ -2236,7 +2244,7 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
     const colW = (W - 44) / 3;
     const sigs = [
       { s: 'Chancellor Toadsworth', r: 'CHANCELLOR OF LEGISLATION' },
-      { s: 'Matthew Cesar Corpuz', r: 'MAIN CREATOR & ARCHITECT' },
+      { s: 'Matthew Cesar Corpuz', r: 'MAIN CREATOR & ARCHITECT (ALL ROLES)' },
       { s: 'Chief Arbiter Rosalina', r: 'CHIEF STATUTORY EXAMINER' },
     ];
     sigs.forEach((sg, idx) => {
@@ -2346,7 +2354,7 @@ export function buildMasterDiplomaPdfBytes(params: CertificatePdfParams): Uint8A
   doc.setFontSize(7.2 * dScale);
   doc.setTextColor(...dipTheme.mutedText);
   doc.text('CHANCELLOR OF SOCIAL LEGISLATION', 62, lSigY + 5, { align: 'center' });
-  doc.text('MATTHEW  -  MAIN CREATOR & CURATOR', W - 62, lSigY + 5, {
+  doc.text('MATTHEW  -  MAIN CREATOR & ARCHITECT (ALL ROLES)', W - 62, lSigY + 5, {
     align: 'center',
   });
 
@@ -2899,7 +2907,7 @@ export function buildStudyGuideReviewerPdfBytes(
     ? `Prepared for Learner: ${sanitizePdfText(params.candidateName)}  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
     : `Complete Six-World Memory Aid  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`;
   doc.text(doc.splitTextToSize(coverSub, contentW - 28)[0] || '', pageW / 2, y + 16.5, { align: 'center' });
-  doc.text(`Created by Matthew (Matthew Cesar Corpuz — Main Creator)  ·  Active Modules: ${activeTopics.length}`, pageW / 2, y + 19.8, { align: 'center' });
+  doc.text(`Created by Matthew (Matthew Cesar Corpuz — Main Creator · Executed All Roles)  ·  Active Modules: ${activeTopics.length}`, pageW / 2, y + 19.8, { align: 'center' });
 
   y += 25.0;
 
@@ -2926,9 +2934,9 @@ export function buildStudyGuideReviewerPdfBytes(
       y + 3.8
     );
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(6.2 * scale);
+    doc.setFontSize(5.8 * scale);
     doc.text(
-      '9 RESEARCHERS  |  MAIN CREATOR: MATTHEW CESAR CORPUZ',
+      '9 RESEARCHERS  |  MAIN CREATOR & ARCHITECT (ALL ROLES): MATTHEW CESAR CORPUZ',
       pageW - marginX - 3.5,
       y + 3.8,
       { align: 'right' }
@@ -2970,12 +2978,12 @@ export function buildStudyGuideReviewerPdfBytes(
       if (idx === 0) {
         doc.setFillColor(209, 250, 229);
         doc.setDrawColor(16, 185, 129);
-        doc.roundedRect(memX + colStepW - 14.0, memY + 1.0, 12.5, 3.2, 0.6, 0.6, 'FD');
-        drawVectorMarioStar(doc, memX + colStepW - 12.5, memY + 2.6, 0.9);
+        doc.roundedRect(memX + colStepW - 17.0, memY + 1.0, 15.5, 3.2, 0.6, 0.6, 'FD');
+        drawVectorMarioStar(doc, memX + colStepW - 15.6, memY + 2.6, 0.9);
         doc.setTextColor(6, 95, 70);
         doc.setFont(ff, fp.headingStyle);
         doc.setFontSize(4.6 * scale);
-        doc.text('Lead', memX + colStepW - 10.6, memY + 3.1);
+        doc.text('All Roles', memX + colStepW - 13.8, memY + 3.1);
       }
     });
 
@@ -4114,7 +4122,7 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
     196.5
   );
   doc.text(
-    'Created by Matthew (Matthew Cesar Corpuz - Main Creator)',
+    'Created by Matthew (Matthew Cesar Corpuz - Main Creator · Executed All Roles)',
     W - 16,
     196.5,
     { align: 'right' }

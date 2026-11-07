@@ -2489,7 +2489,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         </span>
                       </div>
                       <div className="text-[9.5px] font-semibold text-slate-900 tracking-tight leading-snug">
-                        <span className="font-black text-amber-800">CORPUZ (Main Creator)</span> · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
+                        <span className="font-black text-amber-800">CORPUZ (Main Creator · Executed All Roles)</span> · CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA
                       </div>
                     </div>
                   </div>
@@ -2603,7 +2603,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           Matthew Cesar Corpuz
                         </p>
                         <p className="text-[9.5px] text-slate-500 leading-tight">
-                          Main Creator &amp; Chief Legal Researcher
+                          Main Creator, Lead Author &amp; Architect (Executed All Roles)
                         </p>
                       </div>
 
@@ -2785,7 +2785,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     {/* Footer */}
                     <div className={`border-t-2 ${headingBorderClass} pt-3 flex items-center justify-between text-xs font-mono text-slate-600`}>
                       <span>Super Mario Labor Adventure · Philippine Labor Standards Guide</span>
-                      <span>Created by Matthew (Matthew Cesar Corpuz — Main Creator)</span>
+                      <span>Created by Matthew (Matthew Cesar Corpuz — Main Creator · Executed All Roles)</span>
                     </div>
                   </div>
                 ) : (
@@ -2862,7 +2862,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                 className="pt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] opacity-90"
               >
                 <span className="inline-flex items-center gap-1 font-semibold">
-                  Created by Matthew (Matthew Cesar Corpuz — Main Creator)
+                  Created by Matthew (Matthew Cesar Corpuz — Main Creator · Executed All Roles)
                 </span>
                 <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1">
@@ -2890,7 +2890,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     </h2>
                   </div>
                   <span className="text-[11px] font-semibold text-slate-700">
-                    Main Creator: Matthew Cesar Corpuz
+                    Main Creator &amp; Architect (Executed All Roles): Matthew Cesar Corpuz
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-3 gap-y-2 text-[11px] text-slate-900">
@@ -2908,7 +2908,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       {idx === 0 && (
                         <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0 inline-flex items-center gap-0.5">
                           <MarioSuperStarIcon size={11} />
-                          <span>Lead</span>
+                          <span>All Roles</span>
                         </span>
                       )}
                     </div>
@@ -3830,7 +3830,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
             <footer
               className={`border-t-2 ${headingBorderClass} pt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-600 font-mono break-inside-avoid`}
             >
-              <span>Created by Matthew · Super Mario Labor Standards Guide (Worlds 1–6)</span>
+              <span>Created by Matthew (Main Creator · Executed All Roles) · Super Mario Labor Standards Guide (Worlds 1–6)</span>
               <span>Complete Six-World Reviewer</span>
             </footer>
           </div>

@@ -42,6 +42,8 @@ export const ResearchCohortModal: React.FC<ResearchCohortModalProps> = ({
   const filteredMembers = GROUP_MEMBER_DETAILS.filter((m) => {
     if (filterDomain === 'all') return true;
     if (filterDomain === 'architecture') return m.name.includes('CORPUZ');
+    // Matthew executed all roles, so Matthew is included in every research domain
+    if (m.name.includes('CORPUZ')) return true;
     if (filterDomain === 'leaves') return m.specialization.includes('Leave') || m.specialization.includes('Maternity') || m.specialization.includes('Rest');
     if (filterDomain === 'wages') return m.specialization.includes('Wage') || m.specialization.includes('Hours') || m.specialization.includes('Overtime');
     if (filterDomain === 'tenure') return m.specialization.includes('Tenure') || m.specialization.includes('Contracting') || m.specialization.includes('Children') || m.specialization.includes('Prescriptive');
@@ -52,13 +54,14 @@ export const ResearchCohortModal: React.FC<ResearchCohortModalProps> = ({
     marioAudio.playCoin();
     let text = '';
     if (type === 'bluebook') {
-      text = 'Matthew Cesar Corpuz et al., Super Mario Philippine Labor Standards Memory Aid (2026) (covering P.D. No. 442, DOLE D.O. 174-17, R.A. 10361, R.A. 11210 & R.A. 11360).';
+      text = 'Matthew Cesar Corpuz (Main Creator, Lead Author & Architect — Executed All System Roles) et al., Super Mario Philippine Labor Standards Memory Aid (2026) (covering P.D. No. 442, DOLE D.O. 174-17, R.A. 10361, R.A. 11210 & R.A. 11360).';
     } else if (type === 'apa') {
-      text = 'Corpuz, M. C., Cruz, M. L., Fanged, T. F., Fernandez, J., Garcia, A. S., Garvida, M., Mañalac, A., Untalan, B. H., & Vila, H. D. (2026). Super Mario Labor Adventure: Philippine Labor Standards & Statutory Welfare Reviewer. Manila, Philippines.';
+      text = 'Corpuz, M. C. (Main Creator, Lead Author & Architect — Executed All System Roles), Cruz, M. L., Fanged, T. F., Fernandez, J., Garcia, A. S., Garvida, M., Mañalac, A., Untalan, B. H., & Vila, H. D. (2026). Super Mario Labor Adventure: Philippine Labor Standards & Statutory Welfare Reviewer. Manila, Philippines.';
     } else {
       text = `RESEARCH COHORT ATTRIBUTION SLIP:
-Lead Creator: Matthew Cesar Corpuz (Field Captain)
-Senior Researchers:
+Main Creator & Sole Architect: Matthew Cesar Corpuz (Executed All System Roles, Full-Stack Development, Legal Engineering & Complete Statutory Architecture)
+Roster & Research Cohort:
+- Matthew Cesar Corpuz (Main Creator · Lead Author · Full Architecture · Executed All Roles)
 - Mary Louise Cruz (Statutory Leaves & Maternity)
 - Tracy Fae Fanged (Hours of Work & Overtime Formulas)
 - Jelyn Fernandez (Rest Periods & Holiday Multipliers)
@@ -232,7 +235,7 @@ Project: Super Mario Labor Adventure (Presidential Decree No. 442, as amended)`;
                       {isLead && (
                         <span className="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[9px] uppercase inline-flex items-center gap-1 border border-black shadow-2xs">
                           <MarioSuperStarIcon size={12} />
-                          <span>Main Creator</span>
+                          <span>Main Creator · Executed All Roles</span>
                         </span>
                       )}
                     </div>
@@ -246,6 +249,38 @@ Project: Super Mario Labor Adventure (Presidential Decree No. 442, as amended)`;
                       </p>
                     </div>
 
+                    {isLead && (
+                      <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/50 text-[11px] space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1 font-mono">
+                            <Sparkles className="w-3 h-3 text-amber-400" />
+                            Executed All 9 Roles &amp; Domains
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 text-[9px] font-black font-mono">
+                            9/9
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 pt-0.5">
+                          {[
+                            'Lead Author & Legal Systems Architect',
+                            'Full-Stack Developer (Vite/React/TS)',
+                            '17 Regions Wage & DOLE Calculator Engine',
+                            'Statutory Leaves & Welfare Codifier (R.A. 11210)',
+                            'Hours of Work, OT & Holiday Pay Formulas',
+                            'Subcontracting & Due Process Rules (D.O. 174)',
+                            'Vector PDF & Print Studio Designer',
+                          ].map((roleTitle) => (
+                            <span
+                              key={roleTitle}
+                              className="px-1.5 py-0.5 rounded bg-slate-900/90 text-amber-200 border border-amber-400/40 text-[9px] font-bold leading-tight"
+                            >
+                              {roleTitle}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-300 space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                         Domain Specialization:
@@ -258,7 +293,9 @@ Project: Super Mario Labor Adventure (Presidential Decree No. 442, as amended)`;
 
                   <div className="pt-1 border-t border-slate-700/60 flex items-center justify-between text-[10px] font-mono text-slate-400">
                     <span>Labor Code P.D. 442</span>
-                    <span className="text-amber-400 font-bold">Verified Contributor</span>
+                    <span className="text-amber-400 font-bold">
+                      {isLead ? 'Main Creator & Architect (All Roles)' : 'Verified Contributor'}
+                    </span>
                   </div>
                 </div>
               );

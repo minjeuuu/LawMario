@@ -68,9 +68,9 @@ export interface GroupMemberDetail {
 export const GROUP_MEMBER_DETAILS: readonly GroupMemberDetail[] = [
   {
     name: 'CORPUZ, MATTHEW CESAR',
-    role: 'Lead Creator & Systems Architect',
-    specialization: 'Full Philippine Labor Standards Architecture & Bar Syllabus Integration',
-    marioRole: 'Mario (Field Captain)',
+    role: 'Lead Creator, Full-Stack Developer & Chief Systems Architect (Executed All 9 Roles & Domains)',
+    specialization: 'Full Labor Standards Architecture, Codification Engine, 17 Regions Multipliers Simulator, Bar Syllabus Integration & All System Engineering',
+    marioRole: 'Mario (Lead Author & All-Roles Architect)',
   },
   {
     name: 'CRUZ, MARY LOUISE',

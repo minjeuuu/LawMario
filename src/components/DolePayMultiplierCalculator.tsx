@@ -265,7 +265,7 @@ Service Incentive Leave (5 days cash value): ₱${silCashValue.toFixed(2)}
 Retirement Pay (Art. 302, ${yearsOfService} yrs @ 22.5 days/yr): ₱${totalRetirementPay.toFixed(2)}
 =========================================
 Super Mario Labor Adventure · Philippine Labor Standards Guide
-Attribution: Corpuz (Main Creator) et al.`;
+Attribution: Matthew Cesar Corpuz (Main Creator · Executed All Roles) et al.`;
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(text);
@@ -301,24 +301,25 @@ Attribution: Corpuz (Main Creator) et al.`;
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={handleResetDefaults}
-              className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs inline-flex items-center gap-1 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+              className="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs inline-flex items-center gap-1 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
               title="Reset all inputs to defaults"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Reset</span>
+              <span className="hidden sm:inline">Reset</span>
             </button>
             <button
               type="button"
               onClick={handleCopySummary}
-              className="min-h-[38px] px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs inline-flex items-center gap-1.5 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+              className="min-h-[36px] sm:min-h-[38px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs inline-flex items-center gap-1 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
               title="Copy computation breakdown to clipboard"
             >
               {copiedNotice ? <Check className="w-3.5 h-3.5 text-emerald-800" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedNotice ? 'Copied!' : 'Copy Slip'}</span>
+              <span className="hidden sm:inline">{copiedNotice ? 'Copied!' : 'Copy Slip'}</span>
+              <span className="sm:hidden">{copiedNotice ? 'Done' : 'Copy'}</span>
             </button>
             <button
               type="button"
@@ -326,10 +327,10 @@ Attribution: Corpuz (Main Creator) et al.`;
                 marioAudio.playClick();
                 onClose();
               }}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950 hover:bg-red-950 text-white border-2 border-black flex items-center justify-center cursor-pointer shadow-md"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-950 hover:bg-red-950 text-white border-2 border-black flex items-center justify-center cursor-pointer shadow-md shrink-0"
               aria-label="Close DOLE Calculator"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
@@ -448,16 +449,16 @@ Attribution: Corpuz (Main Creator) et al.`;
             </div>
 
             {/* All 17 Philippine Regional Wage Presets (DOLE RTWPB 2026 - strictly NO horizontal scroll) */}
-            <div className="space-y-2 pt-2.5 border-t border-slate-700/80">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+            <div className="space-y-2.5 pt-2.5 border-t border-slate-700/80 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5 shrink-0">
                   <MarioCoinIcon size={14} />
                   <span>All 17 DOLE Regional Minimum Wages (RTWPB 2026):</span>
                 </span>
 
                 {/* Instant Select Dropdown */}
-                <div className="flex items-center gap-1.5 text-xs">
-                  <label htmlFor="dole-region-quick-select" className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto min-w-0">
+                  <label htmlFor="dole-region-quick-select" className="text-[10px] text-slate-400 font-mono hidden sm:inline shrink-0">
                     Select Region:
                   </label>
                   <select
@@ -468,7 +469,7 @@ Attribution: Corpuz (Main Creator) et al.`;
                       setDailyWage(Number(e.target.value));
                       marioAudio.playPowerUp();
                     }}
-                    className="bg-slate-900 text-amber-300 border-2 border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold font-mono focus:border-amber-400 focus:outline-none cursor-pointer"
+                    className="w-full sm:w-auto max-w-full min-w-0 bg-slate-900 text-amber-300 border-2 border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold font-mono focus:border-amber-400 focus:outline-none cursor-pointer truncate"
                   >
                     <optgroup label="Luzon (8 Regions)">
                       {ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'luzon').map((r) => (
@@ -495,8 +496,8 @@ Attribution: Corpuz (Main Creator) et al.`;
                 </div>
               </div>
 
-              {/* Island Group Filter Pills */}
-              <div className="flex items-center gap-1.5 text-[10px] font-bold">
+              {/* Island Group Filter Pills (Responsive wrap prevents mobile horizontal overflow) */}
+              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
                 {[
                   { id: 'all', label: 'All 17 Regions' },
                   { id: 'luzon', label: 'Luzon (8)' },
@@ -522,7 +523,7 @@ Attribution: Corpuz (Main Creator) et al.`;
               </div>
 
               {/* Grid of Regional Wage Cards (Strictly NO horizontal scroll, wraps gracefully) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 min-w-0">
                 {ALL_17_REGIONAL_WAGE_PRESETS.filter(
                   (r) => islandFilter === 'all' || r.islandGroup === islandFilter
                 ).map((preset) => {
@@ -536,23 +537,23 @@ Attribution: Corpuz (Main Creator) et al.`;
                         setDailyWage(preset.rate);
                         marioAudio.playPowerUp();
                       }}
-                      className={`p-2 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`p-2 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between min-w-0 ${
                         isSelected
                           ? 'bg-amber-400 text-slate-950 font-black border-black shadow-[0_3px_0_#000] scale-[1.02]'
                           : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-400/80 hover:text-white'
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-bold truncate leading-tight" title={preset.label}>
+                      <div className="flex items-center justify-between gap-1 min-w-0">
+                        <span className="text-[11px] font-bold truncate leading-tight min-w-0" title={preset.label}>
                           {preset.shortLabel}
                         </span>
                         {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 shrink-0" />}
                       </div>
-                      <div className="flex items-baseline justify-between gap-1 mt-1 font-mono">
-                        <span className={`text-xs font-black ${isSelected ? 'text-slate-950' : 'text-amber-300'}`}>
+                      <div className="flex items-baseline justify-between gap-1 mt-1 font-mono min-w-0">
+                        <span className={`text-xs font-black shrink-0 ${isSelected ? 'text-slate-950' : 'text-amber-300'}`}>
                           ₱{preset.rate}
                         </span>
-                        <span className={`text-[8.5px] truncate max-w-[55px] ${isSelected ? 'text-slate-900' : 'text-slate-400'}`} title={preset.sub}>
+                        <span className={`text-[8.5px] truncate min-w-0 ${isSelected ? 'text-slate-900' : 'text-slate-400'}`} title={preset.sub}>
                           {preset.sub}
                         </span>
                       </div>
@@ -731,20 +732,20 @@ Attribution: Corpuz (Main Creator) et al.`;
               </div>
 
               {/* Total Day Pay Simulation Box */}
-              <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-                <div className="space-y-1.5 min-w-0">
-                  <span className="text-xs font-mono font-bold uppercase text-emerald-400 flex items-center gap-1.5">
+              <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg min-w-0">
+                <div className="space-y-1.5 min-w-0 w-full sm:flex-1">
+                  <span className="text-xs font-mono font-bold uppercase text-emerald-400 flex items-center gap-1.5 flex-wrap">
                     <MarioSuperStarIcon size={16} />
                     <span>Combined Shift Total Pay Estimate</span>
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white font-mono">
+                  <h3 className="text-2xl sm:text-3xl font-black text-white font-mono break-words [overflow-wrap:anywhere]">
                     ₱{(hourlyRate * regularHours + hourlyRate * ordinaryOtHours * 1.25 + hourlyRate * nightDiffHours * 0.1).toFixed(2)}
                   </h3>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs text-slate-300 leading-relaxed break-words">
                     Includes {regularHours}h regular wage + {ordinaryOtHours}h overtime (+25%) + {nightDiffHours}h night shift premium (+10%).
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-right font-mono text-xs text-slate-400 shrink-0 space-y-1 w-full sm:w-auto">
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-left sm:text-right font-mono text-xs text-slate-400 shrink-0 space-y-1 w-full sm:w-auto min-w-0">
                   <div className="flex justify-between sm:justify-end gap-3">
                     <span>Base (8h):</span>
                     <span className="text-slate-200 font-bold">₱{(hourlyRate * regularHours).toFixed(2)}</span>
@@ -966,21 +967,21 @@ Attribution: Corpuz (Main Creator) et al.`;
           )}
         </div>
 
-        {/* Modal Footer */}
-        <div className="bg-slate-950 px-4 py-3 sm:px-6 border-t-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shrink-0">
-          <span>Labor Code of the Philippines (P.D. No. 442) · DOLE BWC Guidelines</span>
-          <div className="flex items-center gap-2">
+        {/* Modal Footer (Responsive layout prevents mobile horizontal stretch) */}
+        <div className="bg-slate-950 px-4 py-3 sm:px-6 border-t-2 border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs font-mono text-slate-400 shrink-0">
+          <span className="text-center sm:text-left text-[11px] leading-tight">Labor Code of the Philippines (P.D. No. 442) · DOLE BWC Guidelines</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={handleCopySummary}
-              className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg font-black text-xs cursor-pointer"
+              className="flex-1 sm:flex-none px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg font-black text-xs cursor-pointer text-center"
             >
               Copy Pay Slip
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-white rounded-lg border border-slate-600 font-bold cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-white rounded-lg border border-slate-600 font-bold cursor-pointer text-center"
             >
               Close
             </button>
