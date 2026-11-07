@@ -128,11 +128,14 @@ import {
   Flame,
 } from 'lucide-react';
 import { GameDoctrinesModal } from './GameDoctrinesModal';
+import { resolveUniversalCardFrame, CardFrameId } from '../utils/round12Features';
 
 import { QuizCompletionPayload } from '../utils/profileAchievements';
 
 interface GameVaultProps {
   equippedAvatar: MarioAvatar;
+  equippedCardFrame?: CardFrameId | string;
+  equippedRing?: string;
   setEquippedAvatar: (avatar: MarioAvatar) => void;
   coins: number;
   setCoins: React.Dispatch<React.SetStateAction<number>>;
@@ -229,12 +232,16 @@ export const PURE_ACTION_GAME_IDS = new Set<VaultGameId>([
 
 export const GameVault: React.FC<GameVaultProps> = ({
   equippedAvatar,
+  equippedCardFrame = 'frame_default',
+  equippedRing,
   setEquippedAvatar,
   coins,
   setCoins,
   onEarnCoins,
   onQuizCompleted,
 }) => {
+  const resolvedUniversalFrame = resolveUniversalCardFrame(equippedCardFrame);
+  const hasCustomFrame = Boolean(equippedCardFrame && equippedCardFrame !== 'frame_default');
   const [activeGame, setActiveGame] = useState<VaultGameId>('pipe_whack_violation');
   const [replayNonce, setReplayNonce] = useState<number>(0);
   const [genreFilter, setGenreFilter] = useState<
@@ -1040,7 +1047,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
   };
 
   return (
-    <div className="space-y-2 sm:space-y-5 max-w-6xl mx-auto w-full min-w-0 overflow-x-hidden">
+    <div className="space-y-2 sm:space-y-5 max-w-6xl mx-auto w-full min-w-0 px-1 sm:px-2 pb-8">
       {/* Game Vault Hero Banner (Single-row compact bar by default on phones so game fits screen immediately) */}
       <div className="bg-[#1e293b] text-white rounded-2xl sm:rounded-3xl p-2 sm:p-6 mario-card border-3 sm:border-4 border-slate-950 shadow-[4px_4px_0_#000] sm:shadow-[5px_5px_0_#000]">
         {compactVaultHeader ? (
@@ -1421,11 +1428,11 @@ export const GameVault: React.FC<GameVaultProps> = ({
               Play any of the {games.length} Arcade Games above to record your personal high scores, coins won, and 1-click Replay shortcuts here!
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 p-1">
               {bestPlays.slice(0, 8).map((bp) => (
                 <div
                   key={bp.gameId}
-                  className="bg-slate-900 border border-slate-700 rounded-xl p-2.5 flex items-center justify-between gap-2"
+                  className="bg-slate-900 border border-slate-700 rounded-xl p-2.5 flex items-center justify-between gap-2 shadow-[2px_2px_0_#000]"
                 >
                   <div className="min-w-0">
                     <div className="text-xs font-black text-white truncate">{bp.gameTitle}</div>
@@ -1440,7 +1447,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
                       setReplayNonce((n) => n + 1);
                       marioAudio.playPipe();
                     }}
-                    className="min-h-[34px] px-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] border border-black shrink-0 cursor-pointer"
+                    className="min-h-[34px] px-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] border border-black shrink-0 cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5"
                   >
                     Replay
                   </button>
@@ -1453,10 +1460,13 @@ export const GameVault: React.FC<GameVaultProps> = ({
       {/* Retro Arcade Cabinet Frame & Active Game Stage */}
       <div
         data-testid="arcade-cabinet-frame"
-        className={`relative rounded-2xl sm:rounded-3xl border-3 sm:border-4 transition-all duration-300 ${
+        data-card-frame={equippedCardFrame}
+        className={`relative rounded-2xl sm:rounded-3xl transition-all duration-300 ${
           frenzyActive
-            ? 'border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950'
-            : 'border-slate-950 shadow-[4px_4px_0_#000] bg-slate-950'
+            ? 'border-3 sm:border-4 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] bg-gradient-to-b from-amber-950/40 via-slate-950 to-slate-950'
+            : hasCustomFrame
+            ? `${resolvedUniversalFrame.borderClasses} bg-slate-950`
+            : 'border-3 sm:border-4 border-slate-950 shadow-[4px_4px_0_#000] bg-slate-950'
         } p-2 sm:p-3 space-y-2`}
       >
         {/* Arcade Cabinet Marquee Header Bar */}
@@ -1583,7 +1593,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
         <div
           id="active-vault-game-stage"
           key={`${activeGame}-${replayNonce}`}
-          className="relative z-10 select-none w-full max-w-full min-w-0 overflow-hidden rounded-xl sm:rounded-2xl"
+          className="relative z-10 select-none w-full max-w-full min-w-0 overflow-hidden rounded-xl sm:rounded-2xl p-1 sm:p-1.5"
           onContextMenu={(e) => e.preventDefault()}
         >
           {/* Floating Popups Overlay */}
@@ -2048,7 +2058,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-1 sm:p-1.5">
                   {shelfGames.map((g) => {
                     const isSelected = activeGame === g.id;
                     const starRating = getGameStarRating(g.id);
@@ -2065,9 +2075,11 @@ export const GameVault: React.FC<GameVaultProps> = ({
                             .getElementById('active-vault-game-stage')
                             ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         }}
-                        className={`h-full text-left p-4 rounded-2xl border-4 transition-colors cursor-pointer flex flex-col justify-between ${
+                        className={`h-full text-left p-4 rounded-2xl border-4 transition-all cursor-pointer flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-amber-400 border-slate-950 text-slate-950 shadow-[4px_4px_0_#000]'
+                            ? hasCustomFrame
+                              ? `bg-amber-400 text-slate-950 ${resolvedUniversalFrame.borderClasses}`
+                              : 'bg-amber-400 border-slate-950 text-slate-950 shadow-[4px_4px_0_#000]'
                             : 'bg-white border-slate-950 text-slate-900 hover:bg-amber-50 shadow-[3px_3px_0_#000]'
                         }`}
                       >

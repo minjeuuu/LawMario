@@ -47,6 +47,7 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
+  invokeBrowserPrint,
 } from '../utils/printHelper';
 import { getPrintFontCssStack } from '../utils/round11Features';
 import {
@@ -244,18 +245,49 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     }
   }, [isOpen, documentMode, previewRenderMode]);
 
-  // Allow Escape key to close Print Studio cleanly
+  const handleNativePrint = () => {
+    marioAudio.playCoin();
+    const resolvedExtFont = resolveExtendedPrintFont(formatOptions.fontStyle);
+    const fontStack = resolvedExtFont.cssFontFamily;
+    const orientation =
+      documentMode === 'certificate'
+        ? certOrientation
+        : documentMode === 'scorecard'
+        ? 'landscape'
+        : documentMode === 'summary'
+        ? 'portrait'
+        : pageOrientation;
+    const marginCss =
+      documentMode === 'certificate' || documentMode === 'scorecard'
+        ? '6mm'
+        : documentMode === 'summary'
+        ? '6mm 8mm'
+        : orientation === 'landscape'
+        ? '8mm 10mm'
+        : '10mm 12mm';
+
+    invokeBrowserPrint({
+      orientation,
+      marginCss,
+      fontStack,
+    });
+  };
+
+  // Allow Escape key to close Print Studio cleanly and Ctrl+P / Cmd+P to invoke clean print
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation();
         onClose();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        handleNativePrint();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, documentMode, certOrientation, pageOrientation, formatOptions.fontStyle]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -881,6 +913,17 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
               >
                 <SlidersHorizontal className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>{showControlPanel ? 'Hide Options' : 'Options'}</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="print-document-btn"
+                onClick={handleNativePrint}
+                className="min-h-[42px] px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform active:translate-y-0.5"
+                title="Print Document (Ctrl+P / Cmd+P)"
+              >
+                <Printer className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="hidden sm:inline">Print</span>
               </button>
 
               <button
@@ -2437,6 +2480,28 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                             </span>
                           </div>
                         ))}
+                      </div>
+
+                      {/* Core Workplace Checkpoints matching PDF */}
+                      <div
+                        style={{
+                          backgroundColor: activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
+                          borderColor: activeExtendedTheme.borderHex,
+                        }}
+                        className="rounded-lg border p-2 space-y-1 text-[9.5px] sm:text-[10px] leading-snug"
+                      >
+                        <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-bold">
+                          <span className="text-amber-800 uppercase font-black font-mono mr-1">Four-Fold Control Test:</span>
+                          (1) Selection/Engagement, (2) Payment of Wages, (3) Power of Dismissal, (4) Power of Control over means &amp; methods (Most Crucial).
+                        </p>
+                        <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-semibold">
+                          <span className="text-emerald-800 uppercase font-black font-mono mr-1">Nominal Damages (Agabon / Jaka):</span>
+                          Valid Just Cause + defective Twin-Notice = P30,000 | Valid Authorized Cause + defective 30d Notice = P50,000.
+                        </p>
+                        <p style={{ color: activeExtendedTheme.mutedTextHex }} className="italic font-medium">
+                          <span className="uppercase font-black font-mono not-italic mr-1 text-slate-800">In Dubio Pro Operario:</span>
+                          All doubts in statutory interpretation are resolved in favor of the working class (Art. 4, Labor Code).
+                        </p>
                       </div>
                     </div>
 

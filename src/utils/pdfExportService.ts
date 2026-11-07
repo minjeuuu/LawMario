@@ -1086,9 +1086,10 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   const candidate = sanitizePdfText(options.candidateName);
 
   // Outer precision rounded card frame mirroring the preview's rounded-2xl border-2
+  const outerBorderH = 238.5;
   doc.setDrawColor(...theme.borderStrong);
   doc.setLineWidth(0.35);
-  doc.roundedRect(marginX - 1.2, 5.5, contentW + 2.4, 264.0, 3.0, 3.0, 'D');
+  doc.roundedRect(marginX - 1.2, 5.5, contentW + 2.4, outerBorderH, 3.0, 3.0, 'D');
 
   // Header Box (y = 7.0 to 23.0, h = 16.0mm)
   if (theme.isInkSaver) {
@@ -1753,7 +1754,7 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   const bodyLines = doc.splitTextToSize(citationBody, W - 74);
   doc.text(bodyLines, W / 2, 94.5, { align: 'center', lineHeightFactor: 1.25 });
 
-  const boxY = 120;
+  const boxY = 118;
   const totalBoxes = WORLDS_METADATA.length;
   const gap = 3.5;
   const stripW = W - 56;
@@ -1779,7 +1780,7 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     doc.text(shortTitle, bx + boxW / 2, boxY + 12.2, { align: 'center' });
   });
 
-  const sigLineY = 170;
+  const sigLineY = 165;
 
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.subHeadingStyle);

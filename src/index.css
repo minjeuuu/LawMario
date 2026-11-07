@@ -1216,8 +1216,10 @@ body.printing-scorecard-only {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
+    padding: 12px 16px !important;
     box-sizing: border-box !important;
-    border: none !important;
+    border: 2px solid #334155 !important;
+    border-radius: 14px !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -1254,11 +1256,23 @@ body.printing-scorecard-only {
     position: relative !important;
     width: 100% !important;
     max-width: 100% !important;
+    max-height: 190mm !important;
     margin: 0 auto !important;
+    padding: 7mm 10mm !important;
     box-sizing: border-box !important;
+    border: 3px solid #0f172a !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+}
+
+/* Safe uncropped borders and drop-shadows on arcade game cards and frames */
+[data-testid="arcade-cabinet-frame"],
+[data-testid^="launch-game-"] {
+  box-sizing: border-box;
 }
 
 /* Responsive Game Viewport & Canvas Scaling */

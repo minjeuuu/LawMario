@@ -107,7 +107,7 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
         {/* Legal Citation Pill */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-amber-400/60 font-mono text-xs font-bold text-amber-300 shadow-[0_2px_0_#000]">
           <Scale className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="truncate max-w-[240px] sm:max-w-none">{statute}</span>
+          <span className="break-words [overflow-wrap:anywhere]">{statute}</span>
         </div>
       </div>
 

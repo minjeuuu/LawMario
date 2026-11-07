@@ -4473,16 +4473,18 @@ export default function App() {
 
         {/* Tab 6: Mario Arcade Game Vault (38 Total Games) */}
         {(activeTab === 'vault' || activeTab === 'game2d' || activeTab === 'game3d') && (
-          <GameVault
-            equippedAvatar={equippedAvatar}
-          equippedCardFrame={equippedCardFrame}
-          equippedRing={equippedRing}
-            setEquippedAvatar={setEquippedAvatar}
-            coins={coins}
-            setCoins={handleArcadeSetCoins}
-            fontSize={fontSize}
-            onQuizCompleted={handleQuizCompleted}
-          />
+          <div className="w-full min-w-0 overflow-visible space-y-4">
+            <GameVault
+              equippedAvatar={equippedAvatar}
+              equippedCardFrame={equippedCardFrame}
+              equippedRing={equippedRing}
+              setEquippedAvatar={setEquippedAvatar}
+              coins={coins}
+              setCoins={handleArcadeSetCoins}
+              fontSize={fontSize}
+              onQuizCompleted={handleQuizCompleted}
+            />
+          </div>
         )}
 
         {/* Tab 7: Dedicated Philippine Holidays Hub */}
