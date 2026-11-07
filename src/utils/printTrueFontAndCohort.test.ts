@@ -18,6 +18,11 @@ import {
   drawVectorMarioCoinBlock,
   drawVectorMarioPipe,
   drawVectorMarioStar,
+  drawVectorMarioFireFlower,
+  drawVectorMarioCoin,
+  drawVectorMarioMushroom,
+  drawVectorMarioBrickStrip,
+  docToUint8Array,
 } from './pdfExportService';
 import { jsPDF } from 'jspdf';
 import { inflateSync } from 'node:zlib';
@@ -245,4 +250,50 @@ test('Dynamic print font CSS cascades across both screen selectors and @media pr
   assert.ok(fontCss.includes('#master-diploma-printable'));
   assert.ok(fontCss.includes('#one-page-summary-sheet'));
   assert.ok(fontCss.includes('@media print {'));
+});
+
+test('Authentic Mario vector emblems and Hero Score Card / Certificate elements render with zero errors', () => {
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  drawVectorMarioCoinBlock(doc, 10, 10, 10);
+  drawVectorMarioPipe(doc, 25, 10, 10, 12);
+  drawVectorMarioStar(doc, 45, 15, 5);
+  drawVectorMarioFireFlower(doc, 60, 15, 5);
+  drawVectorMarioCoin(doc, 75, 15, 5);
+  drawVectorMarioMushroom(doc, 90, 15, 5);
+  drawVectorMarioBrickStrip(doc, 10, 30, 100, 3);
+  assert.ok(docToUint8Array(doc).byteLength > 500);
+
+  // Score Card PDF Byte stream
+  const scoreCardBytes = buildScoreCardLandscapePdfBytes({
+    playerName: 'Chief Legal Officer Mario',
+    heroRank: 'Grand Judicial Master',
+    heroName: 'Mario',
+    completedCount: 60,
+    totalTopics: 60,
+    coins: 999,
+    loginStreak: 14,
+    unlockedAchievementsCount: 20,
+    totalAchievementsCount: 20,
+    quizRunsCompleted: 35,
+    studyDurationFormatted: '4h 15m',
+    colorAccent: 'executive_navy',
+    fontStyle: 'modern_sans',
+  });
+  assert.ok(scoreCardBytes instanceof Uint8Array);
+  assert.ok(scoreCardBytes.byteLength > 2000);
+  const rawScore = Buffer.from(scoreCardBytes).toString('latin1');
+  assert.ok(rawScore.includes('%PDF-'));
+
+  // Certificate PDF Byte stream
+  const certBytes = buildCertificatePdfBytes({
+    recipientName: 'Atty. Princess Peach, J.D.',
+    honors: 'Summa Cum Laude',
+    completedCount: 60,
+    totalCount: 60,
+    orientation: 'landscape',
+    colorAccent: 'super_star_gold',
+    fontStyle: 'editorial_serif',
+  });
+  assert.ok(certBytes instanceof Uint8Array);
+  assert.ok(certBytes.byteLength > 2000);
 });

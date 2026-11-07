@@ -827,7 +827,7 @@ export function triggerPdfDownloadFromBytes(bytes: Uint8Array, filename: string)
   window.setTimeout(() => URL.revokeObjectURL(url), 2500);
 }
 
-function docToUint8Array(doc: jsPDF): Uint8Array {
+export function docToUint8Array(doc: jsPDF): Uint8Array {
   const arrayBuffer = doc.output('arraybuffer');
   return new Uint8Array(arrayBuffer);
 }
@@ -846,23 +846,39 @@ export function drawVectorMarioCoinBlock(
   x: number,
   y: number,
   size: number,
-  primaryColor: RgbTuple,
-  accentColor: RgbTuple
+  _primaryColor?: RgbTuple,
+  _accentColor?: RgbTuple,
+  isInkSaver: boolean = false
 ): void {
-  doc.setFillColor(...accentColor);
-  doc.rect(x, y, size, size, 'F');
+  const outerRgb: RgbTuple = isInkSaver ? [212, 212, 216] : [245, 158, 11]; // amber-500
+  const innerRgb: RgbTuple = isInkSaver ? [244, 244, 245] : [251, 191, 36]; // amber-400
+  const boltRgb: RgbTuple = isInkSaver ? [63, 63, 70] : [120, 53, 15]; // amber-900
+
+  // Outer block with border
+  doc.setFillColor(...outerRgb);
+  doc.setDrawColor(...boltRgb);
+  doc.setLineWidth(Math.max(0.15, size * 0.05));
+  const radius = Math.max(0.3, size * 0.1);
+  doc.roundedRect(x, y, size, size, radius, radius, 'FD');
+
+  // Inner bevel
   const inset = size * 0.12;
-  doc.setFillColor(...primaryColor);
-  doc.rect(x + inset, y + inset, size - inset * 2, size - inset * 2, 'F');
-  doc.setFillColor(255, 255, 255);
+  doc.setFillColor(...innerRgb);
+  doc.roundedRect(x + inset, y + inset, size - inset * 2, size - inset * 2, radius * 0.6, radius * 0.6, 'F');
+
+  // 4 Corner bolts
+  doc.setFillColor(...boltRgb);
   const boltR = Math.max(0.2, size * 0.05);
-  doc.circle(x + inset * 1.5, y + inset * 1.5, boltR, 'F');
-  doc.circle(x + size - inset * 1.5, y + inset * 1.5, boltR, 'F');
-  doc.circle(x + inset * 1.5, y + size - inset * 1.5, boltR, 'F');
-  doc.circle(x + size - inset * 1.5, y + size - inset * 1.5, boltR, 'F');
-  doc.setTextColor(255, 255, 255);
+  const boltOffset = inset + boltR * 1.2;
+  doc.circle(x + boltOffset, y + boltOffset, boltR, 'F');
+  doc.circle(x + size - boltOffset, y + boltOffset, boltR, 'F');
+  doc.circle(x + boltOffset, y + size - boltOffset, boltR, 'F');
+  doc.circle(x + size - boltOffset, y + size - boltOffset, boltR, 'F');
+
+  // Question Mark Glyph
+  doc.setTextColor(...boltRgb);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(size * 2.2);
+  doc.setFontSize(size * 2.1);
   doc.text('?', x + size / 2, y + size * 0.74, { align: 'center' });
 }
 
@@ -875,18 +891,35 @@ export function drawVectorMarioPipe(
   y: number,
   w: number,
   h: number,
-  pipeRgb: RgbTuple = [34, 197, 94],
-  rimRgb: RgbTuple = [22, 101, 52]
+  pipeRgb: RgbTuple = [22, 163, 74],
+  rimRgb: RgbTuple = [20, 83, 45]
 ): void {
-  const rimH = Math.min(2.8, h * 0.4);
-  const overhang = 1.2;
-  doc.setFillColor(...pipeRgb);
+  const rimH = Math.min(2.8, Math.max(1.4, h * 0.36));
+  const overhang = Math.min(1.2, Math.max(0.6, w * 0.14));
+
+  // Pipe Rim
+  doc.setFillColor(34, 197, 94); // #22C55E
   doc.setDrawColor(...rimRgb);
-  doc.setLineWidth(0.3);
-  doc.rect(x - overhang, y, w + overhang * 2, rimH, 'FD');
+  doc.setLineWidth(Math.max(0.15, h * 0.035));
+  const rimRadius = Math.max(0.2, rimH * 0.2);
+  doc.roundedRect(x - overhang, y, w + overhang * 2, rimH, rimRadius, rimRadius, 'FD');
+
+  // Pipe Body
+  doc.setFillColor(...pipeRgb);
   doc.rect(x, y + rimH, w, h - rimH, 'FD');
-  doc.setFillColor(255, 255, 255);
-  doc.rect(x + w * 0.18, y + 0.3, w * 0.12, h - 0.6, 'F');
+
+  // Highlight stripes (Reflection)
+  doc.setFillColor(134, 239, 172); // #86EFAC
+  const hlW = Math.max(0.3, w * 0.14);
+  const hlX = x + w * 0.18;
+  doc.rect(hlX, y + 0.3, hlW, rimH - 0.6, 'F');
+  doc.rect(hlX + 0.1, y + rimH + 0.3, hlW * 0.9, h - rimH - 0.6, 'F');
+
+  // Shadow stripe (Right side)
+  doc.setFillColor(21, 128, 61); // #15803D
+  const shW = Math.max(0.3, w * 0.14);
+  const shX = x + w - shW - w * 0.12;
+  doc.rect(shX, y + rimH + 0.3, shW, h - rimH - 0.6, 'F');
 }
 
 /**
@@ -904,7 +937,7 @@ export function drawVectorMarioStar(
   const innerR = r * 0.42;
   doc.setFillColor(...starRgb);
   doc.setDrawColor(...borderRgb);
-  doc.setLineWidth(0.25);
+  doc.setLineWidth(Math.max(0.18, r * 0.06));
 
   // Fill star polygon using triangles from center
   for (let i = 0; i < spikes * 2; i++) {
@@ -920,12 +953,67 @@ export function drawVectorMarioStar(
     doc.line(x1, y1, x2, y2);
   }
 
-  // Draw iconic vertical Mario Star eyes
+  // Draw iconic vertical Mario Star eyes with catchlights
+  if (r >= 1.2) {
+    doc.setFillColor(15, 23, 42);
+    const eyeW = Math.max(0.25, r * 0.13);
+    const eyeH = Math.max(0.6, r * 0.38);
+    const eyeY = cy - eyeH * 0.45;
+    const leftEyeX = cx - r * 0.22;
+    const rightEyeX = cx + r * 0.1;
+    const eyeRadius = Math.max(0.1, eyeW * 0.4);
+    doc.roundedRect(leftEyeX, eyeY, eyeW, eyeH, eyeRadius, eyeRadius, 'F');
+    doc.roundedRect(rightEyeX, eyeY, eyeW, eyeH, eyeRadius, eyeRadius, 'F');
+
+    // White catchlights on eyes
+    if (r >= 2.0) {
+      doc.setFillColor(255, 255, 255);
+      const catchR = Math.max(0.12, eyeW * 0.38);
+      doc.circle(leftEyeX + eyeW * 0.5, eyeY + eyeH * 0.28, catchR, 'F');
+      doc.circle(rightEyeX + eyeW * 0.5, eyeY + eyeH * 0.28, catchR, 'F');
+    }
+  }
+}
+
+/**
+ * Draws a Mario Fire Flower in pure vector geometry (zero emoji)
+ */
+export function drawVectorMarioFireFlower(
+  doc: jsPDF,
+  cx: number,
+  cy: number,
+  r: number
+): void {
+  // Stem
+  doc.setDrawColor(22, 163, 74);
+  doc.setLineWidth(Math.max(0.3, r * 0.25));
+  doc.line(cx, cy + r * 0.2, cx, cy + r * 0.95);
+
+  // Leaves
+  doc.setFillColor(34, 197, 94);
+  doc.circle(cx - r * 0.45, cy + r * 0.72, r * 0.28, 'F');
+  doc.circle(cx + r * 0.45, cy + r * 0.72, r * 0.28, 'F');
+
+  // Outer orange petals
+  doc.setFillColor(234, 88, 12);
+  doc.setDrawColor(124, 45, 18);
+  doc.setLineWidth(Math.max(0.15, r * 0.08));
+  doc.circle(cx, cy - r * 0.15, r * 0.85, 'FD');
+
+  // Middle yellow ring
+  doc.setFillColor(250, 204, 21);
+  doc.circle(cx, cy - r * 0.15, r * 0.62, 'F');
+
+  // Inner white face
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy - r * 0.15, r * 0.42, 'F');
+
+  // Eyes
   doc.setFillColor(15, 23, 42);
-  const eyeW = Math.max(0.25, r * 0.12);
-  const eyeH = Math.max(0.6, r * 0.35);
-  doc.rect(cx - r * 0.22, cy - eyeH * 0.45, eyeW, eyeH, 'F');
-  doc.rect(cx + r * 0.1, cy - eyeH * 0.45, eyeW, eyeH, 'F');
+  const eyeW = Math.max(0.18, r * 0.1);
+  const eyeH = Math.max(0.35, r * 0.25);
+  doc.rect(cx - r * 0.18, cy - r * 0.15 - eyeH / 2, eyeW, eyeH, 'F');
+  doc.rect(cx + r * 0.08, cy - r * 0.15 - eyeH / 2, eyeW, eyeH, 'F');
 }
 
 /**
@@ -937,14 +1025,20 @@ export function drawVectorMarioCoin(
   cy: number,
   r: number
 ): void {
-  doc.setFillColor(250, 204, 21);
-  doc.setDrawColor(180, 83, 9);
-  doc.setLineWidth(0.2);
+  doc.setFillColor(234, 179, 8); // #EAB308
+  doc.setDrawColor(120, 53, 15); // #78350F
+  doc.setLineWidth(Math.max(0.18, r * 0.08));
   doc.circle(cx, cy, r, 'FD');
-  doc.setFillColor(234, 179, 8);
-  doc.circle(cx, cy, r * 0.72, 'F');
-  doc.setFillColor(254, 240, 138);
-  doc.rect(cx - r * 0.16, cy - r * 0.52, r * 0.32, r * 1.04, 'F');
+
+  doc.setFillColor(250, 204, 21); // #FACC15
+  doc.circle(cx, cy, r * 0.75, 'F');
+
+  // Center vertical ridge
+  doc.setFillColor(120, 53, 15); // #78350F
+  const ridgeW = Math.max(0.25, r * 0.22);
+  const ridgeH = r * 1.1;
+  const ridgeR = Math.max(0.1, ridgeW * 0.4);
+  doc.roundedRect(cx - ridgeW / 2, cy - ridgeH / 2, ridgeW, ridgeH, ridgeR, ridgeR, 'F');
 }
 
 /**
@@ -1086,31 +1180,31 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   const candidate = sanitizePdfText(options.candidateName);
 
   // Outer precision rounded card frame mirroring the preview's rounded-2xl border-2
-  const outerBorderH = 238.5;
+  const outerBorderH = 283.0;
   doc.setDrawColor(...theme.borderStrong);
   doc.setLineWidth(0.35);
-  doc.roundedRect(marginX - 1.2, 5.5, contentW + 2.4, outerBorderH, 3.0, 3.0, 'D');
+  doc.roundedRect(marginX - 1.2, 5.0, contentW + 2.4, outerBorderH, 3.0, 3.0, 'D');
 
-  // Header Box (y = 7.0 to 23.0, h = 16.0mm)
+  // Header Box (y = 6.5 to 23.5, h = 17.0mm)
   if (theme.isInkSaver) {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(...theme.borderStrong);
     doc.setLineWidth(0.5);
-    doc.roundedRect(marginX, 7.0, contentW, 16.0, 2.0, 2.0, 'FD');
+    doc.roundedRect(marginX, 6.5, contentW, 17.0, 2.0, 2.0, 'FD');
   } else {
     doc.setFillColor(...theme.primary);
-    doc.roundedRect(marginX, 7.0, contentW, 16.0, 2.0, 2.0, 'F');
+    doc.roundedRect(marginX, 6.5, contentW, 17.0, 2.0, 2.0, 'F');
   }
 
   // Left: Gold square box with black border and Mario Super Star
   const goldBoxX = marginX + 2.5;
-  const goldBoxY = 8.5;
-  const goldBoxSize = 13.0;
+  const goldBoxY = 8.0;
+  const goldBoxSize = 14.0;
   doc.setFillColor(251, 191, 36); // amber-400
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.35);
   doc.roundedRect(goldBoxX, goldBoxY, goldBoxSize, goldBoxSize, 1.5, 1.5, 'FD');
-  drawVectorMarioStar(doc, goldBoxX + goldBoxSize / 2, goldBoxY + goldBoxSize / 2, 4.5);
+  drawVectorMarioStar(doc, goldBoxX + goldBoxSize / 2, goldBoxY + goldBoxSize / 2, 5.0);
 
   // Next to gold box: 3-line editorial title exactly mirroring the preview
   const headTextX = goldBoxX + goldBoxSize + 3.5;
@@ -1119,62 +1213,62 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   // Kicker line
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(6.0 * fScale);
+  doc.setFontSize(6.2 * fScale);
   const kickerLabel = `PHILIPPINE LABOR STANDARDS · ONE-PAGE A4 MASTER SUMMARY · ${theme.id.toUpperCase().replace(/_/g, ' ')}`;
-  doc.text(doc.splitTextToSize(kickerLabel, headTextMaxW)[0] || '', headTextX, 11.2);
+  doc.text(doc.splitTextToSize(kickerLabel, headTextMaxW)[0] || '', headTextX, 10.8);
 
   // Main Title
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(10.2 * fScale);
+  doc.setFontSize(10.5 * fScale);
   doc.text('KEY LEGAL FORMULAS, MULTIPLIERS & STATUTORY DEADLINES', headTextX, 15.6);
 
   // Subtitle / Statute list
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(5.4 * fScale);
+  doc.setFontSize(5.5 * fScale);
   const statuteSub = 'P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 & R.A. 11861';
-  doc.text(doc.splitTextToSize(statuteSub, headTextMaxW)[0] || '', headTextX, 19.8);
+  doc.text(doc.splitTextToSize(statuteSub, headTextMaxW)[0] || '', headTextX, 20.2);
 
   // Right Block: Candidate Name, Format & Updated date
   const rightMetaX = pageW - marginX - 3.0;
-  let curMetaY = 11.2;
+  let curMetaY = 10.8;
   if (candidate) {
     doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.8 * fScale);
+    doc.setFontSize(7.0 * fScale);
     doc.text(candidate, rightMetaX, curMetaY, { align: 'right' });
     curMetaY += 4.0;
   }
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(5.4 * fScale);
+  doc.setFontSize(5.6 * fScale);
   doc.text(`Format: Single-Page A4 · ${fp.displayLabel}`, rightMetaX, curMetaY, { align: 'right' });
   curMetaY += 4.0;
   doc.text(`Updated: ${dateStr}`, rightMetaX, curMetaY, { align: 'right' });
 
   // ==================== TWO-COLUMN CORE GRID ====================
-  const colStartY = 24.5;
-  const colHeaderH = 5.8;
+  const colStartY = 25.0;
+  const colHeaderH = 6.0;
   const numFormulas = ONE_PAGE_LEGAL_FORMULAS.length;
   const numDeadlines = ONE_PAGE_LEGAL_DEADLINES.length;
-  const maxColH = 142.0;
+  const maxColH = 146.0;
   const colTotalItemsH = maxColH;
-  const formulaRowH = maxColH / numFormulas;
-  const deadlineRowH = maxColH / numDeadlines;
+  const formulaRowH = maxColH / numFormulas; // ~12.16mm
+  const deadlineRowH = maxColH / numDeadlines; // ~13.27mm
 
   // Col 1 Header Banner
   doc.setFillColor(...theme.primary);
   doc.roundedRect(leftX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
-  drawVectorMarioCoinBlock(doc, leftX + 1.8, colStartY + 1.1, 3.6, theme.accent, theme.secondaryAccent);
+  drawVectorMarioCoinBlock(doc, leftX + 1.8, colStartY + 1.1, 3.8, theme.accent, theme.secondaryAccent, theme.isInkSaver);
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(7.2 * fScale);
-  doc.text(`I. KEY STATUTORY PAY FORMULAS (${numFormulas})`, leftX + 7.2, colStartY + 4.0);
+  doc.setFontSize(7.4 * fScale);
+  doc.text(`I. KEY STATUTORY PAY FORMULAS (${numFormulas})`, leftX + 7.4, colStartY + 4.2);
   doc.setFont(ff, fp.subHeadingStyle);
-  doc.setFontSize(5.8 * fScale);
+  doc.setFontSize(6.0 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
-  doc.text('Arts. 87–97 · 302', leftX + colW - 2.0, colStartY + 4.0, { align: 'right' });
+  doc.text('Arts. 87–97 · 302', leftX + colW - 2.0, colStartY + 4.2, { align: 'right' });
 
   // Col 1 Outer Rounded Container Box
   doc.setDrawColor(...theme.borderMuted);
@@ -1198,31 +1292,31 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Title (bold) on left + Rate Badge on right
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.4 * fScale);
+    doc.setFontSize(6.6 * fScale);
     const titleText = `${idx + 1}. ${item.title}`;
     const rBadge = item.rateBadge || item.citation;
     const badgeW = doc.getTextWidth(rBadge) + 2.0;
     const maxTitleW = Math.max(10, colW - badgeW - 4.0);
     const safeTitle = doc.splitTextToSize(titleText, maxTitleW)[0] || titleText;
-    doc.text(safeTitle, leftX + 2.0, leftY + 3.2);
+    doc.text(safeTitle, leftX + 2.0, leftY + 3.4);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.2 * fScale);
-    doc.text(rBadge, leftX + colW - 2.0, leftY + 3.2, { align: 'right' });
+    doc.setFontSize(6.4 * fScale);
+    doc.text(rBadge, leftX + colW - 2.0, leftY + 3.4, { align: 'right' });
 
     // Line 2: Formula (accent bold text)
     doc.setTextColor(...theme.formulaText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(6.8 * fScale);
+    doc.setFontSize(7.0 * fScale);
     const formulaLines = doc.splitTextToSize(sanitizePdfText(item.formula), colW - 4.0);
-    doc.text(formulaLines[0] || '', leftX + 2.0, leftY + 6.6);
+    doc.text(formulaLines[0] || '', leftX + 2.0, leftY + 7.0);
 
     // Line 3: Note (muted text)
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.2 * fScale);
+    doc.setFontSize(5.4 * fScale);
     const noteLines = doc.splitTextToSize(sanitizePdfText(item.note), colW - 4.0);
-    doc.text(noteLines[0] || '', leftX + 2.0, leftY + 9.6);
+    doc.text(noteLines[0] || '', leftX + 2.0, leftY + 10.4);
 
     leftY += formulaRowH;
   });
@@ -1231,15 +1325,15 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   // Col 2 Header Banner
   doc.setFillColor(...theme.secondaryAccent);
   doc.roundedRect(rightX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
-  drawVectorMarioPipe(doc, rightX + 1.8, colStartY + 0.9, 4.2, 3.8);
+  drawVectorMarioPipe(doc, rightX + 1.8, colStartY + 0.9, 4.4, 4.0);
   doc.setTextColor(...theme.primaryText);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(7.2 * fScale);
-  doc.text(`II. PRESCRIPTIVE & PROCEDURAL DEADLINES (${numDeadlines})`, rightX + 7.4, colStartY + 4.0);
+  doc.setFontSize(7.4 * fScale);
+  doc.text(`II. PRESCRIPTIVE & PROCEDURAL DEADLINES (${numDeadlines})`, rightX + 7.6, colStartY + 4.2);
   doc.setFont(ff, fp.subHeadingStyle);
-  doc.setFontSize(5.8 * fScale);
+  doc.setFontSize(6.0 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
-  doc.text('Arts. 297–306', rightX + colW - 2.0, colStartY + 4.0, { align: 'right' });
+  doc.text('Arts. 297–306', rightX + colW - 2.0, colStartY + 4.2, { align: 'right' });
 
   // Col 2 Outer Rounded Container Box
   doc.setDrawColor(...theme.borderMuted);
@@ -1263,38 +1357,38 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Claim/Action (bold) on left + Deadline on right
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.4 * fScale);
+    doc.setFontSize(6.6 * fScale);
     const claimText = `${idx + 1}. ${item.claimOrAction}`;
     const badgeW = doc.getTextWidth(item.deadline) + 2.0;
     const maxClaimW = Math.max(10, colW - badgeW - 4.0);
     const safeClaim = doc.splitTextToSize(claimText, maxClaimW)[0] || claimText;
-    doc.text(safeClaim, rightX + 2.0, rightY + 3.0);
+    doc.text(safeClaim, rightX + 2.0, rightY + 3.4);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.2 * fScale);
-    doc.text(item.deadline, rightX + colW - 2.0, rightY + 3.0, { align: 'right' });
+    doc.setFontSize(6.4 * fScale);
+    doc.text(item.deadline, rightX + colW - 2.0, rightY + 3.4, { align: 'right' });
 
     // Line 2 & 3: Citation + Reckoning Rule
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.2 * fScale);
+    doc.setFontSize(5.4 * fScale);
     const ruleLine = `${item.citation}: ${item.reckoningRule}`;
     const ruleLines = doc.splitTextToSize(sanitizePdfText(ruleLine), colW - 4.0);
-    doc.text(ruleLines[0] || '', rightX + 2.0, rightY + 6.2);
+    doc.text(ruleLines[0] || '', rightX + 2.0, rightY + 6.8);
     if (ruleLines[1]) {
-      doc.text(ruleLines[1], rightX + 2.0, rightY + 9.0);
+      doc.text(ruleLines[1], rightX + 2.0, rightY + 10.2);
     }
 
     rightY += deadlineRowH;
   });
 
   // ==================== MARIO BRICK DIVIDER STRIP ====================
-  const brickY = colStartY + colHeaderH + colTotalItemsH + 1.8;
-  drawVectorMarioBrickStrip(doc, marginX, brickY, contentW, 1.8, theme.accent, theme.borderStrong);
+  const brickY = colStartY + colHeaderH + colTotalItemsH + 1.5;
+  drawVectorMarioBrickStrip(doc, marginX, brickY, contentW, 2.0, theme.accent, theme.borderStrong);
 
   // ==================== PART III: BOTTOM WORLD 6 LEAVES & CORE CHECKPOINTS ====================
-  const bottomY = brickY + 3.0;
-  const bottomBoxH = 68.0;
+  const bottomY = brickY + 3.2;
+  const bottomBoxH = 80.5;
 
   // Outer container card
   doc.setFillColor(...theme.cardTintFill);
@@ -1304,27 +1398,27 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
 
   // Header Banner
   doc.setFillColor(...theme.primary);
-  doc.roundedRect(marginX, bottomY, contentW, 5.8, 1.2, 1.2, 'F');
-  drawVectorMarioMushroom(doc, marginX + 3.5, bottomY + 2.9, 2.0);
+  doc.roundedRect(marginX, bottomY, contentW, 6.0, 1.2, 1.2, 'F');
+  drawVectorMarioMushroom(doc, marginX + 3.5, bottomY + 3.0, 2.2);
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(7.2 * fScale);
-  doc.text('III. WORLD 6 STATUTORY LEAVE CAPS & CORE TESTS', marginX + 7.5, bottomY + 4.1);
+  doc.setFontSize(7.4 * fScale);
+  doc.text('III. WORLD 6 STATUTORY LEAVE CAPS & CORE TESTS', marginX + 7.5, bottomY + 4.2);
   doc.setFont(ff, fp.subHeadingStyle);
-  doc.setFontSize(5.8 * fScale);
+  doc.setFontSize(6.0 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
-  doc.text('Arts. 95, 1146 · R.A. 11210', pageW - marginX - 2.5, bottomY + 4.1, { align: 'right' });
+  doc.text('Arts. 95, 1146 · R.A. 11210', pageW - marginX - 2.5, bottomY + 4.2, { align: 'right' });
 
   // 6 Leave Cards in 3 Columns x 2 Rows
-  const gridStartY = bottomY + 7.0;
+  const gridStartY = bottomY + 7.5;
   const leaveCardW = (contentW - 6.0) / 3; // ~62.6mm
-  const leaveCardH = 17.0;
+  const leaveCardH = 19.5;
 
   ONE_PAGE_STATUTORY_LEAVE_CAPS.forEach((lv, idx) => {
     const colIdx = idx % 3;
     const rowIdx = Math.floor(idx / 3);
     const cx = marginX + 1.2 + colIdx * (leaveCardW + 1.8);
-    const cy = gridStartY + rowIdx * (leaveCardH + 2.5);
+    const cy = gridStartY + rowIdx * (leaveCardH + 2.0);
 
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(...theme.borderMuted);
@@ -1334,90 +1428,110 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Leave Name (bold) on left + Cap in theme.badgeText on right
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.8 * fScale);
+    doc.setFontSize(7.0 * fScale);
     const capW = doc.getTextWidth(lv.cap) + 2.0;
     const maxNameW = Math.max(10, leaveCardW - capW - 4.0);
     const safeName = doc.splitTextToSize(lv.leaveName, maxNameW)[0] || lv.leaveName;
-    doc.text(safeName, cx + 2.0, cy + 4.5);
+    doc.text(safeName, cx + 2.0, cy + 4.8);
 
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(6.8 * fScale);
-    doc.text(lv.cap, cx + leaveCardW - 2.0, cy + 4.5, { align: 'right' });
+    doc.setFontSize(7.0 * fScale);
+    doc.text(lv.cap, cx + leaveCardW - 2.0, cy + 4.8, { align: 'right' });
 
     // Line 2 & 3: Citation · Rule
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.8 * fScale);
+    doc.setFontSize(6.0 * fScale);
     const lvInfo = `${lv.citation} · ${lv.rule}`;
     const lvLines = doc.splitTextToSize(sanitizePdfText(lvInfo), leaveCardW - 4.0);
-    doc.text(lvLines[0] || '', cx + 2.0, cy + 8.8);
+    doc.text(lvLines[0] || '', cx + 2.0, cy + 9.5);
     if (lvLines[1]) {
-      doc.text(lvLines[1], cx + 2.0, cy + 13.2);
+      doc.text(lvLines[1], cx + 2.0, cy + 14.5);
     }
   });
 
   // Core Workplace Checkpoints (Four-Fold Test + Nominal Damages + In Dubio Pro Operario)
-  const checkY = gridStartY + 2 * (leaveCardH + 2.5) + 1.5;
+  const checkY = gridStartY + 2 * (leaveCardH + 2.0) + 1.5;
   doc.setFillColor(...theme.zebraFill);
   doc.setDrawColor(...theme.borderStrong);
   doc.setLineWidth(0.22);
-  doc.roundedRect(marginX + 1.2, checkY, contentW - 2.4, 18.0, 1.2, 1.2, 'FD');
+  doc.roundedRect(marginX + 1.2, checkY, contentW - 2.4, 28.5, 1.2, 1.2, 'FD');
 
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(6.2 * fScale);
+  doc.setFontSize(6.5 * fScale);
   doc.text(
-    'FOUR-FOLD CONTROL TEST: (1) Selection/Engagement, (2) Payment of Wages, (3) Power of Dismissal, (4) Power of Control over means & methods (Most Crucial).',
+    'FOUR-FOLD CONTROL TEST: (1) Selection/Engagement, (2) Payment of Wages, (3) Power of Dismissal, (4) Power of Control over means & methods (Most Crucial test in Philippine jurisprudence).',
     marginX + 2.8,
-    checkY + 4.8
+    checkY + 5.5
   );
   doc.text(
     'NOMINAL DAMAGES (AGABON / JAKA DOCTRINE): Valid Just Cause + defective Twin-Notice = PHP 30,000  |  Valid Authorized Cause + defective 30d Notice = PHP 50,000.',
     marginX + 2.8,
-    checkY + 9.8
+    checkY + 12.0
   );
   doc.setFont(ff, ff === 'courier' ? fp.bodyStyle : 'italic');
-  doc.setFontSize(6.0 * fScale);
+  doc.setFontSize(6.3 * fScale);
   doc.setTextColor(...theme.mutedText);
   doc.text(
-    'IN DUBIO PRO OPERARIO: All doubts in statutory interpretation are resolved in favor of the working class (Art. 4, Labor Code).',
+    'IN DUBIO PRO OPERARIO: All doubts in the implementation and interpretation of the Labor Code are resolved in favor of the working class (Art. 4, P.D. 442).',
     marginX + 2.8,
-    checkY + 14.8
+    checkY + 18.5
+  );
+  doc.setFont(ff, fp.bodyStyle);
+  doc.setFontSize(5.8 * fScale);
+  doc.setTextColor(...theme.bodyText);
+  doc.text(
+    'BURDEN OF PROOF: The employer bears the burden of proving that the dismissal of an employee was for valid cause and with observance of procedural due process.',
+    marginX + 2.8,
+    checkY + 24.5
   );
 
   // ==================== RESEARCH COHORT ATTRIBUTION BAR ====================
-  const footerY = bottomY + bottomBoxH + 3.0;
+  const footerY = bottomY + bottomBoxH + 2.5;
+  const footerH = 21.0;
   doc.setFillColor(...theme.cardTintFill);
   doc.setDrawColor(...theme.borderMuted);
   doc.setLineWidth(0.22);
-  doc.roundedRect(marginX, footerY, contentW, 15.0, 1.4, 1.4, 'FD');
+  doc.roundedRect(marginX, footerY, contentW, footerH, 1.4, 1.4, 'FD');
 
   // Top sub-line: Gold star badge + Typeface on right
   doc.setFillColor(251, 191, 36); // amber-400
   doc.setDrawColor(217, 119, 6);
-  doc.roundedRect(marginX + 2.2, footerY + 1.5, 42, 4.5, 0.8, 0.8, 'FD');
-  drawVectorMarioStar(doc, marginX + 4.2, footerY + 3.8, 1.4);
+  doc.roundedRect(marginX + 2.2, footerY + 1.8, 44, 4.8, 0.8, 0.8, 'FD');
+  drawVectorMarioStar(doc, marginX + 4.5, footerY + 4.2, 1.6);
   doc.setTextColor(120, 53, 15);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(6.4 * fScale);
-  doc.text('Research Cohort · 9 Members', marginX + 6.8, footerY + 4.6);
+  doc.setFontSize(6.5 * fScale);
+  doc.text('Research Cohort · 9 Members', marginX + 7.2, footerY + 5.2);
 
   doc.setTextColor(...theme.mutedText);
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(6.2 * fScale);
-  doc.text(`P.D. No. 442 Master Summary · ${fp.displayLabel}`, pageW - marginX - 2.8, footerY + 4.6, { align: 'right' });
+  doc.setFontSize(6.4 * fScale);
+  doc.text(`P.D. No. 442 Master Summary · ${fp.displayLabel}`, pageW - marginX - 2.8, footerY + 5.2, { align: 'right' });
 
-  // Bottom sub-line: 9 members list
+  // Middle sub-line: 9 members list
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(6.8 * fScale);
-  doc.text('CORPUZ (Main Creator)', marginX + 2.8, footerY + 10.8);
+  doc.setFontSize(7.0 * fScale);
+  doc.text('CORPUZ (Main Creator)', marginX + 2.8, footerY + 11.5);
 
   doc.setFont(ff, fp.bodyStyle);
   doc.setTextColor(...theme.mutedText);
-  doc.setFontSize(6.6 * fScale);
+  doc.setFontSize(6.8 * fScale);
   const cohortRest = '· CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA';
+  doc.text(cohortRest, marginX + 40.0, footerY + 11.5);
+
+  // Bottom sub-line: Academic copyright & edition note
+  doc.setFont(ff, fp.bodyStyle);
+  doc.setFontSize(5.8 * fScale);
+  doc.setTextColor(...theme.mutedText);
+  doc.text(
+    'Super Mario Labor Adventure  -  Comprehensive Philippine Labor Standards Guide  |  Supreme Academic Edition',
+    marginX + 2.8,
+    footerY + 17.5
+  );
   doc.text(cohortRest, marginX + 38.0, footerY + 10.8);
 
   return docToUint8Array(doc);
@@ -1537,13 +1651,20 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   });
 
   if (orient === 'portrait') {
+    // Top Emblem Mirroring Preview
+    doc.setFillColor(...theme.badgeFill);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.35);
+    doc.circle(W / 2, 23.5, 5.0, 'FD');
+    drawVectorMarioCoinBlock(doc, W / 2 - 3.0, 23.5 - 3.0, 6.0, theme.accent, theme.secondaryAccent, theme.isInkSaver);
+
     doc.setTextColor(...theme.primary);
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(8.8 * cScale);
     doc.text(
       'REPUBLIC OF THE PHILIPPINES  -  PHILIPPINE LABOR STANDARDS GUIDE',
       W / 2,
-      28,
+      32.5,
       { align: 'center' }
     );
 
@@ -1553,20 +1674,20 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     doc.text(
       'PRESIDENTIAL DECREE NO. 442 (LABOR CODE OF THE PHILIPPINES)  -  WORLDS 1 TO 6',
       W / 2,
-      34,
+      37.5,
       { align: 'center' }
     );
 
     doc.setDrawColor(...theme.accent);
     doc.setLineWidth(0.6);
-    doc.line(24, 41, W - 24, 41);
-    doc.line(24, 62, W - 24, 62);
+    doc.line(24, 42.5, W - 24, 42.5);
+    doc.line(24, 63.5, W - 24, 63.5);
 
     doc.setTextColor(...theme.primary);
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(19.5 * cScale);
-    doc.text('CERTIFICATE OF', W / 2, 50, { align: 'center' });
-    doc.text('STATUTORY COMPLETION', W / 2, 58.5, { align: 'center' });
+    doc.text('CERTIFICATE OF', W / 2, 51.5, { align: 'center' });
+    doc.text('STATUTORY COMPLETION', W / 2, 60.0, { align: 'center' });
 
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.subHeadingStyle);
@@ -1642,12 +1763,19 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
     doc.setFillColor(...theme.accent);
     doc.setDrawColor(...theme.primary);
     doc.setLineWidth(1.0);
-    doc.circle(W / 2, sealY, 12.5, 'FD');
+    doc.circle(W / 2, sealY, 13.0, 'FD');
+    doc.setDrawColor(...theme.badgeFill);
+    doc.setLineWidth(0.4);
+    doc.circle(W / 2, sealY, 10.6, 'S');
+
+    // Super Star emblem inside seal mirroring preview
+    drawVectorMarioStar(doc, W / 2, sealY - 3.8, 4.5);
     doc.setTextColor(...theme.accentTextOnFill);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(7 * cScale);
-    doc.text('VERIFIED', W / 2, sealY - 1.5, { align: 'center' });
-    doc.text('SEAL', W / 2, sealY + 2.5, { align: 'center' });
+    doc.setFontSize(6.5 * cScale);
+    doc.text('SEALED', W / 2, sealY + 4.8, { align: 'center' });
+    doc.setFontSize(5.2 * cScale);
+    doc.text('VERIFIED', W / 2, sealY + 8.2, { align: 'center' });
 
     const sigY = 266;
     doc.setTextColor(...theme.bodyText);
@@ -1682,13 +1810,20 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   }
 
   // Landscape Executive Certificate Geometry (297mm x 210mm)
+  // Top Emblem Mirroring Preview
+  doc.setFillColor(...theme.badgeFill);
+  doc.setDrawColor(...theme.borderStrong);
+  doc.setLineWidth(0.35);
+  doc.circle(W / 2, 22.0, 5.0, 'FD');
+  drawVectorMarioCoinBlock(doc, W / 2 - 3.0, 22.0 - 3.0, 6.0, theme.accent, theme.secondaryAccent, theme.isInkSaver);
+
   doc.setTextColor(...theme.primary);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(9.5 * cScale);
   doc.text(
     'REPUBLIC OF THE PHILIPPINES  -  ACADEMY OF LABOR STANDARDS & SOCIAL LEGISLATION',
     W / 2,
-    26.5,
+    30.8,
     { align: 'center' }
   );
 
@@ -1698,24 +1833,24 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   doc.text(
     'PRESIDENTIAL DECREE NO. 442 (LABOR CODE OF THE PHILIPPINES)  -  WORLDS 1 TO 6 SYLLABUS',
     W / 2,
-    32.2,
+    35.8,
     { align: 'center' }
   );
 
   doc.setDrawColor(...theme.accent);
   doc.setLineWidth(0.6);
-  doc.line(40, 37, W - 40, 37);
-  doc.line(40, 52, W - 40, 52);
+  doc.line(40, 39.5, W - 40, 39.5);
+  doc.line(40, 53.5, W - 40, 53.5);
 
   doc.setTextColor(...theme.primary);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(24.5 * cScale);
-  doc.text('CERTIFICATE OF STATUTORY COMPLETION', W / 2, 47, { align: 'center' });
+  doc.text('CERTIFICATE OF STATUTORY COMPLETION', W / 2, 48.5, { align: 'center' });
 
   doc.setTextColor(...theme.mutedText);
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(11.5 * cScale);
-  doc.text('This Executive Honor Certificate is Conferred Upon', W / 2, 60.5, {
+  doc.text('This Executive Honor Certificate is Conferred Upon', W / 2, 61.5, {
     align: 'center',
   });
 
@@ -1797,18 +1932,35 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   doc.setTextColor(...theme.mutedText);
   doc.text('Main Creator & Lead Author of Memory Aid', 74, sigLineY + 9.2, { align: 'center' });
 
+  // Official Seal with Super Star inside
   doc.setFillColor(...theme.accent);
   doc.setDrawColor(...theme.primary);
   doc.setLineWidth(1.0);
-  doc.circle(W / 2, sigLineY - 4, 13.2, 'FD');
+  doc.circle(W / 2, sigLineY - 4, 13.5, 'FD');
   doc.setDrawColor(...theme.badgeFill);
   doc.setLineWidth(0.4);
-  doc.circle(W / 2, sigLineY - 4, 10.6, 'S');
+  doc.circle(W / 2, sigLineY - 4, 11.0, 'S');
+
+  drawVectorMarioStar(doc, W / 2, sigLineY - 7.5, 4.5);
   doc.setTextColor(...theme.accentTextOnFill);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(7.2 * cScale);
-  doc.text('OFFICIAL', W / 2, sigLineY - 5.2, { align: 'center' });
-  doc.text('SEAL', W / 2, sigLineY - 1.2, { align: 'center' });
+  doc.setFontSize(6.8 * cScale);
+  doc.text('SEALED', W / 2, sigLineY + 1.8, { align: 'center' });
+  doc.setFontSize(5.5 * cScale);
+  doc.text('VERIFIED', W / 2, sigLineY + 5.2, { align: 'center' });
+
+  doc.setTextColor(...theme.mutedText);
+  doc.setFont(ff, fp.subHeadingStyle);
+  doc.setFontSize(7.0 * cScale);
+  doc.text(`ISSUED: ${dateStr} (${fp.displayLabel})`, W / 2, sigLineY + 14.2, { align: 'center' });
+  doc.setFont(ff, fp.bodyStyle);
+  doc.setFontSize(6.5 * cScale);
+  doc.text(
+    `ID: ${certId}  |  MODULES COMPLETED: ${params.completedCount}/${Math.max(1, params.totalCount)}`,
+    W / 2,
+    sigLineY + 18.4,
+    { align: 'center' }
+  );
 
   doc.setTextColor(...theme.mutedText);
   doc.setFont(ff, fp.subHeadingStyle);
@@ -2710,7 +2862,7 @@ export function buildStudyGuideReviewerPdfBytes(
 
   // Pure Vector Mario Elements in Reviewer Masthead (Zero Emoji / 100% Vector Art)
   if (!theme.isInkSaver) {
-    drawVectorMarioCoinBlock(doc, marginX + 3.0, y + 4.5, 11.5, theme.accent, theme.secondaryAccent);
+    drawVectorMarioCoinBlock(doc, marginX + 3.0, y + 4.5, 11.5, theme.accent, theme.secondaryAccent, theme.isInkSaver);
     drawVectorMarioStar(doc, pageW - marginX - 9.0, y + 10.2, 5.5, [253, 224, 71], [180, 83, 9]);
     drawVectorMarioBrickStrip(doc, marginX, y + 21.0, contentW, 1.8, theme.accent, theme.borderStrong);
   }
@@ -2833,7 +2985,7 @@ export function buildStudyGuideReviewerPdfBytes(
     // Header banner
     doc.setFillColor(...theme.primary);
     doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'F');
-    drawVectorMarioCoinBlock(doc, marginX + 2.5, y + 1.0, 3.5, theme.accent, theme.secondaryAccent);
+    drawVectorMarioCoinBlock(doc, marginX + 2.5, y + 1.0, 3.5, theme.accent, theme.secondaryAccent, theme.isInkSaver);
     doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(7.2 * scale);
@@ -3708,101 +3860,158 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(...theme.borderStrong);
     doc.setLineWidth(0.5);
-    doc.rect(16, 15.5, W - 32, 30, 'FD');
+    doc.rect(16, 15.5, W - 32, 32, 'FD');
   } else {
     doc.setFillColor(...theme.primary);
-    doc.rect(16, 15.5, W - 32, 30, 'F');
+    doc.rect(16, 15.5, W - 32, 32, 'F');
   }
+
+  // Left: Gold square box with black border and Mario Super Star mirroring preview
+  const goldBoxX = 20.5;
+  const goldBoxY = 19.5;
+  const goldBoxSize = 18.0;
+  doc.setFillColor(251, 191, 36); // amber-400
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(goldBoxX, goldBoxY, goldBoxSize, goldBoxSize, 2.0, 2.0, 'FD');
+  drawVectorMarioStar(doc, goldBoxX + goldBoxSize / 2, goldBoxY + goldBoxSize / 2, 6.2);
+
+  const textStartX = 42.5;
+  const textMaxW = W - 134;
 
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
   doc.setFont(ff, fp.subHeadingStyle);
-  doc.setFontSize(8.5 * sScale);
-  doc.text('SUPER MARIO LABOR ADVENTURE  -  OFFICIAL HERO SCORE CARD & DOSSIER', 21, 22.5);
+  doc.setFontSize(7.8 * sScale);
+  doc.text(
+    `SUPER MARIO LABOR ADVENTURE  -  OFFICIAL HERO SCORE CARD  ·  ${theme.id.toUpperCase().replace(/_/g, ' ')}`,
+    textStartX,
+    22.2
+  );
 
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
   const safePlayer = sanitizePdfText(params.playerName || 'Labor Scholar Hero');
-  let pSize = 20 * sScale;
+  let pSize = 19 * sScale;
   doc.setFontSize(pSize);
-  while (doc.getTextWidth(safePlayer) > (W - 120) && pSize > 12) {
+  while (doc.getTextWidth(safePlayer) > textMaxW && pSize > 12) {
     pSize -= 0.5;
     doc.setFontSize(pSize);
   }
-  const playerLines = doc.splitTextToSize(safePlayer, W - 120);
-  doc.text(playerLines, 21, playerLines.length > 1 ? 30.5 : 33);
+  const playerLines = doc.splitTextToSize(safePlayer, textMaxW);
+  doc.text(playerLines, textStartX, playerLines.length > 1 ? 29.5 : 31.5);
 
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
   doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(9.5 * sScale);
+  doc.setFontSize(8.6 * sScale);
   doc.text(
-    sanitizePdfText(`${params.heroRank}  |  Equipped Hero: ${params.heroName}  |  Font: ${fp.displayLabel}`),
-    21,
-    40.8
+    sanitizePdfText(`${params.heroRank}  |  Equipped Hero: ${params.heroName}  |  ${fp.displayLabel}`),
+    textStartX,
+    41.5
   );
 
+  // Right percentage badge
   doc.setFillColor(...theme.badgeFill);
   doc.setDrawColor(...theme.badgeBorder);
   doc.setLineWidth(0.5);
-  doc.roundedRect(W - 84, 18, 64, 25, 2.5, 2.5, 'FD');
+  doc.roundedRect(W - 84, 18.5, 64, 26, 2.5, 2.5, 'FD');
 
-  if (!theme.isInkSaver) {
-    drawVectorMarioStar(doc, W - 92, 30.5, 4.5, [253, 224, 71], [180, 83, 9]);
-    drawVectorMarioBrickStrip(doc, 16, 45.5, W - 32, 1.8, theme.accent, theme.borderStrong);
-  }
   doc.setTextColor(...theme.badgeText);
   doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(18 * sScale);
+  doc.setFontSize(19 * sScale);
   doc.text(`${pct}%`, W - 52, 29.5, { align: 'center' });
   doc.setTextColor(...theme.bodyText);
-  doc.setFontSize(7.5 * sScale);
+  doc.setFontSize(7.6 * sScale);
   doc.text(
     `${params.completedCount} / ${params.totalTopics} Modules Mastered`,
     W - 52,
-    37.5,
+    38.0,
     { align: 'center' }
   );
 
+  if (!theme.isInkSaver) {
+    drawVectorMarioBrickStrip(doc, 16, 47.5, W - 32, 1.8, theme.accent, theme.borderStrong);
+  }
+
+  // 5 KPI Stat Tiles with Authentic Mario Emblems
   const stats = [
-    { label: 'STUDY TIME', val: sanitizePdfText(params.studyDurationFormatted) },
-    { label: 'GOLD COINS', val: `x${params.coins}` },
-    { label: 'DAILY STREAK', val: `${params.loginStreak} Days` },
+    { label: 'STUDY TIME', val: sanitizePdfText(params.studyDurationFormatted), type: 'clock' },
+    { label: 'GOLD COINS', val: `x${params.coins}`, type: 'coin' },
+    { label: 'DAILY STREAK', val: `${params.loginStreak} Days`, type: 'fire_flower' },
     {
       label: 'BADGES EARNED',
       val: `${params.unlockedAchievementsCount}/${params.totalAchievementsCount}`,
+      type: 'star',
     },
-    { label: 'QUIZ RUNS', val: `${params.quizRunsCompleted} Cleared` },
+    { label: 'QUIZ RUNS', val: `${params.quizRunsCompleted} Cleared`, type: 'mushroom' },
   ];
   const tileGap = 4;
   const tileW = (W - 32 - tileGap * 4) / 5;
+  const tileY = 52.5;
+  const tileH = 22.0;
+
   stats.forEach((st, idx) => {
     const tx = 16 + idx * (tileW + tileGap);
     doc.setFillColor(...theme.zebraFill);
     doc.setDrawColor(...theme.borderStrong);
     doc.setLineWidth(0.3);
-    doc.roundedRect(tx, 51, tileW, 23, 2, 2, 'FD');
+    doc.roundedRect(tx, tileY, tileW, tileH, 2, 2, 'FD');
+
+    // Vector Icon
+    const iconX = tx + 5.2;
+    const iconY = tileY + 6.0;
+    if (st.type === 'clock') {
+      doc.setDrawColor(100, 116, 139);
+      doc.setLineWidth(0.35);
+      doc.circle(iconX, iconY, 2.2, 'D');
+      doc.line(iconX, iconY, iconX, iconY - 1.2);
+      doc.line(iconX, iconY, iconX + 1.0, iconY);
+    } else if (st.type === 'coin') {
+      drawVectorMarioCoin(doc, iconX, iconY, 2.2);
+    } else if (st.type === 'fire_flower') {
+      drawVectorMarioFireFlower(doc, iconX, iconY, 2.2);
+    } else if (st.type === 'star') {
+      drawVectorMarioStar(doc, iconX, iconY, 2.2);
+    } else if (st.type === 'mushroom') {
+      drawVectorMarioMushroom(doc, iconX, iconY, 2.2, [239, 68, 68], [127, 29, 29]);
+    }
+
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(7.2 * sScale);
-    doc.text(st.label, tx + 3.5, 58.5);
+    doc.setFontSize(7.0 * sScale);
+    doc.text(st.label, tx + 9.5, tileY + 7.2);
+
     doc.setTextColor(...theme.formulaText);
     doc.setFont(ff, fp.headingStyle);
-    let valFontSize = 12.2 * sScale;
+    let valFontSize = 12.0 * sScale;
     doc.setFontSize(valFontSize);
-    const maxValW = tileW - 7;
+    const maxValW = tileW - 6.5;
     while (valFontSize > 7 && doc.getTextWidth(st.val) > maxValW) {
       valFontSize -= 0.5;
       doc.setFontSize(valFontSize);
     }
-    doc.text(st.val, tx + 3.5, 68.5);
+    doc.text(st.val, tx + 4.5, tileY + 17.5);
   });
 
+  // Six-World Breakdown Section
+  const breakHeaderY = 78.5;
+  drawVectorMarioCoinBlock(doc, 16, breakHeaderY, 4.8, theme.accent, theme.secondaryAccent, theme.isInkSaver);
   doc.setTextColor(...theme.primary);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(9.5 * sScale);
-  doc.text('SIX-WORLD LABOR STANDARDS MASTERY BREAKDOWN', 16, 84.5);
+  doc.text('SIX-WORLD PHILIPPINE LABOR STANDARDS MASTERY BREAKDOWN', 23.5, breakHeaderY + 3.8);
+
+  const dateLabelStr = params.dateLabel || new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+  doc.setTextColor(...theme.mutedText);
+  doc.setFont(ff, fp.subHeadingStyle);
+  doc.setFontSize(7.5 * sScale);
+  doc.text(`Issued: ${dateLabelStr}`, W - 16, breakHeaderY + 3.8, { align: 'right' });
+
+  doc.setDrawColor(...theme.borderMuted);
+  doc.setLineWidth(0.3);
+  doc.line(16, breakHeaderY + 6.0, W - 16, breakHeaderY + 6.0);
 
   const wColW = (W - 32 - 6) / 2;
-  const wRowH = 24;
+  const wRowH = 28.5;
   const resolvedBreakdown =
     params.worldBreakdown ||
     WORLDS_METADATA.map((w) => ({
@@ -3810,49 +4019,67 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
       shortTitle: w.shortTitle,
       completed: 10,
       total: 10,
-      pct: 100,
+      percent: 100,
     }));
+
   resolvedBreakdown.forEach((wb, idx) => {
     const c = idx % 2;
     const r = Math.floor(idx / 2);
     const bx = 16 + c * (wColW + 6);
-    const by = 89.5 + r * (wRowH + 4);
+    const by = 87.5 + r * (wRowH + 3.5);
 
     doc.setFillColor(...theme.cardTintFill);
     doc.setDrawColor(...theme.borderMuted);
     doc.setLineWidth(0.3);
     doc.roundedRect(bx, by, wColW, wRowH, 2.5, 2.5, 'FD');
 
+    // Mario Warp Pipe Icon next to world title mirroring preview
+    drawVectorMarioPipe(doc, bx + 4.5, by + 4.5, 4.5, 5.8);
+
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(9.8 * sScale);
-    doc.text(sanitizePdfText(`World ${wb.worldNumber}: ${wb.shortTitle}`), bx + 4, by + 8.5);
+    doc.setFontSize(9.5 * sScale);
+    doc.text(sanitizePdfText(`World ${wb.worldNumber}: ${wb.shortTitle}`), bx + 11.5, by + 9.5);
 
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(9.2 * sScale);
-    doc.text(`${wb.percent}% (${wb.completed}/${wb.total})`, bx + wColW - 4, by + 8.5, {
+    doc.setFontSize(9.0 * sScale);
+    doc.text(`${wb.percent}% (${wb.completed}/${wb.total})`, bx + wColW - 4.5, by + 9.5, {
       align: 'right',
     });
 
     doc.setFillColor(226, 232, 240);
-    const trackW = wColW - 8;
-    doc.roundedRect(bx + 4, by + 13.5, trackW, 5, 1.5, 1.5, 'F');
+    const trackW = wColW - 9.0;
+    doc.roundedRect(bx + 4.5, by + 16.5, trackW, 5.5, 1.8, 1.8, 'F');
     if (wb.percent > 0) {
-      doc.setFillColor(...(wb.percent === 100 ? theme.accent : theme.primary));
-      const fillW = Math.min(trackW, Math.max(3, (trackW * Math.min(100, wb.percent)) / 100));
-      doc.roundedRect(bx + 4, by + 13.5, fillW, 5, 1.5, 1.5, 'F');
+      doc.setFillColor(...(wb.percent === 100 ? ([22, 163, 74] as RgbTuple) : ([245, 158, 11] as RgbTuple)));
+      const fillW = Math.min(trackW, Math.max(3.5, (trackW * Math.min(100, wb.percent)) / 100));
+      doc.roundedRect(bx + 4.5, by + 16.5, fillW, 5.5, 1.8, 1.8, 'F');
     }
   });
+
+  // Mario Brick Strip divider before footer mirroring preview
+  if (!theme.isInkSaver) {
+    drawVectorMarioBrickStrip(doc, 16, 185.5, W - 32, 2.0, theme.accent, theme.borderStrong);
+  }
+
+  doc.setDrawColor(...theme.borderMuted);
+  doc.setLineWidth(0.3);
+  doc.line(16, 190.5, W - 16, 190.5);
 
   doc.setTextColor(...theme.mutedText);
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(7.8 * sScale);
   doc.text(
-    `Super Mario Labor Adventure  -  Philippine Labor Standards Guide (${fp.displayLabel})  |  Created by Matthew`,
-    W / 2,
-    H - 15.5,
-    { align: 'center' }
+    `Super Mario Labor Adventure  -  Philippine Labor Standards Guide (${fp.displayLabel})`,
+    16,
+    196.5
+  );
+  doc.text(
+    'Created by Matthew (Matthew Cesar Corpuz - Main Creator)',
+    W - 16,
+    196.5,
+    { align: 'right' }
   );
 
   return docToUint8Array(doc);
