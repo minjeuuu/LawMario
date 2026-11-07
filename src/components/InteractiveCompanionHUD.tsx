@@ -162,6 +162,7 @@ interface InteractiveCompanionHUDProps {
   coins: number;
   completedTopicsCount: number;
   isToadTipOpen?: boolean;
+  hasActiveNotification?: boolean;
   activeTab?: string;
   equippedCardFrame?: CardFrameId;
   equippedRing?: MarioEquippedRing;
@@ -175,6 +176,7 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
   coins,
   completedTopicsCount,
   isToadTipOpen = false,
+  hasActiveNotification = false,
   activeTab = 'map',
   equippedCardFrame = 'frame_default',
   equippedRing = 'ring_none',
@@ -231,10 +233,11 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
       : dockSide;
 
   const positionClasses = effectiveDockSide === 'right' ? 'right-3 sm:right-6' : 'left-3 sm:left-6';
+  // Avoid extreme 380px vertical jump on mobile phone viewports so companion never collides with notifications
   const verticalPositionClass = isToadTipOpen
-    ? 'bottom-[380px] sm:bottom-[340px] lg:bottom-28'
+    ? 'bottom-24 sm:bottom-28 lg:bottom-24'
     : effectiveDockSide === 'right'
-      ? 'bottom-32 sm:bottom-36 lg:bottom-20'
+      ? 'bottom-20 sm:bottom-24 lg:bottom-20'
       : 'bottom-20 sm:bottom-22 lg:bottom-6';
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);

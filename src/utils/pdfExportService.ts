@@ -1088,17 +1088,17 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   // Outer precision rounded card frame mirroring the preview's rounded-2xl border-2
   doc.setDrawColor(...theme.borderStrong);
   doc.setLineWidth(0.35);
-  doc.roundedRect(marginX - 1.2, 5.5, contentW + 2.4, 285.0, 3.0, 3.0, 'D');
+  doc.roundedRect(marginX - 1.2, 5.5, contentW + 2.4, 264.0, 3.0, 3.0, 'D');
 
-  // Header Box (y = 7.0 to 23.5, h = 16.5mm)
+  // Header Box (y = 7.0 to 23.0, h = 16.0mm)
   if (theme.isInkSaver) {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(...theme.borderStrong);
     doc.setLineWidth(0.5);
-    doc.roundedRect(marginX, 7.0, contentW, 16.5, 2.0, 2.0, 'FD');
+    doc.roundedRect(marginX, 7.0, contentW, 16.0, 2.0, 2.0, 'FD');
   } else {
     doc.setFillColor(...theme.primary);
-    doc.roundedRect(marginX, 7.0, contentW, 16.5, 2.0, 2.0, 'F');
+    doc.roundedRect(marginX, 7.0, contentW, 16.0, 2.0, 2.0, 'F');
   }
 
   // Left: Gold square box with black border and Mario Super Star
@@ -1126,14 +1126,14 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(10.2 * fScale);
-  doc.text('KEY LEGAL FORMULAS, MULTIPLIERS & STATUTORY DEADLINES', headTextX, 15.8);
+  doc.text('KEY LEGAL FORMULAS, MULTIPLIERS & STATUTORY DEADLINES', headTextX, 15.6);
 
   // Subtitle / Statute list
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(5.4 * fScale);
   const statuteSub = 'P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 & R.A. 11861';
-  doc.text(doc.splitTextToSize(statuteSub, headTextMaxW)[0] || '', headTextX, 20.0);
+  doc.text(doc.splitTextToSize(statuteSub, headTextMaxW)[0] || '', headTextX, 19.8);
 
   // Right Block: Candidate Name, Format & Updated date
   const rightMetaX = pageW - marginX - 3.0;
@@ -1153,37 +1153,39 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.text(`Updated: ${dateStr}`, rightMetaX, curMetaY, { align: 'right' });
 
   // ==================== TWO-COLUMN CORE GRID ====================
-  const colStartY = 25.5;
-  const colHeaderH = 6.2;
+  const colStartY = 24.5;
+  const colHeaderH = 5.8;
   const numFormulas = ONE_PAGE_LEGAL_FORMULAS.length;
   const numDeadlines = ONE_PAGE_LEGAL_DEADLINES.length;
-  const rowH = 13.0;
-  const colTotalItemsH = numFormulas * rowH;
+  const maxColH = 142.0;
+  const colTotalItemsH = maxColH;
+  const formulaRowH = maxColH / numFormulas;
+  const deadlineRowH = maxColH / numDeadlines;
 
   // Col 1 Header Banner
   doc.setFillColor(...theme.primary);
   doc.roundedRect(leftX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
-  drawVectorMarioCoinBlock(doc, leftX + 1.8, colStartY + 1.2, 3.8, theme.accent, theme.secondaryAccent);
+  drawVectorMarioCoinBlock(doc, leftX + 1.8, colStartY + 1.1, 3.6, theme.accent, theme.secondaryAccent);
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(7.2 * fScale);
-  doc.text(`I. KEY STATUTORY PAY FORMULAS (${numFormulas})`, leftX + 7.2, colStartY + 4.2);
+  doc.text(`I. KEY STATUTORY PAY FORMULAS (${numFormulas})`, leftX + 7.2, colStartY + 4.0);
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(5.8 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
-  doc.text('Arts. 87–97 · 302', leftX + colW - 2.0, colStartY + 4.2, { align: 'right' });
+  doc.text('Arts. 87–97 · 302', leftX + colW - 2.0, colStartY + 4.0, { align: 'right' });
 
   // Col 1 Outer Rounded Container Box
   doc.setDrawColor(...theme.borderMuted);
   doc.setLineWidth(0.25);
-  doc.roundedRect(leftX, colStartY + colHeaderH + 0.4, colW, colTotalItemsH, 1.5, 1.5);
+  doc.roundedRect(leftX, colStartY + colHeaderH + 0.3, colW, colTotalItemsH, 1.5, 1.5);
 
-  let leftY = colStartY + colHeaderH + 0.4;
+  let leftY = colStartY + colHeaderH + 0.3;
   ONE_PAGE_LEGAL_FORMULAS.forEach((item, idx) => {
     // Alternating zebra fill
     if (idx % 2 === 1) {
       doc.setFillColor(...theme.zebraFill);
-      doc.rect(leftX + 0.2, leftY, colW - 0.4, rowH, 'F');
+      doc.rect(leftX + 0.2, leftY, colW - 0.4, formulaRowH, 'F');
     }
     // Thin divider line between rows
     if (idx > 0) {
@@ -1195,60 +1197,60 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Title (bold) on left + Rate Badge on right
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.8 * fScale);
+    doc.setFontSize(6.4 * fScale);
     const titleText = `${idx + 1}. ${item.title}`;
     const rBadge = item.rateBadge || item.citation;
     const badgeW = doc.getTextWidth(rBadge) + 2.0;
     const maxTitleW = Math.max(10, colW - badgeW - 4.0);
     const safeTitle = doc.splitTextToSize(titleText, maxTitleW)[0] || titleText;
-    doc.text(safeTitle, leftX + 2.0, leftY + 3.8);
+    doc.text(safeTitle, leftX + 2.0, leftY + 3.2);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.4 * fScale);
-    doc.text(rBadge, leftX + colW - 2.0, leftY + 3.8, { align: 'right' });
+    doc.setFontSize(6.2 * fScale);
+    doc.text(rBadge, leftX + colW - 2.0, leftY + 3.2, { align: 'right' });
 
     // Line 2: Formula (accent bold text)
     doc.setTextColor(...theme.formulaText);
     doc.setFont(ff, fp.subHeadingStyle);
-    doc.setFontSize(7.4 * fScale);
+    doc.setFontSize(6.8 * fScale);
     const formulaLines = doc.splitTextToSize(sanitizePdfText(item.formula), colW - 4.0);
-    doc.text(formulaLines[0] || '', leftX + 2.0, leftY + 7.6);
+    doc.text(formulaLines[0] || '', leftX + 2.0, leftY + 6.6);
 
     // Line 3: Note (muted text)
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.6 * fScale);
+    doc.setFontSize(5.2 * fScale);
     const noteLines = doc.splitTextToSize(sanitizePdfText(item.note), colW - 4.0);
-    doc.text(noteLines[0] || '', leftX + 2.0, leftY + 11.4);
+    doc.text(noteLines[0] || '', leftX + 2.0, leftY + 9.6);
 
-    leftY += rowH;
+    leftY += formulaRowH;
   });
 
   // ==================== RIGHT COLUMN: PART II - DEADLINES ====================
   // Col 2 Header Banner
   doc.setFillColor(...theme.secondaryAccent);
   doc.roundedRect(rightX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
-  drawVectorMarioPipe(doc, rightX + 1.8, colStartY + 1.0, 4.4, 4.0);
+  drawVectorMarioPipe(doc, rightX + 1.8, colStartY + 0.9, 4.2, 3.8);
   doc.setTextColor(...theme.primaryText);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(7.2 * fScale);
-  doc.text(`II. PRESCRIPTIVE & PROCEDURAL DEADLINES (${numDeadlines})`, rightX + 7.4, colStartY + 4.2);
+  doc.text(`II. PRESCRIPTIVE & PROCEDURAL DEADLINES (${numDeadlines})`, rightX + 7.4, colStartY + 4.0);
   doc.setFont(ff, fp.subHeadingStyle);
   doc.setFontSize(5.8 * fScale);
   doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.kickerText));
-  doc.text('Arts. 297–306', rightX + colW - 2.0, colStartY + 4.2, { align: 'right' });
+  doc.text('Arts. 297–306', rightX + colW - 2.0, colStartY + 4.0, { align: 'right' });
 
   // Col 2 Outer Rounded Container Box
   doc.setDrawColor(...theme.borderMuted);
   doc.setLineWidth(0.25);
-  doc.roundedRect(rightX, colStartY + colHeaderH + 0.4, colW, colTotalItemsH, 1.5, 1.5);
+  doc.roundedRect(rightX, colStartY + colHeaderH + 0.3, colW, colTotalItemsH, 1.5, 1.5);
 
-  let rightY = colStartY + colHeaderH + 0.4;
+  let rightY = colStartY + colHeaderH + 0.3;
   ONE_PAGE_LEGAL_DEADLINES.forEach((item, idx) => {
     // Alternating zebra fill
     if (idx % 2 === 1) {
       doc.setFillColor(...theme.zebraFill);
-      doc.rect(rightX + 0.2, rightY, colW - 0.4, rowH, 'F');
+      doc.rect(rightX + 0.2, rightY, colW - 0.4, deadlineRowH, 'F');
     }
     // Thin divider line between rows
     if (idx > 0) {
@@ -1260,37 +1262,37 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     // Line 1: Claim/Action (bold) on left + Deadline on right
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.8 * fScale);
+    doc.setFontSize(6.4 * fScale);
     const claimText = `${idx + 1}. ${item.claimOrAction}`;
     const badgeW = doc.getTextWidth(item.deadline) + 2.0;
     const maxClaimW = Math.max(10, colW - badgeW - 4.0);
     const safeClaim = doc.splitTextToSize(claimText, maxClaimW)[0] || claimText;
-    doc.text(safeClaim, rightX + 2.0, rightY + 3.8);
+    doc.text(safeClaim, rightX + 2.0, rightY + 3.0);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(6.4 * fScale);
-    doc.text(item.deadline, rightX + colW - 2.0, rightY + 3.8, { align: 'right' });
+    doc.setFontSize(6.2 * fScale);
+    doc.text(item.deadline, rightX + colW - 2.0, rightY + 3.0, { align: 'right' });
 
     // Line 2 & 3: Citation + Reckoning Rule
     doc.setTextColor(...theme.mutedText);
     doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(5.6 * fScale);
+    doc.setFontSize(5.2 * fScale);
     const ruleLine = `${item.citation}: ${item.reckoningRule}`;
     const ruleLines = doc.splitTextToSize(sanitizePdfText(ruleLine), colW - 4.0);
-    doc.text(ruleLines[0] || '', rightX + 2.0, rightY + 7.6);
+    doc.text(ruleLines[0] || '', rightX + 2.0, rightY + 6.2);
     if (ruleLines[1]) {
-      doc.text(ruleLines[1], rightX + 2.0, rightY + 11.4);
+      doc.text(ruleLines[1], rightX + 2.0, rightY + 9.0);
     }
 
-    rightY += rowH;
+    rightY += deadlineRowH;
   });
 
   // ==================== MARIO BRICK DIVIDER STRIP ====================
-  const brickY = colStartY + colHeaderH + colTotalItemsH + 2.0;
+  const brickY = colStartY + colHeaderH + colTotalItemsH + 1.8;
   drawVectorMarioBrickStrip(doc, marginX, brickY, contentW, 1.8, theme.accent, theme.borderStrong);
 
   // ==================== PART III: BOTTOM WORLD 6 LEAVES & CORE CHECKPOINTS ====================
-  const bottomY = brickY + 3.5;
+  const bottomY = brickY + 3.0;
   const bottomBoxH = 68.0;
 
   // Outer container card
@@ -1388,7 +1390,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.setFillColor(...theme.cardTintFill);
   doc.setDrawColor(...theme.borderMuted);
   doc.setLineWidth(0.22);
-  doc.roundedRect(marginX, footerY, contentW, 16.0, 1.4, 1.4, 'FD');
+  doc.roundedRect(marginX, footerY, contentW, 15.0, 1.4, 1.4, 'FD');
 
   // Top sub-line: Gold star badge + Typeface on right
   doc.setFillColor(251, 191, 36); // amber-400
@@ -1409,13 +1411,13 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.setTextColor(...theme.bodyText);
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(6.8 * fScale);
-  doc.text('CORPUZ (Main Creator)', marginX + 2.8, footerY + 11.2);
+  doc.text('CORPUZ (Main Creator)', marginX + 2.8, footerY + 10.8);
 
   doc.setFont(ff, fp.bodyStyle);
   doc.setTextColor(...theme.mutedText);
   doc.setFontSize(6.6 * fScale);
   const cohortRest = '· CRUZ · FANGED · FERNANDEZ · GARCIA · GARVIDA · MAÑALAC · UNTALAN · VILA';
-  doc.text(cohortRest, marginX + 38.0, footerY + 11.2);
+  doc.text(cohortRest, marginX + 38.0, footerY + 10.8);
 
   return docToUint8Array(doc);
 }

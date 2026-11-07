@@ -2705,7 +2705,7 @@ export default function App() {
       </div>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8 pb-32 sm:pb-36 lg:pb-16 overflow-x-clip">
         {/* Persistent Mario Daily Study Goal Reached Banner + 1-Up Mushroom Bonus Celebration */}
         {dailyGoalBannerVisible && (
           <section
@@ -3008,7 +3008,7 @@ export default function App() {
 
 
             {/* Quick Access Portal Banners — Equal Height & Aligned Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 pb-4">
               <button
                 type="button"
                 onClick={() => {
@@ -4539,7 +4539,7 @@ export default function App() {
 
         {/* Tab 9: Complete Legal Citations & Exact Verbatim Statutory Provisions */}
         {activeTab === 'citations' && (
-          <div className="bg-[#1e293b] rounded-3xl border-4 border-slate-950 p-4 sm:p-6 text-white shadow-[6px_6px_0_#000]">
+          <div className="bg-[#1e293b] rounded-3xl border-4 border-slate-950 p-4 sm:p-6 text-white shadow-[6px_6px_0_#000] mb-6">
             <CitationsView
               onSelectTopic={(worldId, topicId) => {
                 handleRecordAccessedTopic(topicId);
@@ -4637,7 +4637,9 @@ export default function App() {
         <div
           role="status"
           data-testid="daily-goal-1up-toast"
-          className="fixed bottom-24 lg:bottom-8 right-3 left-3 sm:left-auto sm:right-6 z-40 sm:max-w-sm bg-emerald-950 text-white rounded-2xl border-3 border-emerald-400 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden"
+          className={`fixed ${
+            dailyQuizStreakToast ? 'top-36' : 'top-20'
+          } right-3 left-3 sm:left-auto sm:right-6 z-50 sm:max-w-sm bg-emerald-950 text-white rounded-2xl border-3 border-emerald-400 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden animate-in fade-in slide-in-from-top-2 duration-200`}
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-emerald-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0">
@@ -5238,13 +5240,14 @@ export default function App() {
           completedTopicsCount={completedTopicIds.length}
           activeTab={activeTab}
           isToadTipOpen={activeTab === 'map' && showToadTip}
+          hasActiveNotification={Boolean(achievementBanner || dailyQuizStreakToast || dailyGoalMilestoneToast)}
           equippedCardFrame={equippedCardFrame}
           equippedRing={equippedRing}
         />
       </ErrorBoundary>
 
       {/* Mario Ground Footer with Discreet Official 'Created by Matthew' Credit & Group Members */}
-      <footer className="mt-8 sm:mt-12 w-full bg-[#1e293b] border-t-4 border-black text-amber-100 pt-6 sm:pt-8 px-4 pb-20 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
+      <footer className="mt-10 sm:mt-14 w-full bg-[#1e293b] border-t-4 border-black text-amber-100 pt-6 sm:pt-8 px-4 pb-36 sm:pb-40 lg:pb-12 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 font-bold text-sm border-b border-slate-700 pb-5">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
@@ -5367,7 +5370,7 @@ export default function App() {
                 }`}
               >
                 {tab.icon}
-                <span className="text-[9px] sm:text-[10px] font-sans font-bold normal-case mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
+                <span className="text-[7.5px] sm:text-[8.5px] font-mario uppercase tracking-tighter mt-1 [@media(max-height:500px)]:mt-0 leading-none truncate max-w-full text-center">
                   {tab.label}
                 </span>
               </button>
