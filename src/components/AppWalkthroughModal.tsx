@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   X,
   ArrowLeft,
@@ -674,6 +674,27 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
   const [demoCardFlipped, setDemoCardFlipped] = useState<boolean>(false);
   const [demoLifeline5050, setDemoLifeline5050] = useState<boolean>(false);
 
+  const chapterRailRef = useRef<HTMLDivElement>(null);
+  const modalRailRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeMode === 'chapters' && chapterRailRef.current) {
+      const activeEl = chapterRailRef.current.querySelector<HTMLElement>(
+        `[data-testid="walkthrough-step-tab-${stepIdx + 1}"]`
+      );
+      activeEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [stepIdx, activeMode]);
+
+  useEffect(() => {
+    if (activeMode === 'modals' && modalRailRef.current) {
+      const activeEl = modalRailRef.current.querySelector<HTMLElement>(
+        `[data-modal-id="${selectedModalGuideId}"]`
+      );
+      activeEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [selectedModalGuideId, activeMode]);
+
   useEffect(() => {
     if (isOpen) {
       setStepIdx(0);
@@ -779,93 +800,106 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
     >
       <div className="bg-[#1e293b] text-white w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[94vh] rounded-none sm:rounded-3xl border-0 sm:border-4 border-slate-950 shadow-[10px_10px_0_#000] overflow-hidden my-auto flex flex-col safe-top-nav safe-bottom-dock">
         {/* Top Progress Header */}
-        <div className="bg-[#0f172a] px-3.5 sm:px-6 py-3 border-b-2 border-slate-700 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 shrink-0">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-            <div className="w-10 h-10 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
-              <MarioMushroomIcon className="w-6 h-6" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase text-amber-400 font-mario">
-                <span>MARIO LABOR LAW ADVENTURE</span>
-                <span aria-hidden="true">·</span>
-                <span className="text-emerald-300">{MAIN_CREATOR_AUTHOR.shortBadge}</span>
+        <div className="bg-[#0f172a] px-3.5 sm:px-6 py-2.5 sm:py-3 border-b-2 border-slate-700 shrink-0 space-y-2 sm:space-y-0">
+          {/* Main Header Row: Title & Badges on Left, Controls on Right */}
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000] shrink-0">
+                <MarioMushroomIcon className="w-6 h-6" />
               </div>
-              <h2 className="text-sm sm:text-base md:text-lg font-black text-white font-display truncate">
-                {activeMode === 'chapters'
-                  ? `STEP-BY-STEP TOUR · CHAPTER ${stepIdx + 1} OF ${WALKTHROUGH_CHAPTERS.length}`
-                  : activeMode === 'modals'
-                  ? `MODAL-BY-MODAL GUIDE · ${selectedModal.name}`
-                  : `CONTROL ATLAS (${BUTTON_DIRECTORY.length} CONTROLS)`}
-              </h2>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Mode Switcher Tabs */}
-            <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700 h-[44px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMode('chapters');
-                  marioAudio.playTabSwitch();
-                }}
-                className={`h-[36px] px-2.5 sm:px-3 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
-                  activeMode === 'chapters'
-                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <Compass className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden xs:inline">14-Step Tour</span>
-                <span className="xs:hidden">Tour</span>
-              </button>
-              <button
-                type="button"
-                data-testid="walkthrough-modal-guide-tab"
-                onClick={() => {
-                  setActiveMode('modals');
-                  marioAudio.playTabSwitch();
-                }}
-                className={`h-[36px] px-2.5 sm:px-3 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
-                  activeMode === 'modals'
-                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden xs:inline">Modal Guide</span>
-                <span className="xs:hidden">Modals</span>
-              </button>
-              <button
-                type="button"
-                data-testid="walkthrough-control-atlas-tab"
-                onClick={() => {
-                  setActiveMode('directory');
-                  marioAudio.playTabSwitch();
-                }}
-                className={`h-[36px] px-2.5 sm:px-3 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
-                  activeMode === 'directory'
-                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <MousePointerClick className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden xs:inline">Control Atlas</span>
-                <span className="xs:hidden">Atlas</span>
-              </button>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-400 font-mario truncate">
+                  <span className="truncate">MARIO LABOR LAW ADVENTURE</span>
+                  <span aria-hidden="true" className="shrink-0">·</span>
+                  <span className="text-emerald-300 shrink-0">{MAIN_CREATOR_AUTHOR.shortBadge}</span>
+                </div>
+                <h2 className="text-xs sm:text-base md:text-lg font-black text-white font-display truncate">
+                  {activeMode === 'chapters'
+                    ? `STEP-BY-STEP TOUR · CHAPTER ${stepIdx + 1} OF ${WALKTHROUGH_CHAPTERS.length}`
+                    : activeMode === 'modals'
+                    ? `MODAL-BY-MODAL GUIDE · ${selectedModal.name}`
+                    : `CONTROL ATLAS (${BUTTON_DIRECTORY.length} CONTROLS)`}
+                </h2>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                onCompleteWalkthrough();
-                marioAudio.playPipe();
-              }}
-              data-testid="walkthrough-skip-btn"
-              className="hidden sm:inline-flex min-h-[44px] h-[44px] px-3.5 items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border-2 border-slate-700 cursor-pointer whitespace-nowrap"
-            >
-              Close
-            </button>
+            {/* Desktop Mode Switcher + Close Buttons */}
+            <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700 h-[44px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveMode('chapters');
+                    marioAudio.playTabSwitch();
+                  }}
+                  className={`h-[36px] px-2.5 sm:px-3 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
+                    activeMode === 'chapters'
+                      ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5 shrink-0" />
+                  <span>14-Step Tour</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="walkthrough-modal-guide-tab"
+                  onClick={() => {
+                    setActiveMode('modals');
+                    marioAudio.playTabSwitch();
+                  }}
+                  className={`h-[36px] px-2.5 sm:px-3 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
+                    activeMode === 'modals'
+                      ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                  <span>Modal Guide</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="walkthrough-control-atlas-tab"
+                  onClick={() => {
+                    setActiveMode('directory');
+                    marioAudio.playTabSwitch();
+                  }}
+                  className={`h-[36px] px-2.5 sm:px-3 rounded-lg text-xs font-black transition-all cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap ${
+                    activeMode === 'directory'
+                      ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <MousePointerClick className="w-3.5 h-3.5 shrink-0" />
+                  <span>Control Atlas</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onCompleteWalkthrough();
+                  marioAudio.playPipe();
+                }}
+                data-testid="walkthrough-skip-btn"
+                className="min-h-[44px] h-[44px] px-3.5 items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border-2 border-slate-700 cursor-pointer whitespace-nowrap"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onCompleteWalkthrough();
+                  marioAudio.playPipe();
+                }}
+                aria-label="Close Walkthrough Guide"
+                className="min-w-[44px] min-h-[44px] h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Mobile Close Button pinned Top-Right */}
             <button
               type="button"
               onClick={() => {
@@ -873,9 +907,60 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 marioAudio.playPipe();
               }}
               aria-label="Close Walkthrough Guide"
-              className="min-w-[44px] min-h-[44px] h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
+              className="sm:hidden min-w-[40px] min-h-[40px] h-[40px] rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer shrink-0"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Mobile Full-Width 3-Column Equal Mode Switcher Bar */}
+          <div className="grid grid-cols-3 sm:hidden bg-slate-950 p-1 rounded-xl border border-slate-700 h-[42px] gap-1 w-full">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveMode('chapters');
+                marioAudio.playTabSwitch();
+              }}
+              className={`h-[32px] px-1 rounded-lg text-[11px] font-black transition-all cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap truncate ${
+                activeMode === 'chapters'
+                  ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 shrink-0" />
+              <span>Tour</span>
+            </button>
+            <button
+              type="button"
+              data-testid="walkthrough-modal-guide-tab"
+              onClick={() => {
+                setActiveMode('modals');
+                marioAudio.playTabSwitch();
+              }}
+              className={`h-[32px] px-1 rounded-lg text-[11px] font-black transition-all cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap truncate ${
+                activeMode === 'modals'
+                  ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 shrink-0" />
+              <span>Modals</span>
+            </button>
+            <button
+              type="button"
+              data-testid="walkthrough-control-atlas-tab"
+              onClick={() => {
+                setActiveMode('directory');
+                marioAudio.playTabSwitch();
+              }}
+              className={`h-[32px] px-1 rounded-lg text-[11px] font-black transition-all cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap truncate ${
+                activeMode === 'directory'
+                  ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000]'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <MousePointerClick className="w-3.5 h-3.5 shrink-0" />
+              <span>Atlas</span>
             </button>
           </div>
         </div>
@@ -894,16 +979,20 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
         {activeMode === 'chapters' && (
           <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 min-h-0">
             {/* Left Chapter Rail */}
-            <aside className="lg:col-span-4 bg-slate-950/90 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4">
+            <aside className="lg:col-span-4 bg-slate-950/90 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4 shrink-0 lg:overflow-y-auto lg:max-h-[calc(94vh-130px)]">
               <div className="hidden lg:block mb-2.5">
                 <span className="text-[10px] font-black uppercase text-slate-400 font-mario">
                   14 STEP-BY-STEP CHAPTERS
                 </span>
               </div>
-              <div className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible no-scrollbar">
+              <div
+                ref={chapterRailRef}
+                className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-1 lg:pb-0"
+              >
                 {WALKTHROUGH_CHAPTERS.map((ch, idx) => {
                   const isActive = idx === stepIdx;
                   const isVisited = idx < stepIdx;
+                  const cleanTitle = ch.shortTitle.replace(/^\d+\.\s*/, '');
                   return (
                     <button
                       key={ch.id}
@@ -913,7 +1002,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                         marioAudio.playJump();
                       }}
                       data-testid={`walkthrough-step-tab-${ch.stepNumber}`}
-                      className={`px-3 py-2 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer shrink-0 lg:w-full ${
+                      className={`px-3 py-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer shrink-0 lg:w-full min-w-[155px] sm:min-w-[185px] lg:min-w-0 ${
                         isActive
                           ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_2px_0_#000]'
                           : isVisited
@@ -929,7 +1018,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                         >
                           {String(ch.stepNumber).padStart(2, '0')}
                         </span>
-                        <span className="text-xs whitespace-nowrap lg:truncate">{ch.shortTitle}</span>
+                        <span className="text-xs font-bold whitespace-nowrap lg:truncate">{cleanTitle}</span>
                       </div>
                       {isVisited && !isActive && (
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 hidden lg:block" />
@@ -941,7 +1030,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
             </aside>
 
             {/* Right Interactive Chapter Stage */}
-            <div className="lg:col-span-8 p-4 sm:p-5 space-y-4 overflow-y-auto">
+            <div className="lg:col-span-8 p-4 sm:p-6 space-y-4 overflow-y-auto lg:max-h-[calc(94vh-130px)]">
               <div className="space-y-4">
                 {/* Chapter Kicker + Headline */}
                 <div className="space-y-1.5">
@@ -962,7 +1051,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   {chapter.highlights.map((hl, idx) => (
                     <div
                       key={hl.label}
-                      className="bg-slate-900 rounded-2xl p-3 border border-slate-700 space-y-1"
+                      className="bg-slate-900 rounded-2xl p-3 sm:p-3.5 border border-slate-700 flex flex-col justify-start space-y-1.5"
                     >
                       <div className="flex items-start gap-1.5">
                         <span className="text-[10px] font-mono font-black text-amber-400 tabular-nums whitespace-nowrap shrink-0 mt-0.5">
@@ -972,7 +1061,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                           {hl.label}
                         </h4>
                       </div>
-                      <p className="text-xs text-slate-300 leading-relaxed">{hl.detail}</p>
+                      <p className="text-xs text-slate-300 leading-relaxed font-normal">{hl.detail}</p>
                     </div>
                   ))}
                 </div>
@@ -1087,7 +1176,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                           >
                             <MarioCharacterAvatar character={hero.id} className="w-6 h-6" />
                             <span className="text-[10px] font-bold truncate w-full text-center">
-                              {hero.name}
+                              {hero.shortName || hero.name}
                             </span>
                           </button>
                         ))}
@@ -1165,7 +1254,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                             <span>WORLD {w.num}</span>
                             <span>{w.pct}%</span>
                           </div>
-                          <span className="text-xs font-display font-bold block truncate mt-0.5">
+                          <span className="text-xs font-display font-bold block leading-tight mt-0.5 min-h-[28px] sm:min-h-0 flex items-center">
                             {w.name}
                           </span>
                           <span className="text-[9px] text-slate-400 block mt-0.5">
@@ -1322,13 +1411,13 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                             setDemoHolidayMultiplier(h.rate);
                             marioAudio.playCoin();
                           }}
-                          className={`p-2 rounded-xl border text-center cursor-pointer ${
+                          className={`p-2 rounded-xl border text-center cursor-pointer flex flex-col justify-between ${
                             demoHolidayMultiplier === h.rate
                               ? 'bg-rose-600 text-white border-black font-black'
                               : 'bg-slate-900 text-slate-300 border-slate-800'
                           }`}
                         >
-                          <span className="text-[10px] block truncate">{h.label}</span>
+                          <span className="text-[10px] block leading-tight min-h-[24px] flex items-center justify-center text-center">{h.label}</span>
                           <span className="text-sm font-black font-mono block mt-0.5">{h.mult}</span>
                           <span className="text-[10px] text-amber-300 font-mono block">
                             P{((645 * h.rate) / 100).toFixed(2)}
@@ -1366,10 +1455,10 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                           }`}
                         >
                           <span className="text-[10px] block font-mono">{r.reg}</span>
-                          <span className="text-sm font-black font-mono block text-amber-300">
+                          <span className={`text-sm font-black font-mono block ${demoWageRegion === r.reg ? 'text-slate-950 font-black' : 'text-amber-300'}`}>
                             {r.rate}
                           </span>
-                          <span className="text-[9px] text-slate-400 block truncate">{r.desc}</span>
+                          <span className="text-[9.5px] text-slate-400 block leading-tight mt-0.5">{r.desc}</span>
                         </button>
                       ))}
                     </div>
@@ -1494,7 +1583,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                 {chapter.id === 'arcade_game_vault' && (
                   <div className="bg-slate-950/90 rounded-2xl p-4 border border-slate-700 space-y-3">
                     <span className="text-[10px] font-black uppercase text-emerald-300 font-mario block">
-                      6 ENGAGING RETRO ARCADE GAMES (NOT JUST QUIZZES)
+                      POPULAR ARCADE MINI-GAMES (INTERACTIVE RETRO MECHANICS)
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                       {[
@@ -1507,12 +1596,12 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                       ].map((g) => (
                         <div
                           key={g.title}
-                          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1"
+                          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1 flex flex-col justify-start"
                         >
-                          <span className="font-bold text-amber-300 block truncate font-display">
+                          <span className="font-bold text-amber-300 block leading-snug line-clamp-2 min-h-[30px] font-display">
                             {g.title}
                           </span>
-                          <span className="text-[10px] text-slate-400 block">{g.desc}</span>
+                          <span className="text-[10px] text-slate-400 block leading-tight">{g.desc}</span>
                         </div>
                       ))}
                     </div>
@@ -1598,22 +1687,26 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
         {activeMode === 'modals' && (
           <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 min-h-0">
             {/* Left Rail: 10 Modals Selector */}
-            <aside className="lg:col-span-4 bg-slate-950/90 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4">
+            <aside className="lg:col-span-4 bg-slate-950/90 border-b lg:border-b-0 lg:border-r border-slate-800 p-3 sm:p-4 shrink-0 lg:overflow-y-auto lg:max-h-[calc(94vh-130px)]">
               <span className="text-[10px] font-black uppercase text-slate-400 font-mario block mb-2.5">
                 SELECT APP MODAL ({MODAL_GUIDE_ITEMS.length})
               </span>
-              <div className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible no-scrollbar">
+              <div
+                ref={modalRailRef}
+                className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-1 lg:pb-0"
+              >
                 {MODAL_GUIDE_ITEMS.map((m) => {
                   const isActive = m.id === selectedModalGuideId;
                   return (
                     <button
                       key={m.id}
                       type="button"
+                      data-modal-id={m.id}
                       onClick={() => {
                         setSelectedModalGuideId(m.id);
                         marioAudio.playJump();
                       }}
-                      className={`px-3 py-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer shrink-0 lg:w-full ${
+                      className={`px-3 py-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer shrink-0 min-w-[195px] sm:min-w-[225px] lg:min-w-0 lg:w-full ${
                         isActive
                           ? 'bg-amber-400 text-slate-950 border-black font-black shadow-[0_2px_0_#000]'
                           : 'bg-slate-900 text-slate-200 border-slate-800 hover:bg-slate-850'
@@ -1643,7 +1736,7 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
             </aside>
 
             {/* Right Detailed Modal Stage */}
-            <div className="lg:col-span-8 p-4 sm:p-6 space-y-4 overflow-y-auto">
+            <div className="lg:col-span-8 p-4 sm:p-6 space-y-4 overflow-y-auto lg:max-h-[calc(94vh-130px)]">
               <div className="space-y-4">
                 <div className="border-b border-slate-800 pb-3">
                   <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase font-mario">
@@ -1686,12 +1779,15 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                     {selectedModal.keyButtons.map((btn, idx) => (
                       <div
                         key={idx}
-                        className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs"
+                        className="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-1.5 sm:gap-3 items-start sm:items-center text-xs"
                       >
-                        <span className="font-black text-amber-300 font-display">
-                          {btn.name}
+                        <span className="sm:col-span-4 font-black text-amber-300 font-display flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>{btn.name}</span>
                         </span>
-                        <span className="text-slate-300 font-medium">{btn.role}</span>
+                        <span className="sm:col-span-8 text-slate-300 font-medium leading-snug">
+                          {btn.role}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -1759,77 +1855,112 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
             </div>
 
             {/* Button Cards List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-              {filteredButtons.map((btn) => {
-                const isExpanded = expandedButtonId === btn.id;
+            {filteredButtons.length === 0 ? (
+              <div className="text-center py-12 px-4 bg-slate-900 rounded-2xl border-2 border-slate-800 space-y-3">
+                <Search className="w-8 h-8 text-slate-600 mx-auto" />
+                <h4 className="text-sm font-black text-white font-display">No Controls Found</h4>
+                <p className="text-xs text-slate-400">
+                  No matching buttons or switches found for &ldquo;{directorySearch}&rdquo;. Try another search keyword.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDirectorySearch('');
+                    setSelectedDirectoryCategory('All');
+                    marioAudio.playCoin();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 text-amber-300 border border-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-700"
+                >
+                  Clear Search &amp; Filter
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                {filteredButtons.map((btn) => {
+                  const isExpanded = expandedButtonId === btn.id;
 
-                return (
-                  <div
-                    key={btn.id}
-                    className="bg-slate-900 rounded-2xl border-2 border-slate-700 hover:border-amber-400/80 transition-all overflow-hidden"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExpandedButtonId(isExpanded ? null : btn.id);
-                        marioAudio.playCoin();
-                      }}
-                      className="w-full p-3.5 text-left flex items-start justify-between gap-3 cursor-pointer"
+                  return (
+                    <div
+                      key={btn.id}
+                      className="bg-slate-900 rounded-2xl border-2 border-slate-700 hover:border-amber-400/80 transition-all overflow-hidden"
                     >
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-black text-amber-400 border border-slate-700 font-mario">
-                            {btn.category}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-semibold truncate inline-flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
-                            <span>{btn.part}</span>
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-black text-white font-display flex items-center gap-1.5">
-                          <span>{btn.name}</span>
-                        </h4>
-                        <p className="text-xs text-slate-300 font-medium line-clamp-2">
-                          {btn.whatItDoes}
-                        </p>
-                      </div>
-
-                      <div className="p-1 rounded-lg bg-slate-800 text-slate-300 shrink-0 mt-1">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </div>
-                    </button>
-
-                    {isExpanded && (
-                      <div className="px-3.5 pb-3.5 pt-2 border-t border-slate-800 space-y-2.5 bg-slate-950/60 text-xs">
-                        <div className="space-y-0.5">
-                          <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
-                            HOW TO USE STEP BY STEP
-                          </span>
-                          <p className="text-slate-200 font-semibold leading-relaxed">
-                            {btn.howToUse}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExpandedButtonId(isExpanded ? null : btn.id);
+                          marioAudio.playCoin();
+                        }}
+                        className="w-full p-3.5 text-left flex items-start justify-between gap-3 cursor-pointer"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-black text-amber-400 border border-slate-700 font-mario">
+                              {btn.category}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-semibold inline-flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
+                              <span>{btn.part}</span>
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-black text-white font-display flex items-center gap-1.5">
+                            <span>{btn.name}</span>
+                          </h4>
+                          <p className="text-xs text-slate-300 font-medium line-clamp-2">
+                            {btn.whatItDoes}
                           </p>
                         </div>
 
-                        <div className="space-y-0.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700">
-                          <span className="text-[10px] font-black uppercase text-emerald-300 font-mario flex items-center gap-1">
-                            <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
-                            <span>PRO STUDY TIP</span>
-                          </span>
-                          <p className="text-slate-200 leading-relaxed font-semibold">
-                            {btn.proTip}
-                          </p>
+                        <div className="p-1 rounded-lg bg-slate-800 text-slate-300 shrink-0 mt-1">
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="px-3.5 pb-3.5 pt-2 border-t border-slate-800 space-y-2.5 bg-slate-950/60 text-xs">
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] font-black uppercase text-amber-400 font-mario block">
+                              HOW TO USE STEP BY STEP
+                            </span>
+                            <p className="text-slate-200 font-semibold leading-relaxed">
+                              {btn.howToUse}
+                            </p>
+                          </div>
+
+                          <div className="space-y-0.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700">
+                            <span className="text-[10px] font-black uppercase text-emerald-300 font-mario flex items-center gap-1">
+                              <MarioStarIcon className="w-3.5 h-3.5 shrink-0" />
+                              <span>PRO STUDY TIP</span>
+                            </span>
+                            <p className="text-slate-200 leading-relaxed font-semibold">
+                              {btn.proTip}
+                            </p>
+                          </div>
+
+                          {btn.targetTab && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                marioAudio.playPipe();
+                                onCompleteWalkthrough(btn.targetTab);
+                              }}
+                              className="w-full mt-2 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border border-black shadow-[0_2px_0_#000] flex items-center justify-center gap-1.5 cursor-pointer active:translate-y-0.5"
+                            >
+                              <span>Open {btn.targetTab.toUpperCase()} Section</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
         {/* Modal Bottom Footer Navigation */}
-        <div className="bg-[#0f172a] px-4 sm:px-6 py-3 border-t-2 border-slate-700 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="bg-[#0f172a] px-3.5 sm:px-6 py-2.5 sm:py-3 border-t-2 border-slate-700 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
           {activeMode === 'chapters' ? (
             <>
               <button
@@ -1839,14 +1970,14 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   marioAudio.playCoin();
                 }}
                 disabled={isFirst}
-                className={`min-h-[44px] px-3.5 sm:px-4 rounded-xl text-xs font-black inline-flex items-center gap-2 border-2 transition-all shrink-0 ${
+                className={`min-h-[44px] h-[44px] px-3 sm:px-4 rounded-xl text-xs font-black inline-flex items-center gap-1.5 sm:gap-2 border-2 transition-all shrink-0 ${
                   isFirst
                     ? 'opacity-30 border-slate-800 text-slate-600 cursor-not-allowed'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700 cursor-pointer active:translate-y-0.5'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 shrink-0" />
-                <span>Previous</span>
+                <span>Prev<span className="hidden sm:inline">ious</span></span>
               </button>
 
               {/* Mobile Centered Step Progression Counter */}
@@ -1892,13 +2023,21 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleFinishTour(chapter.targetTab)}
-                    className="min-h-[44px] px-4 sm:px-5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap animate-pulse active:translate-y-0.5"
+                    className="min-h-[44px] h-[44px] px-3.5 sm:px-5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap animate-pulse active:translate-y-0.5 shrink-0"
                   >
                     <MarioStarIcon className="w-4 h-4 shrink-0" />
                     <span>
-                      {alreadyGraduated
-                        ? 'Finish Walkthrough'
-                        : 'Finish Guide & Claim +25 Coins'}
+                      {alreadyGraduated ? (
+                        <>
+                          <span className="sm:hidden">Finish</span>
+                          <span className="hidden sm:inline">Finish Walkthrough</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="sm:hidden">Finish (+25c)</span>
+                          <span className="hidden sm:inline">Finish Guide & Claim +25 Coins</span>
+                        </>
+                      )}
                     </span>
                   </button>
                 ) : (
@@ -1909,18 +2048,19 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                       setStepIdx((prev) => Math.min(WALKTHROUGH_CHAPTERS.length - 1, prev + 1));
                       marioAudio.playCoin();
                     }}
-                    className="min-h-[44px] px-4 sm:px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer whitespace-nowrap active:translate-y-0.5"
+                    className="min-h-[44px] h-[44px] px-3.5 sm:px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap active:translate-y-0.5 shrink-0"
                   >
-                    <span>Next Chapter</span>
+                    <span>Next<span className="hidden sm:inline"> Chapter</span></span>
                     <ArrowRight className="w-4 h-4 shrink-0" />
                   </button>
                 )}
               </div>
             </>
           ) : activeMode === 'modals' ? (
-            <div className="w-full flex items-center justify-between gap-2">
-              <span className="text-xs text-slate-400 font-semibold truncate">
-                {selectedModal.name} · {selectedModal.keyButtons.length} Primary Controls Documented
+            <div className="w-full flex items-center justify-between gap-2.5">
+              <span className="text-xs text-slate-400 font-semibold truncate flex-1 min-w-0">
+                <span className="text-amber-300 font-bold">{selectedModal.name}</span>
+                <span className="hidden sm:inline"> · {selectedModal.keyButtons.length} Primary Controls Documented</span>
               </span>
               <button
                 type="button"
@@ -1928,15 +2068,16 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   onCompleteWalkthrough();
                   marioAudio.playPipe();
                 }}
-                className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+                className="min-h-[44px] h-[44px] px-3.5 sm:px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap shrink-0 active:translate-y-0.5"
               >
-                Close Modal Guide
+                Close<span className="hidden sm:inline"> Modal Guide</span>
               </button>
             </div>
           ) : (
-            <div className="w-full flex items-center justify-between gap-2">
-              <span className="text-xs text-slate-400 font-semibold">
-                {MAIN_CREATOR_AUTHOR.shortBadge} · Inspect every button, tab, and calculation switch across all 6 Worlds.
+            <div className="w-full flex items-center justify-between gap-2.5">
+              <span className="text-xs text-slate-400 font-semibold truncate flex-1 min-w-0">
+                <span className="text-amber-300 font-bold">{MAIN_CREATOR_AUTHOR.shortBadge}</span>
+                <span className="hidden sm:inline"> · Inspect every button, tab, and calculation switch across all 6 Worlds.</span>
               </span>
               <button
                 type="button"
@@ -1944,9 +2085,9 @@ export const AppWalkthroughModal: React.FC<AppWalkthroughModalProps> = ({
                   onCompleteWalkthrough();
                   marioAudio.playPipe();
                 }}
-                className="min-h-[44px] px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap"
+                className="min-h-[44px] h-[44px] px-3.5 sm:px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shadow-[0_2px_0_#000] cursor-pointer whitespace-nowrap shrink-0 active:translate-y-0.5"
               >
-                Close Atlas
+                Close<span className="hidden sm:inline"> Atlas</span>
               </button>
             </div>
           )}
