@@ -482,15 +482,25 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
           y = margin;
         }
 
-        // Note Card Header
+        // Note Card Header (Uncut titles with dynamic multi-line wrapping)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        const titleLines = doc.splitTextToSize(`[${idx + 1}] ${n.title}`, contentWidth - 6);
+        const titleBoxH = Math.max(8, titleLines.length * 4.4 + 3.6);
+
+        if (y + titleBoxH > pageHeight - 30) {
+          doc.addPage();
+          y = margin;
+        }
+
         doc.setFillColor(241, 245, 249);
         doc.setDrawColor(203, 213, 225);
-        doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'FD');
+        doc.roundedRect(margin, y, contentWidth, titleBoxH, 2, 2, 'FD');
         doc.setTextColor(15, 23, 42);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
-        doc.text(`[${idx + 1}] ${n.title}`, margin + 3, y + 5.5);
-        y += 11;
+        doc.text(titleLines, margin + 3, y + 5.0);
+        y += titleBoxH + 3.0;
 
         // Meta Tag
         doc.setTextColor(100, 116, 139);

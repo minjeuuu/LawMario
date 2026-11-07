@@ -667,7 +667,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
   const stageMetrics = computeA4PreviewStageMetrics({
     containerWidthPx: stageWidthPx,
     containerHeightPx: stageHeightPx,
-    fitWholePageVertically: documentMode === 'certificate' || documentMode === 'scorecard',
+    fitWholePageVertically:
+      documentMode === 'certificate' ||
+      documentMode === 'scorecard' ||
+      documentMode === 'summary',
     isLandscape: isLandscapeDocument,
     zoomPreset,
   });
@@ -2402,26 +2405,68 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         ))}
                       </div>
 
-                      {/* Core Workplace Checkpoints matching PDF */}
-                      <div
-                        style={{
-                          backgroundColor: activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
-                          borderColor: activeExtendedTheme.borderHex,
-                        }}
-                        className="rounded-lg border p-2 space-y-1 text-[9.5px] sm:text-[10px] leading-snug"
-                      >
-                        <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-bold">
-                          <span className="text-amber-800 uppercase font-black font-mono mr-1">Four-Fold Control Test:</span>
-                          (1) Selection/Engagement, (2) Payment of Wages, (3) Power of Dismissal, (4) Power of Control over means &amp; methods (Most Crucial).
-                        </p>
-                        <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-semibold">
-                          <span className="text-emerald-800 uppercase font-black font-mono mr-1">Nominal Damages (Agabon / Jaka):</span>
-                          Valid Just Cause + defective Twin-Notice = P30,000 | Valid Authorized Cause + defective 30d Notice = P50,000.
-                        </p>
-                        <p style={{ color: activeExtendedTheme.mutedTextHex }} className="italic font-medium">
-                          <span className="uppercase font-black font-mono not-italic mr-1 text-slate-800">In Dubio Pro Operario:</span>
-                          All doubts in statutory interpretation are resolved in favor of the working class (Art. 4, Labor Code).
-                        </p>
+                      {/* Core Workplace Checkpoints matching PDF (2x2 Grid) */}
+                      <div className="grid grid-cols-2 gap-2 text-[9.5px] sm:text-[10px] leading-snug">
+                        <div
+                          style={{
+                            backgroundColor: activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
+                            borderColor: activeExtendedTheme.borderHex,
+                          }}
+                          className="rounded-lg border p-1.5 space-y-0.5"
+                        >
+                          <div className="flex items-baseline justify-between gap-1">
+                            <span className="text-amber-800 uppercase font-black font-mono text-[9px] sm:text-[9.5px]">Four-Fold Control Test</span>
+                            <span className="text-[8px] sm:text-[8.5px] font-mono text-slate-500 shrink-0">Arts. 280, 295</span>
+                          </div>
+                          <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-medium text-[9px] sm:text-[9.5px] leading-tight">
+                            (1) Selection/Engagement, (2) Wage Payment, (3) Dismissal Power, (4) Control over means &amp; methods (Most Crucial).
+                          </p>
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor: activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
+                            borderColor: activeExtendedTheme.borderHex,
+                          }}
+                          className="rounded-lg border p-1.5 space-y-0.5"
+                        >
+                          <div className="flex items-baseline justify-between gap-1">
+                            <span className="text-emerald-800 uppercase font-black font-mono text-[9px] sm:text-[9.5px]">Nominal Damages (Agabon/Jaka)</span>
+                            <span className="text-[8px] sm:text-[8.5px] font-mono text-slate-500 shrink-0">Due Process</span>
+                          </div>
+                          <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-medium text-[9px] sm:text-[9.5px] leading-tight">
+                            Valid Just Cause + defective Twin-Notice = P30,000 | Valid Authorized Cause + defective 30d Notice = P50,000.
+                          </p>
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor: activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
+                            borderColor: activeExtendedTheme.borderHex,
+                          }}
+                          className="rounded-lg border p-1.5 space-y-0.5"
+                        >
+                          <div className="flex items-baseline justify-between gap-1">
+                            <span className="text-blue-800 uppercase font-black font-mono text-[9px] sm:text-[9.5px]">In Dubio Pro Operario</span>
+                            <span className="text-[8px] sm:text-[8.5px] font-mono text-slate-500 shrink-0">Art. 4, Labor Code</span>
+                          </div>
+                          <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-medium italic text-[9px] sm:text-[9.5px] leading-tight">
+                            All doubts in statutory interpretation &amp; implementation are resolved in favor of the working class.
+                          </p>
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor: activeExtendedTheme.tableStripeBgHex || '#FFFFFF',
+                            borderColor: activeExtendedTheme.borderHex,
+                          }}
+                          className="rounded-lg border p-1.5 space-y-0.5"
+                        >
+                          <div className="flex items-baseline justify-between gap-1">
+                            <span className="text-purple-800 uppercase font-black font-mono text-[9px] sm:text-[9.5px]">Burden of Proof in Dismissal</span>
+                            <span className="text-[8px] sm:text-[8.5px] font-mono text-slate-500 shrink-0">Art. 292 [277]</span>
+                          </div>
+                          <p style={{ color: activeExtendedTheme.bodyTextHex }} className="font-medium text-[9px] sm:text-[9.5px] leading-tight">
+                            The employer bears the burden of proving that employee dismissal was for valid cause and due process.
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -2924,11 +2969,11 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       key={note.id}
                       className="border border-slate-300 rounded-lg p-3 bg-white break-inside-avoid space-y-1"
                     >
-                      <div className="flex items-center justify-between gap-2 text-[11px]">
-                        <span className="font-bold text-slate-950">{note.title}</span>
-                        <span className="font-mono text-[10px] text-slate-600">{note.worldTag}</span>
+                      <div className="flex items-baseline justify-between gap-2 text-[11px]">
+                        <span className="font-bold text-slate-950 break-words [overflow-wrap:anywhere] min-w-0">{note.title}</span>
+                        <span className="font-mono text-[10px] text-slate-600 shrink-0">{note.worldTag}</span>
                       </div>
-                      <p className="text-[11px] text-slate-800 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-[11px] text-slate-800 whitespace-pre-wrap leading-relaxed break-words [overflow-wrap:anywhere]">
                         {note.content}
                       </p>
                     </div>

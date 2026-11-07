@@ -1451,42 +1451,70 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     }
   });
 
-  // Core Workplace Checkpoints (Four-Fold Test + Nominal Damages + In Dubio Pro Operario)
+  // Core Workplace Checkpoints (Four-Fold Test + Nominal Damages + In Dubio Pro Operario + Burden of Proof)
   const checkY = gridStartY + 2 * (leaveCardH + 2.0) + 1.5;
   doc.setFillColor(...theme.zebraFill);
   doc.setDrawColor(...theme.borderStrong);
   doc.setLineWidth(0.22);
   doc.roundedRect(marginX + 1.2, checkY, contentW - 2.4, 28.5, 1.2, 1.2, 'FD');
 
-  doc.setTextColor(...theme.bodyText);
-  doc.setFont(ff, fp.headingStyle);
-  doc.setFontSize(6.5 * fScale);
-  doc.text(
-    'FOUR-FOLD CONTROL TEST: (1) Selection/Engagement, (2) Payment of Wages, (3) Power of Dismissal, (4) Power of Control over means & methods (Most Crucial test in Philippine jurisprudence).',
-    marginX + 2.8,
-    checkY + 5.5
-  );
-  doc.text(
-    'NOMINAL DAMAGES (AGABON / JAKA DOCTRINE): Valid Just Cause + defective Twin-Notice = PHP 30,000  |  Valid Authorized Cause + defective 30d Notice = PHP 50,000.',
-    marginX + 2.8,
-    checkY + 12.0
-  );
-  doc.setFont(ff, ff === 'courier' ? fp.bodyStyle : 'italic');
-  doc.setFontSize(6.3 * fScale);
-  doc.setTextColor(...theme.mutedText);
-  doc.text(
-    'IN DUBIO PRO OPERARIO: All doubts in the implementation and interpretation of the Labor Code are resolved in favor of the working class (Art. 4, P.D. 442).',
-    marginX + 2.8,
-    checkY + 18.5
-  );
-  doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(5.8 * fScale);
-  doc.setTextColor(...theme.bodyText);
-  doc.text(
-    'BURDEN OF PROOF: The employer bears the burden of proving that the dismissal of an employee was for valid cause and with observance of procedural due process.',
-    marginX + 2.8,
-    checkY + 24.5
-  );
+  const checkCardW = (contentW - 5.0) / 2;
+  const checkCardH = 12.8;
+  const checkpoints = [
+    {
+      title: 'FOUR-FOLD CONTROL TEST',
+      sub: 'Arts. 280, 295 Juris.',
+      text: '(1) Selection/Engagement, (2) Wage Payment, (3) Power of Dismissal, (4) Control over means & methods (Most Crucial).',
+    },
+    {
+      title: 'NOMINAL DAMAGES (AGABON / JAKA)',
+      sub: 'Twin-Notice Due Process',
+      text: 'Valid Just Cause + defective Twin-Notice = PHP 30,000 | Valid Authorized Cause + defective 30d Notice = PHP 50,000.',
+    },
+    {
+      title: 'IN DUBIO PRO OPERARIO',
+      sub: 'Art. 4, P.D. No. 442',
+      text: 'All doubts in Labor Code implementation and interpretation are resolved in favor of the working class.',
+    },
+    {
+      title: 'BURDEN OF PROOF IN DISMISSAL',
+      sub: 'Art. 292 [277] Due Process',
+      text: 'The employer bears the burden of proving that the dismissal was for valid cause and with due process.',
+    },
+  ];
+
+  checkpoints.forEach((cp, idx) => {
+    const cCol = idx % 2;
+    const cRow = Math.floor(idx / 2);
+    const cX = marginX + 1.4 + cCol * (checkCardW + 2.2);
+    const cY = checkY + 1.0 + cRow * (checkCardH + 1.0);
+
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...theme.borderMuted);
+    doc.setLineWidth(0.18);
+    doc.roundedRect(cX, cY, checkCardW, checkCardH, 1.0, 1.0, 'FD');
+
+    // Title & Citation sub
+    doc.setTextColor(...theme.bodyText);
+    doc.setFont(ff, fp.headingStyle);
+    doc.setFontSize(6.4 * fScale);
+    doc.text(cp.title, cX + 2.0, cY + 3.4);
+
+    doc.setTextColor(...theme.mutedText);
+    doc.setFont(ff, fp.bodyStyle);
+    doc.setFontSize(5.2 * fScale);
+    doc.text(cp.sub, cX + checkCardW - 2.0, cY + 3.4, { align: 'right' });
+
+    // Body lines cleanly split with safe padding so text never runs off card frame
+    doc.setTextColor(...theme.bodyText);
+    doc.setFont(ff, idx === 2 && ff !== 'courier' ? 'italic' : fp.bodyStyle);
+    doc.setFontSize(5.5 * fScale);
+    const cLines = doc.splitTextToSize(sanitizePdfText(cp.text), checkCardW - 4.0);
+    doc.text(cLines[0] || '', cX + 2.0, cY + 7.0);
+    if (cLines[1]) {
+      doc.text(cLines[1], cX + 2.0, cY + 10.5);
+    }
+  });
 
   // ==================== RESEARCH COHORT ATTRIBUTION BAR ====================
   const footerY = bottomY + bottomBoxH + 2.5;
@@ -1532,7 +1560,6 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     marginX + 2.8,
     footerY + 17.5
   );
-  doc.text(cohortRest, marginX + 38.0, footerY + 10.8);
 
   return docToUint8Array(doc);
 }
@@ -1948,19 +1975,6 @@ export function buildCertificatePdfBytes(params: CertificatePdfParams): Uint8Arr
   doc.text('SEALED', W / 2, sigLineY + 1.8, { align: 'center' });
   doc.setFontSize(5.5 * cScale);
   doc.text('VERIFIED', W / 2, sigLineY + 5.2, { align: 'center' });
-
-  doc.setTextColor(...theme.mutedText);
-  doc.setFont(ff, fp.subHeadingStyle);
-  doc.setFontSize(7.0 * cScale);
-  doc.text(`ISSUED: ${dateStr} (${fp.displayLabel})`, W / 2, sigLineY + 14.2, { align: 'center' });
-  doc.setFont(ff, fp.bodyStyle);
-  doc.setFontSize(6.5 * cScale);
-  doc.text(
-    `ID: ${certId}  |  MODULES COMPLETED: ${params.completedCount}/${Math.max(1, params.totalCount)}`,
-    W / 2,
-    sigLineY + 18.4,
-    { align: 'center' }
-  );
 
   doc.setTextColor(...theme.mutedText);
   doc.setFont(ff, fp.subHeadingStyle);
@@ -2513,18 +2527,13 @@ function computeTopicModuleHeight(
   // 2. Mario Executive Takeaway
   if (!params.matricesOnlyMode && params.includeExecutiveMarioSummary !== false && topic.beginnerSummary) {
     const takeText = `MARIO EXECUTIVE TAKEAWAY: ${cleanRuleText(topic.beginnerSummary)}`;
-    const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 8.0);
+    const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 11.0);
     h += takeLines.length * (3.9 * scale) + 4.5 + 2.2;
   }
 
   // 3. Core Rule Summary
   if (!params.matricesOnlyMode && topic.summary) {
-    doc.setFont(ff, fp.headingStyle);
-    doc.setFontSize(8.4 * scale);
-    const labelW = Math.ceil(doc.getTextWidth('Core Rule: ') * 10) / 10 + 1.6;
-    doc.setFont(ff, fp.bodyStyle);
-    doc.setFontSize(8.0 * scale);
-    const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - labelW);
+    const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 7.5);
     h += sumLines.length * (3.9 * scale) + 2.4;
   }
 
@@ -2537,7 +2546,7 @@ function computeTopicModuleHeight(
   ) {
     let jurLinesCount = 0;
     topic.keyDoctrines.forEach((d) => {
-      jurLinesCount += doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(d)}`), innerW - 6.0).length;
+      jurLinesCount += doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(d)}`), innerW - 7.5).length;
     });
     h += 5.6 + jurLinesCount * (3.8 * scale) + 2.2;
   }
@@ -2550,14 +2559,14 @@ function computeTopicModuleHeight(
   rules.forEach((rule, rIdx) => {
     const rHead = doc.splitTextToSize(
       sanitizePdfText(`${rIdx + 1}. ${cleanRuleText(rule.heading)}`),
-      innerW
+      innerW - 9.0
     );
     h += rHead.length * (4.2 * scale) + 1.2;
 
     if (!params.matricesOnlyMode && rule.description) {
       const descLines = doc.splitTextToSize(
         sanitizePdfText(cleanRuleText(rule.description)),
-        innerW - 4.0
+        innerW - 6.5
       );
       h += descLines.length * (3.9 * scale) + 1.2;
     }
@@ -2568,7 +2577,7 @@ function computeTopicModuleHeight(
         const itStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
         const itLines = doc.splitTextToSize(
           sanitizePdfText(itStr),
-          innerW - 6.0
+          innerW - 8.0
         );
         h += itLines.length * (3.8 * scale) + 0.8;
       });
@@ -2576,12 +2585,12 @@ function computeTopicModuleHeight(
 
     if (!params.matricesOnlyMode && rule.subSections && rule.subSections.length > 0) {
       rule.subSections.forEach((sub) => {
-        const subTitle = doc.splitTextToSize(sanitizePdfText(cleanRuleText(sub.title)), innerW - 6.0);
+        const subTitle = doc.splitTextToSize(sanitizePdfText(cleanRuleText(sub.title)), innerW - 8.0);
         h += subTitle.length * (4.0 * scale) + 1.0;
         sub.items.forEach((si) => {
           const entry = parseListEntry(si);
           const siStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
-          const siLines = doc.splitTextToSize(sanitizePdfText(siStr), innerW - 8.0);
+          const siLines = doc.splitTextToSize(sanitizePdfText(siStr), innerW - 10.5);
           h += siLines.length * (3.8 * scale) + 0.6;
         });
       });
@@ -2599,9 +2608,9 @@ function computeTopicModuleHeight(
   if (!params.matricesOnlyMode && topic.exceptions && topic.exceptions.length > 0) {
     let exLinesCount = 0;
     topic.exceptions.forEach((ex) => {
-      exLinesCount += doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 6.0).length;
+      exLinesCount += doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 7.5).length;
       ex.exceptions.forEach((eItem) => {
-        exLinesCount += doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 8.0).length;
+        exLinesCount += doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 9.5).length;
       });
     });
     h += 5.8 + exLinesCount * (3.8 * scale) + 2.2;
@@ -2613,10 +2622,10 @@ function computeTopicModuleHeight(
     if (combinedTips.length > 0 || topic.practicalTakeaway) {
       let tipLinesCount = 0;
       combinedTips.slice(0, 4).forEach((t) => {
-        tipLinesCount += doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(t)}`), innerW - 8.0).length;
+        tipLinesCount += doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(t)}`), innerW - 9.0).length;
       });
       const pLines = topic.practicalTakeaway
-        ? doc.splitTextToSize(sanitizePdfText(`Practical Application: ${cleanRuleText(topic.practicalTakeaway)}`), innerW - 8.0)
+        ? doc.splitTextToSize(sanitizePdfText(`Practical Application: ${cleanRuleText(topic.practicalTakeaway)}`), innerW - 9.0)
         : [];
       h += 6.0 + (tipLinesCount + pLines.length) * (3.8 * scale) + (pLines.length > 0 ? 1.5 : 0) + 2.2;
     }
@@ -3141,30 +3150,41 @@ export function buildStudyGuideReviewerPdfBytes(
     y += 2.0;
   }
 
-  // Personal Study Notes
+  // Personal Study Notes & Mnemonics (Unabridged titles with zero truncation)
   if (params.includePersonalNotes !== false && params.studyNotes && params.studyNotes.length > 0) {
     writeSectionHeading(`PERSONAL STUDY NOTES & MNEMONICS (${params.studyNotes.length})`);
     params.studyNotes.forEach((n) => {
+      doc.setFont(ff, fp.headingStyle);
+      doc.setFontSize(7.8 * scale);
+      const noteHeaderLines = doc.splitTextToSize(
+        sanitizePdfText(`${n.title} [${n.worldTag}]`),
+        contentW - 7.0
+      );
+
       doc.setFont(ff, fp.bodyStyle);
       doc.setFontSize(7.2 * scale);
-      const noteBody = doc.splitTextToSize(sanitizePdfText(n.content), contentW - 6);
-      const boxH = 8 + noteBody.length * (3.7 * scale);
-      ensureSpace(boxH + 3);
+      const noteBody = doc.splitTextToSize(sanitizePdfText(n.content), contentW - 7.0);
+
+      const titleH = noteHeaderLines.length * (4.2 * scale);
+      const bodyH = noteBody.length * (3.6 * scale);
+      const boxH = 4.0 + titleH + 1.8 + bodyH + 3.0;
+      ensureSpace(boxH + 3.0);
+
       doc.setFillColor(...theme.cardTintFill);
       doc.setDrawColor(...theme.badgeBorder);
-      doc.rect(marginX, y, contentW, boxH, 'FD');
+      doc.setLineWidth(0.2);
+      doc.roundedRect(marginX, y, contentW, boxH, 1.2, 1.2, 'FD');
+
       doc.setTextColor(...theme.bodyText);
       doc.setFont(ff, fp.headingStyle);
       doc.setFontSize(7.8 * scale);
-      const noteHeader = doc.splitTextToSize(
-        sanitizePdfText(`${n.title} [${n.worldTag}]`),
-        contentW - 6
-      )[0] || '';
-      doc.text(noteHeader, marginX + 3, y + 4.8);
+      doc.text(noteHeaderLines, marginX + 3.5, y + 4.0);
+
+      const bodyStartY = y + 4.0 + titleH + 1.5;
       doc.setFont(ff, fp.bodyStyle);
       doc.setFontSize(7.2 * scale);
       doc.setTextColor(...theme.mutedText);
-      doc.text(noteBody, marginX + 3, y + 9.2);
+      doc.text(noteBody, marginX + 3.5, bodyStartY);
       y += boxH + 2.5;
     });
   }
@@ -3237,7 +3257,7 @@ export function buildStudyGuideReviewerPdfBytes(
     if (worldTopics.length === 0) return;
 
     // World Banner (rounded box with theme accent soft bg and star)
-    ensureSpace(16);
+    ensureSpace(35);
     doc.setFillColor(...theme.cardTintFill);
     doc.setDrawColor(...theme.borderMuted);
     doc.setLineWidth(0.3);
@@ -3268,6 +3288,14 @@ export function buildStudyGuideReviewerPdfBytes(
 
     worldTopics.forEach((topic) => {
       const isDone = completedIds.includes(topic.id);
+      const cardPadX = 2.5;
+      const innerW = contentW - cardPadX * 2;
+      const checkPrefix = params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
+      const fullTitleStr = `${checkPrefix}${topic.title}`;
+      const titleLines = doc.splitTextToSize(sanitizePdfText(fullTitleStr), innerW - 28);
+      const hasBadge = params.includeLegalCitations !== false && Boolean(topic.badge);
+      const headerBoxH = titleLines.length * (4.6 * scale) + (hasBadge ? 6.2 : 3.8);
+
       const topicCardH = computeTopicModuleHeight(
         doc,
         topic,
@@ -3283,17 +3311,12 @@ export function buildStudyGuideReviewerPdfBytes(
 
       // NO CUTS PER MODULE DECISION:
       // If the module can fit entirely on a fresh page and does not fit in remaining space, start on fresh page!
+      // Even if topicCardH > fullPageCapacity, never draw a header without at least 26mm for the header and its first block!
       if (topicCardH <= fullPageCapacity && y + topicCardH > pageH - marginBottom) {
         addThemedPage();
+      } else if (y + headerBoxH + 26.0 > pageH - marginBottom) {
+        addThemedPage();
       }
-
-      const cardPadX = 2.5;
-      const innerW = contentW - cardPadX * 2;
-      const checkPrefix = params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
-      const fullTitleStr = `${checkPrefix}${topic.title}`;
-      const titleLines = doc.splitTextToSize(sanitizePdfText(fullTitleStr), innerW - 28);
-      const hasBadge = params.includeLegalCitations !== false && Boolean(topic.badge);
-      const headerBoxH = titleLines.length * (4.6 * scale) + (hasBadge ? 6.2 : 3.8);
 
       // Editorial Card Header Box with left accent and subtle tint
       doc.setFillColor(248, 250, 252); // slate-50
@@ -3345,7 +3368,7 @@ export function buildStudyGuideReviewerPdfBytes(
       // 2. Mario Executive Takeaway
       if (!params.matricesOnlyMode && params.includeExecutiveMarioSummary !== false && topic.beginnerSummary) {
         const takeText = `MARIO EXECUTIVE TAKEAWAY: ${cleanRuleText(topic.beginnerSummary)}`;
-        const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 8.0);
+        const takeLines = doc.splitTextToSize(sanitizePdfText(takeText), innerW - 11.0);
         const takeBoxH = takeLines.length * (3.9 * scale) + 4.5;
         checkSubBlockSpace(takeBoxH);
 
@@ -3369,7 +3392,7 @@ export function buildStudyGuideReviewerPdfBytes(
       if (!params.matricesOnlyMode && topic.summary) {
         doc.setFont(ff, fp.bodyStyle);
         doc.setFontSize(8.0 * scale);
-        const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 6.0);
+        const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 7.5);
         const ruleH = sumLines.length * (3.8 * scale) + 6.2;
         checkSubBlockSpace(ruleH);
 
@@ -3402,7 +3425,7 @@ export function buildStudyGuideReviewerPdfBytes(
       ) {
         let jurLinesCount = 0;
         const allJurLines = topic.keyDoctrines.map((d) => {
-          const l = doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(d)}`), innerW - 6.0);
+          const l = doc.splitTextToSize(sanitizePdfText(`• ${cleanRuleText(d)}`), innerW - 7.5);
           jurLinesCount += l.length;
           return l;
         });
@@ -3442,7 +3465,7 @@ export function buildStudyGuideReviewerPdfBytes(
         // Heading with Gold Mario Coin Circular Number Badge
         const rHead = doc.splitTextToSize(
           sanitizePdfText(cleanRuleText(rule.heading)),
-          innerW - 6.5
+          innerW - 9.0
         );
         const headingH = rHead.length * (4.2 * scale) + 1.2;
         checkSubBlockSpace(headingH + 6.0);
@@ -3466,7 +3489,7 @@ export function buildStudyGuideReviewerPdfBytes(
         if (!params.matricesOnlyMode && rule.description) {
           const descLines = doc.splitTextToSize(
             sanitizePdfText(cleanRuleText(rule.description)),
-            innerW - 4.0
+            innerW - 6.5
           );
           const descH = descLines.length * (3.9 * scale) + 1.2;
           checkSubBlockSpace(descH);
@@ -3485,7 +3508,7 @@ export function buildStudyGuideReviewerPdfBytes(
             const itStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
             const itLines = doc.splitTextToSize(
               sanitizePdfText(itStr),
-              innerW - 6.0
+              innerW - 8.0
             );
             const itH = itLines.length * (3.8 * scale) + 0.8;
             checkSubBlockSpace(itH);
@@ -3501,7 +3524,7 @@ export function buildStudyGuideReviewerPdfBytes(
         // Subsections (cleanly parsed: zero redundant - 1. or • 1.)
         if (!params.matricesOnlyMode && rule.subSections && rule.subSections.length > 0) {
           rule.subSections.forEach((sub) => {
-            const subTitle = doc.splitTextToSize(sanitizePdfText(cleanRuleText(sub.title)), innerW - 6.0);
+            const subTitle = doc.splitTextToSize(sanitizePdfText(cleanRuleText(sub.title)), innerW - 8.0);
             const subH = subTitle.length * (4.0 * scale) + 1.0;
             checkSubBlockSpace(subH + 4.0);
 
@@ -3514,7 +3537,7 @@ export function buildStudyGuideReviewerPdfBytes(
             sub.items.forEach((si) => {
               const entry = parseListEntry(si);
               const siStr = entry.isNumbered ? `${entry.marker} ${entry.text}` : `• ${entry.text}`;
-              const siLines = doc.splitTextToSize(sanitizePdfText(siStr), innerW - 8.0);
+              const siLines = doc.splitTextToSize(sanitizePdfText(siStr), innerW - 10.5);
               const siH = siLines.length * (3.8 * scale) + 0.6;
               checkSubBlockSpace(siH);
 
@@ -3557,9 +3580,9 @@ export function buildStudyGuideReviewerPdfBytes(
       if (!params.matricesOnlyMode && topic.exceptions && topic.exceptions.length > 0) {
         let exLinesCount = 0;
         topic.exceptions.forEach((ex) => {
-          exLinesCount += doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 6.0).length;
+          exLinesCount += doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 7.5).length;
           ex.exceptions.forEach((eItem) => {
-            exLinesCount += doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 8.0).length;
+            exLinesCount += doc.splitTextToSize(sanitizePdfText(`• Exception: ${cleanRuleText(eItem)}`), innerW - 9.5).length;
           });
         });
         const exBoxH = 5.8 + exLinesCount * (3.8 * scale);
@@ -3583,7 +3606,7 @@ export function buildStudyGuideReviewerPdfBytes(
           doc.setTextColor(15, 23, 42);
           doc.setFont(ff, fp.headingStyle);
           doc.setFontSize(7.6 * scale);
-          const grLines = doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 8.0);
+          const grLines = doc.splitTextToSize(sanitizePdfText(`General Rule: ${cleanRuleText(ex.generalRule)}`), innerW - 7.5);
           doc.text(grLines, marginX + cardPadX + 3.8, curEy);
           curEy += grLines.length * (3.8 * scale);
 
@@ -3592,7 +3615,7 @@ export function buildStudyGuideReviewerPdfBytes(
           ex.exceptions.forEach((eItem) => {
             const entry = parseListEntry(eItem);
             const eStr = entry.isNumbered ? `Exception: ${entry.marker} ${entry.text}` : `• Exception: ${entry.text}`;
-            const eLines = doc.splitTextToSize(sanitizePdfText(eStr), innerW - 9.0);
+            const eLines = doc.splitTextToSize(sanitizePdfText(eStr), innerW - 9.5);
             doc.text(eLines, marginX + cardPadX + 5.5, curEy);
             curEy += eLines.length * (3.6 * scale);
           });
