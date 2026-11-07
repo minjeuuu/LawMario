@@ -2592,7 +2592,7 @@ export const BOWSER_BOSS_QUESTIONS: QuizQuestion[] = [
       'Exempt from 13th Month Pay pursuant to the principle of equitable balancing between operational needs and employee welfare.',
     ],
     correctIndex: 1,
-    explanation: 'Classic Bar Exam trap! Minimum Wage exemption = "not more than 10" (<=10); Holiday Pay & SIL = "less than 10" (<10); NSD = "not more than 5" (<=5).',
+    explanation: 'Classic statutory trap! Minimum Wage exemption = "not more than 10" (<=10); Holiday Pay & SIL = "less than 10" (<10); NSD = "not more than 5" (<=5).',
     legalBasis: 'R.A. 6727 vs. Art. 94(b) & Art. 95(b), Labor Code',
   },
   {

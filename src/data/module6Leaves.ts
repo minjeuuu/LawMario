@@ -74,8 +74,8 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: If an employer already grants at least 5 days of paid Vacation Leave (VL), statutory SIL under Art. 95 is deemed complied with—even if that VL is forfeitable when unused!',
-      'Bar Tip: Bus drivers/conductors inspected along fixed routes with time schedules are regular supervised workers, NOT field personnel (Auto Bus Transport Systems v. Bautista).',
+      'Study Tip: If an employer already grants at least 5 days of paid Vacation Leave (VL), statutory SIL under Art. 95 is deemed complied with—even if that VL is forfeitable when unused!',
+      'Study Tip: Bus drivers/conductors inspected along fixed routes with time schedules are regular supervised workers, NOT field personnel (Auto Bus Transport Systems v. Bautista).',
     ],
   },
   {
@@ -144,8 +144,8 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Memorize the 4 Salary Differential exemptions (Distressed, ≤10 workers retail/service, BMBEs, Already granting equal/superior CBA benefits)—outside these 4, private employers MUST top up the SSS benefit to 100% full pay!',
-      'Bar Tip: Maternity leave is counted in CALENDAR days (inclusive of Saturdays, Sundays, and Holidays) because it must be continuous and uninterrupted.',
+      'Study Tip: Memorize the 4 Salary Differential exemptions (Distressed, ≤10 workers retail/service, BMBEs, Already granting equal/superior CBA benefits)—outside these 4, private employers MUST top up the SSS benefit to 100% full pay!',
+      'Study Tip: Maternity leave is counted in CALENDAR days (inclusive of Saturdays, Sundays, and Holidays) because it must be continuous and uninterrupted.',
     ],
   },
   {
@@ -159,7 +159,7 @@ export const MODULE_6_LEAVES: LawTopic[] = [
     beginnerSummary:
       'Married working fathers get 7 days of paid leave to support their legitimate wife and newborn for each of the first 4 deliveries or miscarriages (up to 14 days if the mother allocates 7 days under R.A. 11210!).',
     practicalTakeaway:
-      'Always verify civil marriage first in Bar questions: an unmarried live-in father gets ZERO days under R.A. 8187, though his partner can still allocate up to 7 days of her maternity leave to him under R.A. 11210.',
+      'Always verify civil marriage first in practical case analysis: an unmarried live-in father gets ZERO days under R.A. 8187, though his partner can still allocate up to 7 days of her maternity leave to him under R.A. 11210.',
     keyDoctrines: [
       'Every married male employee in the private and public sectors shall be entitled to a paternity leave of seven (7) days with full pay for the first four (4) deliveries of the legitimate spouse with whom he is cohabiting (Sec. 2, R.A. 8187).',
       'Delivery includes live childbirth (normal or cesarean) OR any miscarriage / abortion.',
@@ -198,7 +198,7 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Can a married father enjoy 14 paid days for his wife’s 1st live childbirth? YES! 7 days under R.A. 8187 + 7 allocated days under R.A. 11210 (reducing the mother’s 105 days to 98 days). What about their 5th live childbirth? He gets 0 under R.A. 8187, plus up to 7 allocated days under R.A. 11210!',
+      'Study Tip: Can a married father enjoy 14 paid days for his wife’s 1st live childbirth? YES! 7 days under R.A. 8187 + 7 allocated days under R.A. 11210 (reducing the mother’s 105 days to 98 days). What about their 5th live childbirth? He gets 0 under R.A. 8187, plus up to 7 allocated days under R.A. 11210!',
     ],
   },
   {
@@ -251,8 +251,8 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Note the unit difference! Solo Parent Leave is "7 WORKING days", whereas Paternity Leave is "7 CALENDAR days" and Maternity Leave is "105/60 CALENDAR days"!',
-      'Bar Tip: Absence of marriage alone does NOT make cohabiting partners "solo parents"—if unmarried partners live together and share child-rearing, neither qualifies as a solo parent.',
+      'Study Tip: Note the unit difference! Solo Parent Leave is "7 WORKING days", whereas Paternity Leave is "7 CALENDAR days" and Maternity Leave is "105/60 CALENDAR days"!',
+      'Study Tip: Absence of marriage alone does NOT make cohabiting partners "solo parents"—if unmarried partners live together and share child-rearing, neither qualifies as a solo parent.',
     ],
   },
   {
@@ -292,7 +292,7 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Remember the keywords for R.A. 9710 Sec. 18: (1) 6 months continuous aggregate service in last 12 months, (2) SURGERY for gynecological disorder, (3) Up to 2 months GROSS monthly pay, (4) Non-convertible to cash!',
+      'Study Tip: Remember the keywords for R.A. 9710 Sec. 18: (1) 6 months continuous aggregate service in last 12 months, (2) SURGERY for gynecological disorder, (3) Up to 2 months GROSS monthly pay, (4) Non-convertible to cash!',
     ],
   },
   {
@@ -333,7 +333,7 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: VAWC Leave is the ONLY special leave in World 6 that can be EXTENDED WITH PAY beyond its base 10 days when expressly specified in a Protection Order!',
+      'Study Tip: VAWC Leave is the ONLY special leave in World 6 that can be EXTENDED WITH PAY beyond its base 10 days when expressly specified in a Protection Order!',
     ],
   },
   {
@@ -343,11 +343,11 @@ export const MODULE_6_LEAVES: LawTopic[] = [
     badge: 'Arts. 95, 100 & 306 · R.A. 11210, 8187, 11861, 9710, 9262, 11642',
     iconName: 'Royal Star',
     summary:
-      'Unified Bar Exam comparison across all 6 Philippine statutory leaves, Adoptive Parent Leave rights under R.A. 11642 / CSC-DOLE rules, voluntary company leaves (Bereavement, Emergency, Study) protected by Art. 100 Non-Diminution, and 3-year money claim prescription rules.',
+      'Unified statutory comparison across all 6 Philippine statutory leaves, Adoptive Parent Leave rights under R.A. 11642 / CSC-DOLE rules, voluntary company leaves (Bereavement, Emergency, Study) protected by Art. 100 Non-Diminution, and 3-year money claim prescription rules.',
     beginnerSummary:
       'Your ultimate side-by-side cheat sheet comparing every Philippine paid leave law: who qualifies, how many days you get, who pays, and which leaves convert to cash!',
     practicalTakeaway:
-      'Memorize the golden rule for Bar MCQ & Essay exams: Out of ALL statutory annual leaves in Philippine Labor Law, ONLY regular Art. 95 Service Incentive Leave (SIL) is cumulative and convertible to cash at year-end or resignation!',
+      'Memorize the golden statutory rule: Out of ALL statutory annual leaves in Philippine Labor Law, ONLY regular Art. 95 Service Incentive Leave (SIL) is cumulative and convertible to cash at year-end or resignation!',
     keyDoctrines: [
       'Golden Rule on Cash Commutation: Among statutory leaves, ONLY regular Art. 95 Service Incentive Leave (SIL) is commutable to cash if unused; Paternity Leave, Solo Parent Leave, Gynecological Surgery Leave, VAWC Leave, and Kasambahay SIL are all NON-CUMULATIVE and NON-CONVERTIBLE to cash (unless upgraded by CBA/company policy).',
       'Adoptive Parents Leave (R.A. 8552 / R.A. 11642 Domestic Administrative Adoption and Alternative Child Care Act): Qualified adoptive parents are entitled to adoption leave benefits analogous to maternity and paternity leaves to allow bonding with the pre-adoptive child.',
@@ -357,7 +357,7 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       {
         heading: 'Complete 6-Statute Philippine Leave Comparison Matrix',
         description:
-          'Master comparative table of all mandatory leaves tested in the Philippine Bar Examinations:',
+          'Master comparative table of all mandatory leaves codified in Philippine statutory law:',
         tableData: {
           headers: [
             'Statutory Leave',
@@ -430,8 +430,8 @@ export const MODULE_6_LEAVES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Watch the tenure ladder across World 6! VAWC & Paternity = 0 months (Day 1) | Solo Parent & Gynecological = 6 months | Regular SIL & Kasambahay SIL = 12 months (1 year)!',
-      'Bar Tip: Watch how days are counted! SIL = 5 days | Solo Parent = 7 WORKING days | Paternity = 7 CALENDAR days | VAWC = 10 days (+PO extension) | Maternity = 105 / 120 / 60 CALENDAR days!',
+      'Study Tip: Watch the tenure ladder across World 6! VAWC & Paternity = 0 months (Day 1) | Solo Parent & Gynecological = 6 months | Regular SIL & Kasambahay SIL = 12 months (1 year)!',
+      'Study Tip: Watch how days are counted! SIL = 5 days | Solo Parent = 7 WORKING days | Paternity = 7 CALENDAR days | VAWC = 10 days (+PO extension) | Maternity = 105 / 120 / 60 CALENDAR days!',
     ],
   },
 ];

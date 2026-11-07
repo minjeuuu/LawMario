@@ -127,7 +127,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     correctIndex: 1,
     statutoryBasis: 'Art. 82/86 (NSD ≤5), Art. 94 (Holiday <10), Art. 95 (SIL <10), R.A. 6727 Sec. 4 (Min Wage ≤10)',
     doctrinalExplanation:
-      'One of the sharpest Bar Exam distinctions in Philippine Labor Standards: (1) Night Shift Differential exempts retail/service establishments regularly employing NOT MORE THAN FIVE (≤5) workers; (2) Regular Holiday Pay (Art. 94) and Service Incentive Leave (Art. 95) exempt retail/service establishments regularly employing LESS THAN TEN (<10, meaning at most 9) workers; (3) R.A. 6727 allows retail/service establishments employing NOT MORE THAN TEN (≤10) workers to apply with the RTWPB for minimum wage exemption. At 10 workers, ONLY R.A. 6727 (upon RTWPB application) is available!',
+      'One of the sharpest statutory distinctions in Philippine Labor Standards: (1) Night Shift Differential exempts retail/service establishments regularly employing NOT MORE THAN FIVE (≤5) workers; (2) Regular Holiday Pay (Art. 94) and Service Incentive Leave (Art. 95) exempt retail/service establishments regularly employing LESS THAN TEN (<10, meaning at most 9) workers; (3) R.A. 6727 allows retail/service establishments employing NOT MORE THAN TEN (≤10) workers to apply with the RTWPB for minimum wage exemption. At 10 workers, ONLY R.A. 6727 (upon RTWPB application) is available!',
     barTakeaway:
       'NSD = ≤ 5 workers | Holiday Pay & SIL = < 10 workers (max 9!) | R.A. 6727 Min Wage application = ≤ 10 workers!',
   },

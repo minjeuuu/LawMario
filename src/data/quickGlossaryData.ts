@@ -2418,7 +2418,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Under Nacar v. Gallery Frames (modifying Eastern Shipping Lines following BSP Circular No. 799, effective July 1, 2013), monetary awards in labor cases (backwages, separation pay, unpaid statutory benefits, damages) earn legal interest at the rate of SIX PERCENT (6%) PER ANNUM from the finality of the judgment/resolution until full satisfaction (unless a specific statute fixes a higher rate, such as 12% p.a. on OFW placement fee refunds under R.A. 10022).',
     statutoryBasis: 'Nacar v. Gallery Frames (G.R. No. 189871, August 13, 2013); BSP-MB Circular No. 799, Series of 2013',
     barExamTip:
-      'Always close your dispositive illegal dismissal computation in the Bar Exam with: "...plus legal interest of six percent (6%) per annum on the total monetary award from finality of judgment until full payment (Nacar v. Gallery Frames)."',
+      'Always close your dispositive illegal dismissal computation with: "...plus legal interest of six percent (6%) per annum on the total monetary award from finality of judgment until full payment (Nacar v. Gallery Frames)."',
   },
   {
     id: 'prescriptive-periods-labor-matrix',
@@ -2430,10 +2430,10 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
     marioAnalogy:
       'Know the 5 Master Timers: 1 Year = ULP & Offenses; 3 Years = Money Claims (SIL runs from refusal/resignation per Auto Bus!); 4 Years = Illegal Dismissal; 10 Years = SSS Benefits; 20 Years = Unremitted SSS Contributions!',
     simplifiedDefinition:
-      'Complete Bar Prescriptive Periods: (1) Unfair Labor Practice (Art. 305) = 1 year from accrual; (2) Criminal Offenses under Labor Code (Art. 305) = 3 years (except ULP criminal aspect suspended during admin case); (3) Pure Money Claims (Art. 306) = 3 years from accrual (NOTE: for commutable SIL, the 3-year clock starts ONLY upon employer’s refusal to pay or upon separation from service — Auto Bus Transport Systems v. Bautista!); (4) Illegal Dismissal (Art. 1146 Civil Code, injury to rights) = 4 years from dismissal (Callanta v. Carnation); (5) Employees’ Compensation Claims = 3 years; (6) SSS Benefit Claims = 10 years; (7) Employer Non-Remittance of SSS Contributions = 20 years!',
+      'Complete Statutory Prescriptive Periods: (1) Unfair Labor Practice (Art. 305) = 1 year from accrual; (2) Criminal Offenses under Labor Code (Art. 305) = 3 years (except ULP criminal aspect suspended during admin case); (3) Pure Money Claims (Art. 306) = 3 years from accrual (NOTE: for commutable SIL, the 3-year clock starts ONLY upon employer’s refusal to pay or upon separation from service — Auto Bus Transport Systems v. Bautista!); (4) Illegal Dismissal (Art. 1146 Civil Code, injury to rights) = 4 years from dismissal (Callanta v. Carnation); (5) Employees’ Compensation Claims = 3 years; (6) SSS Benefit Claims = 10 years; (7) Employer Non-Remittance of SSS Contributions = 20 years!',
     statutoryBasis: 'Articles 305–306, Labor Code; Art. 1146, Civil Code; Callanta v. Carnation Phils.; Auto Bus Transport Systems v. Bautista (G.R. No. 156367)',
     barExamTip:
-      'Bar Examiner’s #1 Prescription Trap (Auto Bus v. Bautista): Even if an employee worked 10 years without using SIL, their SIL money claim for ALL 10 years is NOT barred by 3-year prescription upon resignation—because the cause of action for commutable SIL accrues ONLY when the employer refuses to pay or upon separation!',
+      'Statutory Prescription Trap (Auto Bus v. Bautista): Even if an employee worked 10 years without using SIL, their SIL money claim for ALL 10 years is NOT barred by 3-year prescription upon resignation—because the cause of action for commutable SIL accrues ONLY when the employer refuses to pay or upon separation!',
   },
   {
     id: 'two-notice-rule-due-process',

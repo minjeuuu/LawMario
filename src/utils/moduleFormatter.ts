@@ -39,7 +39,7 @@ export function cleanRuleText(raw: string): string {
     .replace(/^\s*[•\-\*\u2022\u25AA\u25AB\u25BA]\s*(?=(\d+[\.\)]|\([a-z0-9]+\)|[a-z][\.\)]))/i, '')
     // Strip standalone leading bullet/dash glyph
     .replace(/^\s*[•\-\*\u2022\u25AA\u25AB\u25BA]\s*/, '')
-    .replace(/^Bar Tip:\s*/i, '')
+    .replace(/^(?:Bar|Study)\s*Tip:\s*/i, '')
     .trim();
 }
 

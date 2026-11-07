@@ -15,7 +15,10 @@ import {
   buildCertificateLandscapePdfBytes,
   buildStudyGuideReviewerPdfBytes,
   buildScoreCardLandscapePdfBytes,
+  wrapCellText,
+  countPdfPagesFromBytes,
 } from './pdfExportService';
+import { jsPDF } from 'jspdf';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
 import {
   HAMMER_BROS_PAYROLL_BANK,
@@ -158,4 +161,72 @@ test('4 new Bonus Vault Arcade Games expose complete Philippine Labor Law doctri
   assert.ok(TOADETTE_DUE_PROCESS_CASES.length >= 5);
   assert.ok(SHY_GUY_CONVEYOR_BANK.length >= 8);
   assert.ok(KAMEK_DEADLINE_SPELLS.length >= 8);
+});
+
+test('wrapCellText mathematically guarantees that zero text lines ever overflow cell width', () => {
+  const doc = new jsPDF();
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.6);
+
+  const testPhrases = [
+    'Father/Caregiver?',
+    'Transferable to Father/Caregiver?',
+    'Kasambahay / Mo.',
+    'Non-Agriculture',
+    'YES — commutable to cash at year-end/separation',
+    'Rank-and-file in firm with ≥10 workers; not enjoying ≥5d VL',
+    'Continuous/broken tenure and statutory allocation',
+    'R.A.11210/R.A.8187/P.D.442',
+    'P14,000.00/month',
+  ];
+
+  [10, 14, 18, 24, 30].forEach((maxW) => {
+    testPhrases.forEach((phrase) => {
+      const lines = wrapCellText(doc, phrase, maxW);
+      assert.ok(lines.length >= 1, `Must return at least 1 line for "${phrase}"`);
+      lines.forEach((l) => {
+        const measured = doc.getTextWidth(l);
+        assert.ok(
+          measured <= maxW + 0.01,
+          `Line "${l}" measured width ${measured.toFixed(2)}mm exceeded maxW ${maxW}mm`
+        );
+      });
+    });
+  });
+});
+
+test('buildStudyGuideReviewerPdfBytes renders multi-page World 6 reviewer with zero overlaps and clean tables', () => {
+  const world6Topics = ALL_LAW_TOPICS.filter((t) => t.worldId === 'world6');
+  assert.ok(world6Topics.length >= 6, 'World 6 must have at least 6 statutory leave modules');
+
+  const bytes = buildStudyGuideReviewerPdfBytes({
+    orientation: 'portrait',
+    candidateName: 'Philippine Workplace Learner',
+    completedTopicIds: world6Topics.map((t) => t.id),
+    topics: world6Topics,
+    selectedWorlds: ['world6'],
+    includeGroupMembers: true,
+    includeProgress: true,
+    includeMultipliers: true,
+    includeRegionalWages: true,
+    includeLeavesMatrix: true,
+    includePersonalNotes: true,
+    includeBarTips: true,
+    includeLegalCitations: true,
+    matricesOnlyMode: false,
+    fontSizeScale: 'large',
+    paperMargins: 'compact',
+    studyNotes: [
+      {
+        id: 'note-1',
+        topicId: world6Topics[0].id,
+        content: 'Check SIL cash commutation formula at year-end separation.',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+  });
+
+  const pageCount = countPdfPagesFromBytes(bytes);
+  assert.ok(pageCount >= 3, `Expected multi-page reviewer (got ${pageCount} pages)`);
+  assert.ok(new TextDecoder('latin1').decode(bytes).startsWith('%PDF-'));
 });

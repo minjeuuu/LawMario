@@ -1198,7 +1198,10 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.setFontSize(6.8 * fScale);
     const titleText = `${idx + 1}. ${item.title}`;
     const rBadge = item.rateBadge || item.citation;
-    doc.text(titleText, leftX + 2.0, leftY + 3.8);
+    const badgeW = doc.getTextWidth(rBadge) + 2.0;
+    const maxTitleW = Math.max(10, colW - badgeW - 4.0);
+    const safeTitle = doc.splitTextToSize(titleText, maxTitleW)[0] || titleText;
+    doc.text(safeTitle, leftX + 2.0, leftY + 3.8);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(6.4 * fScale);
@@ -1259,7 +1262,10 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(6.8 * fScale);
     const claimText = `${idx + 1}. ${item.claimOrAction}`;
-    doc.text(claimText, rightX + 2.0, rightY + 3.8);
+    const badgeW = doc.getTextWidth(item.deadline) + 2.0;
+    const maxClaimW = Math.max(10, colW - badgeW - 4.0);
+    const safeClaim = doc.splitTextToSize(claimText, maxClaimW)[0] || claimText;
+    doc.text(safeClaim, rightX + 2.0, rightY + 3.8);
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(6.4 * fScale);
@@ -1326,7 +1332,10 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.setTextColor(...theme.bodyText);
     doc.setFont(ff, fp.headingStyle);
     doc.setFontSize(6.8 * fScale);
-    doc.text(lv.leaveName, cx + 2.0, cy + 4.5);
+    const capW = doc.getTextWidth(lv.cap) + 2.0;
+    const maxNameW = Math.max(10, leaveCardW - capW - 4.0);
+    const safeName = doc.splitTextToSize(lv.leaveName, maxNameW)[0] || lv.leaveName;
+    doc.text(safeName, cx + 2.0, cy + 4.5);
 
     doc.setTextColor(...theme.badgeText);
     doc.setFont(ff, fp.subHeadingStyle);
@@ -2236,6 +2245,89 @@ export interface StudyGuideReviewerPdfParams {
 }
 
 /**
+ * Wraps cell text strictly to fit within maxW millimeters using the active font settings on doc.
+ * Splitting intelligently handles compound tokens, slashes, hyphens, and legal/technical delimiters
+ * before falling back to character hyphenation, guaranteeing that NO line ever exceeds maxW.
+ */
+export function wrapCellText(doc: jsPDF, text: string, maxW: number): string[] {
+  if (!text) return [''];
+  const safeMaxW = Math.max(4, maxW);
+  const paragraphs = String(text).split(/\r?\n/);
+  const resultLines: string[] = [];
+
+  for (const paragraph of paragraphs) {
+    if (!paragraph.trim()) {
+      resultLines.push('');
+      continue;
+    }
+
+    const rawTokens = paragraph.split(/\s+/).filter(Boolean);
+    const fittedTokens: string[] = [];
+
+    for (const rawTok of rawTokens) {
+      if (doc.getTextWidth(rawTok) <= safeMaxW) {
+        fittedTokens.push(rawTok);
+        continue;
+      }
+
+      // Try splitting by common legal/technical punctuation delimiters
+      const parts = rawTok.split(/([/\-—_,:;()[\]\.<>?&])/).filter(Boolean);
+      let acc = '';
+      for (const p of parts) {
+        if (doc.getTextWidth(acc + p) <= safeMaxW) {
+          acc += p;
+        } else {
+          if (acc) {
+            fittedTokens.push(acc);
+            acc = '';
+          }
+          if (doc.getTextWidth(p) <= safeMaxW) {
+            acc = p;
+          } else {
+            // Indivisible long character sequence - hard hyphenate
+            let chunk = '';
+            for (const ch of p) {
+              if (doc.getTextWidth(chunk + ch + '-') <= safeMaxW) {
+                chunk += ch;
+              } else {
+                if (chunk) {
+                  fittedTokens.push(chunk + '-');
+                  chunk = ch;
+                } else {
+                  fittedTokens.push(ch);
+                  chunk = '';
+                }
+              }
+            }
+            if (chunk) acc = chunk;
+          }
+        }
+      }
+      if (acc) fittedTokens.push(acc);
+    }
+
+    // Greedily assemble into lines
+    let curLine = '';
+    for (const tok of fittedTokens) {
+      if (!curLine) {
+        curLine = tok;
+      } else {
+        const candidate = `${curLine} ${tok}`;
+        if (doc.getTextWidth(candidate) <= safeMaxW) {
+          curLine = candidate;
+        } else {
+          resultLines.push(curLine);
+          curLine = tok;
+        }
+      }
+    }
+    if (curLine) resultLines.push(curLine);
+  }
+
+  return resultLines.length > 0 ? resultLines : [''];
+}
+
+/**
  * Calculates the exact height (in millimeters) needed to render a topic module card
  * so we can determine whether it fits on the current page before starting to draw.
  */
@@ -2272,7 +2364,12 @@ function computeTopicModuleHeight(
 
   // 3. Core Rule Summary
   if (!params.matricesOnlyMode && topic.summary) {
-    const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 18);
+    doc.setFont(ff, fp.headingStyle);
+    doc.setFontSize(8.4 * scale);
+    const labelW = Math.ceil(doc.getTextWidth('Core Rule: ') * 10) / 10 + 1.6;
+    doc.setFont(ff, fp.bodyStyle);
+    doc.setFontSize(8.0 * scale);
+    const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - labelW);
     h += sumLines.length * (3.9 * scale) + 2.4;
   }
 
@@ -2515,28 +2612,29 @@ export function buildStudyGuideReviewerPdfBytes(
         : Array.from({ length: colCount }, () => 1 / colCount);
 
     const colWidths = fractions.map((f) => f * tableWidth);
-    const cellPadX = 2.2;
-    const cellPadY = 1.8;
+    const cellPadX = 2.4;
+    const cellPadY = 2.0;
     const fontSz = 7.6 * scale;
     const lineH = 3.8 * scale;
 
     const renderRow = (cells: string[], isHeader: boolean, rowIdx: number) => {
-      doc.setFont(ff, isHeader ? fp.headingStyle : fp.bodyStyle);
-      doc.setFontSize(fontSz);
-
+      // Pre-compute wrapped cells with accurate font style metrics
       const wrappedCells = colWidths.map((cw, cIdx) => {
         const txt = sanitizePdfText(cells[cIdx] || '');
-        const maxW = Math.max(6, cw - cellPadX * 2);
-        // Break any unbroken token longer than 18 chars to prevent horizontal clipping
-        const safeTxt = txt.replace(/(\S{18})/g, '$1 ');
-        return doc.splitTextToSize(safeTxt, maxW);
+        const maxW = Math.max(4, cw - cellPadX * 2);
+        doc.setFont(
+          ff,
+          isHeader ? fp.headingStyle : cIdx === 0 ? fp.subHeadingStyle : fp.bodyStyle
+        );
+        doc.setFontSize(fontSz);
+        return wrapCellText(doc, txt, maxW);
       });
       const maxLines = Math.max(1, ...wrappedCells.map((lines) => lines.length));
       const rowH = maxLines * lineH + cellPadY * 2;
 
       if (tableY + rowH + 1 > pageH - marginBottom) {
         addThemedPage();
-        tableY = marginTop;
+        tableY = marginTopPage2;
         if (!isHeader) {
           renderRow(headers, true, 0);
         }
@@ -2568,7 +2666,7 @@ export function buildStudyGuideReviewerPdfBytes(
         const align = isHeader ? 'left' : colAlignments?.[cIdx] || 'left';
         const cellLines = wrappedCells[cIdx];
         cellLines.forEach((cline, lIdx) => {
-          const textY = tableY + cellPadY + (lIdx + 0.82) * lineH;
+          const textY = tableY + cellPadY + (lIdx + 0.78) * lineH;
           if (align === 'right') {
             doc.text(cline, curX + cw - cellPadX, textY, { align: 'right' });
           } else if (align === 'center') {
@@ -3113,7 +3211,12 @@ export function buildStudyGuideReviewerPdfBytes(
 
       // 3. Core Rule Summary
       if (!params.matricesOnlyMode && topic.summary) {
-        const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 18);
+        doc.setFont(ff, fp.headingStyle);
+        doc.setFontSize(8.4 * scale);
+        const labelW = Math.ceil(doc.getTextWidth('Core Rule: ') * 10) / 10 + 1.6;
+        doc.setFont(ff, fp.bodyStyle);
+        doc.setFontSize(8.0 * scale);
+        const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - labelW);
         const ruleH = sumLines.length * (3.9 * scale) + 2.2;
         checkSubBlockSpace(ruleH);
 
@@ -3125,7 +3228,7 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.setFont(ff, fp.bodyStyle);
         doc.setFontSize(8.0 * scale);
         doc.setTextColor(30, 41, 59); // slate-800
-        doc.text(sumLines, marginX + cardPadX + 17.5, curY + 3.0);
+        doc.text(sumLines, marginX + cardPadX + labelW, curY + 3.0);
         curY += ruleH;
       }
 
@@ -3256,10 +3359,20 @@ export function buildStudyGuideReviewerPdfBytes(
 
         // Embedded Module Table (drawn in-place inside module card without jumping or overlapping!)
         if (rule.tableData) {
+          const hCount = rule.tableData.headers.length;
+          const moduleFractions =
+            hCount === 3
+              ? [0.26, 0.37, 0.37]
+              : hCount === 4
+              ? [0.28, 0.24, 0.22, 0.26]
+              : hCount === 5
+              ? [0.24, 0.17, 0.17, 0.26, 0.16]
+              : undefined;
+
           curY = drawWrappedTable(
             rule.tableData.headers,
             rule.tableData.rows,
-            undefined,
+            moduleFractions,
             marginX + cardPadX,
             innerW,
             curY
