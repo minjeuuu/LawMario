@@ -12,6 +12,7 @@ import {
   MarioAxeIcon,
   MarioQuestionBlockIcon,
 } from './MarioIcons';
+import { ArcadeDoctrineCard } from './ArcadeDoctrineCard';
 import {
   Play,
   RotateCcw,
@@ -753,33 +754,19 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
               </button>
             </div>
           ) : (
-            <div
-              className={`p-4 sm:p-5 rounded-2xl border-3 shadow-[0_6px_0_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all ${
-                answered.correct ? 'bg-emerald-950/90 border-emerald-400' : 'bg-rose-950/90 border-rose-500'
-              }`}
-            >
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mario text-xs text-amber-300 block">
-                    {answered.correct ? 'ACCURATE INSPECTION! +5 COINS' : 'INSPECTION ERROR!'}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-black/40 text-[10px] font-mono font-bold text-slate-300 border border-white/10 uppercase">
-                    {answered.action === 'bust' ? 'Poltergust Fired' : 'Accreditation Stamped'}
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm font-bold text-white leading-relaxed">
-                  {answered.message}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={nextCase}
-                className="min-h-[46px] px-6 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer font-mario text-xs shrink-0 whitespace-nowrap"
-              >
-                <span>NEXT DOCKET</span>
-                <ArrowDown className="w-4 h-4 -rotate-90" />
-              </button>
-            </div>
+            <ArcadeDoctrineCard
+              title={current.agencyName}
+              statute="DOLE D.O. No. 174-17 · Arts. 106–109, Labor Code"
+              rule={`Capital: ${current.capital} · Registry: ${current.registration} · Control: ${current.controlHolder} · Work: ${current.workRelation}`}
+              takeaway={`${answered.message} Controlling Doctrine: ${current.verdictNote}`}
+              isCorrect={answered.correct}
+              worldCode="w2"
+              scenarioText={`Dossier: ${current.agencyName} (${current.capital}, ${current.registration}, ${current.controlHolder})`}
+              chosenAnswerText={answered.action === 'bust' ? 'Poltergust Fired (Labor-Only / Void)' : 'DOLE Accreditation Stamped (Legitimate D.O. 174)'}
+              correctAnswerText={current.isLaborOnly ? 'Poltergust: Prohibited Labor-Only Intermediary' : 'Accredited: Legitimate Contractor'}
+              advanceLabel={idx + 1 >= cases.length ? 'Complete Mansion Audit' : 'Next Contractor Docket →'}
+              onAdvance={nextCase}
+            />
           )}
         </div>
       ) : (
@@ -906,22 +893,23 @@ export const BowsersBridgeGame: React.FC<MiniGameProps> = ({ equippedAvatar, onE
       </div>
 
       {(isSolved || isLost) && (
-        <div className={`p-4 rounded-2xl border-3 flex flex-wrap items-center justify-between gap-3 ${
-          isSolved ? 'bg-emerald-950 border-amber-400' : 'bg-rose-950 border-rose-500'
-        }`}>
-          <span className="font-bold text-xs sm:text-sm">
-            {isSolved
-              ? `BRIDGE AXE ACTIVATED! You decoded "${puzzle.word}"! +8 Mario Coins!`
-              : `BRIDGE COLLAPSED! The statutory term was "${puzzle.word}".`}
-          </span>
-          <button
-            type="button"
-            onClick={nextPuzzle}
-            className="h-10 px-5 inline-flex items-center justify-center gap-1.5 bg-amber-400 text-slate-950 font-black rounded-xl border-2 border-black cursor-pointer font-mario text-xs leading-none whitespace-nowrap"
-          >
-            <span>NEXT BRIDGE</span>
-          </button>
-        </div>
+        <ArcadeDoctrineCard
+          title={`Bowser's Bridge: ${puzzle.word}`}
+          statute="Philippine Labor Standards Codification"
+          rule={puzzle.clue}
+          takeaway={
+            isSolved
+              ? `Bridge Rescued! Decoded Statutory Term: "${puzzle.word}". Excellent statutory decoding under Philippine labor standards!`
+              : `Bridge Collapsed! The controlling statutory legal term was "${puzzle.word}". Review definition: ${puzzle.clue}`
+          }
+          isCorrect={isSolved}
+          worldCode="w1"
+          scenarioText={puzzle.clue}
+          chosenAnswerText={isSolved ? puzzle.word : 'Bridge Collapsed'}
+          correctAnswerText={puzzle.word}
+          advanceLabel="Next Bridge Challenge →"
+          onAdvance={nextPuzzle}
+        />
       )}
 
       {/* Keyboard */}
@@ -962,12 +950,18 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
   const [streak, setStreak] = useState(0);
   const [statusMsg, setStatusMsg] = useState('Route each Payroll Capsule into the matching Statutory Warp Pipe!');
   const [finished, setFinished] = useState(false);
+  const [routedVerdict, setRoutedVerdict] = useState<{
+    isCorrect: boolean;
+    chosen: PayrollCapsuleItem['bucket'];
+    capsule: PayrollCapsuleItem;
+  } | null>(null);
 
   const capsule = capsules[capsuleIdx] ?? capsules[0];
 
   const handleSort = (chosen: PayrollCapsuleItem['bucket']) => {
-    if (finished || !capsule) return;
-    if (chosen === capsule.bucket) {
+    if (finished || !capsule || routedVerdict !== null) return;
+    const isCorrect = chosen === capsule.bucket;
+    if (isCorrect) {
       const nextStreak = streak + 1;
       setStreak(nextStreak);
       setScore((s) => s + 100 + nextStreak * 20);
@@ -980,10 +974,20 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
       marioAudio.playBowserHit();
     }
 
+    setRoutedVerdict({
+      isCorrect,
+      chosen,
+      capsule,
+    });
+  };
+
+  const handleNextCapsule = () => {
     if (capsuleIdx < capsules.length - 1) {
       setCapsuleIdx((i) => i + 1);
+      setRoutedVerdict(null);
     } else {
       setFinished(true);
+      setRoutedVerdict(null);
       onEarnCoins(15);
       marioAudio.playQuizComplete();
     }
@@ -994,6 +998,7 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
     setCapsuleIdx(0);
     setScore(0);
     setStreak(0);
+    setRoutedVerdict(null);
     setFinished(false);
     setStatusMsg('Route each Payroll Capsule into the matching Statutory Warp Pipe!');
     marioAudio.playPowerUp();
@@ -1003,7 +1008,7 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
     <div className="bg-[#1e293b] rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-6 text-white space-y-4 max-w-4xl mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-700 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-cyan-400 rounded-xl border-2 border-black flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 bg-cyan-400 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
             <MarioCharacterAvatar character={equippedAvatar} className="w-7 h-7" />
           </div>
           <div>
@@ -1030,7 +1035,7 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
         <div className="space-y-4">
           <div className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 rounded-2xl border-3 border-black p-6 text-center space-y-2 shadow-[0_4px_0_#000]">
             <span className="text-[10px] font-mario uppercase bg-black text-amber-300 px-2.5 py-1 rounded inline-block">
-              INCOMING PAYROLL CAPSULE
+              INCOMING PAYROLL CAPSULE #{capsuleIdx + 1}
             </span>
             <h3 className="text-lg sm:text-xl font-black font-display">{capsule.title}</h3>
             <p className="text-xs font-bold text-slate-800 flex items-center justify-center gap-1">
@@ -1038,37 +1043,75 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button
-              type="button"
-              onClick={() => handleSort('base100')}
-              className="h-24 rounded-2xl border-3 border-black bg-sky-500 hover:bg-sky-400 text-slate-950 p-3 flex flex-col items-center justify-between font-black shadow-[0_4px_0_#000] cursor-pointer"
-            >
-              <span className="font-mario text-xs">PIPE A • 100%</span>
-              <span className="text-xs font-extrabold">100% Basic Daily Rate</span>
-              <div className="w-full h-3 mario-green-pipe rounded" />
-            </button>
+          {routedVerdict === null ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => handleSort('base100')}
+                className="h-24 rounded-2xl border-3 border-black bg-sky-500 hover:bg-sky-400 text-slate-950 p-3 flex flex-col items-center justify-between font-black shadow-[0_4px_0_#000] cursor-pointer transition-transform active:translate-y-0.5"
+              >
+                <span className="font-mario text-xs">PIPE A • 100%</span>
+                <span className="text-xs font-extrabold">100% Basic Daily Rate</span>
+                <div className="w-full h-3 mario-green-pipe rounded" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => handleSort('special130')}
-              className="h-24 rounded-2xl border-3 border-black bg-amber-400 hover:bg-amber-300 text-slate-950 p-3 flex flex-col items-center justify-between font-black shadow-[0_4px_0_#000] cursor-pointer"
-            >
-              <span className="font-mario text-xs">PIPE B • 130%–150%</span>
-              <span className="text-xs font-extrabold">Rest / Special Non-Working</span>
-              <div className="w-full h-3 mario-green-pipe rounded" />
-            </button>
+              <button
+                type="button"
+                onClick={() => handleSort('special130')}
+                className="h-24 rounded-2xl border-3 border-black bg-amber-400 hover:bg-amber-300 text-slate-950 p-3 flex flex-col items-center justify-between font-black shadow-[0_4px_0_#000] cursor-pointer transition-transform active:translate-y-0.5"
+              >
+                <span className="font-mario text-xs">PIPE B • 130%–150%</span>
+                <span className="text-xs font-extrabold">Rest / Special Non-Working</span>
+                <div className="w-full h-3 mario-green-pipe rounded" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => handleSort('regular200')}
-              className="h-24 rounded-2xl border-3 border-black bg-rose-500 hover:bg-rose-400 text-white p-3 flex flex-col items-center justify-between font-black shadow-[0_4px_0_#000] cursor-pointer"
-            >
-              <span className="font-mario text-xs">PIPE C • 200%–390%</span>
-              <span className="text-xs font-extrabold">Regular / Double Holiday</span>
-              <div className="w-full h-3 mario-green-pipe rounded" />
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => handleSort('regular200')}
+                className="h-24 rounded-2xl border-3 border-black bg-rose-500 hover:bg-rose-400 text-white p-3 flex flex-col items-center justify-between font-black shadow-[0_4px_0_#000] cursor-pointer transition-transform active:translate-y-0.5"
+              >
+                <span className="font-mario text-xs">PIPE C • 200%–390%</span>
+                <span className="text-xs font-extrabold">Regular / Double Holiday</span>
+                <div className="w-full h-3 mario-green-pipe rounded" />
+              </button>
+            </div>
+          ) : (
+            <ArcadeDoctrineCard
+              title={routedVerdict.capsule.title}
+              statute="Arts. 87, 93, 94, Labor Code · DOLE Handbook"
+              rule={routedVerdict.capsule.note}
+              takeaway={
+                routedVerdict.isCorrect
+                  ? `Correct Multiplier Routing! ${routedVerdict.capsule.note}`
+                  : `Multiplier Routing Trap! The controlling category for "${routedVerdict.capsule.title}" is ${
+                      routedVerdict.capsule.bucket === 'base100'
+                        ? '100% Ordinary Day'
+                        : routedVerdict.capsule.bucket === 'special130'
+                        ? '130%-150% Rest/Special Day'
+                        : '200%-390% Regular/Double Holiday'
+                    }. Rule: ${routedVerdict.capsule.note}`
+              }
+              isCorrect={routedVerdict.isCorrect}
+              worldCode="holidays"
+              scenarioText={`Incoming Capsule: ${routedVerdict.capsule.title}`}
+              chosenAnswerText={
+                routedVerdict.chosen === 'base100'
+                  ? 'Pipe A: 100% Basic Day'
+                  : routedVerdict.chosen === 'special130'
+                  ? 'Pipe B: 130%-150% Rest/Special Day'
+                  : 'Pipe C: 200%-390% Regular/Double Holiday'
+              }
+              correctAnswerText={
+                routedVerdict.capsule.bucket === 'base100'
+                  ? 'Pipe A: 100% Basic Day'
+                  : routedVerdict.capsule.bucket === 'special130'
+                  ? 'Pipe B: 130%-150% Rest/Special Day'
+                  : 'Pipe C: 200%-390% Regular/Double Holiday'
+              }
+              advanceLabel={capsuleIdx + 1 >= capsules.length ? 'View Sorting Results' : 'Next Payroll Capsule →'}
+              onAdvance={handleNextCapsule}
+            />
+          )}
         </div>
       ) : (
         <div className="bg-slate-900 rounded-2xl border-3 border-cyan-400 p-8 text-center space-y-4">

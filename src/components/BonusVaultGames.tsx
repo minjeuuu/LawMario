@@ -27,7 +27,14 @@ import {
   Shield,
   BookOpen,
   Flame,
+  Flag,
+  Target,
+  ArrowRight,
+  Eye,
+  Check,
+  AlertTriangle,
 } from 'lucide-react';
+import { ArcadeDoctrineCard } from './ArcadeDoctrineCard';
 import {
   drawUniqueFromDeck,
   drawWageFactoryPackages,
@@ -152,8 +159,13 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const [timeLeftMs, setTimeLeftMs] = useState(9000);
+  const [verdict, setVerdict] = useState<{
+    approvedAsLawful: boolean;
+    isCorrect: boolean;
+    item: HammerPayrollItem;
+  } | null>(null);
+  const [actionAnimation, setActionAnimation] = useState<'idle' | 'shield' | 'smash' | 'miss'>('idle');
 
   const startGame = useCallback(() => {
     const combinedPool: HammerPayrollItem[] = [
@@ -173,7 +185,8 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
     setHp(3);
     setScore(0);
     setCombo(0);
-    setFeedback(null);
+    setVerdict(null);
+    setActionAnimation('idle');
     setTimeLeftMs(9000);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
@@ -184,7 +197,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
 
   const handleVerdict = useCallback(
     (approveAsLawful: boolean) => {
-      if (phase !== 'PLAYING' || !currentItem) return;
+      if (phase !== 'PLAYING' || !currentItem || verdict !== null) return;
       const correct = approveAsLawful === currentItem.isValidPayroll;
       if (correct) {
         const nextCombo = combo + 1;
@@ -194,69 +207,66 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
         setScore(nextScore);
         setBestScore((b) => Math.max(b, nextScore));
         onEarnCoins(2);
-        setFeedback({
-          ok: true,
-          text: `${currentItem.isValidPayroll ? 'SHIELDED LAWFUL PAYROLL' : 'SMASHED ILLEGAL SHORTCUT'} · ${currentItem.statute}`,
-        });
+        setActionAnimation(approveAsLawful ? 'shield' : 'smash');
+        marioAudio.playCoin();
       } else {
         const nextHp = hp - 1;
         setHp(nextHp);
         setCombo(0);
+        setActionAnimation('miss');
         marioAudio.playStomp();
-        setFeedback({
-          ok: false,
-          text: `MISSED! ${currentItem.label} — ${currentItem.statute}`,
-        });
-        if (nextHp <= 0) {
-          setPhase('GAME_OVER');
-          return;
-        }
       }
-
-      if (idx + 1 >= targetCount) {
-        onEarnCoins(10);
-        marioAudio.playQuizComplete();
-        setPhase('VICTORY');
-      } else {
-        setIdx((i) => i + 1);
-        setLane(Math.floor(Math.random() * 3));
-        setTimeLeftMs(Math.max(5500, 9000 - (idx + 1) * 280));
-      }
+      setVerdict({
+        approvedAsLawful: approveAsLawful,
+        isCorrect: correct,
+        item: currentItem,
+      });
     },
-    [phase, currentItem, combo, score, hp, idx, onEarnCoins]
+    [phase, currentItem, verdict, combo, score, hp, onEarnCoins]
   );
 
-  // Per-wave countdown timer (generous 9s initial window so player survives opening seconds easily)
+  const handleAdvanceWave = useCallback(() => {
+    if (!verdict) return;
+    if (hp <= 0) {
+      setPhase('GAME_OVER');
+      return;
+    }
+    if (idx + 1 >= targetCount) {
+      onEarnCoins(10);
+      marioAudio.playQuizComplete();
+      setPhase('VICTORY');
+      return;
+    }
+    setIdx((i) => i + 1);
+    setLane(Math.floor(Math.random() * 3));
+    setTimeLeftMs(Math.max(5500, 9000 - (idx + 1) * 280));
+    setVerdict(null);
+    setActionAnimation('idle');
+  }, [verdict, hp, idx, targetCount, onEarnCoins]);
+
+  // Per-wave countdown timer (paused during doctrine review)
   useEffect(() => {
-    if (phase !== 'PLAYING') return;
+    if (phase !== 'PLAYING' || verdict !== null) return;
     const timer = window.setInterval(() => {
       setTimeLeftMs((prev) => {
         if (prev <= 200) {
           const nextHp = hp - 1;
           setHp(nextHp);
           setCombo(0);
+          setActionAnimation('miss');
           marioAudio.playStomp();
-          setFeedback({
-            ok: false,
-            text: `TIME EXPIRED! ${currentItem.label} (${currentItem.statute})`,
+          setVerdict({
+            approvedAsLawful: false,
+            isCorrect: false,
+            item: currentItem,
           });
-          if (nextHp <= 0) {
-            setPhase('GAME_OVER');
-            return 0;
-          }
-          if (idx + 1 >= targetCount) {
-            setPhase('VICTORY');
-            return 0;
-          }
-          setIdx((i) => i + 1);
-          setLane(Math.floor(Math.random() * 3));
-          return 8000;
+          return 0;
         }
         return prev - 200;
       });
     }, 200);
     return () => window.clearInterval(timer);
-  }, [phase, hp, idx, currentItem]);
+  }, [phase, verdict, hp, idx, currentItem]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -265,14 +275,21 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
         e.preventDefault();
         startGame();
       } else if (phase === 'PLAYING') {
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-          e.preventDefault();
-          handleVerdict(true);
-        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-          e.preventDefault();
-          handleVerdict(false);
-        } else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-          setPhase('PAUSED');
+        if (verdict !== null) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleAdvanceWave();
+          }
+        } else {
+          if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+            e.preventDefault();
+            handleVerdict(true);
+          } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+            e.preventDefault();
+            handleVerdict(false);
+          } else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+            setPhase('PAUSED');
+          }
         }
       } else if (phase === 'PAUSED' && (e.key === 'p' || e.key === 'P' || e.key === 'Escape')) {
         setPhase('PLAYING');
@@ -280,7 +297,9 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [phase, startGame, handleVerdict]);
+  }, [phase, verdict, startGame, handleVerdict, handleAdvanceWave]);
+
+  const LANE_TITLES = ['LANE 1 · HIGH BATTLEMENT', 'LANE 2 · CASTLE DRAWBRIDGE', 'LANE 3 · LOWER MOAT'];
 
   return (
     <div
@@ -290,7 +309,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
       {/* Top World-Matched Arcade HUD */}
       <div className="bg-slate-950 px-4 py-3 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0 shadow-[0_2px_0_#000]">
             <Hammer className="w-5 h-5" />
           </div>
           <div>
@@ -348,15 +367,15 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
               Defend the Payroll Treasury Against Hammer Bros.!
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Inspect 10 incoming payroll orders across 3 castle lanes. Approve lawful statutory multipliers (125% OT, +10% NSD, 200% Regular Holiday, 100% Service Charges) with your{' '}
-              <strong className="text-emerald-300">Green Shield</strong>, and smash illegal wage shortcuts with your{' '}
-              <strong className="text-rose-300">Counter-Hammer</strong>!
+              Inspect 10 incoming payroll orders hurled across 3 castle lanes. Shield lawful statutory multipliers (125% OT, +10% NSD, 200% Regular Holiday, 100% Service Charges) with your{' '}
+              <strong className="text-emerald-300">Green Aegis Shield</strong>, and smash illegal wage shortcuts with your{' '}
+              <strong className="text-rose-300">War Hammer</strong>!
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>START PAYROLL BLITZ</span>
@@ -391,95 +410,166 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
 
         {phase === 'PLAYING' && currentItem && (
           <div className="space-y-4">
-            {/* Timer Bar & Combo */}
-            <div className="flex items-center justify-between gap-3 text-xs font-mono">
-              <span className="text-amber-300 font-bold tabular-nums">
-                LANE {lane + 1} INCOMING · {(timeLeftMs / 1000).toFixed(1)}s
-              </span>
-              {combo > 1 && (
-                <span className="text-emerald-400 font-black tabular-nums">
-                  {combo}x STREAK COMBO
+            {/* Visual Castle Rampart Battle Arena */}
+            <div className="relative rounded-2xl border-3 border-slate-950 bg-gradient-to-b from-[#111827] via-[#1e293b] to-[#0f172a] p-4 sm:p-5 overflow-hidden shadow-inner">
+              {/* Stone Crenellations Top Border */}
+              <div className="flex justify-between items-center pb-2 border-b border-slate-700/60 text-xs font-mono">
+                <span className="text-amber-300 font-bold tabular-nums">
+                  {LANE_TITLES[lane]} · {(timeLeftMs / 1000).toFixed(1)}s
                 </span>
-              )}
-            </div>
-            <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-              <div
-                className="h-full bg-amber-400 transition-all duration-150"
-                style={{ width: `${Math.min(100, (timeLeftMs / 9000) * 100)}%` }}
-              />
-            </div>
-
-            {/* 3 Castle Lanes Visual Indicator */}
-            <div className="grid grid-cols-3 gap-2">
-              {[0, 1, 2].map((ln) => (
-                <div
-                  key={ln}
-                  className={`rounded-xl p-2 text-center border text-[11px] font-bold transition-all ${
-                    lane === ln
-                      ? 'bg-amber-400/20 border-amber-400 text-amber-200'
-                      : 'bg-slate-900/50 border-slate-800 text-slate-500'
-                  }`}
-                >
-                  {lane === ln ? 'ACTIVE PAYROLL ORDER' : `Castle Lane ${ln + 1}`}
-                </div>
-              ))}
-            </div>
-
-            {/* Active Payroll Order Card */}
-            <div className="bg-white text-slate-950 rounded-2xl p-4 sm:p-5 border-3 border-black shadow-[4px_4px_0_#000] space-y-1.5">
-              <span className="text-[10px] font-black uppercase text-slate-500 font-mono block">
-                INCOMING PAYROLL VOUCHER #{idx + 1}
-              </span>
-              <h3 className="text-base sm:text-xl font-black font-display text-slate-950">
-                {currentItem.label}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-700 font-semibold">
-                {currentItem.detail}
-              </p>
-            </div>
-
-            {/* Action Buttons (>= 48px Touch Targets) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleVerdict(true)}
-                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
-              >
-                <ShieldCheck className="w-5 h-5 shrink-0" />
-                <span>SHIELD: LAWFUL PAYROLL [A]</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleVerdict(false)}
-                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
-              >
-                <Hammer className="w-5 h-5 shrink-0" />
-                <span>SMASH: ILLEGAL VIOLATION [D]</span>
-              </button>
-            </div>
-
-            {feedback && (
-              <div
-                className={`rounded-xl px-3.5 py-2.5 border text-xs font-bold flex items-center gap-2 ${
-                  feedback.ok
-                    ? 'bg-emerald-950/80 border-emerald-400 text-emerald-200'
-                    : 'bg-rose-950/80 border-rose-400 text-rose-200'
-                }`}
-              >
-                {feedback.ok ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                ) : (
-                  <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                {combo > 1 && (
+                  <span className="text-emerald-400 font-black tabular-nums animate-pulse">
+                    {combo}x STREAK COMBO
+                  </span>
                 )}
-                <span>{feedback.text}</span>
               </div>
+
+              {/* Countdown Bar */}
+              <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800 my-2">
+                <div
+                  className="h-full bg-amber-400 transition-all duration-150"
+                  style={{ width: `${Math.min(100, (timeLeftMs / 9000) * 100)}%` }}
+                />
+              </div>
+
+              {/* Castle Lanes & Combatants Stage */}
+              <div className="grid grid-cols-12 gap-2 items-center my-3 min-h-[140px]">
+                {/* Left Defender: Castle Turret with Hero */}
+                <div className="col-span-3 flex flex-col items-center justify-center text-center">
+                  <div
+                    className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-3 flex items-center justify-center transition-all ${
+                      actionAnimation === 'shield'
+                        ? 'bg-emerald-950 border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)] scale-110'
+                        : actionAnimation === 'smash'
+                        ? 'bg-amber-950 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.8)] scale-110'
+                        : actionAnimation === 'miss'
+                        ? 'bg-rose-950 border-rose-500 animate-bounce'
+                        : 'bg-slate-900 border-slate-700'
+                    }`}
+                  >
+                    <MarioCharacterAvatar character={equippedAvatar} className="w-10 h-10 sm:w-12 sm:h-12" />
+                    {actionAnimation === 'shield' && (
+                      <div className="absolute inset-0 rounded-2xl border-2 border-emerald-300 bg-emerald-400/30 flex items-center justify-center animate-ping">
+                        <ShieldCheck className="w-8 h-8 text-emerald-300" />
+                      </div>
+                    )}
+                    {actionAnimation === 'smash' && (
+                      <div className="absolute inset-0 rounded-2xl border-2 border-amber-300 bg-amber-400/30 flex items-center justify-center animate-ping">
+                        <Hammer className="w-8 h-8 text-amber-300" />
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-mario text-emerald-300 uppercase mt-1 block">
+                    {actionAnimation === 'shield' ? 'AEGIS SHIELD!' : actionAnimation === 'smash' ? 'HAMMER SMASH!' : 'DEFENDER'}
+                  </span>
+                </div>
+
+                {/* Center: 3 Lanes with Hurled Projectile */}
+                <div className="col-span-6 space-y-1.5">
+                  {[0, 1, 2].map((ln) => {
+                    const isActive = lane === ln;
+                    return (
+                      <div
+                        key={ln}
+                        className={`relative rounded-xl px-2.5 py-1.5 border text-xs font-mono transition-all flex items-center justify-between overflow-hidden ${
+                          isActive
+                            ? 'bg-amber-400/20 border-amber-400 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.25)]'
+                            : 'bg-slate-950/60 border-slate-800 text-slate-600'
+                        }`}
+                      >
+                        <span className="text-[10px] font-bold">L{ln + 1}</span>
+                        {isActive && (
+                          <div className="flex items-center gap-1.5 animate-pulse text-amber-300">
+                            <Hammer className="w-4 h-4 animate-spin text-amber-400" />
+                            <span className="text-[10px] font-black uppercase font-mario tracking-wider">
+                              INCOMING VOUCHER #{idx + 1}
+                            </span>
+                          </div>
+                        )}
+                        <span className="text-[9px] opacity-60">CASTLE WALL</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Right Invader: Hammer Bro on Parapet */}
+                <div className="col-span-3 flex flex-col items-center justify-center text-center">
+                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-950/60 border-3 border-amber-500/80 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                    <div className="flex flex-col items-center animate-bounce">
+                      <div className="w-7 h-5 rounded-t-full bg-emerald-500 border border-black flex items-center justify-center">
+                        <div className="w-2 h-1 bg-white rounded-full" />
+                      </div>
+                      <div className="w-8 h-6 rounded-b-xl bg-amber-400 border border-black flex items-center justify-center">
+                        <Hammer className="w-4 h-4 text-slate-950 animate-spin" />
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-mario text-amber-400 uppercase mt-1 block">
+                    HAMMER BRO
+                  </span>
+                </div>
+              </div>
+
+              {/* Active Incoming Voucher Dossier */}
+              <div className="bg-white text-slate-950 rounded-2xl p-4 sm:p-5 border-3 border-black shadow-[4px_4px_0_#000] space-y-1.5 mt-2">
+                <span className="text-[10px] font-black uppercase text-slate-500 font-mono block">
+                  INCOMING STATUTORY PAYROLL ORDER #{idx + 1} OF {targetCount}
+                </span>
+                <h3 className="text-base sm:text-xl font-black font-display text-slate-950">
+                  {currentItem.label}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 font-semibold">
+                  {currentItem.detail}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons (Active when reviewing next order) */}
+            {verdict === null ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleVerdict(true)}
+                  className="min-h-[54px] px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer transition-transform"
+                >
+                  <ShieldCheck className="w-5 h-5 shrink-0" />
+                  <span>SHIELD: LAWFUL STATUTORY RIGHT [A]</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleVerdict(false)}
+                  className="min-h-[54px] px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer transition-transform"
+                >
+                  <Hammer className="w-5 h-5 shrink-0" />
+                  <span>SMASH: ILLEGAL SHORTCUT [D]</span>
+                </button>
+              </div>
+            ) : (
+              /* Rich High-Yield Statutory Learning Card with 1-Tap Save to Notes */
+              <ArcadeDoctrineCard
+                title={currentItem.label}
+                statute={currentItem.statute}
+                rule={currentItem.detail}
+                takeaway={
+                  currentItem.isValidPayroll
+                    ? `Controlling Statutory Mandate: Guaranteed under ${currentItem.statute}. This multiplier or benefit is legally compulsory for covered workers under Philippine labor law. Employer must fully credit and compute without unlawful offsetting!`
+                    : `Prohibited Wage Shortcut / Violation: Strictly illegal under ${currentItem.statute}. Smash and eliminate from payroll records to avoid backwages, interest, and DOLE administrative sanctions!`
+                }
+                isCorrect={verdict.isCorrect}
+                worldCode="w1"
+                scenarioText={currentItem.detail}
+                chosenAnswerText={verdict.approvedAsLawful ? 'Shielded as Lawful Statutory Right' : 'Smashed as Illegal Shortcut'}
+                correctAnswerText={currentItem.isValidPayroll ? 'Shield: Lawful Statutory Right' : 'Smash: Illegal Shortcut'}
+                advanceLabel={idx + 1 >= targetCount ? 'Claim Victory Coins' : 'Next Castle Wave →'}
+                onAdvance={handleAdvanceWave}
+              />
             )}
           </div>
         )}
 
         {(phase === 'VICTORY' || phase === 'GAME_OVER') && (
           <div className="my-auto text-center max-w-md mx-auto space-y-4 py-4">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-400 border-3 border-black mx-auto">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-400 border-3 border-black mx-auto shadow-[0_3px_0_#000]">
               <Trophy className="w-7 h-7 text-slate-950" />
             </div>
             <h3 className="text-xl sm:text-2xl font-black font-display text-white">
@@ -505,7 +595,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <RotateCcw className="w-4 h-4" />
               <span>PLAY AGAIN</span>
@@ -686,6 +776,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [roundCleared, setRoundCleared] = useState(false);
+  const [runnerState, setRunnerState] = useState<'idle' | 'sprint' | 'stumble'>('idle');
 
   const loadRound = useCallback(
     (idxToLoad: number, sourceDeck?: DueProcessRelayCase[]) => {
@@ -699,6 +790,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
       setShuffledPool(mixed);
       setPickedOrder([]);
       setRoundCleared(false);
+      setRunnerState('idle');
     },
     [relayDeck]
   );
@@ -726,17 +818,22 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
     if (stepIdx === expectedNext) {
       const updated = [...pickedOrder, stepIdx];
       setPickedOrder(updated);
+      setRunnerState('sprint');
       marioAudio.playCoin();
       if (updated.length === 3) {
         setRoundCleared(true);
         setScore((s) => s + 150);
         onEarnCoins(3);
+      } else {
+        setTimeout(() => setRunnerState('idle'), 400);
       }
     } else {
       const nextMistakes = mistakes + 1;
       setMistakes(nextMistakes);
       setPickedOrder([]);
+      setRunnerState('stumble');
       marioAudio.playStomp();
+      setTimeout(() => setRunnerState('idle'), 600);
       if (nextMistakes >= 4) {
         setPhase('GAME_OVER');
       }
@@ -755,6 +852,8 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
     }
   };
 
+  const RUNNER_POSITIONS = ['6%', '34%', '66%', '92%'];
+
   return (
     <div
       data-testid="game-toadette-due-process"
@@ -762,7 +861,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
     >
       <div className="bg-slate-950 px-4 py-3 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-pink-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-pink-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0 shadow-[0_2px_0_#000]">
             <ListOrdered className="w-5 h-5" />
           </div>
           <div>
@@ -803,13 +902,13 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
               Sequence Statutory Due Process Without Nominal Damages!
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Tap the 3 procedural steps in strict chronological legal order (Step 1 → Step 2 → Step 3) across Just Cause, Authorized Cause, Disease, Abandonment, and Preventive Suspension dockets!
+              Sprint through the Olympic relay track! Tap the 3 procedural steps in strict chronological legal order (Step 1 → Step 2 → Step 3) across Just Cause, Authorized Cause, Disease, Abandonment, and Preventive Suspension dockets!
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>START RELAY DOCKET</span>
@@ -819,6 +918,69 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
 
         {phase === 'PLAYING' && (
           <div className="space-y-4">
+            {/* Visual Olympic Relay Running Track Arena */}
+            <div className="relative rounded-2xl border-3 border-slate-950 bg-gradient-to-b from-[#991b1b] via-[#7f1d1d] to-[#450a0a] p-3 sm:p-4 overflow-hidden shadow-inner">
+              {/* Distance Markers & Baton HUD */}
+              <div className="flex items-center justify-between text-[10px] font-mono font-bold text-amber-200 pb-2 border-b border-red-800/80">
+                <span>0m START</span>
+                <span>30m NOTICE 1 (NTE)</span>
+                <span>65m HEARING / EXPLAIN</span>
+                <span>100m DECISION (FINISH)</span>
+              </div>
+
+              {/* Running Lanes Stage */}
+              <div className="relative my-4 h-16 sm:h-20 bg-red-950/80 rounded-xl border-2 border-red-700/60 flex items-center overflow-hidden">
+                {/* Lane Stripe Dividers */}
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-b border-dashed border-white/30" />
+
+                {/* 3 Relay Checkpoint Flags */}
+                <div className="absolute left-[34%] -translate-x-1/2 flex flex-col items-center">
+                  <div className={`w-3.5 h-3.5 rounded-full border border-black ${pickedOrder.length >= 1 ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+                  <span className="text-[8px] font-mono text-amber-200 mt-0.5">CHECK 1</span>
+                </div>
+                <div className="absolute left-[66%] -translate-x-1/2 flex flex-col items-center">
+                  <div className={`w-3.5 h-3.5 rounded-full border border-black ${pickedOrder.length >= 2 ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  <span className="text-[8px] font-mono text-amber-200 mt-0.5">CHECK 2</span>
+                </div>
+                <div className="absolute right-2 flex flex-col items-center">
+                  <div className={`w-4 h-4 rounded-full border border-black flex items-center justify-center ${pickedOrder.length >= 3 ? 'bg-amber-400' : 'bg-slate-700'}`}>
+                    <Flag className="w-2.5 h-2.5 text-slate-950" />
+                  </div>
+                  <span className="text-[8px] font-mono text-amber-200 mt-0.5">FINISH</span>
+                </div>
+
+                {/* Animated Toadette Runner with Golden Baton */}
+                <div
+                  className={`absolute -translate-x-1/2 transition-all duration-500 flex items-center gap-1 z-10 ${
+                    runnerState === 'stumble' ? 'animate-bounce' : runnerState === 'sprint' ? 'scale-110' : ''
+                  }`}
+                  style={{ left: RUNNER_POSITIONS[pickedOrder.length] }}
+                >
+                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-pink-500 border-2 border-black flex items-center justify-center shadow-[0_2px_0_#000]">
+                    <MarioCharacterAvatar character="toadette" className="w-8 h-8 sm:w-10 sm:h-10" />
+                    {/* Glowing Golden Baton */}
+                    <div className="absolute -right-1.5 -top-1 w-3.5 h-6 bg-amber-300 rounded-sm border border-black shadow-[0_0_8px_rgba(251,191,36,0.9)] rotate-12 flex items-center justify-center">
+                      <Sparkles className="w-2.5 h-2.5 text-slate-950 animate-spin" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Baton Relay Status Ticker */}
+              <div className="text-center">
+                <span className="text-[10px] font-mario uppercase px-3 py-1 rounded-full bg-black/60 border border-amber-400/50 text-amber-300 inline-block">
+                  {pickedOrder.length === 0
+                    ? 'BATON AT START BLOCKS · SELECT STEP 1'
+                    : pickedOrder.length === 1
+                    ? 'BATON HANDOFF 1 COMPLETE → SELECT STEP 2'
+                    : pickedOrder.length === 2
+                    ? 'BATON HANDOFF 2 COMPLETE → SELECT FINAL STEP 3'
+                    : 'DUE PROCESS FINISH LINE CROSSED!'}
+                </span>
+              </div>
+            </div>
+
+            {/* Case Dossier Header */}
             <div className="bg-white text-slate-950 rounded-2xl p-4 border-3 border-black shadow-[3px_3px_0_#000] space-y-1">
               <span className="text-[10px] font-black uppercase text-pink-700 font-mono block">
                 {activeCase.statute}
@@ -836,9 +998,9 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
                     key={slot}
                     className={`py-2 px-2 rounded-xl border font-bold ${
                       done
-                        ? 'bg-emerald-500 text-slate-950 border-black'
+                        ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_2px_0_#000]'
                         : pickedOrder.length === slot
-                        ? 'bg-amber-400/20 text-amber-300 border-amber-400'
+                        ? 'bg-amber-400/20 text-amber-300 border-amber-400 animate-pulse'
                         : 'bg-slate-900 text-slate-500 border-slate-800'
                     }`}
                   >
@@ -848,48 +1010,49 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
               })}
             </div>
 
-            {/* Clickable Procedural Cards */}
-            <div className="space-y-2.5">
-              {shuffledPool.map((item) => {
-                const selectedRank = pickedOrder.indexOf(item.stepIdx);
-                const isSelected = selectedRank !== -1;
-                return (
-                  <button
-                    key={item.stepIdx}
-                    type="button"
-                    disabled={isSelected}
-                    onClick={() => handleSelectStep(item.stepIdx)}
-                    className={`w-full min-h-[52px] text-left p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 ${
-                      isSelected
-                        ? 'bg-emerald-950/70 border-emerald-400 text-emerald-200 cursor-default'
-                        : 'bg-slate-900 hover:bg-slate-800 border-slate-700 hover:border-amber-400 text-white cursor-pointer'
-                    }`}
-                  >
-                    <span className="text-xs sm:text-sm font-bold leading-snug">{item.text}</span>
-                    <span className="shrink-0 font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700">
-                      {isSelected ? `#${selectedRank + 1}` : 'TAP'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {roundCleared && (
-              <div className="bg-emerald-950/90 border-2 border-emerald-400 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5 text-xs">
-                  <span className="font-black text-emerald-300 block">
-                    DUE PROCESS PERFECTLY SEQUENCED!
-                  </span>
-                  <p className="text-emerald-100">{activeCase.doctrineNote}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleNextCase}
-                  className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs border-2 border-black shrink-0 cursor-pointer whitespace-nowrap"
-                >
-                  {caseIdx + 1 >= relayDeck.length ? 'Finish Relay' : 'Next Case →'}
-                </button>
+            {/* Clickable Procedural Step Cards */}
+            {!roundCleared && (
+              <div className="space-y-2.5">
+                {shuffledPool.map((item) => {
+                  const selectedRank = pickedOrder.indexOf(item.stepIdx);
+                  const isSelected = selectedRank !== -1;
+                  return (
+                    <button
+                      key={item.stepIdx}
+                      type="button"
+                      disabled={isSelected}
+                      onClick={() => handleSelectStep(item.stepIdx)}
+                      className={`w-full min-h-[52px] text-left p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 ${
+                        isSelected
+                          ? 'bg-emerald-950/70 border-emerald-400 text-emerald-200 cursor-default'
+                          : 'bg-slate-900 hover:bg-slate-800 border-slate-700 hover:border-amber-400 text-white cursor-pointer active:translate-y-0.5'
+                      }`}
+                    >
+                      <span className="text-xs sm:text-sm font-bold leading-snug">{item.text}</span>
+                      <span className="shrink-0 font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700">
+                        {isSelected ? `#${selectedRank + 1}` : 'TAP'}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+            )}
+
+            {/* Rich Statutory Learning Card on Cleared Docket */}
+            {roundCleared && (
+              <ArcadeDoctrineCard
+                title={activeCase.title}
+                statute={activeCase.statute}
+                rule={activeCase.orderedSteps.map((s, i) => `Step ${i + 1}: ${s}`).join(' → ')}
+                takeaway={activeCase.doctrineNote}
+                isCorrect={true}
+                worldCode="w5"
+                scenarioText={activeCase.scenario}
+                chosenAnswerText="Flawless Due Process Sequence"
+                correctAnswerText={activeCase.orderedSteps.join(' → ')}
+                advanceLabel={caseIdx + 1 >= relayDeck.length ? 'Finish Relay Championship' : 'Next Relay Docket →'}
+                onAdvance={handleNextCase}
+              />
             )}
           </div>
         )}
@@ -911,7 +1074,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <RotateCcw className="w-4 h-4" />
               <span>PLAY AGAIN</span>
@@ -1003,7 +1166,12 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
   const [beltProgress, setBeltProgress] = useState(0); // 0 to 100% across conveyor
   const [hp, setHp] = useState(3);
   const [score, setScore] = useState(0);
-  const [verdictBanner, setVerdictBanner] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [verdict, setVerdict] = useState<{
+    certifyCompliant: boolean;
+    isCorrect: boolean;
+    crate: ShyGuyConveyorCrate;
+  } | null>(null);
+  const [actionState, setActionState] = useState<'idle' | 'stamp' | 'crush' | 'timeout'>('idle');
   const lastFrameRef = useRef<number>(0);
 
   const startGame = useCallback(() => {
@@ -1019,7 +1187,8 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
     setBeltProgress(8);
     setHp(3);
     setScore(0);
-    setVerdictBanner(null);
+    setVerdict(null);
+    setActionState('idle');
     setPhase('PLAYING');
     marioAudio.playPowerUp();
   }, []);
@@ -1029,44 +1198,49 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
 
   const inspectCrate = useCallback(
     (certifyCompliant: boolean) => {
-      if (phase !== 'PLAYING' || !currentCrate) return;
+      if (phase !== 'PLAYING' || !currentCrate || verdict !== null) return;
       const ok = certifyCompliant === currentCrate.isCompliant;
       if (ok) {
         setScore((s) => s + 125);
         onEarnCoins(2);
-        setVerdictBanner({
-          ok: true,
-          msg: `INSPECTED: ${currentCrate.basis}`,
-        });
+        setActionState(certifyCompliant ? 'stamp' : 'crush');
+        marioAudio.playCoin();
       } else {
         const nextHp = hp - 1;
         setHp(nextHp);
+        setActionState('timeout');
         marioAudio.playStomp();
-        setVerdictBanner({
-          ok: false,
-          msg: `AUDIT ERROR: ${currentCrate.title} — ${currentCrate.basis}`,
-        });
-        if (nextHp <= 0) {
-          setPhase('GAME_OVER');
-          return;
-        }
       }
-
-      if (crateIdx + 1 >= totalCratesInShift) {
-        onEarnCoins(10);
-        marioAudio.playQuizComplete();
-        setPhase('VICTORY');
-      } else {
-        setCrateIdx((i) => i + 1);
-        setBeltProgress(5);
-      }
+      setVerdict({
+        certifyCompliant,
+        isCorrect: ok,
+        crate: currentCrate,
+      });
     },
-    [phase, currentCrate, hp, crateIdx, totalCratesInShift, onEarnCoins]
+    [phase, currentCrate, verdict, hp, onEarnCoins]
   );
 
-  // Smooth clamped conveyor progress (~10 seconds per crate so opening seconds never kill idle player)
+  const handleNextCrate = useCallback(() => {
+    if (!verdict) return;
+    if (hp <= 0) {
+      setPhase('GAME_OVER');
+      return;
+    }
+    if (crateIdx + 1 >= totalCratesInShift) {
+      onEarnCoins(10);
+      marioAudio.playQuizComplete();
+      setPhase('VICTORY');
+      return;
+    }
+    setCrateIdx((i) => i + 1);
+    setBeltProgress(6);
+    setVerdict(null);
+    setActionState('idle');
+  }, [verdict, hp, crateIdx, totalCratesInShift, onEarnCoins]);
+
+  // Smooth clamped conveyor progress (paused when inspecting doctrine card)
   useEffect(() => {
-    if (phase !== 'PLAYING') return;
+    if (phase !== 'PLAYING' || verdict !== null) return;
     let rafId = 0;
     lastFrameRef.current = performance.now();
 
@@ -1075,20 +1249,18 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
       lastFrameRef.current = now;
       const dt = Math.min(rawDt, 0.05);
       setBeltProgress((prev) => {
-        const next = prev + dt * 9.5; // ~10s across full conveyor
+        const next = prev + dt * 8.5; // ~12s across full conveyor
         if (next >= 100) {
-          setHp((curHp) => {
-            const updated = curHp - 1;
-            if (updated <= 0) {
-              setPhase('GAME_OVER');
-            } else if (crateIdx + 1 >= SHY_GUY_CONVEYOR_BANK.length) {
-              setPhase('VICTORY');
-            } else {
-              setCrateIdx((i) => i + 1);
-            }
-            return Math.max(0, updated);
+          const nextHp = hp - 1;
+          setHp(nextHp);
+          setActionState('timeout');
+          marioAudio.playStomp();
+          setVerdict({
+            certifyCompliant: false,
+            isCorrect: false,
+            crate: currentCrate,
           });
-          return 5;
+          return 95;
         }
         return next;
       });
@@ -1097,7 +1269,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
 
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [phase, crateIdx]);
+  }, [phase, verdict, hp, currentCrate]);
 
   return (
     <div
@@ -1106,7 +1278,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
     >
       <div className="bg-slate-950 px-4 py-3 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0 shadow-[0_2px_0_#000]">
             <Factory className="w-5 h-5" />
           </div>
           <div>
@@ -1154,13 +1326,13 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               Crates travel across Shy Guy&apos;s factory belt in real time. Stamp compliant P5M D.O. 174 contractors, Pineda formulas, and legal tender payrolls as{' '}
-              <strong className="text-emerald-300">Compliant</strong>, and bust labor-only or benefit-diminution crates!
+              <strong className="text-emerald-300">Compliant</strong>, and crush labor-only or benefit-diminution crates before they cross into the production floor!
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>START CONVEYOR AUDIT</span>
@@ -1170,65 +1342,136 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
 
         {phase === 'PLAYING' && currentCrate && (
           <div className="space-y-4">
-            {/* Animated Conveyor Track */}
-            <div className="bg-slate-950 rounded-2xl p-3 border-2 border-slate-800 space-y-2">
-              <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-                <span>ENTRY CHUTE</span>
-                <span className="text-amber-300 font-bold tabular-nums">
-                  BELT POSITION: {Math.round(beltProgress)}%
-                </span>
-                <span className="text-rose-400">EXIT GATE</span>
-              </div>
-              <div className="relative h-8 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
-                <div
-                  className="absolute top-1 bottom-1 w-12 rounded-lg bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 font-black text-[10px] font-mono"
-                  style={{
-                    left: `calc(${Math.min(92, beltProgress)}% - 8px)`,
-                  }}
-                >
-                  #{crateIdx + 1}
+            {/* Visual Steampunk Factory Stage */}
+            <div className="relative rounded-2xl border-3 border-slate-950 bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-[#0b1120] p-4 overflow-hidden shadow-inner">
+              {/* Overhead Catwalk with Hardhat Shy Guy Inspector */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-700/60 text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-red-600 border border-black flex items-center justify-center shadow-sm">
+                    <MarioCharacterAvatar character="shyguy" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mario text-amber-300 uppercase block">INSPECTOR SHY GUY</span>
+                    <span className="text-[9px] text-slate-400">DOLE Compliance Officer</span>
+                  </div>
                 </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-amber-300 font-bold tabular-nums">
+                    BELT SPEED: NORMAL · {Math.round(beltProgress)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Overhead Hydraulic Stamp & Industrial Crusher Apparatus */}
+              <div className="relative h-28 my-3 rounded-xl bg-slate-950/80 border-2 border-slate-800 flex items-center overflow-hidden">
+                {/* Rolling Conveyor Surface */}
+                <div className="absolute inset-x-0 bottom-0 h-7 bg-slate-900 border-t-2 border-slate-700 flex items-center justify-around overflow-hidden">
+                  {Array.from({ length: 16 }).map((_, i) => (
+                    <div key={i} className="w-2.5 h-full border-r border-slate-800 bg-slate-800/60" />
+                  ))}
+                </div>
+
+                {/* Left Overhead Stamp */}
+                <div className="absolute left-[30%] -translate-x-1/2 top-1 flex flex-col items-center">
+                  <div className={`w-10 h-7 rounded-t-lg bg-emerald-950 border-2 border-emerald-500/60 flex items-center justify-center transition-all ${
+                    actionState === 'stamp' ? 'translate-y-4 bg-emerald-600 border-emerald-300' : ''
+                  }`}>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                  </div>
+                  <span className="text-[7px] font-mono font-bold text-emerald-400 uppercase mt-0.5">DOLE STAMP</span>
+                </div>
+
+                {/* Right Overhead Crusher */}
+                <div className="absolute left-[70%] -translate-x-1/2 top-1 flex flex-col items-center">
+                  <div className={`w-10 h-7 rounded-t-lg bg-rose-950 border-2 border-rose-500/60 flex items-center justify-center transition-all ${
+                    actionState === 'crush' ? 'translate-y-4 bg-rose-600 border-rose-300' : ''
+                  }`}>
+                    <XCircle className="w-4 h-4 text-rose-300" />
+                  </div>
+                  <span className="text-[7px] font-mono font-bold text-rose-400 uppercase mt-0.5">CRUSHER</span>
+                </div>
+
+                {/* Moving Heavy Wooden Crate */}
+                <div
+                  className="absolute bottom-6 transition-all duration-150 flex flex-col items-center -translate-x-1/2"
+                  style={{ left: `${Math.min(92, Math.max(8, beltProgress))}%` }}
+                >
+                  <div className={`relative px-3 py-1.5 rounded-lg border-2 border-black flex items-center justify-center shadow-lg transition-transform ${
+                    actionState === 'stamp'
+                      ? 'bg-emerald-400 text-slate-950 scale-110 shadow-[0_0_15px_rgba(52,211,153,0.8)]'
+                      : actionState === 'crush'
+                      ? 'bg-rose-600 text-white scale-90 rotate-6 shadow-[0_0_15px_rgba(244,63,94,0.8)]'
+                      : 'bg-amber-400 text-slate-950'
+                  }`}>
+                    <span className="text-[10px] font-black font-mono whitespace-nowrap">
+                      CRATE #{crateIdx + 1}
+                    </span>
+                    {actionState === 'stamp' && (
+                      <div className="absolute inset-0 rounded-lg border-2 border-emerald-300 bg-emerald-400/40 animate-ping" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Conveyor Belt Positions */}
+              <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 px-1">
+                <span>0% CHUTE INTAKE</span>
+                <span className="text-amber-300 font-bold uppercase">CONVEYOR AUDIT LANE</span>
+                <span className="text-rose-400">100% FACTORY GATE</span>
               </div>
             </div>
 
             {/* Crate Inspection Dossier */}
             <div className="bg-white text-slate-950 rounded-2xl p-4 sm:p-5 border-3 border-black shadow-[4px_4px_0_#000] space-y-1.5">
               <span className="text-[10px] font-black uppercase text-emerald-700 font-mono block">
-                DOLE INSPECTION DOCKET #{crateIdx + 1}
+                DOLE INSPECTION DOCKET #{crateIdx + 1} OF {totalCratesInShift}
               </span>
-              <h3 className="text-base sm:text-xl font-black font-display">{currentCrate.title}</h3>
-              <p className="text-xs sm:text-sm text-slate-700 font-semibold">{currentCrate.spec}</p>
+              <h3 className="text-base sm:text-xl font-black font-display text-slate-950">
+                {currentCrate.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed">
+                {currentCrate.spec}
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => inspectCrate(true)}
-                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
-              >
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
-                <span>CERTIFY COMPLIANT</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => inspectCrate(false)}
-                className="min-h-[52px] px-3.5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer whitespace-normal leading-tight text-center"
-              >
-                <XCircle className="w-5 h-5 shrink-0" />
-                <span>BUST DOLE VIOLATION</span>
-              </button>
-            </div>
-
-            {verdictBanner && (
-              <div
-                className={`rounded-xl px-3.5 py-2.5 border text-xs font-bold ${
-                  verdictBanner.ok
-                    ? 'bg-emerald-950/80 border-emerald-400 text-emerald-200'
-                    : 'bg-rose-950/80 border-rose-400 text-rose-200'
-                }`}
-              >
-                {verdictBanner.msg}
+            {/* Interactive Inspection Buttons / Doctrine Takeaway */}
+            {verdict === null ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => inspectCrate(true)}
+                  className="min-h-[54px] px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
+                >
+                  <CheckCircle2 className="w-5 h-5 shrink-0" />
+                  <span>CERTIFY COMPLIANT (DOLE ACCREDITED)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => inspectCrate(false)}
+                  className="min-h-[54px] px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
+                >
+                  <XCircle className="w-5 h-5 shrink-0" />
+                  <span>BUST DOLE VIOLATION (LABOR-ONLY TRAP)</span>
+                </button>
               </div>
+            ) : (
+              <ArcadeDoctrineCard
+                title={currentCrate.title}
+                statute={currentCrate.basis}
+                rule={currentCrate.spec}
+                takeaway={
+                  currentCrate.isCompliant
+                    ? `Compliant with Labor Standards: The contractor possesses substantial capital (>= ₱5,000,000 paid-up capital) and exercises direct control over the means and methods of work without principal interference.`
+                    : `Prohibited Labor Trap: Violates mandatory statutory rules (labor-only contracting, unauthorized deduction, or illegal benefit diminution under Art. 100). Controlling Basis: ${currentCrate.basis}`
+                }
+                isCorrect={verdict.isCorrect}
+                worldCode="w2"
+                scenarioText={currentCrate.spec}
+                chosenAnswerText={verdict.certifyCompliant ? 'Certified as Lawful & Compliant' : 'Busted as Prohibited DOLE Violation'}
+                correctAnswerText={currentCrate.isCompliant ? 'Certify: Compliant' : 'Bust: Prohibited Practice'}
+                advanceLabel={crateIdx + 1 >= totalCratesInShift ? 'Complete Factory Shift' : 'Inspect Next Crate →'}
+                onAdvance={handleNextCrate}
+              />
             )}
           </div>
         )}
@@ -1245,7 +1488,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <RotateCcw className="w-4 h-4" />
               <span>PLAY AGAIN</span>
@@ -1349,6 +1592,11 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
   const [lastLog, setLastLog] = useState<string | null>(null);
   const [duelEffect, setDuelEffect] = useState<'idle' | 'reflect' | 'hex_hit'>('idle');
   const [pickedOption, setPickedOption] = useState<string | null>(null);
+  const [verdict, setVerdict] = useState<{
+    isHit: boolean;
+    selectedOption: string;
+    spell: KamekDeadlineSpell;
+  } | null>(null);
 
   const startGame = () => {
     const freshSpells: KamekDeadlineSpell[] = drawKamekSpells(8).map((s) => ({
@@ -1367,6 +1615,7 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
     setLastLog(null);
     setDuelEffect('idle');
     setPickedOption(null);
+    setVerdict(null);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
   };
@@ -1381,44 +1630,44 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
     if (isHit) {
       setDuelEffect('reflect');
       marioAudio.playPowerUp();
-      setTimeout(() => {
-        const nextBoss = Math.max(0, bossHp - 25);
-        setBossHp(nextBoss);
-        setScore((s) => s + 150);
-        onEarnCoins(3);
-        setLastLog(`REFLECTED! ${activeSpell.correctAnswer} · ${activeSpell.basis}`);
-        marioAudio.playCoin();
-
-        if (nextBoss <= 0 || spellIdx + 1 >= spells.length) {
-          onEarnCoins(12);
-          marioAudio.playQuizComplete();
-          setPhase('VICTORY');
-        } else {
-          setSpellIdx((i) => i + 1);
-          setPickedOption(null);
-          setDuelEffect('idle');
-        }
-      }, 500);
+      const nextBoss = Math.max(0, bossHp - 25);
+      setBossHp(nextBoss);
+      setScore((s) => s + 150);
+      onEarnCoins(3);
+      setLastLog(`REFLECTED! ${activeSpell.correctAnswer} · ${activeSpell.basis}`);
+      marioAudio.playCoin();
     } else {
       setDuelEffect('hex_hit');
       marioAudio.playStomp();
-      setTimeout(() => {
-        const nextHero = Math.max(0, heroHp - 35);
-        setHeroHp(nextHero);
-        setLastLog(`HEX BREACHED SHIELD! Correct Rune: ${activeSpell.correctAnswer} (${activeSpell.basis})`);
-
-        if (nextHero <= 0) {
-          setPhase('GAME_OVER');
-        } else if (spellIdx + 1 >= spells.length) {
-          setPhase('VICTORY');
-        } else {
-          setSpellIdx((i) => i + 1);
-          setPickedOption(null);
-          setDuelEffect('idle');
-        }
-      }, 500);
+      const nextHero = Math.max(0, heroHp - 35);
+      setHeroHp(nextHero);
+      setLastLog(`HEX BREACHED SHIELD! Correct Rune: ${activeSpell.correctAnswer} (${activeSpell.basis})`);
     }
+
+    setVerdict({
+      isHit,
+      selectedOption: selected,
+      spell: activeSpell,
+    });
   };
+
+  const handleNextSpell = useCallback(() => {
+    if (!verdict) return;
+    if (heroHp <= 0) {
+      setPhase('GAME_OVER');
+      return;
+    }
+    if (bossHp <= 0 || spellIdx + 1 >= spells.length) {
+      onEarnCoins(12);
+      marioAudio.playQuizComplete();
+      setPhase('VICTORY');
+      return;
+    }
+    setSpellIdx((i) => i + 1);
+    setPickedOption(null);
+    setVerdict(null);
+    setDuelEffect('idle');
+  }, [verdict, heroHp, bossHp, spellIdx, spells.length, onEarnCoins]);
 
   const GRIMOIRE_THEMES = [
     { border: 'border-rose-400', bg: 'bg-rose-950/80', rune: 'text-rose-400', badge: 'bg-rose-500' },
@@ -1595,11 +1844,31 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
               })}
             </div>
 
-            {/* Duel Battle Log */}
-            {lastLog && (
-              <div className="rounded-xl px-4 py-2.5 bg-slate-950/95 border border-purple-400/60 text-xs font-mono font-bold text-amber-300 shadow-inner">
-                {lastLog}
-              </div>
+            {/* Duel Battle Log or High-Yield Takeaway Card */}
+            {verdict === null ? (
+              lastLog && (
+                <div className="rounded-xl px-4 py-2.5 bg-slate-950/95 border border-purple-400/60 text-xs font-mono font-bold text-amber-300 shadow-inner">
+                  {lastLog}
+                </div>
+              )
+            ) : (
+              <ArcadeDoctrineCard
+                title={activeSpell.spellTitle}
+                statute={activeSpell.basis}
+                rule={`${activeSpell.claimPrompt} → Controlling Prescription: ${activeSpell.correctAnswer}`}
+                takeaway={`Statutory Prescription Memory Peg: Under ${activeSpell.basis}, this action must be instituted within ${activeSpell.correctAnswer}. Remember the Bar hierarchy: 1 Year for ULP (Art. 305), 3 Years for Money Claims & SIL (Art. 306), 4 Years for Illegal Dismissal / injury to rights (Art. 1146 CC), 10 Calendar Days for NLRC Appeal (Art. 229), and 20 Years for unremitted SSS contributions (R.A. 11199).`}
+                isCorrect={verdict.isHit}
+                worldCode="w4"
+                scenarioText={activeSpell.claimPrompt}
+                chosenAnswerText={verdict.selectedOption}
+                correctAnswerText={activeSpell.correctAnswer}
+                advanceLabel={
+                  bossHp <= 0 || heroHp <= 0 || spellIdx + 1 >= spells.length
+                    ? 'View Duel Resolution'
+                    : 'Duel Next Spell →'
+                }
+                onAdvance={handleNextSpell}
+              />
             )}
           </div>
         )}
@@ -1617,7 +1886,7 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-8 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
+              className="min-h-[48px] px-8 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <RotateCcw className="w-4 h-4" />
               <span>DUEL AGAIN</span>

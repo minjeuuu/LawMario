@@ -8,6 +8,7 @@ import {
   MarioFireFlowerIcon,
   MarioMushroomIcon,
 } from './MarioIcons';
+import { ArcadeDoctrineCard } from './ArcadeDoctrineCard';
 import {
   Coins,
   Sparkles,
@@ -417,32 +418,25 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
         })}
       </div>
 
-      {/* Feedback Banner */}
+      {/* Feedback & High-Yield Statutory Leave Doctrine Takeaway */}
       {feedback && (
-        <div
-          className={`p-4 rounded-2xl border-3 shadow-[0_5px_0_#000] flex flex-wrap items-center justify-between gap-3 ${
+        <ArcadeDoctrineCard
+          title={`Applicant #${caseNumber} · ${current.correctLeave}`}
+          statute={current.statute}
+          rule={current.scenario}
+          takeaway={
             feedback.ok
-              ? 'bg-emerald-950/90 border-emerald-400 text-emerald-100'
-              : 'bg-rose-950/90 border-rose-400 text-rose-100'
-          }`}
-        >
-          <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold min-w-0">
-            {feedback.ok ? (
-              <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
-            ) : (
-              <XCircle className="w-6 h-6 text-rose-400 shrink-0" />
-            )}
-            <span className="leading-snug">{feedback.text}</span>
-          </div>
-          <button
-            type="button"
-            onClick={nextCase}
-            className="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer whitespace-nowrap inline-flex items-center gap-2 shadow-[0_3px_0_#000] active:translate-y-0.5"
-          >
-            <span>NEXT APPLICANT</span>
-            <ArrowRight className="w-4 h-4 shrink-0" />
-          </button>
-        </div>
+              ? `Statutory Leave Benefit Dispatched! Controlling entitlement: "${current.correctLeave}". ${current.statute}. Employee receives full statutory compensation and leave credit without loss of seniority!`
+              : `Statutory Leave Mismatch! The controlling entitlement under ${current.statute} is "${current.correctLeave}". Avoid confusing with "${feedback.selectedOpt}".`
+          }
+          isCorrect={feedback.ok}
+          worldCode="w6"
+          scenarioText={current.scenario}
+          chosenAnswerText={feedback.selectedOpt}
+          correctAnswerText={current.correctLeave}
+          advanceLabel="Dispatch Next Applicant →"
+          onAdvance={nextCase}
+        />
       )}
     </div>
   );

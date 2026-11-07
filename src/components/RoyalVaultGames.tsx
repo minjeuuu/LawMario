@@ -37,6 +37,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { awardUserXp } from '../utils/levelProgressionService';
+import { ArcadeDoctrineCard } from './ArcadeDoctrineCard';
 
 export interface RoyalVaultGameProps {
   equippedAvatar: MarioAvatar;
@@ -1641,62 +1642,33 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
               eliminatedIndices={eliminatedIndices}
             />
 
+            {/* High-Yield Statutory Learning & Takeaway Card */}
             {pickedOption !== null && (
-              <div
-                className={`rounded-2xl p-4 border-2 space-y-1.5 ${
+              <ArcadeDoctrineCard
+                title={currentItem.headline}
+                statute={currentItem.statute}
+                rule={currentItem.explanation}
+                takeaway={
                   pickedOption === currentItem.correctIndex
-                    ? 'bg-emerald-950/75 border-emerald-500 text-emerald-100'
-                    : shieldAbsorbedHit
-                    ? 'bg-sky-950/70 border-sky-400 text-sky-100'
-                    : 'bg-rose-950/75 border-rose-500 text-rose-100'
-                }`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-black">
-                  <span className="inline-flex items-center gap-1.5">
-                    {pickedOption === currentItem.correctIndex ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>DOCTRINE LOCKED IN!</span>
-                        {speedBonusAwarded && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-mario text-[9px]">
-                            +5 SPEED BONUS!
-                          </span>
-                        )}
-                      </>
-                    ) : shieldAbsorbedHit ? (
-                      <>
-                        <ShieldCheck className="w-4 h-4 text-sky-300 shrink-0" />
-                        <span>STAR SHIELD BLOCKED DAMAGE! (HEARTS SAFE)</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        <span>{pickedOption === -1 ? "TIME'S UP! (-1 HEART)" : "MISSED TRAP (-1 HEART)"}</span>
-                      </>
-                    )}
-                  </span>
-                  <span className="text-amber-300 font-mono">{currentItem.statute}</span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  {currentItem.explanation}
-                </p>
-                <div className="pt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleAdvance}
-                    className="min-h-[44px] px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm border-2 border-black inline-flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>
-                      {hearts <= 0
-                        ? 'View Run Summary'
-                        : currentIdx + 1 >= deck.length
-                        ? 'Claim Clear Bonus'
-                        : 'Next Stage'}
-                    </span>
-                    <ArrowRight className="w-4 h-4 shrink-0" />
-                  </button>
-                </div>
-              </div>
+                    ? `Controlling Codal Rule: "${currentItem.options[currentItem.correctIndex]}". Locked into memory with zero omissions!`
+                    : `Statutory Distinction: The controlling doctrine is "${currentItem.options[currentItem.correctIndex]}". Note the statutory exception under ${currentItem.statute}.`
+                }
+                isCorrect={pickedOption === currentItem.correctIndex}
+                shieldAbsorbedHit={shieldAbsorbedHit}
+                speedBonusAwarded={speedBonusAwarded}
+                worldCode={reportWorldCode}
+                scenarioText={currentItem.prompt}
+                chosenAnswerText={pickedOption >= 0 ? currentItem.options[pickedOption] : 'Time Expired'}
+                correctAnswerText={currentItem.options[currentItem.correctIndex]}
+                advanceLabel={
+                  hearts <= 0
+                    ? 'View Run Summary'
+                    : currentIdx + 1 >= deck.length
+                    ? 'Claim Clear Bonus'
+                    : 'Next Stage'
+                }
+                onAdvance={handleAdvance}
+              />
             )}
           </div>
         )}
