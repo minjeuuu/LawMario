@@ -390,6 +390,42 @@ export const COMPANION_ITEMS: ShopItem[] = [
     description: 'Stashes the highest-frequency statutory exceptions inside his purple statutory sack.',
     badge: 'Loot Scout',
   },
+  {
+    id: 'comp_rosalina_star',
+    name: 'Rosalina Star Luminary',
+    category: 'companion',
+    companionId: 'comp_rosalina_star',
+    price: 125,
+    description: 'Brings celestial Comet Observatory wisdom, non-diminution clarity, and +2 bonus coins per topic.',
+    badge: 'Star Luminary',
+  },
+  {
+    id: 'comp_bowser_jr_clerk',
+    name: 'Bowser Jr. Junior Clerk',
+    category: 'companion',
+    companionId: 'comp_bowser_jr_clerk',
+    price: 85,
+    description: 'Spunky clerk specializing in R.A. 9231 child labor restrictions, daily work hour caps, and night bans.',
+    badge: 'Junior Clerk',
+  },
+  {
+    id: 'comp_wario_tax_auditor',
+    name: 'Wario Statutory Wage Auditor',
+    category: 'companion',
+    companionId: 'comp_wario_tax_auditor',
+    price: 95,
+    description: 'Uncompromising wage auditor ensuring 100% service charge distributions and Dec 24 13th-month deadlines.',
+    badge: 'Wage Auditor',
+  },
+  {
+    id: 'comp_daisy_athletic_coach',
+    name: 'Daisy Wellness & OSH Coach',
+    category: 'companion',
+    companionId: 'comp_daisy_athletic_coach',
+    price: 90,
+    description: 'Dynamic athletic coach enforcing 60-minute statutory meal breaks and R.A. 11058 workplace safety compliance.',
+    badge: 'OSH Coach',
+  },
 ];
 
 export const CARD_FRAME_ITEMS: ShopItem[] = [
@@ -519,6 +555,33 @@ export const CARD_FRAME_ITEMS: ShopItem[] = [
     description: 'Blazing solar flame trim celebrating 100% mastery across all Philippine Labor Standards.',
     badge: 'Supernova Bar',
   },
+  {
+    id: 'frame_glacier_crystal',
+    name: 'Sherbet Glacier Crystal Frame',
+    category: 'frame',
+    frameId: 'frame_glacier_crystal',
+    price: 115,
+    description: 'Chiseled cyan-ice crystalline border that keeps statutory memorization crisp and invigorating.',
+    badge: 'Glacier Ice',
+  },
+  {
+    id: 'frame_midnight_executive',
+    name: 'Midnight Executive Obsidian Frame',
+    category: 'frame',
+    frameId: 'frame_midnight_executive',
+    price: 155,
+    description: 'Polished obsidian black border flanked by 24-karat gold brackets tailored for night reading sessions.',
+    badge: 'Executive',
+  },
+  {
+    id: 'frame_aurora_borealis',
+    name: 'Boreal Aurora Shimmer Frame',
+    category: 'frame',
+    frameId: 'frame_aurora_borealis',
+    price: 185,
+    description: 'Luminous northern lights gradient trim radiating shifting emerald, violet, and cyan starlight energy.',
+    badge: 'Boreal Aurora',
+  },
 ];
 
 export const RING_ITEMS: ShopItem[] = [
@@ -577,6 +640,50 @@ export const RING_ITEMS: ShopItem[] = [
     badge: 'Mastery XP',
     perkEffect: '+15% XP multiplier on all quizzes and stage completions!',
   },
+  {
+    id: 'ring_mega_mushroom',
+    name: 'Mega Mushroom Sovereign Band',
+    category: 'ring',
+    ringId: 'ring_mega_mushroom',
+    price: 110,
+    description:
+      'Empowered with colossus energy, adding +2 Hearts in Boss Battles and absorbing two statutory mistakes!',
+    badge: 'Fortress Band',
+    perkEffect: '+2 Hearts in Boss Battles & Double Mistake Shield!',
+  },
+  {
+    id: 'ring_boomerang_flower',
+    name: 'Boomerang Double-Take Band',
+    category: 'ring',
+    ringId: 'ring_boomerang_flower',
+    price: 95,
+    description:
+      'Curved cobalt aerodynamic ring allowing you to boomerang back 1 missed quiz question per run.',
+    badge: 'Recall Band',
+    perkEffect: 'Free question recovery on missed quiz questions!',
+  },
+  {
+    id: 'ring_super_acorn',
+    name: 'Super Acorn Glider Signet',
+    category: 'ring',
+    ringId: 'ring_super_acorn',
+    price: 85,
+    description:
+      'Polished oak acorn signet giving you glide control and +15 seconds bonus thinking time on timed challenges.',
+    badge: 'Glider Band',
+    perkEffect: '+15 Seconds Bonus Thinking Time on all timed modes!',
+  },
+  {
+    id: 'ring_cloud_flower',
+    name: 'Cloud Flower Levitation Signet',
+    category: 'ring',
+    ringId: 'ring_cloud_flower',
+    price: 100,
+    description:
+      'Summons three buoyant cloud stepping stones that multiply topic completion rewards by +3 bonus coins.',
+    badge: 'Cloud Coin',
+    perkEffect: '+3 Bonus Coins per lesson module completed!',
+  },
 ];
 
 export const ROUND11_CHAMBERS_EXTRAS: Round10ShopCatalogItem[] = [
@@ -588,6 +695,10 @@ export const ROUND11_CHAMBERS_EXTRAS: Round10ShopCatalogItem[] = [
   { id: 'chamber_star_observatory_dome', name: 'Rosalina Skylight Observatory Dome', section: 'law_chambers', subType: 'chambers_furniture', price: 165, badge: 'Architecture', description: 'Panoramic starlight ceiling dome projecting quiet cosmic constellations over your desk.', effectSummary: '+4% Law Chambers Prestige · Skylight Dome', chambersBonusPct: 4, chambersSlot: 'Skylight Dome' },
   { id: 'chamber_dole_wage_ticker', name: 'Live RTWPB 17-Region Brass Ticker', section: 'law_chambers', subType: 'chambers_furniture', price: 90, badge: 'Wall Display', description: 'Mechanical split-flap wall board tracking NCR and regional minimum wage orders.', effectSummary: '+2% Law Chambers Prestige · Wage Ticker', chambersBonusPct: 2, chambersSlot: 'Wage Ticker' },
   { id: 'chamber_imperial_seal_carpet', name: 'Crimson Senate Medallion Carpet', section: 'law_chambers', subType: 'chambers_furniture', price: 110, badge: 'Flooring', description: 'Plush royal crimson woven carpet emblazoned with the Mushroom Academy Juris Seal.', effectSummary: '+3% Law Chambers Prestige · Royal Carpet', chambersBonusPct: 3, chambersSlot: 'Royal Carpet' },
+  { id: 'chamber_acacia_codal_credenza', name: 'Acacia Four-Fold Doctrine Credenza', section: 'law_chambers', subType: 'chambers_furniture', price: 105, badge: 'Storage', description: 'Polished acacia credenza organizing landmark labor precedents, test cases, and DOLE rules.', effectSummary: '+3% Law Chambers Prestige · Credenza', chambersBonusPct: 3, chambersSlot: 'Credenza' },
+  { id: 'chamber_crystal_juris_chandelier', name: 'Grand Crystal Jurisprudence Chandelier', section: 'law_chambers', subType: 'chambers_furniture', price: 175, badge: 'Chandelier', description: 'Gleaming lead-crystal chandelier casting majestic illumination across your law suite.', effectSummary: '+4% Law Chambers Prestige · Chandelier', chambersBonusPct: 4, chambersSlot: 'Chandelier' },
+  { id: 'chamber_brass_bar_clock', name: 'Antique 25-Min Pomodoro Grandfather Clock', section: 'law_chambers', subType: 'chambers_furniture', price: 120, badge: 'Timepiece', description: 'Heirloom brass pendulum clock striking soft chimes at every 25-minute focused study interval.', effectSummary: '+3% Law Chambers Prestige · Grand Clock', chambersBonusPct: 3, chambersSlot: 'Grand Clock' },
+  { id: 'chamber_velvet_curatorial_armchair', name: 'Ergonomic Midnight Justice Armchair', section: 'law_chambers', subType: 'chambers_furniture', price: 115, badge: 'Seating', description: 'Deep midnight-blue velvet executive chair built for zero-fatigue 8-hour study marathons.', effectSummary: '+3% Law Chambers Prestige · Executive Chair', chambersBonusPct: 3, chambersSlot: 'Executive Chair' },
 ];
 
 export const ROUND11_BOOST_EXTRAS: Round10ShopCatalogItem[] = [
@@ -599,15 +710,23 @@ export const ROUND11_BOOST_EXTRAS: Round10ShopCatalogItem[] = [
   { id: 'boost_arcade_citation_radar_5x', name: 'Lakitu Statutory Radar Array (5x)', section: 'arcade_quiz_boosts', subType: 'arcade_boost', price: 70, badge: '5x Radars', description: 'Highlights optimal targets and statutory matches across 5 Arcade Vault sessions.', effectSummary: '+5 Arcade Radar Charges', isConsumable: true, consumableKey: 'arcadeRadar', packQuantity: 5 },
   { id: 'boost_async_rival_prep_pack', name: 'Async Rival Duelist Starter Kit (4x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 62, badge: '4x Zappers', description: 'Tuned for 3-Question Asynchronous Quiz Battles where speed and accuracy decide the crown.', effectSummary: '+4 50/50 Option Zappers', isConsumable: true, consumableKey: 'quiz5050', packQuantity: 4 },
   { id: 'boost_bar_eve_survival_chest', name: 'Bar Eve Survival Shield Supply (8x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 145, badge: '8x Boss Shields', description: 'Maximum-capacity shield chest for marathon Mock Bar Simulation & Boss Battle nights.', effectSummary: '+8 Quest Mistake Shields', isConsumable: true, consumableKey: 'quizShield', packQuantity: 8 },
+  { id: 'boost_double_coin_frenzy_crate_5x', name: 'Star Coin Overdrive Boost Crate (5x)', section: 'arcade_quiz_boosts', subType: 'arcade_boost', price: 110, badge: '5x Overdrive', description: 'Five high-octane 2x multiplier passes multiplying rewards across Arcade and Castle Quests.', effectSummary: '+5 Arcade 2x Payout Tickets', isConsumable: true, consumableKey: 'arcade2x', packQuantity: 5 },
+  { id: 'boost_supreme_audit_radar_8x', name: 'Grand Lakitu Full Audit Radar Crate (8x)', section: 'arcade_quiz_boosts', subType: 'arcade_boost', price: 105, badge: '8x Radars', description: 'Eight high-precision statutory tracking sweeps illuminating target answers in mini-games.', effectSummary: '+8 Arcade Radar Charges', isConsumable: true, consumableKey: 'arcadeRadar', packQuantity: 8 },
+  { id: 'boost_master_counsel_scroll_10x', name: 'Master Dean Statutory Hint Vault (10x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 125, badge: '10x Hints', description: 'Ten authoritative codal hint scrolls for unraveling tricky multiple-choice legal problems.', effectSummary: '+10 Statutory Hint Scrolls', isConsumable: true, consumableKey: 'quizHint', packQuantity: 10 },
+  { id: 'boost_boss_aegis_chest_10x', name: 'Unbreakable 10-Heart Boss Fortress Aegis (10x)', section: 'arcade_quiz_boosts', subType: 'quiz_lifeline', price: 165, badge: '10x Shields', description: 'The ultimate protection kit: 10 shields that prevent loss of hearts in high-stakes Boss Battles.', effectSummary: '+10 Quest Mistake Shields', isConsumable: true, consumableKey: 'quizShield', packQuantity: 10 },
 ];
 
 export const ROUND11_FX_EXTRAS: Round10ShopCatalogItem[] = [
   { id: 'fx_click_emerald_pipe', name: 'Emerald Warp Spark Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 48, badge: 'Click FX', description: 'Emits crisp Warp-Zone emerald pixel rings whenever you click or tap across the app.', effectSummary: 'Equippable Emerald Click Spark FX', fxColorHex: '#10b981' },
   { id: 'fx_click_fireball_amber', name: 'Fire Flower Ember Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 54, badge: 'Click FX', description: 'Bursts warm Fire Flower orange-gold sparks on every button press and card flip.', effectSummary: 'Equippable Fireball Click Spark FX', fxColorHex: '#f97316' },
   { id: 'fx_click_cosmic_cyan', name: 'Comet Starbit Cyan Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 62, badge: 'Click FX', description: 'Leaves luminous Rosalina observatory starbit ripples on every pointer tap.', effectSummary: 'Equippable Starbit Click Spark FX', fxColorHex: '#06b6d4' },
+  { id: 'fx_click_royal_amethyst', name: 'Royal Amethyst Violet Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 58, badge: 'Click FX', description: 'Radiates glowing purple crystalline ripples whenever you interact with statutory cards.', effectSummary: 'Equippable Amethyst Click Spark FX', fxColorHex: '#a855f7' },
+  { id: 'fx_click_super_star_rainbow', name: 'Super Star Rainbow Shimmer Pointer', section: 'click_confetti_fx', subType: 'click_fx', price: 70, badge: 'Click FX', description: 'Unleashes brilliant prismatic rainbow starlight sparks on every touch or click.', effectSummary: 'Equippable Rainbow Click Spark FX', fxColorHex: '#facc15' },
   { id: 'fx_confetti_1up_emerald', name: '1-Up Mushroom Emerald Shower', section: 'click_confetti_fx', subType: 'confetti_fx', price: 68, badge: 'Confetti FX', description: 'Transforms milestone and quiz victory confetti into lush 1-Up emerald, mint, and gold hues!', effectSummary: 'Equippable 1-Up Confetti Palette', fxColorHex: '#22c55e' },
   { id: 'fx_confetti_peach_blossom', name: 'Royal Peach Blossom Cascade', section: 'click_confetti_fx', subType: 'confetti_fx', price: 72, badge: 'Confetti FX', description: 'Celebrates every Course Clear with regal rose, magenta, and champagne-gold confetti!', effectSummary: 'Equippable Royal Blossom Confetti', fxColorHex: '#ec4899' },
   { id: 'fx_confetti_koopa_sovereign', name: 'Koopa Sovereign Gold-Jade Storm', section: 'click_confetti_fx', subType: 'confetti_fx', price: 85, badge: 'Confetti FX', description: 'Unleashes jade, obsidian-gold, and crimson championship confetti on every victory!', effectSummary: 'Equippable Koopa Gold-Jade Confetti', fxColorHex: '#eab308' },
+  { id: 'fx_confetti_aurora_boreal', name: 'Northern Aurora Cascade Confetti', section: 'click_confetti_fx', subType: 'confetti_fx', price: 78, badge: 'Confetti FX', description: 'Luminous teal, mint, and violet aurora particles celebrate your statutory breakthroughs.', effectSummary: 'Equippable Northern Aurora Confetti', fxColorHex: '#38bdf8' },
+  { id: 'fx_confetti_star_road_glitter', name: 'Star Road 24K Diamond Confetti', section: 'click_confetti_fx', subType: 'confetti_fx', price: 92, badge: 'Confetti FX', description: 'Pure diamond, platinum, and gold starburst confetti reserved for elite high-scoring scholars.', effectSummary: 'Equippable Star Road Diamond Confetti', fxColorHex: '#e2e8f0' },
 ];
 
 export const ROUND11_RELIC_EXTRAS: Round10ShopCatalogItem[] = [
@@ -615,10 +734,14 @@ export const ROUND11_RELIC_EXTRAS: Round10ShopCatalogItem[] = [
   { id: 'relic_calamba_control_compass', name: 'Four-Fold Control Test Brass Compass', section: 'relics_badges', subType: 'statutory_relic', price: 82, badge: 'World 1 Relic', description: 'Engraved with Selection, Payment of Wages, Power of Dismissal, and the paramount Control Test.', effectSummary: 'Permanent Museum Relic Collectible' },
   { id: 'relic_capitol_wireless_abacus', name: '22.5-Day Retirement Jade Abacus', section: 'relics_badges', subType: 'statutory_relic', price: 88, badge: 'World 3 Relic', description: 'Commemorates the 15 + 5 SIL + 2.5 (1/12 of 13th Month) Art. 302 retirement multiplier.', effectSummary: 'Permanent Museum Relic Collectible' },
   { id: 'relic_do174_trilateral_seal', name: 'D.O. 174-17 Trilateral Wax Seal', section: 'relics_badges', subType: 'statutory_relic', price: 96, badge: 'World 3 Relic', description: 'Stamps out Labor-Only Contracting by verifying substantial capital and independent control.', effectSummary: 'Permanent Museum Relic Collectible' },
+  { id: 'relic_art128_visitorial_gavel', name: 'Art. 128 Visitorial Power Brass Gavel', section: 'relics_badges', subType: 'statutory_relic', price: 98, badge: 'World 4 Relic', description: 'Symbolizes the Secretary of Labor’s plenary inquisitorial power to inspect payrolls and issue compliance orders.', effectSummary: 'Permanent Museum Relic Collectible' },
+  { id: 'relic_maternity_105day_ledger', name: 'R.A. 11210 105-Day Maternity Golden Ledger', section: 'relics_badges', subType: 'statutory_relic', price: 92, badge: 'World 6 Relic', description: 'Commemorates full-pay maternity protection, optional 30-day unpaid extension, and 7-day transfer to father.', effectSummary: 'Permanent Museum Relic Collectible' },
   { id: 'plate_koopa_slayer_counsel', name: 'Koopa Boss Conqueror Esq.', section: 'relics_badges', subType: 'hud_nameplate', price: 115, badge: 'HUD Nameplate', description: 'Prestigious HUD & Profile title proclaiming mastery over 10-question hard Bar gauntlets.', effectSummary: 'Equippable HUD & Shop Banner Title' },
   { id: 'plate_summa_cum_codal', name: 'Summa Cum Codal Laureate', section: 'relics_badges', subType: 'hud_nameplate', price: 135, badge: 'HUD Nameplate', description: 'Top-honors academic nameplate displayed on your Toad’s Shop header and Profile card.', effectSummary: 'Equippable HUD & Shop Banner Title' },
   { id: 'plate_chief_wage_architect', name: 'Chief Wage & Multiplier Architect', section: 'relics_badges', subType: 'hud_nameplate', price: 105, badge: 'HUD Nameplate', description: 'Honors flawless precision across OT, NSD, Holiday, Rest Day, and Wage Distortion formulas.', effectSummary: 'Equippable HUD & Shop Banner Title' },
   { id: 'plate_protector_of_workers', name: 'Tribune of Protective Legislation', section: 'relics_badges', subType: 'hud_nameplate', price: 120, badge: 'HUD Nameplate', description: 'Celebrates mastery of R.A. 11210, R.A. 10361, R.A. 11313, R.A. 9262, and R.A. 11058.', effectSummary: 'Equippable HUD & Shop Banner Title' },
+  { id: 'plate_dean_of_social_justice', name: 'Dean of Social Legislation & Equity', section: 'relics_badges', subType: 'hud_nameplate', price: 140, badge: 'HUD Nameplate', description: 'Elite academic title recognizing supreme mastery over statutory social justice and labor rights.', effectSummary: 'Equippable HUD & Shop Banner Title' },
+  { id: 'plate_grand_chambers_monarch', name: 'Grand Chambers Sovereign Arbiter', section: 'relics_badges', subType: 'hud_nameplate', price: 160, badge: 'HUD Nameplate', description: 'Pinnacle honors nameplate reflecting complete Law Chambers furnishing and jurisprudence expertise.', effectSummary: 'Equippable HUD & Shop Banner Title' },
 ];
 
 export const ROUND11_GEAR_EXTRAS: Round10ShopCatalogItem[] = [
@@ -630,6 +753,10 @@ export const ROUND11_GEAR_EXTRAS: Round10ShopCatalogItem[] = [
   { id: 'gear_nlrc_moot_gavel_case', name: 'Velvet-Lined Labor Arbiter Gavel', section: 'extended_gear', subType: 'extra_frame', price: 94, badge: 'Court Gear', description: 'Presentation gavel honoring compulsory arbitration and speedy labor justice.', effectSummary: 'Permanent Studio Arsenal Collectible' },
   { id: 'gear_lakitu_cloud_wristrest', name: 'Lakitu Cloud Ergonomic Wrist Rest', section: 'extended_gear', subType: 'extra_frame', price: 60, badge: 'Comfort Gear', description: 'Cushioned cloud-foam keyboard rest built for zero-fatigue Bar essay typing.', effectSummary: 'Permanent Studio Arsenal Collectible' },
   { id: 'gear_bowser_fireproof_briefcase', name: 'Bowser Keep Fireproof Bar Valise', section: 'extended_gear', subType: 'extra_frame', price: 118, badge: 'Bar Valise', description: 'Obsidian-leather courtroom briefcase engineered to carry every statutory cheat sheet.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_crystal_magnifying_glass', name: 'Beveled Optical Crystal Loupe', section: 'extended_gear', subType: 'extra_frame', price: 68, badge: 'Desk Gear', description: 'Heavy brass-mounted crystal magnifying lens for scrutinizing microscopic statutory footnote citations.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_leather_codal_folio', name: 'Burgundy Top-Grain Codal Folio', section: 'extended_gear', subType: 'extra_frame', price: 82, badge: 'Desk Gear', description: 'Hand-stitched leather document binder protecting full-text Republic Acts and DOLE Orders.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_brass_metronome_pacer', name: 'Mechanical 60 BPM Focus Metronome', section: 'extended_gear', subType: 'extra_frame', price: 74, badge: 'Sprint Gear', description: 'Traditional pyramid brass metronome keeping steady rhythmic momentum during speed flashcard runs.', effectSummary: 'Permanent Studio Arsenal Collectible' },
+  { id: 'gear_star_embossed_leather_blotter', name: 'Star Road Midnight Desk Blotter', section: 'extended_gear', subType: 'extra_frame', price: 86, badge: 'Desk Gear', description: 'Gold-foil embossed full-desk leather mat providing a quiet, luxurious writing foundation.', effectSummary: 'Permanent Studio Arsenal Collectible' },
 ];
 
 export const ROUND11_ALL_EXTRA_VAULT_ITEMS: Round10ShopCatalogItem[] = [
@@ -2135,32 +2262,62 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       ext_comp_nabbit_recovery: 'comp_nabbit',
       ext_comp_monty_researcher: 'comp_dry_bones',
       ext_comp_geno_arbiter: 'comp_luma',
+      comp_rosalina_star: 'comp_rosalina_star',
+      comp_bowser_jr_clerk: 'comp_bowser_jr_clerk',
+      comp_wario_tax_auditor: 'comp_wario_tax_auditor',
+      comp_daisy_athletic_coach: 'comp_daisy_athletic_coach',
     };
     const extFrameMap: Record<string, CardFrameId> = {
       ext_gear_gold_embosser: 'frame_royal_gold',
       ext_gear_latin_laurel: 'frame_supreme_crimson',
+      ext_gear_bar_countdown_bell: 'frame_royal_gold',
+      ext_gear_velvet_tube: 'frame_supreme_crimson',
       ext_gear_wax_signet: 'frame_royal_gold',
       ext_gear_ivory_vellum: 'frame_retro_brick',
       ext_gear_scra_bookmark: 'frame_emerald_pipe',
       ext_gear_fountain_pen: 'frame_starlight_prism',
+      ext_gear_moot_court_cup: 'frame_juris_doctor',
+      ext_gear_juris_medallion: 'frame_supreme_crimson',
+      ext_gear_star_globe: 'frame_starlight_prism',
+      ext_gear_flagpole_finial: 'frame_supernova_mastery',
+      gear_golden_quill_codifier: 'frame_royal_gold',
+      gear_warp_pipe_bookends: 'frame_emerald_pipe',
+      gear_question_block_timer: 'frame_retro_brick',
+      gear_starman_highlighter_case: 'frame_starlight_prism',
+      gear_royal_wax_signet_kit: 'frame_peach_stained_glass',
+      gear_nlrc_moot_gavel_case: 'frame_supreme_crimson',
+      gear_lakitu_cloud_wristrest: 'frame_glacier_crystal',
+      gear_bowser_fireproof_briefcase: 'frame_bowser_obsidian',
+      gear_crystal_magnifying_glass: 'frame_glacier_crystal',
+      gear_leather_codal_folio: 'frame_midnight_executive',
+      gear_brass_metronome_pacer: 'frame_retro_brick',
+      gear_star_embossed_leather_blotter: 'frame_aurora_borealis',
       gear_frame_supreme_crimson: 'frame_supreme_crimson',
       gear_frame_sakura_blossom: 'frame_peach_stained_glass',
       gear_frame_warp_emerald: 'frame_emerald_pipe',
       gear_frame_magma_obsidian: 'frame_bowser_obsidian',
+      frame_royal_gold: 'frame_royal_gold',
+      frame_emerald_pipe: 'frame_emerald_pipe',
+      frame_retro_brick: 'frame_retro_brick',
+      frame_starlight_prism: 'frame_starlight_prism',
+      frame_supreme_crimson: 'frame_supreme_crimson',
+      frame_koopa_sovereign: 'frame_koopa_sovereign',
+      frame_peach_stained_glass: 'frame_peach_stained_glass',
+      frame_bowser_obsidian: 'frame_bowser_obsidian',
+      frame_yoshi_botanical: 'frame_yoshi_botanical',
+      frame_boo_ethereal: 'frame_boo_ethereal',
+      frame_rainbow_prism: 'frame_rainbow_prism',
+      frame_juris_doctor: 'frame_juris_doctor',
+      frame_supernova_mastery: 'frame_supernova_mastery',
+      frame_glacier_crystal: 'frame_glacier_crystal',
+      frame_midnight_executive: 'frame_midnight_executive',
+      frame_aurora_borealis: 'frame_aurora_borealis',
     };
 
-    if (item.subType === 'extra_companion' || item.id.startsWith('ext_comp_')) {
+    if (item.subType === 'extra_companion' || item.id.startsWith('ext_comp_') || extCompanionMap[item.id]) {
       const compId = extCompanionMap[item.id] || 'comp_toadsworth';
       handleEquipCompanionChoice(compId);
       setPowerupNotice(`Study Companion Summoned: ${item.name}!`);
-      setTimeout(() => setPowerupNotice(null), 3200);
-      return;
-    }
-
-    if (item.subType === 'extra_frame' || extFrameMap[item.id]) {
-      const frameId = extFrameMap[item.id] || 'frame_royal_gold';
-      handleEquipFrameChoice(frameId);
-      setPowerupNotice(`Card Frame Equipped: ${item.name}!`);
       setTimeout(() => setPowerupNotice(null), 3200);
       return;
     }
@@ -2172,14 +2329,20 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       });
       setPowerupNotice(`Equipped Click Spark FX: ${item.name}!`);
       setTimeout(() => setPowerupNotice(null), 3200);
-    } else if (item.subType === 'confetti_fx') {
+      return;
+    }
+
+    if (item.subType === 'confetti_fx') {
       persistRound10State({
         ...r10State,
         equippedConfettiFx: item.id,
       });
       setPowerupNotice(`Equipped Celebration Confetti: ${item.name}!`);
       setTimeout(() => setPowerupNotice(null), 3200);
-    } else if (item.subType === 'hud_nameplate') {
+      return;
+    }
+
+    if (item.subType === 'hud_nameplate') {
       const nextPlate =
         r10State.equippedNameplate === item.name ? '' : item.name;
       persistRound10State({
@@ -2195,7 +2358,27 @@ export const ToadShop: React.FC<ToadShopProps> = ({
           : `Unequipped HUD Nameplate`
       );
       setTimeout(() => setPowerupNotice(null), 3200);
+      return;
     }
+
+    // Equippable gear, desk artifact, or extra frame:
+    const mappedFrame = extFrameMap[item.id];
+    const isCurrentlyEquipped = r10State.equippedGearId === item.id;
+    const nextGear = isCurrentlyEquipped ? '' : item.id;
+    persistRound10State({
+      ...r10State,
+      equippedGearId: nextGear,
+    });
+
+    if (mappedFrame && nextGear) {
+      handleEquipFrameChoice(mappedFrame);
+      setPowerupNotice(`Equipped Studio Gear & Frame: ${item.name}!`);
+    } else if (nextGear) {
+      setPowerupNotice(`Equipped Studio Gear: ${item.name}!`);
+    } else {
+      setPowerupNotice(`Unequipped Studio Gear: ${item.name}`);
+    }
+    setTimeout(() => setPowerupNotice(null), 3200);
   };
 
   const handleBuyRound10Item = (item: Round10ShopCatalogItem) => {
@@ -2335,18 +2518,56 @@ export const ToadShop: React.FC<ToadShopProps> = ({
       ext_comp_nabbit_recovery: 'comp_nabbit',
       ext_comp_monty_researcher: 'comp_dry_bones',
       ext_comp_geno_arbiter: 'comp_luma',
+      comp_rosalina_star: 'comp_rosalina_star',
+      comp_bowser_jr_clerk: 'comp_bowser_jr_clerk',
+      comp_wario_tax_auditor: 'comp_wario_tax_auditor',
+      comp_daisy_athletic_coach: 'comp_daisy_athletic_coach',
     };
     const extFrmMap: Record<string, CardFrameId> = {
       ext_gear_gold_embosser: 'frame_royal_gold',
       ext_gear_latin_laurel: 'frame_supreme_crimson',
+      ext_gear_bar_countdown_bell: 'frame_royal_gold',
+      ext_gear_velvet_tube: 'frame_supreme_crimson',
       ext_gear_wax_signet: 'frame_royal_gold',
       ext_gear_ivory_vellum: 'frame_retro_brick',
       ext_gear_scra_bookmark: 'frame_emerald_pipe',
       ext_gear_fountain_pen: 'frame_starlight_prism',
+      ext_gear_moot_court_cup: 'frame_juris_doctor',
+      ext_gear_juris_medallion: 'frame_supreme_crimson',
+      ext_gear_star_globe: 'frame_starlight_prism',
+      ext_gear_flagpole_finial: 'frame_supernova_mastery',
+      gear_golden_quill_codifier: 'frame_royal_gold',
+      gear_warp_pipe_bookends: 'frame_emerald_pipe',
+      gear_question_block_timer: 'frame_retro_brick',
+      gear_starman_highlighter_case: 'frame_starlight_prism',
+      gear_royal_wax_signet_kit: 'frame_peach_stained_glass',
+      gear_nlrc_moot_gavel_case: 'frame_supreme_crimson',
+      gear_lakitu_cloud_wristrest: 'frame_glacier_crystal',
+      gear_bowser_fireproof_briefcase: 'frame_bowser_obsidian',
+      gear_crystal_magnifying_glass: 'frame_glacier_crystal',
+      gear_leather_codal_folio: 'frame_midnight_executive',
+      gear_brass_metronome_pacer: 'frame_retro_brick',
+      gear_star_embossed_leather_blotter: 'frame_aurora_borealis',
       gear_frame_supreme_crimson: 'frame_supreme_crimson',
       gear_frame_sakura_blossom: 'frame_peach_stained_glass',
       gear_frame_warp_emerald: 'frame_emerald_pipe',
       gear_frame_magma_obsidian: 'frame_bowser_obsidian',
+      frame_royal_gold: 'frame_royal_gold',
+      frame_emerald_pipe: 'frame_emerald_pipe',
+      frame_retro_brick: 'frame_retro_brick',
+      frame_starlight_prism: 'frame_starlight_prism',
+      frame_supreme_crimson: 'frame_supreme_crimson',
+      frame_koopa_soovereign: 'frame_koopa_sovereign',
+      frame_peach_stained_glass: 'frame_peach_stained_glass',
+      frame_bowser_obsidian: 'frame_bowser_obsidian',
+      frame_yoshi_botanical: 'frame_yoshi_botanical',
+      frame_boo_ethereal: 'frame_boo_ethereal',
+      frame_rainbow_prism: 'frame_rainbow_prism',
+      frame_juris_doctor: 'frame_juris_doctor',
+      frame_supernova_mastery: 'frame_supernova_mastery',
+      frame_glacier_crystal: 'frame_glacier_crystal',
+      frame_midnight_executive: 'frame_midnight_executive',
+      frame_aurora_borealis: 'frame_aurora_borealis',
     };
 
     return (
@@ -2355,12 +2576,14 @@ export const ToadShop: React.FC<ToadShopProps> = ({
           const isOwned = !item.isConsumable && r10State.unlockedIds.includes(item.id);
           const mappedComp = extCompMap[item.id];
           const mappedFrame = extFrmMap[item.id];
+          const isGearEquipped = r10State.equippedGearId === item.id;
           const isEquipped =
             (item.subType === 'click_fx' && r10State.equippedClickFx === item.id) ||
             (item.subType === 'confetti_fx' && r10State.equippedConfettiFx === item.id) ||
             (item.subType === 'hud_nameplate' && r10State.equippedNameplate === item.name) ||
             (Boolean(mappedComp) && activeCompanion === mappedComp) ||
-            (Boolean(mappedFrame) && activeFrame === mappedFrame);
+            (Boolean(mappedFrame) && activeFrame === mappedFrame) ||
+            isGearEquipped;
           const isEquippable =
             item.subType === 'click_fx' ||
             item.subType === 'confetti_fx' ||
@@ -2368,7 +2591,9 @@ export const ToadShop: React.FC<ToadShopProps> = ({
             item.subType === 'extra_companion' ||
             Boolean(mappedComp) ||
             item.subType === 'extra_frame' ||
-            Boolean(mappedFrame);
+            item.section === 'extended_gear' ||
+            Boolean(mappedFrame) ||
+            isGearEquipped;
           const tokenCount =
             item.isConsumable && item.consumableKey
               ? r10State.inventory[item.consumableKey] || 0
@@ -2456,7 +2681,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                         ? 'Summon Buddy'
                         : mappedFrame
                         ? 'Equip Frame'
-                        : 'Equip Now'}
+                        : 'Equip Gear'}
                     </span>
                   </button>
                 ) : (
@@ -3567,6 +3792,14 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   <span>Frame: {resolveUniversalCardFrame(activeFrame).label}</span>
                   <span className="text-slate-400 font-sans text-xs">·</span>
                   <span className="text-amber-300">Ring: {resolveEquippedRing(activeRing).name}</span>
+                  {r10State.equippedGearId && (
+                    <>
+                      <span className="text-slate-400 font-sans text-xs">·</span>
+                      <span className="text-emerald-400">
+                        Gear: {allExtendedGearItems.find((g) => g.id === r10State.equippedGearId)?.name || 'Equipped'}
+                      </span>
+                    </>
+                  )}
                 </div>
                 {activeCompanion !== 'comp_none' && (
                   <p className="text-xs text-slate-300 font-semibold italic mt-0.5">
@@ -3605,6 +3838,20 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   className="min-h-[38px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-600 cursor-pointer"
                 >
                   Unequip Ring
+                </button>
+              )}
+              {Boolean(r10State.equippedGearId) && (
+                <button
+                  type="button"
+                  data-testid="unequip-gear-btn"
+                  onClick={() => {
+                    persistRound10State({ ...r10State, equippedGearId: '' });
+                    setPowerupNotice('Unequipped Studio Gear');
+                    setTimeout(() => setPowerupNotice(null), 2500);
+                  }}
+                  className="min-h-[38px] px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 font-black text-xs border border-slate-600 cursor-pointer"
+                >
+                  Unequip Gear
                 </button>
               )}
             </div>

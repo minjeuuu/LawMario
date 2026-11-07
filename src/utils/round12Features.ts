@@ -2172,6 +2172,33 @@ export function resolveUniversalCardFrame(frameId?: string): UniversalCardFrameS
         badgeText: 'SUPERNOVA MASTER',
         badgeClasses: 'bg-gradient-to-r from-amber-500 to-red-600 text-white border-black',
       };
+    case 'frame_glacier_crystal':
+      return {
+        id: 'frame_glacier_crystal',
+        label: 'Sherbet Glacier Crystal Frame',
+        borderClasses:
+          'border-cyan-300 ring-4 ring-sky-200/90 shadow-[0_8px_0_#0C4A6E,0_0_24px_rgba(56,189,248,0.48)]',
+        badgeText: 'GLACIER CRYSTAL',
+        badgeClasses: 'bg-cyan-300 text-slate-950 border-sky-800',
+      };
+    case 'frame_midnight_executive':
+      return {
+        id: 'frame_midnight_executive',
+        label: 'Midnight Executive Obsidian Frame',
+        borderClasses:
+          'border-amber-400 ring-4 ring-slate-800/95 shadow-[0_8px_0_#0F172A,0_0_26px_rgba(251,191,36,0.42)]',
+        badgeText: 'MIDNIGHT EXECUTIVE',
+        badgeClasses: 'bg-slate-900 text-amber-300 border-amber-500',
+      };
+    case 'frame_aurora_borealis':
+      return {
+        id: 'frame_aurora_borealis',
+        label: 'Boreal Aurora Shimmer Frame',
+        borderClasses:
+          'border-emerald-400 ring-4 ring-purple-400/90 shadow-[0_8px_0_#3B0764,0_0_28px_rgba(52,211,153,0.46)]',
+        badgeText: 'AURORA BOREALIS',
+        badgeClasses: 'bg-gradient-to-r from-emerald-500 to-purple-600 text-white border-black',
+      };
     default:
       if (frameId && frameId !== 'frame_default') {
         return {
@@ -2429,6 +2456,42 @@ const COMPANION_CATALOG: Record<string, CompanionPetMeta> = {
       'Cappy Counsel: In Labor-Only Contracting, the principal is deemed the DIRECT EMPLOYER for all purposes!',
     ],
   },
+  comp_rosalina_star: {
+    id: 'comp_rosalina_star',
+    name: 'Rosalina Star Luminary',
+    bonusCoinsPerTopic: 2,
+    tips: [
+      'Rosalina Luminary: Supreme Court social justice doctrines protect the vulnerable without destroying lawful enterprise!',
+      'Rosalina Luminary: Art. 100 Non-Diminution applies only when benefits have ripened into an established voluntary company practice!',
+    ],
+  },
+  comp_bowser_jr_clerk: {
+    id: 'comp_bowser_jr_clerk',
+    name: 'Bowser Jr. Junior Clerk',
+    bonusCoinsPerTopic: 1,
+    tips: [
+      'Junior Clerk: Children below 15 may work ONLY under direct parent responsibility or in public entertainment with DOLE permit (R.A. 9231)!',
+      'Junior Clerk: Work hours for children 15 to below 18 are capped at 8 hours/day and 40 hours/week, with zero night work!',
+    ],
+  },
+  comp_wario_tax_auditor: {
+    id: 'comp_wario_tax_auditor',
+    name: 'Wario Statutory Wage Auditor',
+    bonusCoinsPerTopic: 2,
+    tips: [
+      'Wario Auditor: 13th-Month Pay (P.D. 851) must be paid on or before December 24 of every single calendar year!',
+      'Wario Auditor: 100% of collected service charges under R.A. 11360 must be distributed equally to all rank-and-file & supervisory staff!',
+    ],
+  },
+  comp_daisy_athletic_coach: {
+    id: 'comp_daisy_athletic_coach',
+    name: 'Daisy Wellness & OSH Coach',
+    bonusCoinsPerTopic: 2,
+    tips: [
+      'Coach Daisy: Under R.A. 11058, employers must provide free PPE and maintain clean, safe sanitary facilities!',
+      'Coach Daisy: Meal periods must be at least 60 full minutes; meal breaks under 60 minutes are compensable working time!',
+    ],
+  },
 };
 
 const EXTRA_NAMEPLATE_LOOKUP: Record<string, { name: string; badge: string; colorHex: string }> = {
@@ -2473,6 +2536,10 @@ const EXTRA_RELIC_NAMES: Record<string, string> = {
 };
 
 function mapCompanionAvatarKey(companionId: string): string {
+  if (companionId.includes('rosalina')) return 'rosalina';
+  if (companionId.includes('wario')) return 'wario';
+  if (companionId.includes('daisy')) return 'daisy';
+  if (companionId.includes('bowser_jr')) return 'bowserjr';
   if (companionId.includes('yoshi')) return 'goldenyoshi';
   if (companionId.includes('luma')) return 'cosmicrosalina';
   if (companionId.includes('counsel_toad') || companionId.includes('toadsworth')) return 'lawyertoad';
@@ -2701,7 +2768,11 @@ export type MarioEquippedRing =
   | 'ring_one_up'
   | 'ring_star_immunity'
   | 'ring_speed_boot'
-  | 'ring_scholar_ruby';
+  | 'ring_scholar_ruby'
+  | 'ring_mega_mushroom'
+  | 'ring_boomerang_flower'
+  | 'ring_super_acorn'
+  | 'ring_cloud_flower';
 
 export interface MarioRingMeta {
   id: MarioEquippedRing;
@@ -2781,6 +2852,50 @@ export const MARIO_RINGS_CATALOG: Record<MarioEquippedRing, MarioRingMeta> = {
     iconName: 'gem',
     colorClass: 'text-rose-300 border-rose-400 bg-rose-950/80',
     badgeClasses: 'bg-rose-500 text-white border-black',
+  },
+  ring_mega_mushroom: {
+    id: 'ring_mega_mushroom',
+    name: 'Mega Mushroom Sovereign Band',
+    badge: 'Fortress Band',
+    price: 110,
+    description: 'Empowered with colossus energy, adding +2 Hearts in Boss Battles and absorbing two statutory mistakes!',
+    perkEffect: '+2 Hearts in Boss Battles & Double Mistake Shield!',
+    iconName: 'heart',
+    colorClass: 'text-amber-400 border-amber-500 bg-amber-950/90',
+    badgeClasses: 'bg-amber-500 text-slate-950 border-black',
+  },
+  ring_boomerang_flower: {
+    id: 'ring_boomerang_flower',
+    name: 'Boomerang Double-Take Band',
+    badge: 'Recall Band',
+    price: 95,
+    description: 'Curved cobalt aerodynamic ring allowing you to boomerang back 1 missed quiz question per run.',
+    perkEffect: 'Free question recovery on missed quiz questions!',
+    iconName: 'zap',
+    colorClass: 'text-blue-300 border-blue-400 bg-blue-950/90',
+    badgeClasses: 'bg-blue-500 text-white border-black',
+  },
+  ring_super_acorn: {
+    id: 'ring_super_acorn',
+    name: 'Super Acorn Glider Signet',
+    badge: 'Glider Band',
+    price: 85,
+    description: 'Polished oak acorn signet giving you glide control and +15 seconds bonus thinking time on timed challenges.',
+    perkEffect: '+15 Seconds Bonus Thinking Time on all timed modes!',
+    iconName: 'star',
+    colorClass: 'text-orange-300 border-orange-400 bg-orange-950/90',
+    badgeClasses: 'bg-orange-500 text-slate-950 border-black',
+  },
+  ring_cloud_flower: {
+    id: 'ring_cloud_flower',
+    name: 'Cloud Flower Levitation Signet',
+    badge: 'Cloud Coin',
+    price: 100,
+    description: 'Summons three buoyant cloud stepping stones that multiply topic completion rewards by +3 bonus coins.',
+    perkEffect: '+3 Bonus Coins per lesson module completed!',
+    iconName: 'crown',
+    colorClass: 'text-cyan-200 border-cyan-300 bg-cyan-950/90',
+    badgeClasses: 'bg-cyan-400 text-slate-950 border-black',
   },
 };
 

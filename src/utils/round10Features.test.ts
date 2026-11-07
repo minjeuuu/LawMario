@@ -67,10 +67,12 @@ test('Law Chambers prestige and Round 10 storage round-trip cleanly', () => {
   const initial = loadRound10VaultState(mockStorage);
   initial.inventory.quiz5050 += 4;
   initial.equippedNameplate = 'FUTURE BAR TOPNOTCHER';
+  initial.equippedGearId = 'gear_warp_pipe_bookends';
   saveRound10VaultState(initial, mockStorage);
   const reloaded = loadRound10VaultState(mockStorage);
   assert.equal(reloaded.inventory.quiz5050, 5);
   assert.equal(reloaded.equippedNameplate, 'FUTURE BAR TOPNOTCHER');
+  assert.equal(reloaded.equippedGearId, 'gear_warp_pipe_bookends');
 });
 
 test('Lucky Wheel deterministic resolver scales rewards for Standard vs High-Roller spins', () => {

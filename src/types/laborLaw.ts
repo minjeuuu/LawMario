@@ -79,7 +79,13 @@ export type MarioAvatar =
   | 'goldenyoshi'
   | 'lawyertoad'
   | 'shadowmario'
-  | 'drpeach';
+  | 'drpeach'
+  | 'egadd'
+  | 'paulinemetro'
+  | 'diddyscholar'
+  | 'daisychamp'
+  | 'bowserjrmecha'
+  | 'toadettescholar';
 
 export type ComplexityMode = 'beginner' | 'advanced';
 
@@ -105,7 +111,11 @@ export type MarioEquippedRing =
   | 'ring_one_up'
   | 'ring_star_immunity'
   | 'ring_speed_boot'
-  | 'ring_scholar_ruby';
+  | 'ring_scholar_ruby'
+  | 'ring_mega_mushroom'
+  | 'ring_boomerang_flower'
+  | 'ring_super_acorn'
+  | 'ring_cloud_flower';
 
 export type SoundPackId =
   | 'sound_default'
@@ -141,7 +151,11 @@ export type StudyCompanionId =
   | 'comp_dk'
   | 'comp_diddy'
   | 'comp_kamek'
-  | 'comp_nabbit';
+  | 'comp_nabbit'
+  | 'comp_rosalina_star'
+  | 'comp_bowser_jr_clerk'
+  | 'comp_wario_tax_auditor'
+  | 'comp_daisy_athletic_coach';
 
 export type CardFrameId =
   | 'frame_default'
@@ -155,7 +169,12 @@ export type CardFrameId =
   | 'frame_bowser_obsidian'
   | 'frame_yoshi_botanical'
   | 'frame_boo_ethereal'
-  | 'frame_rainbow_prism';
+  | 'frame_rainbow_prism'
+  | 'frame_juris_doctor'
+  | 'frame_supernova_mastery'
+  | 'frame_glacier_crystal'
+  | 'frame_midnight_executive'
+  | 'frame_aurora_borealis';
 
 export interface ShopItem {
   id: string;

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ALL_LAW_TOPICS } from '../data/laborLawData';
+import { HERO_ROSTER } from '../data/heroesData';
 import { getPrintFontCssStack } from './round11Features';
 import {
   EXTENDED_PRINT_COLOR_THEMES,
@@ -19,6 +20,7 @@ import {
   evaluateArcadePassOutcome,
   resolveUniversalCardFrame,
   resolveCompanionInteraction,
+  resolveEquippedRing,
   resolveEquippedNameplate,
   computeOwnedChambersAndRelicsSummary,
   hitMarioMysteryLawBlock,
@@ -242,4 +244,47 @@ test('All Toad Shop buyable Card Frames, Companions, Nameplates, Chambers, Relic
   assert.equal(hit1.coinsAwarded, 2);
   assert.equal(hit1.nextHitCountToday, 1);
   assert.ok(hit1.drop.mnemonicTitle.length > 5);
+
+  // Verify new card frames
+  const glacierFrame = resolveUniversalCardFrame('frame_glacier_crystal');
+  assert.equal(glacierFrame.badgeText, 'GLACIER CRYSTAL');
+  assert.ok(glacierFrame.borderClasses.includes('border-cyan-300'));
+
+  const execFrame = resolveUniversalCardFrame('frame_midnight_executive');
+  assert.equal(execFrame.badgeText, 'MIDNIGHT EXECUTIVE');
+
+  const auroraFrame = resolveUniversalCardFrame('frame_aurora_borealis');
+  assert.equal(auroraFrame.badgeText, 'AURORA BOREALIS');
+
+  // Verify new rings
+  const megaRing = resolveEquippedRing('ring_mega_mushroom');
+  assert.ok(megaRing.perkEffect.includes('Boss Battles'));
+
+  const boomRing = resolveEquippedRing('ring_boomerang_flower');
+  assert.ok(boomRing.perkEffect.includes('recovery'));
+
+  const cloudRing = resolveEquippedRing('ring_cloud_flower');
+  assert.ok(cloudRing.perkEffect.includes('+3 Bonus Coins'));
+
+  // Verify new companions
+  const rosalinaBuddy = resolveCompanionInteraction('comp_rosalina_star');
+  assert.equal(rosalinaBuddy.avatarKey, 'rosalina');
+  assert.equal(rosalinaBuddy.bonusCoinsPerTopic, 2);
+
+  const warioBuddy = resolveCompanionInteraction('comp_wario_tax_auditor');
+  assert.equal(warioBuddy.avatarKey, 'wario');
+  assert.ok(warioBuddy.speech.includes('13th-Month Pay'));
+
+  // Verify new heroes in roster
+  const egadd = HERO_ROSTER.find((h) => h.id === 'egadd');
+  assert.ok(egadd);
+  assert.equal(egadd.name, 'Prof. Elvin Gadd');
+
+  const paulinemetro = HERO_ROSTER.find((h) => h.id === 'paulinemetro');
+  assert.ok(paulinemetro);
+  assert.equal(paulinemetro.faction, 'Royal Court');
+
+  const diddyscholar = HERO_ROSTER.find((h) => h.id === 'diddyscholar');
+  assert.ok(diddyscholar);
+  assert.equal(diddyscholar.shopPrice, 45);
 });

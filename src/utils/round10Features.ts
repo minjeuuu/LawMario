@@ -42,6 +42,7 @@ export interface Round10VaultState {
   equippedClickFx: string;
   equippedConfettiFx: string;
   equippedNameplate: string;
+  equippedGearId?: string;
   wheelSpinsCount: number;
   inventory: {
     quiz5050: number;
@@ -60,6 +61,7 @@ export const DEFAULT_ROUND10_VAULT_STATE: Round10VaultState = {
   equippedClickFx: 'fx_click_classic_coin',
   equippedConfettiFx: 'fx_confetti_gold',
   equippedNameplate: '',
+  equippedGearId: '',
   wheelSpinsCount: 0,
   inventory: {
     quiz5050: 1,
@@ -102,6 +104,10 @@ export function loadRound10VaultState(
       equippedNameplate:
         typeof parsed.equippedNameplate === 'string'
           ? parsed.equippedNameplate
+          : '',
+      equippedGearId:
+        typeof parsed.equippedGearId === 'string'
+          ? parsed.equippedGearId
           : '',
       wheelSpinsCount:
         typeof parsed.wheelSpinsCount === 'number' ? parsed.wheelSpinsCount : 0,

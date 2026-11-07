@@ -600,6 +600,100 @@ export const MarioCharacterAvatar: React.FC<{
           <path d="M14 23L16 28L18 23" fill="#EC4899" />
         </svg>
       );
+    case 'egadd':
+      return (
+        <svg viewBox="0 0 32 32" fill="none" className={className}>
+          <ellipse cx="16" cy="14" rx="8" ry="7" fill="#FED7AA" stroke="#0F172A" strokeWidth="2" />
+          <path d="M15 5C14 2 18 2 17 5Z" fill="#F8FAFC" stroke="#0F172A" strokeWidth="1.2" />
+          <circle cx="12" cy="13" r="3.2" fill="#E2E8F0" stroke="#0F172A" strokeWidth="1.8" />
+          <circle cx="20" cy="13" r="3.2" fill="#E2E8F0" stroke="#0F172A" strokeWidth="1.8" />
+          <path d="M10.5 13A1.5 1.5 0 0 1 13.5 13" stroke="#0284C7" strokeWidth="1.2" />
+          <path d="M18.5 13A1.5 1.5 0 0 1 21.5 13" stroke="#0284C7" strokeWidth="1.2" />
+          <line x1="15.2" y1="13" x2="16.8" y2="13" stroke="#0F172A" strokeWidth="1.6" />
+          <path d="M14 18C15 19 17 19 18 18" stroke="#DC2626" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M8 21H24L26 29H6L8 21Z" fill="#F8FAFC" stroke="#0F172A" strokeWidth="2" />
+          <path d="M14 21L16 26L18 21" fill="#0EA5E9" />
+        </svg>
+      );
+    case 'paulinemetro':
+      return (
+        <svg viewBox="0 0 32 32" fill="none" className={className}>
+          <path d="M6 14C6 8 11 4 16 4C21 4 26 8 26 14" fill="#78350F" stroke="#0F172A" strokeWidth="2" />
+          <ellipse cx="16" cy="11" rx="12" ry="3.5" fill="#991B1B" stroke="#0F172A" strokeWidth="1.8" />
+          <path d="M10 11C10 7 12 5 16 5C20 5 22 7 22 11Z" fill="#B91C1C" stroke="#0F172A" strokeWidth="1.6" />
+          <rect x="10" y="9.5" width="12" height="1.8" fill="#FACC15" />
+          <circle cx="16" cy="17" r="5.5" fill="#FED7AA" stroke="#0F172A" strokeWidth="1.8" />
+          <circle cx="14" cy="16.5" r="1.1" fill="#0F172A" />
+          <circle cx="18" cy="16.5" r="1.1" fill="#0F172A" />
+          <path d="M14.5 19.5C15.5 20.5 16.5 20.5 17.5 19.5" stroke="#DC2626" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="9.5" cy="18" r="1.5" fill="#FACC15" />
+          <circle cx="22.5" cy="18" r="1.5" fill="#FACC15" />
+          <path d="M9 23H23L25 29H7L9 23Z" fill="#991B1B" stroke="#0F172A" strokeWidth="2" />
+        </svg>
+      );
+    case 'diddyscholar':
+      return (
+        <svg viewBox="0 0 32 32" fill="none" className={className}>
+          <circle cx="16" cy="16" r="9.5" fill="#92400E" stroke="#0F172A" strokeWidth="2" />
+          <path d="M7 11C7 7 11 5 17 5C23 5 26 8 26 12H6" fill="#DC2626" stroke="#0F172A" strokeWidth="2" />
+          <rect x="4" y="10" width="24" height="3" rx="1.5" fill="#EF4444" stroke="#0F172A" strokeWidth="1.5" />
+          <polygon points="16,6 17,8 19,8 17.5,9.5 18,11.5 16,10 14,11.5 14.5,9.5 13,8 15,8" fill="#FACC15" />
+          <ellipse cx="16" cy="19" rx="6" ry="4.5" fill="#FED7AA" stroke="#0F172A" strokeWidth="1.8" />
+          <circle cx="13.5" cy="17" r="1.2" fill="#0F172A" />
+          <circle cx="18.5" cy="17" r="1.2" fill="#0F172A" />
+          <circle cx="16" cy="19.5" r="1.5" fill="#92400E" />
+          <path d="M14 21.5C15 22.5 17 22.5 18 21.5" stroke="#92400E" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      );
+    case 'daisychamp':
+      return (
+        <svg viewBox="0 0 32 32" fill="none" className={className}>
+          <polygon points="12,7 13.5,3 16,6.5 18.5,3 20,7" fill="#FACC15" stroke="#0F172A" strokeWidth="1.6" />
+          <circle cx="16" cy="5.5" r="1.2" fill="#06B6D4" />
+          <path d="M8 15C8 9 11 7 16 7C21 7 24 9 24 15V21H8V15Z" fill="#B45309" stroke="#0F172A" strokeWidth="2" />
+          <circle cx="16" cy="17" r="6" fill="#FED7AA" stroke="#0F172A" strokeWidth="1.8" />
+          <rect x="9" y="12" width="14" height="2.5" fill="#EA580C" stroke="#0F172A" strokeWidth="1.2" />
+          <circle cx="16" cy="13.2" r="1.5" fill="#FFFFFF" stroke="#0F172A" strokeWidth="1" />
+          <circle cx="16" cy="13.2" r="0.7" fill="#06B6D4" />
+          <circle cx="13.5" cy="17" r="1.1" fill="#065F46" />
+          <circle cx="18.5" cy="17" r="1.1" fill="#065F46" />
+          <path d="M14.5 20C15.5 21 16.5 21 17.5 20" stroke="#DC2626" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M9 23H23L25 29H7L9 23Z" fill="#EA580C" stroke="#0F172A" strokeWidth="2" />
+        </svg>
+      );
+    case 'bowserjrmecha':
+      return (
+        <svg viewBox="0 0 32 32" fill="none" className={className}>
+          <ellipse cx="16" cy="15" rx="9" ry="8" fill="#16A34A" stroke="#0F172A" strokeWidth="2" />
+          <polygon points="11,6 13,9 9,9" fill="#EA580C" stroke="#0F172A" strokeWidth="1.5" />
+          <polygon points="21,6 23,9 19,9" fill="#EA580C" stroke="#0F172A" strokeWidth="1.5" />
+          <ellipse cx="16" cy="17.5" rx="7.5" ry="5.5" fill="#FEF08A" stroke="#0F172A" strokeWidth="1.8" />
+          <rect x="10" y="12" width="12" height="4" rx="2" fill="#0284C7" stroke="#0F172A" strokeWidth="1.5" />
+          <circle cx="13.5" cy="14" r="1.2" fill="#E0F2FE" />
+          <circle cx="18.5" cy="14" r="1.2" fill="#E0F2FE" />
+          <path d="M11 20H21L19 26H13L11 20Z" fill="#DC2626" stroke="#0F172A" strokeWidth="1.6" />
+          <circle cx="14" cy="22" r="0.8" fill="#FFFFFF" />
+          <circle cx="18" cy="22" r="0.8" fill="#FFFFFF" />
+        </svg>
+      );
+    case 'toadettescholar':
+      return (
+        <svg viewBox="0 0 32 32" fill="none" className={className}>
+          <circle cx="4" cy="18" r="3.5" fill="#DB2777" stroke="#0F172A" strokeWidth="1.5" />
+          <circle cx="28" cy="18" r="3.5" fill="#DB2777" stroke="#0F172A" strokeWidth="1.5" />
+          <ellipse cx="16" cy="12" rx="12" ry="9" fill="#DB2777" stroke="#0F172A" strokeWidth="2" />
+          <circle cx="16" cy="7.5" r="3" fill="#FFFFFF" />
+          <circle cx="8" cy="12.5" r="2.5" fill="#FFFFFF" />
+          <circle cx="24" cy="12.5" r="2.5" fill="#FFFFFF" />
+          <ellipse cx="16" cy="21" rx="6.5" ry="5.5" fill="#FED7AA" stroke="#0F172A" strokeWidth="1.5" />
+          <circle cx="13" cy="19.5" r="1.8" fill="none" stroke="#F59E0B" strokeWidth="1.2" />
+          <circle cx="19" cy="19.5" r="1.8" fill="none" stroke="#F59E0B" strokeWidth="1.2" />
+          <line x1="14.8" y1="19.5" x2="17.2" y2="19.5" stroke="#F59E0B" strokeWidth="1.2" />
+          <circle cx="13" cy="19.5" r="0.8" fill="#0F172A" />
+          <circle cx="19" cy="19.5" r="0.8" fill="#0F172A" />
+          <path d="M14.5 23.5C15.5 24.5 16.5 24.5 17.5 23.5" stroke="#DC2626" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      );
     case 'goldmario':
     default:
       return (
