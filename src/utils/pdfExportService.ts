@@ -89,6 +89,8 @@ export interface ResolvedPdfPalette {
   mutedText: RgbTuple;
   formulaText: RgbTuple;
   isInkSaver: boolean;
+  isLightHeader: boolean;
+  headerSubText: RgbTuple;
 }
 
 function hexToRgb(hex: string | undefined, fallback: RgbTuple = [15, 23, 42]): RgbTuple {
@@ -140,11 +142,25 @@ function buildPaletteFromExtendedTheme(
     Math.min(238, Math.round(255 * 0.65 + borderStrong[2] * 0.35)),
   ];
 
-  const kickerText: RgbTuple = isInkSaver
+  const primaryLum = (0.299 * primary[0] + 0.587 * primary[1] + 0.114 * primary[2]) / 255;
+  const isLightHeader =
+    isInkSaver ||
+    ext.category === 'Pastel & Ink-Saver' ||
+    primaryLum > 0.65;
+
+  const kickerText: RgbTuple = isLightHeader
+    ? accent
+    : isInkSaver
     ? mutedText
     : ext.headerTextHex.toUpperCase() !== '#FFFFFF'
     ? hexToRgb(ext.headerTextHex, [253, 224, 71])
     : [253, 224, 71];
+
+  const headerSubText: RgbTuple = isLightHeader
+    ? mutedText
+    : isInkSaver
+    ? mutedText
+    : ([226, 232, 240] as RgbTuple);
 
   return {
     id: (resolvedId || ext.id) as PdfColorThemeId,
@@ -153,6 +169,7 @@ function buildPaletteFromExtendedTheme(
     primary,
     primaryText,
     kickerText,
+    headerSubText,
     accent,
     accentTextOnFill: [255, 255, 255],
     secondaryAccent,
@@ -167,6 +184,7 @@ function buildPaletteFromExtendedTheme(
     mutedText,
     formulaText: isInkSaver ? bodyText : accent,
     isInkSaver,
+    isLightHeader,
   };
 }
 
@@ -1191,6 +1209,11 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.setDrawColor(...theme.borderStrong);
     doc.setLineWidth(0.5);
     doc.roundedRect(marginX, 6.5, contentW, 17.0, 2.0, 2.0, 'FD');
+  } else if (theme.isLightHeader) {
+    doc.setFillColor(...theme.primary);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(marginX, 6.5, contentW, 17.0, 2.0, 2.0, 'FD');
   } else {
     doc.setFillColor(...theme.primary);
     doc.roundedRect(marginX, 6.5, contentW, 17.0, 2.0, 2.0, 'F');
@@ -1224,7 +1247,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.text('KEY LEGAL FORMULAS, MULTIPLIERS & STATUTORY DEADLINES', headTextX, 15.6);
 
   // Subtitle / Statute list
-  doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
+  doc.setTextColor(...theme.headerSubText);
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(5.5 * fScale);
   const statuteSub = 'P.D. No. 442 (Labor Code, as amended), DOLE D.O. 174-17, R.A. 10361, R.A. 11210, R.A. 11360 & R.A. 11861';
@@ -1240,7 +1263,7 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
     doc.text(candidate, rightMetaX, curMetaY, { align: 'right' });
     curMetaY += 4.0;
   }
-  doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
+  doc.setTextColor(...theme.headerSubText);
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(5.6 * fScale);
   doc.text(`Format: Single-Page A4 · ${fp.displayLabel}`, rightMetaX, curMetaY, { align: 'right' });
@@ -1258,8 +1281,15 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   const deadlineRowH = maxColH / numDeadlines; // ~13.27mm
 
   // Col 1 Header Banner
-  doc.setFillColor(...theme.primary);
-  doc.roundedRect(leftX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
+  if (theme.isInkSaver || theme.isLightHeader) {
+    doc.setFillColor(...theme.primary);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(leftX, colStartY, colW, colHeaderH, 1.2, 1.2, 'FD');
+  } else {
+    doc.setFillColor(...theme.primary);
+    doc.roundedRect(leftX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
+  }
   drawVectorMarioCoinBlock(doc, leftX + 1.8, colStartY + 1.1, 3.8, theme.accent, theme.secondaryAccent, theme.isInkSaver);
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
@@ -1323,8 +1353,15 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
 
   // ==================== RIGHT COLUMN: PART II - DEADLINES ====================
   // Col 2 Header Banner
-  doc.setFillColor(...theme.secondaryAccent);
-  doc.roundedRect(rightX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
+  if (theme.isInkSaver || theme.isLightHeader) {
+    doc.setFillColor(...theme.secondaryAccent);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(rightX, colStartY, colW, colHeaderH, 1.2, 1.2, 'FD');
+  } else {
+    doc.setFillColor(...theme.secondaryAccent);
+    doc.roundedRect(rightX, colStartY, colW, colHeaderH, 1.2, 1.2, 'F');
+  }
   drawVectorMarioPipe(doc, rightX + 1.8, colStartY + 0.9, 4.4, 4.0);
   doc.setTextColor(...theme.primaryText);
   doc.setFont(ff, fp.headingStyle);
@@ -1397,8 +1434,15 @@ export function buildOnePageSummaryPdfBytes(options: OnePageSummaryPdfOptions = 
   doc.roundedRect(marginX, bottomY, contentW, bottomBoxH, 1.8, 1.8, 'FD');
 
   // Header Banner
-  doc.setFillColor(...theme.primary);
-  doc.roundedRect(marginX, bottomY, contentW, 6.0, 1.2, 1.2, 'F');
+  if (theme.isInkSaver || theme.isLightHeader) {
+    doc.setFillColor(...theme.primary);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(marginX, bottomY, contentW, 6.0, 1.2, 1.2, 'FD');
+  } else {
+    doc.setFillColor(...theme.primary);
+    doc.roundedRect(marginX, bottomY, contentW, 6.0, 1.2, 1.2, 'F');
+  }
   drawVectorMarioMushroom(doc, marginX + 3.5, bottomY + 3.0, 2.2);
   doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
   doc.setFont(ff, fp.headingStyle);
@@ -2744,7 +2788,7 @@ export function buildStudyGuideReviewerPdfBytes(
     const textStartX = isWorldBanner && !theme.isInkSaver ? marginX + 8.2 : marginX + 2.5;
     doc.text(clampedTitle, textStartX, y + 4.9);
     if (rightTag) {
-      doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
+      doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.isLightHeader ? theme.headerSubText : theme.primaryText));
       doc.setFont(ff, fp.subHeadingStyle);
       doc.setFontSize(7.6 * scale);
       doc.text(sanitizePdfText(rightTag), pageW - marginX - 2.5, y + 4.9, { align: 'right' });
@@ -2871,6 +2915,12 @@ export function buildStudyGuideReviewerPdfBytes(
     doc.setLineWidth(0.6);
     doc.roundedRect(marginX, y, contentW, 21.0, 2.0, 2.0, 'FD');
     doc.setTextColor(...theme.bodyText);
+  } else if (theme.isLightHeader) {
+    doc.setFillColor(...theme.primary);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(marginX, y, contentW, 21.0, 2.0, 2.0, 'FD');
+    doc.setTextColor(...theme.kickerText);
   } else {
     doc.setFillColor(...theme.primary);
     doc.roundedRect(marginX, y, contentW, 21.0, 2.0, 2.0, 'F');
@@ -2900,7 +2950,7 @@ export function buildStudyGuideReviewerPdfBytes(
     align: 'center',
   });
 
-  doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : ([226, 232, 240] as RgbTuple)));
+  doc.setTextColor(...theme.headerSubText);
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(6.2 * scale);
   const coverSub = params.candidateName
@@ -2922,8 +2972,15 @@ export function buildStudyGuideReviewerPdfBytes(
     doc.roundedRect(marginX, y, contentW, boxH, 1.8, 1.8, 'FD');
 
     // Header strip
-    doc.setFillColor(...theme.primary);
-    doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'F');
+    if (theme.isInkSaver || theme.isLightHeader) {
+      doc.setFillColor(...theme.primary);
+      doc.setDrawColor(...theme.borderStrong);
+      doc.setLineWidth(0.35);
+      doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'FD');
+    } else {
+      doc.setFillColor(...theme.primary);
+      doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'F');
+    }
     drawVectorMarioStar(doc, marginX + 3.2, y + 2.8, 1.4);
     doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
     doc.setFont(ff, fp.headingStyle);
@@ -3000,8 +3057,15 @@ export function buildStudyGuideReviewerPdfBytes(
     doc.roundedRect(marginX, y, contentW, checkH, 1.8, 1.8, 'FD');
 
     // Header banner
-    doc.setFillColor(...theme.primary);
-    doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'F');
+    if (theme.isInkSaver || theme.isLightHeader) {
+      doc.setFillColor(...theme.primary);
+      doc.setDrawColor(...theme.borderStrong);
+      doc.setLineWidth(0.35);
+      doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'FD');
+    } else {
+      doc.setFillColor(...theme.primary);
+      doc.roundedRect(marginX, y, contentW, 5.5, 1.2, 1.2, 'F');
+    }
     drawVectorMarioCoinBlock(doc, marginX + 2.5, y + 1.0, 3.5, theme.accent, theme.secondaryAccent, theme.isInkSaver);
     doc.setTextColor(...(theme.isInkSaver ? theme.bodyText : theme.primaryText));
     doc.setFont(ff, fp.headingStyle);
@@ -3907,6 +3971,11 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
     doc.setDrawColor(...theme.borderStrong);
     doc.setLineWidth(0.5);
     doc.rect(16, 15.5, W - 32, 32, 'FD');
+  } else if (theme.isLightHeader) {
+    doc.setFillColor(...theme.primary);
+    doc.setDrawColor(...theme.borderStrong);
+    doc.setLineWidth(0.5);
+    doc.rect(16, 15.5, W - 32, 32, 'FD');
   } else {
     doc.setFillColor(...theme.primary);
     doc.rect(16, 15.5, W - 32, 32, 'F');
@@ -3946,7 +4015,7 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
   const playerLines = doc.splitTextToSize(safePlayer, textMaxW);
   doc.text(playerLines, textStartX, playerLines.length > 1 ? 29.5 : 31.5);
 
-  doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.primaryText));
+  doc.setTextColor(...(theme.isInkSaver ? theme.mutedText : theme.isLightHeader ? theme.headerSubText : theme.primaryText));
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(8.6 * sScale);
   doc.text(
@@ -4041,7 +4110,7 @@ export function buildScoreCardLandscapePdfBytes(params: ScoreCardPdfParams): Uin
   // Six-World Breakdown Section
   const breakHeaderY = 78.5;
   drawVectorMarioCoinBlock(doc, 16, breakHeaderY, 4.8, theme.accent, theme.secondaryAccent, theme.isInkSaver);
-  doc.setTextColor(...theme.primary);
+  doc.setTextColor(...(theme.isLightHeader ? theme.borderStrong : theme.primary));
   doc.setFont(ff, fp.headingStyle);
   doc.setFontSize(9.5 * sScale);
   doc.text('SIX-WORLD PHILIPPINE LABOR STANDARDS MASTERY BREAKDOWN', 23.5, breakHeaderY + 3.8);

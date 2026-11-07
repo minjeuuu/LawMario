@@ -230,14 +230,14 @@ describe('Global mute shortcut, Recently Viewed, Sparkline & Print catalogs', ()
     assert.ok(series.polylinePoints.length > 10);
   });
 
-  it('exposes 24 distinct Print Studio themes, 20 distinct Print font styles, and 8 App Reading Fonts', () => {
-    assert.equal(PRINT_COLOR_THEMES.length, 24);
+  it('exposes 29 distinct Print Studio themes, 20 distinct Print font styles, and 8 App Reading Fonts', () => {
+    assert.equal(PRINT_COLOR_THEMES.length, 29);
     assert.equal(PRINT_FONT_STYLES.length, 20);
     assert.equal(APP_STUDY_FONTS.length, 8);
 
     const uniqueThemeIds = new Set(PRINT_COLOR_THEMES.map((t) => t.id));
     const uniqueFontIds = new Set(PRINT_FONT_STYLES.map((f) => f.id));
-    assert.equal(uniqueThemeIds.size, 24);
+    assert.equal(uniqueThemeIds.size, 29);
     assert.equal(uniqueFontIds.size, 20);
 
     for (const theme of PRINT_COLOR_THEMES) {

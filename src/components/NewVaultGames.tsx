@@ -1459,7 +1459,7 @@ export const YoshiEggTossGame: React.FC<NewVaultGameProps> = ({
                   }`}
                 >
                   <span className="text-[10px] font-mono opacity-80 shrink-0">#{slotIdx + 1}</span>
-                  <span className="truncate">{optLabel}</span>
+                  <span className="break-words [overflow-wrap:anywhere] leading-snug line-clamp-2 text-center">{optLabel}</span>
                 </button>
               );
             })}
@@ -1609,6 +1609,8 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
   const [beamTarget, setBeamTarget] = useState<'employer' | 'employee' | null>(null);
   const [kingBooState, setKingBooState] = useState<'hover' | 'stunned' | 'laughing'>('hover');
   const [showCodalClue, setShowCodalClue] = useState(false);
+  const [caseStartTime, setCaseStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
   const [deck, setDeck] = useState<BurdenMansionCase[]>(() =>
     drawBooBurdenCases(8).map((c) => ({
       id: c.id,
@@ -1638,6 +1640,8 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
     setBeamTarget(null);
     setKingBooState('hover');
     setShowCodalClue(false);
+    setCaseStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     setShellState('playing');
     syncBodyGameState('playing');
     marioAudio.playPowerUp();
@@ -1650,12 +1654,18 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
     setSelectedSide(choice);
     setBeamTarget(choice);
     const isCorrect = choice === currentCase.correctBurden;
+    const isFast = Date.now() - caseStartTime <= 8000;
 
     if (isCorrect) {
       setKingBooState('stunned');
       setScore((s) => s + 125);
-      setCoinsEarned((c) => c + 5);
-      onEarnCoins(5);
+      let coins = 5;
+      if (isFast) {
+        coins += 5;
+        setSpeedBonusAwarded(true);
+      }
+      setCoinsEarned((c) => c + coins);
+      onEarnCoins(coins);
       marioAudio.playCoin();
     } else {
       setKingBooState('laughing');
@@ -1686,6 +1696,8 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
       setBeamTarget(null);
       setKingBooState('hover');
       setShowCodalClue(false);
+      setCaseStartTime(Date.now());
+      setSpeedBonusAwarded(false);
       marioAudio.playClick();
     }
   };
@@ -1919,6 +1931,11 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
                       <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
                     )}
                     <span className="text-amber-300 font-mono text-sm">{currentCase.citation}</span>
+                    {speedBonusAwarded && (
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-mario text-[9px] font-black shrink-0">
+                        +5 SPEED BONUS!
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-semibold">
                     {currentCase.explanation}
@@ -2057,6 +2074,7 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
   const [lives, setLives] = useState(3);
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
 
   const startGame = () => {
     setDeck(
@@ -2074,6 +2092,7 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
     setLives(3);
     setCoinsEarned(0);
     setPicked(null);
+    setSpeedBonusAwarded(false);
     setShellState('playing');
     syncBodyGameState('playing');
     marioAudio.playPowerUp();
@@ -2113,8 +2132,14 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
     if (option === current.correctPeriod) {
       const speedBonus = fuseLeft * 10;
       setScore((s) => s + 100 + speedBonus);
-      setCoinsEarned((c) => c + 5);
-      onEarnCoins(5);
+      const isFast = fuseLeft >= 8;
+      let coins = 5;
+      if (isFast) {
+        coins += 5;
+        setSpeedBonusAwarded(true);
+      }
+      setCoinsEarned((c) => c + coins);
+      onEarnCoins(coins);
       marioAudio.playCoin();
     } else {
       const nextLives = lives - 1;
@@ -2141,6 +2166,7 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
       setIdx((i) => i + 1);
       setPicked(null);
       setFuseLeft(14);
+      setSpeedBonusAwarded(false);
       marioAudio.playClick();
     }
   };
@@ -2326,6 +2352,11 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
                   <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-300">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span>CONTROLLING STATUTORY PRESCRIPTION BASIS:</span>
+                    {speedBonusAwarded && (
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-mario text-[9px] font-black shrink-0">
+                        +5 SPEED BONUS!
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs sm:text-sm font-bold text-emerald-200 leading-relaxed">
                     {current.basis}

@@ -160,6 +160,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
   const [bestScore, setBestScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [timeLeftMs, setTimeLeftMs] = useState(9000);
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState(false);
   const [verdict, setVerdict] = useState<{
     approvedAsLawful: boolean;
     isCorrect: boolean;
@@ -186,6 +187,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
     setScore(0);
     setCombo(0);
     setVerdict(null);
+    setSpeedBonusAwarded(false);
     setActionAnimation('idle');
     setTimeLeftMs(9000);
     setPhase('PLAYING');
@@ -206,7 +208,13 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
         setCombo(nextCombo);
         setScore(nextScore);
         setBestScore((b) => Math.max(b, nextScore));
-        onEarnCoins(2);
+        const isFast = timeLeftMs >= 4000;
+        let bonusCoins = 2;
+        if (isFast) {
+          bonusCoins += 5;
+          setSpeedBonusAwarded(true);
+        }
+        onEarnCoins(bonusCoins);
         setActionAnimation(approveAsLawful ? 'shield' : 'smash');
         marioAudio.playCoin();
       } else {
@@ -222,7 +230,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
         item: currentItem,
       });
     },
-    [phase, currentItem, verdict, combo, score, hp, onEarnCoins]
+    [phase, currentItem, verdict, combo, score, hp, onEarnCoins, timeLeftMs]
   );
 
   const handleAdvanceWave = useCallback(() => {
@@ -241,6 +249,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
     setLane(Math.floor(Math.random() * 3));
     setTimeLeftMs(Math.max(5500, 9000 - (idx + 1) * 280));
     setVerdict(null);
+    setSpeedBonusAwarded(false);
     setActionAnimation('idle');
   }, [verdict, hp, idx, targetCount, onEarnCoins]);
 
@@ -556,6 +565,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
                     : `Prohibited Wage Shortcut / Violation: Strictly illegal under ${currentItem.statute}. Smash and eliminate from payroll records to avoid backwages, interest, and DOLE administrative sanctions!`
                 }
                 isCorrect={verdict.isCorrect}
+                speedBonusAwarded={speedBonusAwarded}
                 worldCode="w1"
                 scenarioText={currentItem.detail}
                 chosenAnswerText={verdict.approvedAsLawful ? 'Shielded as Lawful Statutory Right' : 'Smashed as Illegal Shortcut'}
@@ -777,6 +787,8 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
   const [mistakes, setMistakes] = useState(0);
   const [roundCleared, setRoundCleared] = useState(false);
   const [runnerState, setRunnerState] = useState<'idle' | 'sprint' | 'stumble'>('idle');
+  const [roundStartTime, setRoundStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
 
   const loadRound = useCallback(
     (idxToLoad: number, sourceDeck?: DueProcessRelayCase[]) => {
@@ -791,6 +803,8 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
       setPickedOrder([]);
       setRoundCleared(false);
       setRunnerState('idle');
+      setRoundStartTime(Date.now());
+      setSpeedBonusAwarded(false);
     },
     [relayDeck]
   );
@@ -805,6 +819,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
     setCaseIdx(0);
     setScore(0);
     setMistakes(0);
+    setSpeedBonusAwarded(false);
     loadRound(0, freshCases);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
@@ -823,7 +838,13 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
       if (updated.length === 3) {
         setRoundCleared(true);
         setScore((s) => s + 150);
-        onEarnCoins(3);
+        const isFast = Date.now() - roundStartTime <= 8000;
+        let coins = 3;
+        if (isFast) {
+          coins += 5;
+          setSpeedBonusAwarded(true);
+        }
+        onEarnCoins(coins);
       } else {
         setTimeout(() => setRunnerState('idle'), 400);
       }
@@ -1046,6 +1067,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
                 rule={activeCase.orderedSteps.map((s, i) => `Step ${i + 1}: ${s}`).join(' → ')}
                 takeaway={activeCase.doctrineNote}
                 isCorrect={true}
+                speedBonusAwarded={speedBonusAwarded}
                 worldCode="w5"
                 scenarioText={activeCase.scenario}
                 chosenAnswerText="Flawless Due Process Sequence"
@@ -1166,6 +1188,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
   const [beltProgress, setBeltProgress] = useState(0); // 0 to 100% across conveyor
   const [hp, setHp] = useState(3);
   const [score, setScore] = useState(0);
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState(false);
   const [verdict, setVerdict] = useState<{
     certifyCompliant: boolean;
     isCorrect: boolean;
@@ -1187,6 +1210,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
     setBeltProgress(8);
     setHp(3);
     setScore(0);
+    setSpeedBonusAwarded(false);
     setVerdict(null);
     setActionState('idle');
     setPhase('PLAYING');
@@ -1202,7 +1226,13 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
       const ok = certifyCompliant === currentCrate.isCompliant;
       if (ok) {
         setScore((s) => s + 125);
-        onEarnCoins(2);
+        const isFast = beltProgress <= 55;
+        let coins = 2;
+        if (isFast) {
+          coins += 5;
+          setSpeedBonusAwarded(true);
+        }
+        onEarnCoins(coins);
         setActionState(certifyCompliant ? 'stamp' : 'crush');
         marioAudio.playCoin();
       } else {
@@ -1217,7 +1247,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
         crate: currentCrate,
       });
     },
-    [phase, currentCrate, verdict, hp, onEarnCoins]
+    [phase, currentCrate, verdict, hp, onEarnCoins, beltProgress]
   );
 
   const handleNextCrate = useCallback(() => {
@@ -1234,6 +1264,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
     }
     setCrateIdx((i) => i + 1);
     setBeltProgress(6);
+    setSpeedBonusAwarded(false);
     setVerdict(null);
     setActionState('idle');
   }, [verdict, hp, crateIdx, totalCratesInShift, onEarnCoins]);
@@ -1465,6 +1496,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
                     : `Prohibited Labor Trap: Violates mandatory statutory rules (labor-only contracting, unauthorized deduction, or illegal benefit diminution under Art. 100). Controlling Basis: ${currentCrate.basis}`
                 }
                 isCorrect={verdict.isCorrect}
+                speedBonusAwarded={speedBonusAwarded}
                 worldCode="w2"
                 scenarioText={currentCrate.spec}
                 chosenAnswerText={verdict.certifyCompliant ? 'Certified as Lawful & Compliant' : 'Busted as Prohibited DOLE Violation'}
@@ -1592,6 +1624,8 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
   const [lastLog, setLastLog] = useState<string | null>(null);
   const [duelEffect, setDuelEffect] = useState<'idle' | 'reflect' | 'hex_hit'>('idle');
   const [pickedOption, setPickedOption] = useState<string | null>(null);
+  const [spellStartTime, setSpellStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
   const [verdict, setVerdict] = useState<{
     isHit: boolean;
     selectedOption: string;
@@ -1616,6 +1650,8 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
     setDuelEffect('idle');
     setPickedOption(null);
     setVerdict(null);
+    setSpellStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
   };
@@ -1626,6 +1662,7 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
     if (phase !== 'PLAYING' || !activeSpell || pickedOption !== null) return;
     setPickedOption(selected);
     const isHit = selected === activeSpell.correctAnswer;
+    const isFast = Date.now() - spellStartTime <= 8000;
 
     if (isHit) {
       setDuelEffect('reflect');
@@ -1633,8 +1670,13 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
       const nextBoss = Math.max(0, bossHp - 25);
       setBossHp(nextBoss);
       setScore((s) => s + 150);
-      onEarnCoins(3);
-      setLastLog(`REFLECTED! ${activeSpell.correctAnswer} · ${activeSpell.basis}`);
+      let coins = 3;
+      if (isFast) {
+        coins += 5;
+        setSpeedBonusAwarded(true);
+      }
+      onEarnCoins(coins);
+      setLastLog(isFast ? `+5 SPEED BONUS! REFLECTED! ${activeSpell.correctAnswer} · ${activeSpell.basis}` : `REFLECTED! ${activeSpell.correctAnswer} · ${activeSpell.basis}`);
       marioAudio.playCoin();
     } else {
       setDuelEffect('hex_hit');
@@ -1666,6 +1708,8 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
     setSpellIdx((i) => i + 1);
     setPickedOption(null);
     setVerdict(null);
+    setSpellStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     setDuelEffect('idle');
   }, [verdict, heroHp, bossHp, spellIdx, spells.length, onEarnCoins]);
 
@@ -1858,6 +1902,7 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
                 rule={`${activeSpell.claimPrompt} → Controlling Prescription: ${activeSpell.correctAnswer}`}
                 takeaway={`Statutory Prescription Memory Peg: Under ${activeSpell.basis}, this action must be instituted within ${activeSpell.correctAnswer}. Remember the Bar hierarchy: 1 Year for ULP (Art. 305), 3 Years for Money Claims & SIL (Art. 306), 4 Years for Illegal Dismissal / injury to rights (Art. 1146 CC), 10 Calendar Days for NLRC Appeal (Art. 229), and 20 Years for unremitted SSS contributions (R.A. 11199).`}
                 isCorrect={verdict.isHit}
+                speedBonusAwarded={speedBonusAwarded}
                 worldCode="w4"
                 scenarioText={activeSpell.claimPrompt}
                 chosenAnswerText={verdict.selectedOption}

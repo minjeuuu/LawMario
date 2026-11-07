@@ -62,6 +62,7 @@ export const WhackAGoombaGame: React.FC<MiniGameProps> = ({ equippedAvatar, onEa
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [timeLeft, setTimeLeft] = useState(35);
+  const [streak, setStreak] = useState(0);
   const [activePipes, setActivePipes] = useState<(DeductionPipeTargetItem | null)[]>(Array(9).fill(null));
   const [feedback, setFeedback] = useState<string>('Smash RED Goombas (Illegal Practices) — Spare GREEN Toads (Lawful Art. 113 Deductions)!');
 
@@ -104,6 +105,7 @@ export const WhackAGoombaGame: React.FC<MiniGameProps> = ({ equippedAvatar, onEa
   const startRound = () => {
     setScore(0);
     setLives(3);
+    setStreak(0);
     setTimeLeft(35);
     setActivePipes(Array(9).fill(null));
     setFeedback('Smash Illegal Deductions! Do NOT hit Lawful Statutory Deductions!');
@@ -120,12 +122,21 @@ export const WhackAGoombaGame: React.FC<MiniGameProps> = ({ equippedAvatar, onEa
     setActivePipes(updated);
 
     if (target.isIllegal) {
-      setScore((s) => s + 150);
-      onEarnCoins(2);
-      setFeedback(`SMASHED! +2 Coins — ${target.ruleNote}`);
+      const nextStreak = streak + 1;
+      setStreak(nextStreak);
+      let coins = 2;
+      let bonusText = '';
+      if (nextStreak >= 3) {
+        coins += 5;
+        bonusText = ' +5 SPEED BONUS!';
+      }
+      setScore((s) => s + 150 + nextStreak * 25);
+      onEarnCoins(coins);
+      setFeedback(`SMASHED!${bonusText} +${coins} Coins — ${target.ruleNote}`);
       marioAudio.playStomp();
       marioAudio.playCoin();
     } else {
+      setStreak(0);
       setFeedback(`OOPS! That was LAWFUL: ${target.ruleNote}`);
       marioAudio.playBowserHit();
       setLives((l) => {
@@ -212,7 +223,7 @@ export const WhackAGoombaGame: React.FC<MiniGameProps> = ({ equippedAvatar, onEa
                   <span className="text-[9px] font-black font-mario uppercase px-2 py-0.5 rounded bg-black/40">
                     {item.isIllegal ? 'SMASH GOOMBA!' : 'LAWFUL • SPARE!'}
                   </span>
-                  <span className="text-[11px] sm:text-xs font-black leading-tight text-center my-1 line-clamp-3 overflow-hidden break-words w-full px-0.5">
+                  <span className="text-[11px] sm:text-xs font-black leading-tight text-center my-1 line-clamp-3 overflow-hidden break-words [overflow-wrap:anywhere] w-full px-0.5">
                     {item.label}
                   </span>
                   <div className="w-full h-3 mario-green-pipe rounded-md" />
@@ -412,7 +423,7 @@ export const MultiplierMemoryGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
                   <span className="text-[9px] font-black font-mario uppercase opacity-75 mb-1">
                     {card.kind === 'rate' ? 'MULTIPLIER' : 'DAY SCENARIO'}
                   </span>
-                  <span className="text-xs sm:text-sm font-black leading-tight">{card.text}</span>
+                  <span className="text-xs sm:text-sm font-black leading-tight break-words [overflow-wrap:anywhere] min-w-0">{card.text}</span>
                 </>
               ) : (
                 <span className="font-mario text-2xl font-black text-slate-950">?</span>
@@ -438,12 +449,15 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
   const [suctionActive, setSuctionActive] = useState(false);
   const [stampActive, setStampActive] = useState(false);
   const [ghostOpacity, setGhostOpacity] = useState(1);
+  const [caseStartTime, setCaseStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
 
   const current = cases[idx] ?? cases[0];
 
   const handleInspect = (declareLaborOnly: boolean) => {
     if (answered || !current) return;
     const isCorrect = declareLaborOnly === current.isLaborOnly;
+    const isFast = Date.now() - caseStartTime <= 8000;
 
     if (declareLaborOnly) {
       setSuctionActive(true);
@@ -461,7 +475,12 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
       setStampActive(false);
       if (isCorrect) {
         setScore((s) => s + 1);
-        onEarnCoins(5);
+        let coins = 5;
+        if (isFast) {
+          coins += 5;
+          setSpeedBonusAwarded(true);
+        }
+        onEarnCoins(coins);
         marioAudio.playCoin();
       } else {
         marioAudio.playBowserHit();
@@ -480,6 +499,8 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
       setAnswered(null);
       setGhostOpacity(1);
       setActiveSensor('capital');
+      setCaseStartTime(Date.now());
+      setSpeedBonusAwarded(false);
       marioAudio.playPipe();
     } else {
       setCompleted(true);
@@ -495,6 +516,8 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
     setAnswered(null);
     setGhostOpacity(1);
     setActiveSensor('capital');
+    setCaseStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     setCompleted(false);
     marioAudio.playPowerUp();
   };
@@ -760,6 +783,7 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
               rule={`Capital: ${current.capital} · Registry: ${current.registration} · Control: ${current.controlHolder} · Work: ${current.workRelation}`}
               takeaway={`${answered.message} Controlling Doctrine: ${current.verdictNote}`}
               isCorrect={answered.correct}
+              speedBonusAwarded={speedBonusAwarded}
               worldCode="w2"
               scenarioText={`Dossier: ${current.agencyName} (${current.capital}, ${current.registration}, ${current.controlHolder})`}
               chosenAnswerText={answered.action === 'bust' ? 'Poltergust Fired (Labor-Only / Void)' : 'DOLE Accreditation Stamped (Legitimate D.O. 174)'}
@@ -801,6 +825,8 @@ export const BowsersBridgeGame: React.FC<MiniGameProps> = ({ equippedAvatar, onE
   const [puzzle, setPuzzle] = useState<BridgeDoctrineItem>(() => drawBridgePuzzle());
   const [guessed, setGuessed] = useState<string[]>([]);
   const [mistakes, setMistakes] = useState(0);
+  const [puzzleStartTime, setPuzzleStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
   const maxMistakes = 6;
 
   const letters = puzzle.word.split('');
@@ -814,7 +840,13 @@ export const BowsersBridgeGame: React.FC<MiniGameProps> = ({ equippedAvatar, onE
     if (puzzle.word.includes(letter)) {
       marioAudio.playJump();
       if (letters.every((ch) => next.includes(ch))) {
-        onEarnCoins(8);
+        const isFast = Date.now() - puzzleStartTime <= 15000;
+        let coins = 8;
+        if (isFast) {
+          coins += 5;
+          setSpeedBonusAwarded(true);
+        }
+        onEarnCoins(coins);
         marioAudio.playQuizComplete();
       }
     } else {
@@ -827,6 +859,8 @@ export const BowsersBridgeGame: React.FC<MiniGameProps> = ({ equippedAvatar, onE
     setPuzzle(drawBridgePuzzle());
     setGuessed([]);
     setMistakes(0);
+    setPuzzleStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     marioAudio.playPowerUp();
   };
 
@@ -903,6 +937,7 @@ export const BowsersBridgeGame: React.FC<MiniGameProps> = ({ equippedAvatar, onE
               : `Bridge Collapsed! The controlling statutory legal term was "${puzzle.word}". Review definition: ${puzzle.clue}`
           }
           isCorrect={isSolved}
+          speedBonusAwarded={speedBonusAwarded}
           worldCode="w1"
           scenarioText={puzzle.clue}
           chosenAnswerText={isSolved ? puzzle.word : 'Bridge Collapsed'}
@@ -950,6 +985,8 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
   const [streak, setStreak] = useState(0);
   const [statusMsg, setStatusMsg] = useState('Route each Payroll Capsule into the matching Statutory Warp Pipe!');
   const [finished, setFinished] = useState(false);
+  const [capsuleStartTime, setCapsuleStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
   const [routedVerdict, setRoutedVerdict] = useState<{
     isCorrect: boolean;
     chosen: PayrollCapsuleItem['bucket'];
@@ -961,12 +998,18 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
   const handleSort = (chosen: PayrollCapsuleItem['bucket']) => {
     if (finished || !capsule || routedVerdict !== null) return;
     const isCorrect = chosen === capsule.bucket;
+    const isFast = Date.now() - capsuleStartTime <= 8000;
     if (isCorrect) {
       const nextStreak = streak + 1;
       setStreak(nextStreak);
       setScore((s) => s + 100 + nextStreak * 20);
-      onEarnCoins(3);
-      setStatusMsg(`CORRECT PIPE! +3 Coins — ${capsule.note}`);
+      let coins = 3;
+      if (isFast) {
+        coins += 5;
+        setSpeedBonusAwarded(true);
+      }
+      onEarnCoins(coins);
+      setStatusMsg(isFast ? `+5 SPEED BONUS! CORRECT PIPE! +8 Coins — ${capsule.note}` : `CORRECT PIPE! +3 Coins — ${capsule.note}`);
       marioAudio.playCoin();
     } else {
       setStreak(0);
@@ -985,6 +1028,8 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
     if (capsuleIdx < capsules.length - 1) {
       setCapsuleIdx((i) => i + 1);
       setRoutedVerdict(null);
+      setCapsuleStartTime(Date.now());
+      setSpeedBonusAwarded(false);
     } else {
       setFinished(true);
       setRoutedVerdict(null);
@@ -1000,6 +1045,8 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
     setStreak(0);
     setRoutedVerdict(null);
     setFinished(false);
+    setCapsuleStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     setStatusMsg('Route each Payroll Capsule into the matching Statutory Warp Pipe!');
     marioAudio.playPowerUp();
   };
@@ -1092,6 +1139,7 @@ export const HolidayWageSorterGame: React.FC<MiniGameProps> = ({ equippedAvatar,
                     }. Rule: ${routedVerdict.capsule.note}`
               }
               isCorrect={routedVerdict.isCorrect}
+              speedBonusAwarded={speedBonusAwarded}
               worldCode="holidays"
               scenarioText={`Incoming Capsule: ${routedVerdict.capsule.title}`}
               chosenAnswerText={

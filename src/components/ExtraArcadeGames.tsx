@@ -250,6 +250,8 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
   const [caseNumber, setCaseNumber] = useState(1);
   const [current, setCurrent] = useState<LeaveClinicCaseItem>(() => drawWorld6LeaveCase());
   const [streak, setStreak] = useState(0);
+  const [caseStartTime, setCaseStartTime] = useState<number>(() => Date.now());
+  const [speedBonusAwarded, setSpeedBonusAwarded] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string; selectedOpt: string } | null>(null);
   const [hintUnlocked, setHintUnlocked] = useState(false);
   const [stampedOpt, setStampedOpt] = useState<string | null>(null);
@@ -259,12 +261,23 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
     setStampedOpt(opt);
 
     const isCorrect = opt === current.correctLeave;
+    const isFast = Date.now() - caseStartTime <= 8000;
     setTimeout(() => {
       if (isCorrect) {
-        const reward = 6 + Math.min(10, streak * 2);
+        let reward = 6 + Math.min(10, streak * 2);
+        if (isFast) {
+          reward += 5;
+          setSpeedBonusAwarded(true);
+        }
         onAdjustCoins(reward);
         setStreak((s) => s + 1);
-        setFeedback({ ok: true, text: `Officially Dispatched! +${reward} Coins · ${current.statute}`, selectedOpt: opt });
+        setFeedback({
+          ok: true,
+          text: isFast
+            ? `+5 SPEED BONUS! Officially Dispatched! +${reward} Coins · ${current.statute}`
+            : `Officially Dispatched! +${reward} Coins · ${current.statute}`,
+          selectedOpt: opt,
+        });
         marioAudio.playCoin();
       } else {
         setStreak(0);
@@ -280,6 +293,8 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
     setFeedback(null);
     setStampedOpt(null);
     setHintUnlocked(false);
+    setCaseStartTime(Date.now());
+    setSpeedBonusAwarded(false);
     marioAudio.playClick();
   };
 
@@ -408,7 +423,7 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
                   <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75">
                     ROYAL SEAL #{i + 1}
                   </span>
-                  <span className="text-xs sm:text-sm font-display font-extrabold block truncate">
+                  <span className="text-xs sm:text-sm font-display font-extrabold block break-words [overflow-wrap:anywhere] leading-snug">
                     {opt}
                   </span>
                 </div>
@@ -430,6 +445,7 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
               : `Statutory Leave Mismatch! The controlling entitlement under ${current.statute} is "${current.correctLeave}". Avoid confusing with "${feedback.selectedOpt}".`
           }
           isCorrect={feedback.ok}
+          speedBonusAwarded={speedBonusAwarded}
           worldCode="w6"
           scenarioText={current.scenario}
           chosenAnswerText={feedback.selectedOpt}

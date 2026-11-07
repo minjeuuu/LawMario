@@ -2248,8 +2248,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           style={{
                             backgroundColor: activeExtendedTheme.tableHeadBgHex,
                             color: activeExtendedTheme.headerTextHex,
+                            borderColor: activeExtendedTheme.borderHex,
                           }}
-                          className={`${summaryBannerHeaderClass} px-3 py-1.5 flex items-center justify-between gap-2`}
+                          className="px-3 py-1.5 flex items-center justify-between gap-2 border-b-2"
                         >
                           <span className="text-[11px] font-black uppercase tracking-wide flex items-center gap-1.5">
                             <MarioCoinBlockIcon size={14} />
@@ -2311,8 +2312,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           style={{
                             backgroundColor: activeExtendedTheme.tableHeadBgHex,
                             color: activeExtendedTheme.headerTextHex,
+                            borderColor: activeExtendedTheme.borderHex,
                           }}
-                          className={`${summaryBannerHeaderClass} px-3 py-1.5 flex items-center justify-between gap-2`}
+                          className="px-3 py-1.5 flex items-center justify-between gap-2 border-b-2"
                         >
                           <span className="text-[11px] font-black uppercase tracking-wide flex items-center gap-1.5">
                             <MarioWarpPipeIcon size={14} />
@@ -2654,7 +2656,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                         color: activeExtendedTheme.headerTextHex,
                         borderColor: activeExtendedTheme.borderHex,
                       }}
-                      className={`${summaryBannerHeaderClass} rounded-2xl p-6 flex items-center justify-between gap-6 border-2 ${headingBorderClass}`}
+                      className="rounded-2xl p-6 flex items-center justify-between gap-6 border-2"
                     >
                       <div className="flex items-center gap-4 min-w-0">
                         <div className="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-md">
@@ -3398,9 +3400,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           borderColor: activeExtendedTheme.borderHex,
                           color: activeExtendedTheme.bodyTextHex,
                         }}
-                        className={`border-2 ${headingBorderClass} rounded-xl ${
+                        className={`border-2 rounded-xl ${
                           isCompact ? 'px-3 py-2' : 'px-4 py-2.5'
-                        } ${worldBannerClass} break-inside-avoid`}
+                        } break-inside-avoid`}
                       >
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <h3
@@ -3639,7 +3641,12 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                               {rule.tableData.headers.map((h, hIdx) => (
                                                 <th
                                                   key={hIdx}
-                                                  className="p-1.5 border border-slate-500 font-black break-words [overflow-wrap:anywhere]"
+                                                  style={{
+                                                    backgroundColor: activeExtendedTheme.tableHeadBgHex,
+                                                    color: activeExtendedTheme.headerTextHex,
+                                                    borderColor: activeExtendedTheme.borderHex,
+                                                  }}
+                                                  className="p-1.5 border font-black break-words [overflow-wrap:anywhere]"
                                                 >
                                                   {stripInlineLegalCitations(
                                                     h,
