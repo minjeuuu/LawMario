@@ -21,6 +21,22 @@
     padding: 0;
   }
 
+  html {
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.modal-open {
+    overflow: hidden !important;
+  }
+
   #root {
     overflow-x: hidden;
     max-width: 100vw;
@@ -91,8 +107,17 @@
   }
 
   button,
-  [role="button"] {
+  [role="button"],
+  .native-pressable {
     touch-action: manipulation;
+    transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+  }
+
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  .native-pressable:active {
+    transform: scale(0.975) translateY(1px);
+    transition: transform 0.06s cubic-bezier(0.2, 0.9, 0.4, 1);
   }
 
   #active-vault-game-stage canvas {
@@ -654,22 +679,40 @@ html.dark .theme-arctic_ice_world {
   box-shadow: 0 2px 0 #0f172a;
 }
 
-/* Custom crisp scrollbar */
+/* Modern Sleek App Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #1f2937;
-  border-left: 2px solid #0f172a;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #dc2626;
-  border: 2px solid #0f172a;
-  border-radius: 4px;
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b91c1c;
+  background: rgba(100, 116, 139, 0.65);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+}
+html.dark * {
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
 }
 
 /* Custom Mario Themed List Markers & Provision Callouts */
@@ -770,11 +813,11 @@ html.dark .theme-arctic_ice_world {
 @keyframes marioViewFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px) scale(0.995);
   }
   99% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
   100% {
     opacity: 1;
@@ -782,8 +825,94 @@ html.dark .theme-arctic_ice_world {
   }
 }
 
-.mario-view-enter {
+.mario-view-enter,
+.native-view-enter {
   animation: marioViewFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Native Modal & Drawer Keyframes */
+@keyframes nativeBackdropFade {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes nativeModalSpringIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.008) translateY(-1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes nativeDrawerSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Universal Native Modal Styling */
+div[role="dialog"]:not(.print-page-sheet),
+div[aria-modal="true"]:not(.print-page-sheet),
+.native-modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: nativeBackdropFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+div[role="dialog"]:not(.print-page-sheet) > div:first-child,
+div[aria-modal="true"]:not(.print-page-sheet) > div:first-child,
+.native-modal-content {
+  animation: nativeModalSpringIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.native-drawer-content {
+  animation: nativeDrawerSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@media print {
+  div[role="dialog"],
+  div[aria-modal="true"],
+  .native-modal-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation: none !important;
+  }
+  div[role="dialog"] > div:first-child,
+  div[aria-modal="true"] > div:first-child,
+  .native-modal-content {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Standalone PWA & Mobile Safe Area */
+@media (display-mode: standalone) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* Publication-Grade Printer & PDF Study Guide Styles */

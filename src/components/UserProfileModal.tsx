@@ -470,9 +470,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       role="dialog"
       aria-label="User Profile and Achievements"
       data-testid="user-profile-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/85 select-none overflow-y-auto print:hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md native-modal-backdrop select-none overflow-y-auto print:hidden"
     >
-      <div className="bg-[#1e293b] text-white w-full h-[100dvh] max-h-[100dvh] rounded-none border-0 sm:w-full sm:max-w-4xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl sm:border-4 sm:border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden my-auto flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="bg-[#1e293b] text-white w-full h-[100dvh] max-h-[100dvh] rounded-none border-0 sm:w-full sm:max-w-4xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl sm:border-4 sm:border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden my-auto flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] native-modal-content">
         {/* Top Modal Header */}
         <div className="bg-[#0f172a] px-4 sm:px-6 py-3.5 sm:py-4 border-b-2 border-slate-700 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">

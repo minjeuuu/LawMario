@@ -4,6 +4,7 @@ import {
   getTopicDifficultyAudioCueSpec,
   TopicDifficultyCueSpec,
 } from './round13Features';
+import { haptics } from './haptics';
 
 export type TabSfxType = 'pipe' | 'jump' | 'coin' | 'stomp';
 export type CardSfxType = 'powerup' | 'coin' | 'fireball' | 'oneup';
@@ -2639,6 +2640,7 @@ export class AudioController {
 
   // Classic Mario Coin sound with 3 distinct musical variations to prevent audio fatigue
   playCoin() {
+    haptics.coin();
     if (
       !this.settings.enabled ||
       this.settings.sfxEnabled === false ||
@@ -2792,6 +2794,7 @@ export class AudioController {
 
   // Mario Jump sound shaped by active Audio Pack timbre (or Toad 'Yah!' when Toadify is enabled)
   playJump() {
+    haptics.jump();
     if (!this.settings.enabled || this.settings.soundToggles?.jump === false) return;
     if (this.settings.toadifyEnabled) {
       this.playToadVoice('yah');
@@ -2922,6 +2925,7 @@ export class AudioController {
 
   // Pipe transition sound shaped by active Audio Pack timbre (or Toad clip when Toadify is enabled)
   playPipe() {
+    haptics.pipe();
     if (!this.settings.enabled || this.settings.soundToggles?.pipe === false) return;
     if (this.settings.toadifyEnabled) {
       this.playToadVoice('okeydokey');
@@ -2958,6 +2962,7 @@ export class AudioController {
 
   // Goomba / Enemy Stomp sound: low thud
   playStomp() {
+    haptics.stomp();
     if (!this.settings.enabled || this.settings.soundToggles?.stomp === false) return;
     try {
       this.initCtx();
@@ -3113,6 +3118,7 @@ export class AudioController {
 
   // Classic Mario Game Over / Quiz Defeat Jingle
   playGameOver() {
+    haptics.error();
     if (!this.settings.enabled || this.settings.sfxEnabled === false) return;
     try {
       this.initCtx();
@@ -3392,6 +3398,7 @@ export class AudioController {
 
   // Power Up sound shaped by active Audio Pack timbre
   playPowerUp() {
+    haptics.powerUp();
     if (!this.settings.enabled || this.settings.soundToggles?.powerup === false) return;
     try {
       this.initCtx();
@@ -3452,6 +3459,7 @@ export class AudioController {
 
   // Level Clear / Castle Fanfare
   playFanfare() {
+    haptics.success();
     if (!this.settings.enabled || this.settings.soundToggles?.fanfare === false) return;
     try {
       this.initCtx();

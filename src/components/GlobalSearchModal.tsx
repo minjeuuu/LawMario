@@ -437,9 +437,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-start justify-center p-0 sm:pt-16 sm:px-4 bg-black/75 select-none print:hidden"
+      className="fixed inset-0 z-50 flex items-start justify-center p-0 sm:pt-16 sm:px-4 bg-black/75 backdrop-blur-md native-modal-backdrop select-none print:hidden"
     >
-      <div className="bg-[#1e293b] text-white w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[82vh] rounded-none sm:rounded-3xl border-0 sm:border-4 border-slate-950 shadow-[0_12px_36px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col safe-top-nav safe-bottom-dock">
+      <div className="bg-[#1e293b] text-white w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[82vh] rounded-none sm:rounded-3xl border-0 sm:border-4 border-slate-950 shadow-[0_12px_36px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col safe-top-nav safe-bottom-dock native-modal-content">
         {/* Search Header Bar */}
         <div className="p-3 sm:p-4 bg-[#0f172a] border-b-2 border-slate-700 flex items-center gap-2.5 shrink-0">
           <Search className="w-5 h-5 text-amber-400 flex-shrink-0" />

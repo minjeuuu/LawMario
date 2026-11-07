@@ -680,9 +680,20 @@ export default function App() {
     bonusCoins: number;
   }>({ worldId: null, bonusCoins: 0 });
 
-  // Global Ctrl+K / Cmd+K search shortcut & Global 'M' key mute/unmute shortcut
+  const isAnyModalOpenRef = useRef<boolean>(false);
+  const closeAllModalsRef = useRef<() => void>(() => {});
+
+  // Global Ctrl+K / Cmd+K search shortcut, Escape key modal dismiss, & Global 'M' key mute/unmute shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isAnyModalOpenRef.current) {
+          e.preventDefault();
+          closeAllModalsRef.current();
+          return;
+        }
+      }
+
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         setIsGlobalSearchOpen((prev) => !prev);
@@ -1439,6 +1450,122 @@ export default function App() {
   const [isMultiplierDrillOpen, setIsMultiplierDrillOpen] = useState(false);
   const [isReverseCitationOpen, setIsReverseCitationOpen] = useState(false);
   const [isPomodoroSprintOpen, setIsPomodoroSprintOpen] = useState(false);
+
+  const isAnyModalOpen = Boolean(
+    isDailyRewardOpen ||
+    isExportModalOpen ||
+    isGlobalSearchOpen ||
+    isPrintGuideOpen ||
+    isProfileOpen ||
+    isLeaderboardOpen ||
+    isLegalCitationsOpen ||
+    isQuickGlossaryOpen ||
+    isStatuteLookupOpen ||
+    isDoleCalculatorOpen ||
+    isResearchCohortOpen ||
+    isBossBattleLogOpen ||
+    isLevelProgressionOpen ||
+    isToadsTrainingLogOpen ||
+    isDailyMissionsOpen ||
+    isGoalHistoryOpen ||
+    isKnowledgeGraphOpen ||
+    isWalkthroughOpen ||
+    isGlobalStudyHubOpen ||
+    isMultiplierDrillOpen ||
+    isReverseCitationOpen ||
+    isPomodoroSprintOpen ||
+    activeTopicFlashcardModal ||
+    activeTopicQuickQuizModal ||
+    levelUpCelebration.worldId !== null
+  );
+
+  const closeAllModals = useCallback(() => {
+    setIsDailyRewardOpen(false);
+    setIsExportModalOpen(false);
+    setIsGlobalSearchOpen(false);
+    setIsPrintGuideOpen(false);
+    setIsProfileOpen(false);
+    setIsLeaderboardOpen(false);
+    setIsLegalCitationsOpen(false);
+    setIsQuickGlossaryOpen(false);
+    setIsStatuteLookupOpen(false);
+    setIsDoleCalculatorOpen(false);
+    setIsResearchCohortOpen(false);
+    setIsBossBattleLogOpen(false);
+    setIsLevelProgressionOpen(false);
+    setIsToadsTrainingLogOpen(false);
+    setIsDailyMissionsOpen(false);
+    setIsGoalHistoryOpen(false);
+    setIsKnowledgeGraphOpen(false);
+    setIsWalkthroughOpen(false);
+    setIsGlobalStudyHubOpen(false);
+    setIsMultiplierDrillOpen(false);
+    setIsReverseCitationOpen(false);
+    setIsPomodoroSprintOpen(false);
+    setActiveTopicFlashcardModal(null);
+    setActiveTopicQuickQuizModal(null);
+    setLevelUpCelebration({ worldId: null, bonusCoins: 0 });
+    setShowCoinConfetti(false);
+  }, []);
+
+  useEffect(() => {
+    isAnyModalOpenRef.current = isAnyModalOpen;
+    closeAllModalsRef.current = closeAllModals;
+  }, [isAnyModalOpen, closeAllModals]);
+
+  // Lock body scroll cleanly while any modal is open
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (isAnyModalOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isAnyModalOpen]);
+
+  // Native Android back button & browser history gesture handling
+  const modalHistoryPushedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      if (!modalHistoryPushedRef.current) {
+        window.history.pushState({ marioModalOpen: true }, '');
+        modalHistoryPushedRef.current = true;
+      }
+    } else {
+      if (modalHistoryPushedRef.current) {
+        modalHistoryPushedRef.current = false;
+        if (window.history.state?.marioModalOpen) {
+          window.history.back();
+        }
+      }
+    }
+  }, [isAnyModalOpen]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (isAnyModalOpenRef.current) {
+        modalHistoryPushedRef.current = false;
+        closeAllModalsRef.current();
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Standalone PWA detection
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    if (isStandalone) {
+      document.body.classList.add('standalone-app');
+    }
+  }, []);
 
   const recordTopicEngagement = (topicId: string) => {
     if (!topicId) return;

@@ -107,8 +107,8 @@ export const DailyRewardModal: React.FC<DailyRewardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-xs select-none overflow-y-auto overscroll-contain">
-      <div className="bg-[#1e293b] text-white w-full max-w-md max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex flex-col rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden relative my-auto">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md native-modal-backdrop select-none overflow-y-auto overscroll-contain">
+      <div className="bg-[#1e293b] text-white w-full max-w-md max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex flex-col rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden relative my-auto native-modal-content">
         {/* Modal Header */}
         <div className="bg-[#0f172a] p-4 sm:p-5 border-b-3 border-slate-700 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">

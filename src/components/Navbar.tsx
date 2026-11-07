@@ -88,6 +88,7 @@ import {
   saveDailyGoalMinutes,
   computeDailyStudyGoalProgress,
 } from '../utils/round13Features';
+import { haptics } from '../utils/haptics';
 
 interface NavbarProps {
   activeTab: string;
@@ -1738,6 +1739,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 setIsMobileMenuOpen(!isMobileMenuOpen);
                 marioAudio.playClick();
+                haptics.light();
               }}
               className={`font-sans min-h-[40px] [@media(max-height:500px)]:min-h-[34px] w-full min-w-0 px-0.5 min-[360px]:px-1 sm:px-2.5 inline-flex items-center justify-center gap-0.5 min-[360px]:gap-1 rounded-xl border-2 border-black font-black text-[9px] min-[360px]:text-[10px] min-[420px]:text-[11px] sm:text-xs cursor-pointer leading-none whitespace-nowrap overflow-hidden transition-all ${
                 isMobileMenuOpen
@@ -1875,7 +1877,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {isMobileMenuOpen && (
           <div
             data-testid="navbar-mobile-menu-drawer"
-            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
+            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto native-modal-content overscroll-contain"
           >
             {/* Active Super Star 2X Banner inside Mobile Drawer when active */}
             {superStarRemainingLabel && (
