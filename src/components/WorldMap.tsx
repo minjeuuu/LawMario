@@ -18,8 +18,6 @@ import { HERO_ROSTER, getHeroMeta } from '../data/heroesData';
 import { ALL_LAW_TOPICS, WORLDS_METADATA } from '../data/laborLawData';
 import {
   computeWorldProgressMap,
-  GROUP_MEMBERS,
-  MAIN_CREATOR_AUTHOR,
   SHORTCUT_MAP_HIGHLIGHTS,
   isShortcutKeyTopic,
 } from '../utils/engagementFeatures';
@@ -2353,68 +2351,6 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           </div>
         )}
       </div>
-
-      {/* Group Members / Project Team Showcase Card with Matthew Official Main Creator Attribution */}
-      <section
-        aria-label="Project Group Members"
-        data-testid="group-members-card"
-        className="bg-white rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-6 shadow-[6px_6px_0_#000]"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-200 pb-3.5 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]">
-              <Award className="w-6 h-6 text-slate-950" />
-            </div>
-            <div>
-              <span className="text-[10px] font-black uppercase text-red-600 font-mario block">
-                CREATED BY MATTHEW · MAIN CREATOR OF THIS MEMORY AID
-              </span>
-              <h3 className="text-lg sm:text-xl font-black text-slate-950 font-display">
-                AUTHORSHIP &amp; PROJECT GROUP MEMBERS
-              </h3>
-            </div>
-          </div>
-          <span className="text-xs font-bold text-slate-600 tabular-nums">
-            Lead Creator: {MAIN_CREATOR_AUTHOR.shortBadge} · {GROUP_MEMBERS.length} Members
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {GROUP_MEMBERS.map((memberName, idx) => {
-            const isMainCreator = memberName === MAIN_CREATOR_AUTHOR.memberListing;
-            return (
-              <div
-                key={memberName}
-                className={`flex items-center justify-between gap-2.5 p-3 rounded-2xl border-2 ${
-                  isMainCreator
-                    ? 'bg-amber-50 border-amber-600 shadow-[2px_2px_0_#0f172a]'
-                    : 'bg-slate-50 border-slate-900 shadow-[2px_2px_0_#0f172a]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span
-                    className={`w-7 h-7 rounded-xl border border-black font-black text-xs font-mario inline-flex items-center justify-center shrink-0 ${
-                      isMainCreator ? 'bg-amber-400 text-slate-950' : 'bg-red-600 text-white'
-                    }`}
-                  >
-                    {idx + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <span className="font-black text-xs sm:text-sm text-slate-950 tracking-tight truncate block">
-                      {memberName}
-                    </span>
-                    {isMainCreator && (
-                      <span className="text-[10px] font-bold text-amber-900 block">
-                        Main Creator of this Memory Aid
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       {/* Dedicated Interactive World Summary Modal (Portaled + Single-Row Non-Covering Tab Bar) */}
       {summaryModalNode &&

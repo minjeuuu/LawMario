@@ -2482,7 +2482,7 @@ export default function App() {
   return (
     <div
       data-study-font={appStudyFont}
-      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
+      className={`min-h-screen min-h-[100dvh] flex-1 flex flex-col text-slate-900 dark:text-slate-100 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
     >
       {/* Main Navigation Container — Safe Top Padding so UI is never cropped on mobile */}
       <div className="sticky top-0 z-40 w-full bg-[#0f172a] safe-top-nav">
@@ -2704,8 +2704,8 @@ export default function App() {
         )}
       </div>
 
-      {/* Main Container with Mobile Bottom Nav Padding */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8 pb-24 lg:pb-8 overflow-x-hidden">
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 md:pt-8 overflow-x-hidden">
         {/* Persistent Mario Daily Study Goal Reached Banner + 1-Up Mushroom Bonus Celebration */}
         {dailyGoalBannerVisible && (
           <section
@@ -5244,7 +5244,7 @@ export default function App() {
       </ErrorBoundary>
 
       {/* Mario Ground Footer with Discreet Official 'Created by Matthew' Credit & Group Members */}
-      <footer className="mt-auto w-full bg-[#1e293b] border-t-4 border-black text-amber-100 py-8 px-4 pb-28 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
+      <footer className="mt-8 sm:mt-12 w-full bg-[#1e293b] border-t-4 border-black text-amber-100 pt-6 sm:pt-8 px-4 pb-20 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 font-bold text-sm border-b border-slate-700 pb-5">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
@@ -5281,7 +5281,7 @@ export default function App() {
           </div>
 
           {/* Group Members Roster in Global Footer */}
-          <div className="space-y-2.5">
+          <div data-testid="group-members-card" className="space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-black uppercase text-amber-300 font-mario">
                 <Users className="w-4 h-4 text-amber-400 shrink-0" />
