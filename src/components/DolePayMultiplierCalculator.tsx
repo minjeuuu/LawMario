@@ -226,6 +226,18 @@ export const DolePayMultiplierCalculator: React.FC<DolePayMultiplierCalculatorPr
   const oneHalfMonthRetirement = dailyWage * 22.5;
   const totalRetirementPay = oneHalfMonthRetirement * yearsOfService;
 
+  const handleResetDefaults = () => {
+    setDailyWage(645);
+    setWorkFactor(313);
+    setRegularHours(8);
+    setOrdinaryOtHours(2);
+    setNightDiffHours(2);
+    setRestDayOtHours(0);
+    setMonthsWorkedInYear(12);
+    setYearsOfService(5);
+    marioAudio.playWarp();
+  };
+
   const handleCopySummary = () => {
     marioAudio.playCoin();
     const text = `=========================================
@@ -262,29 +274,38 @@ Attribution: Corpuz (Main Creator) et al.`;
       role="dialog"
       aria-modal="true"
       aria-labelledby="dole-calc-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
     >
-      <div className="bg-slate-900 border-4 border-amber-400 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-slate-900 border-4 border-amber-400 rounded-3xl w-full max-w-4xl max-h-[94vh] flex flex-col shadow-[0_16px_40px_rgba(0,0,0,0.8)] overflow-hidden">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-red-700 via-red-600 to-amber-600 px-4 py-3 sm:px-6 sm:py-3.5 border-b-4 border-black flex items-center justify-between gap-3 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shadow-md shrink-0">
-              <Calculator className="w-5 h-5 text-slate-950" />
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-amber-600 px-4 py-3 sm:px-6 sm:py-3.5 border-b-4 border-black flex items-center justify-between gap-3 text-white shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-400 border-2 border-black flex items-center justify-center text-slate-950 shadow-[0_2px_0_#000] shrink-0">
+              <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             </div>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-200 font-mono block">
+            <div className="min-w-0">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-200 font-mono block leading-tight">
                 DOLE BWC STATUTORY WAGE &amp; OVERTIME SIMULATOR
               </span>
               <h2
                 id="dole-calc-title"
-                className="text-lg sm:text-xl font-black text-white tracking-wide"
+                className="text-base sm:text-xl font-black text-white tracking-wide font-display break-words [overflow-wrap:anywhere] leading-tight"
               >
                 DOLE Pay Multiplier Calculator
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleResetDefaults}
+              className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs inline-flex items-center gap-1 border-2 border-black shadow-[0_2px_0_#000] cursor-pointer"
+              title="Reset all inputs to defaults"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Reset</span>
+            </button>
             <button
               type="button"
               onClick={handleCopySummary}
@@ -292,7 +313,7 @@ Attribution: Corpuz (Main Creator) et al.`;
               title="Copy computation breakdown to clipboard"
             >
               {copiedNotice ? <Check className="w-3.5 h-3.5 text-emerald-800" /> : <Copy className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">{copiedNotice ? 'Copied!' : 'Copy Slip'}</span>
+              <span>{copiedNotice ? 'Copied!' : 'Copy Slip'}</span>
             </button>
             <button
               type="button"
@@ -300,7 +321,7 @@ Attribution: Corpuz (Main Creator) et al.`;
                 marioAudio.playClick();
                 onClose();
               }}
-              className="w-9 h-9 rounded-xl bg-slate-950 hover:bg-red-950 text-white border-2 border-black flex items-center justify-center cursor-pointer shadow-md"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950 hover:bg-red-950 text-white border-2 border-black flex items-center justify-center cursor-pointer shadow-md"
               aria-label="Close DOLE Calculator"
             >
               <X className="w-5 h-5" />
@@ -311,19 +332,19 @@ Attribution: Corpuz (Main Creator) et al.`;
         {/* Mario Brick Accent Strip */}
         <MarioBrickStrip className="w-full h-2 shrink-0" />
 
-        {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 text-slate-100">
+        {/* Modal Body (Strictly overflow-x-hidden, no left-right scroll) */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-5 md:p-6 space-y-4 sm:space-y-5 text-slate-100">
           {/* Top Wage Input Strip */}
-          <div className="bg-slate-850 bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-4 sm:p-5 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border-2 border-slate-700 rounded-2xl p-3.5 sm:p-5 space-y-3.5 shadow-md">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-700/80 pb-3">
               <div className="flex items-center gap-2">
-                <MarioCoinBlockIcon size={20} />
-                <span className="font-black text-sm uppercase text-amber-300 tracking-wide">
+                <MarioCoinBlockIcon size={22} />
+                <span className="font-black text-xs sm:text-sm uppercase text-amber-300 tracking-wide font-display">
                   Base Statutory Wage Rate
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-slate-400 font-mono">Factor:</span>
+                <span className="text-slate-400 font-mono text-[11px] font-bold">Annual Factor:</span>
                 {([313, 261, 365] as WorkFactor[]).map((factor) => (
                   <button
                     key={factor}
@@ -332,25 +353,30 @@ Attribution: Corpuz (Main Creator) et al.`;
                       setWorkFactor(factor);
                       marioAudio.playClick();
                     }}
-                    className={`px-2 py-1 rounded-lg border text-[11px] font-bold cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono font-bold cursor-pointer transition-all ${
                       workFactor === factor
-                        ? 'bg-amber-400 text-slate-950 border-black'
+                        ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000] font-black'
                         : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white'
                     }`}
                   >
-                    {factor} Days
+                    {factor}d
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div>
-                <label className="text-xs font-bold text-slate-300 block mb-1">
-                  Daily Minimum Wage (₱)
-                </label>
+            {/* Wage Input + Hourly + Monthly Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch">
+              {/* Daily Minimum Wage Input */}
+              <div className="bg-slate-950/90 border border-slate-700 rounded-xl p-3 space-y-1.5 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block font-mono">
+                    Daily Wage Rate (₱)
+                  </label>
+                  <span className="text-[10px] text-amber-400 font-mono">Min. ₱1</span>
+                </div>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-amber-400 font-black font-mono">₱</span>
+                  <span className="absolute left-3 top-2 text-amber-400 font-black font-mono text-base">₱</span>
                   <input
                     type="number"
                     min="1"
@@ -358,80 +384,136 @@ Attribution: Corpuz (Main Creator) et al.`;
                     step="1"
                     value={dailyWage}
                     onChange={(e) => setDailyWage(Math.max(1, Number(e.target.value) || 0))}
-                    className="w-full pl-8 pr-3 py-2 bg-slate-950 border-2 border-slate-600 focus:border-amber-400 rounded-xl font-mono font-black text-amber-300 text-lg outline-none"
+                    className="w-full pl-7 pr-3 py-1.5 bg-slate-900 border-2 border-slate-600 focus:border-amber-400 rounded-xl font-mono font-black text-amber-300 text-base sm:text-lg outline-none"
                   />
+                </div>
+                {/* Quick Nudge Buttons */}
+                <div className="flex items-center gap-1 pt-0.5">
+                  {[
+                    { label: '-50', delta: -50 },
+                    { label: '+10', delta: 10 },
+                    { label: '+50', delta: 50 },
+                  ].map((btn) => (
+                    <button
+                      key={btn.label}
+                      type="button"
+                      onClick={() => {
+                        setDailyWage((prev) => Math.max(1, prev + btn.delta));
+                        marioAudio.playClick();
+                      }}
+                      className="flex-1 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono font-bold border border-slate-700 cursor-pointer"
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-700">
-                <span className="text-[11px] font-mono text-slate-400 block">Equivalent Hourly Rate (÷ 8h)</span>
-                <span className="text-xl font-black font-mono text-emerald-400 tabular-nums">
-                  ₱{hourlyRate.toFixed(2)}/hr
-                </span>
+              {/* Hourly Rate Stat Card */}
+              <div className="bg-slate-950/90 border border-slate-700 rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-mono font-bold text-slate-400 block uppercase tracking-wider">
+                    Equivalent Hourly Rate
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">Daily Wage ÷ 8 hrs (Art. 83)</span>
+                </div>
+                <div className="pt-2">
+                  <span className="text-xl sm:text-2xl font-black font-mono text-emerald-400 tabular-nums block">
+                    ₱{hourlyRate.toFixed(2)}
+                    <span className="text-xs text-slate-400 font-normal">/hr</span>
+                  </span>
+                </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-700">
-                <span className="text-[11px] font-mono text-slate-400 block">Est. Monthly Basic Salary</span>
-                <span className="text-xl font-black font-mono text-sky-400 tabular-nums">
-                  ₱{estimatedMonthlySalary.toFixed(2)}/mo
-                </span>
+              {/* Est. Monthly Basic Stat Card */}
+              <div className="bg-slate-950/90 border border-slate-700 rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <span className="text-[11px] font-mono font-bold text-slate-400 block uppercase tracking-wider">
+                    Est. Monthly Basic
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">Factor {workFactor} days ÷ 12 mos</span>
+                </div>
+                <div className="pt-2">
+                  <span className="text-xl sm:text-2xl font-black font-mono text-sky-400 tabular-nums block">
+                    ₱{estimatedMonthlySalary.toFixed(2)}
+                    <span className="text-xs text-slate-400 font-normal">/mo</span>
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Quick Regional Wage Presets */}
-            <div className="space-y-1.5 pt-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide block">
-                Quick Regional Wage Presets (DOLE RTWPB 2026):
-              </span>
-              <div className="flex flex-wrap gap-1.5">
+            {/* Quick Regional Wage Presets (Grid of 6 - strictly NO horizontal scroll) */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+                  <MarioCoinIcon size={14} />
+                  <span>DOLE Regional Minimum Wage Presets (RTWPB 2026):</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">Tap to set</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {[
-                  { label: 'NCR (Metro Manila)', rate: 645 },
-                  { label: 'Region IV-A (Calabarzon)', rate: 520 },
-                  { label: 'Region III (Central Luzon)', rate: 500 },
-                  { label: 'Region VII (Central Visayas)', rate: 468 },
-                  { label: 'Region XI (Davao)', rate: 462 },
-                  { label: 'BARMM', rate: 361 },
-                ].map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => {
-                      setDailyWage(preset.rate);
-                      marioAudio.playPowerUp();
-                    }}
-                    className={`px-2.5 py-1 rounded-lg border text-xs font-mono font-semibold cursor-pointer ${
-                      dailyWage === preset.rate
-                        ? 'bg-amber-400 text-slate-950 font-black border-black'
-                        : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-amber-400 hover:text-white'
-                    }`}
-                  >
-                    {preset.label}: ₱{preset.rate}
-                  </button>
-                ))}
+                  { label: 'NCR (Manila)', sub: 'Highest', rate: 645 },
+                  { label: 'Region IV-A', sub: 'Calabarzon', rate: 520 },
+                  { label: 'Region III', sub: 'Central Luzon', rate: 500 },
+                  { label: 'Region VII', sub: 'Central Visayas', rate: 468 },
+                  { label: 'Region XI', sub: 'Davao', rate: 462 },
+                  { label: 'BARMM', sub: 'Bangsamoro', rate: 361 },
+                ].map((preset) => {
+                  const isSelected = dailyWage === preset.rate;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setDailyWage(preset.rate);
+                        marioAudio.playPowerUp();
+                      }}
+                      className={`p-2 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        isSelected
+                          ? 'bg-amber-400 text-slate-950 font-black border-black shadow-[0_3px_0_#000]'
+                          : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-400/80 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[11px] font-bold truncate leading-tight">{preset.label}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 shrink-0" />}
+                      </div>
+                      <div className="flex items-baseline justify-between gap-1 mt-1 font-mono">
+                        <span className={`text-xs font-black ${isSelected ? 'text-slate-950' : 'text-amber-300'}`}>
+                          ₱{preset.rate}
+                        </span>
+                        <span className={`text-[9px] ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>
+                          {preset.sub}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex border-b-2 border-slate-700 gap-2 overflow-x-auto scrollbar-thin">
+          {/* Tab Navigation (Segmented Switch - strictly NO horizontal scroll) */}
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-2xl border-2 border-slate-700/80 shadow-inner">
             {[
               {
                 id: 'overtime',
-                fullLabel: 'Overtime & Night Shift (Arts. 86–87)',
+                fullLabel: 'Overtime & NSD (Arts. 86–87)',
                 shortLabel: 'Overtime & NSD',
-                icon: <Clock className="w-3.5 h-3.5 shrink-0" />,
+                icon: <Clock className="w-4 h-4 shrink-0" />,
               },
               {
                 id: 'holidays',
-                fullLabel: 'Holidays & Rest Days (Arts. 93–94)',
+                fullLabel: 'Holidays & Rest (Arts. 93–94)',
                 shortLabel: 'Holidays & Rest',
-                icon: <Calendar className="w-3.5 h-3.5 shrink-0" />,
+                icon: <Calendar className="w-4 h-4 shrink-0" />,
               },
               {
                 id: 'benefits',
-                fullLabel: '13th Month & Retirement (Art. 302)',
+                fullLabel: '13th Mo. & Retire (Art. 302)',
                 shortLabel: '13th Mo. & Retire',
-                icon: <ShieldCheck className="w-3.5 h-3.5 shrink-0" />,
+                icon: <ShieldCheck className="w-4 h-4 shrink-0" />,
               },
             ].map((tab) => (
               <button
@@ -441,15 +523,15 @@ Attribution: Corpuz (Main Creator) et al.`;
                   setCalcTab(tab.id as any);
                   marioAudio.playTabSwitch();
                 }}
-                className={`px-3.5 py-2 font-black text-xs rounded-t-xl border-t-2 border-x-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer shrink-0 ${
+                className={`min-h-[44px] py-2 px-1.5 font-black text-xs rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center cursor-pointer ${
                   calcTab === tab.id
-                    ? 'bg-slate-800 text-amber-300 border-amber-400'
-                    : 'bg-slate-950 text-slate-400 border-transparent hover:text-slate-200'
+                    ? 'bg-amber-400 text-slate-950 shadow-[0_2px_0_#000] border-2 border-black'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900 border-2 border-transparent'
                 }`}
               >
                 {tab.icon}
-                <span className="hidden sm:inline">{tab.fullLabel}</span>
-                <span className="sm:hidden">{tab.shortLabel}</span>
+                <span className="hidden md:inline leading-tight font-display">{tab.fullLabel}</span>
+                <span className="md:hidden leading-tight font-display text-[11px]">{tab.shortLabel}</span>
               </button>
             ))}
           </div>
@@ -458,64 +540,154 @@ Attribution: Corpuz (Main Creator) et al.`;
           {calcTab === 'overtime' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">Regular Day Hours</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="8"
-                    value={regularHours}
-                    onChange={(e) => setRegularHours(Math.max(1, Math.min(8, Number(e.target.value) || 0)))}
-                    className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
-                  />
-                  <span className="text-[10px] text-slate-400 block">Max 8 hrs under Art. 83</span>
+                {/* Regular Day Hours */}
+                <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-200 block">Regular Day Hours</label>
+                      <span className="text-[10px] text-amber-400 font-mono font-bold">100% Rate</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">Standard 8h under Art. 83</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegularHours((h) => Math.max(1, h - 1));
+                        marioAudio.playClick();
+                      }}
+                      className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-750 text-white font-black text-lg border border-slate-700 flex items-center justify-center cursor-pointer active:scale-95"
+                    >
+                      -
+                    </button>
+                    <div className="font-mono font-black text-amber-300 text-xl text-center flex-1">
+                      {regularHours} <span className="text-xs text-slate-400 font-normal">hrs</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegularHours((h) => Math.min(8, h + 1));
+                        marioAudio.playClick();
+                      }}
+                      className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-750 text-white font-black text-lg border border-slate-700 flex items-center justify-center cursor-pointer active:scale-95"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-950/80 text-[11px] font-mono flex items-center justify-between">
+                    <span className="text-slate-400">Regular Pay:</span>
+                    <span className="text-emerald-400 font-black">₱{(hourlyRate * regularHours).toFixed(2)}</span>
+                  </div>
                 </div>
 
-                <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">Ordinary Overtime Hours</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="16"
-                    value={ordinaryOtHours}
-                    onChange={(e) => setOrdinaryOtHours(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
-                  />
-                  <span className="text-[10px] text-slate-400 block">+25% premium (125%)</span>
+                {/* Ordinary Overtime */}
+                <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-200 block">Ordinary Overtime Hours</label>
+                      <span className="text-[10px] text-emerald-400 font-mono font-bold">+25% (125%)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">Hours beyond 8h (Art. 87)</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOrdinaryOtHours((h) => Math.max(0, h - 1));
+                        marioAudio.playClick();
+                      }}
+                      className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-750 text-white font-black text-lg border border-slate-700 flex items-center justify-center cursor-pointer active:scale-95"
+                    >
+                      -
+                    </button>
+                    <div className="font-mono font-black text-amber-300 text-xl text-center flex-1">
+                      {ordinaryOtHours} <span className="text-xs text-slate-400 font-normal">hrs</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOrdinaryOtHours((h) => Math.min(16, h + 1));
+                        marioAudio.playClick();
+                      }}
+                      className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-750 text-white font-black text-lg border border-slate-700 flex items-center justify-center cursor-pointer active:scale-95"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-950/80 text-[11px] font-mono flex items-center justify-between">
+                    <span className="text-slate-400">OT Pay (125%):</span>
+                    <span className="text-emerald-400 font-black">₱{(hourlyRate * ordinaryOtHours * 1.25).toFixed(2)}</span>
+                  </div>
                 </div>
 
-                <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">Night Diff Hours (10PM–6AM)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="8"
-                    value={nightDiffHours}
-                    onChange={(e) => setNightDiffHours(Math.max(0, Math.min(8, Number(e.target.value) || 0)))}
-                    className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
-                  />
-                  <span className="text-[10px] text-slate-400 block">+10% premium under Art. 86</span>
+                {/* Night Differential */}
+                <div className="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-200 block">Night Diff Hours (10PM–6AM)</label>
+                      <span className="text-[10px] text-sky-400 font-mono font-bold">+10% Premium</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">10PM to 6AM (Art. 86)</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNightDiffHours((h) => Math.max(0, h - 1));
+                        marioAudio.playClick();
+                      }}
+                      className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-750 text-white font-black text-lg border border-slate-700 flex items-center justify-center cursor-pointer active:scale-95"
+                    >
+                      -
+                    </button>
+                    <div className="font-mono font-black text-amber-300 text-xl text-center flex-1">
+                      {nightDiffHours} <span className="text-xs text-slate-400 font-normal">hrs</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNightDiffHours((h) => Math.min(8, h + 1));
+                        marioAudio.playClick();
+                      }}
+                      className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-750 text-white font-black text-lg border border-slate-700 flex items-center justify-center cursor-pointer active:scale-95"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="p-2 rounded-lg bg-slate-950/80 text-[11px] font-mono flex items-center justify-between">
+                    <span className="text-slate-400">NSD Premium:</span>
+                    <span className="text-sky-400 font-black">+₱{(hourlyRate * nightDiffHours * 0.1).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
 
               {/* Total Day Pay Simulation Box */}
-              <div className="bg-gradient-to-br from-slate-800 via-slate-850 to-slate-900 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="space-y-1">
+              <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+                <div className="space-y-1.5 min-w-0">
                   <span className="text-xs font-mono font-bold uppercase text-emerald-400 flex items-center gap-1.5">
                     <MarioSuperStarIcon size={16} />
-                    <span>Combined Single Shift Pay Estimate</span>
+                    <span>Combined Shift Total Pay Estimate</span>
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-black text-white">
+                  <h3 className="text-2xl sm:text-3xl font-black text-white font-mono">
                     ₱{(hourlyRate * regularHours + hourlyRate * ordinaryOtHours * 1.25 + hourlyRate * nightDiffHours * 0.1).toFixed(2)}
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Includes {regularHours}h regular + {ordinaryOtHours}h overtime + {nightDiffHours}h night shift premium.
+                    Includes {regularHours}h regular wage + {ordinaryOtHours}h overtime (+25%) + {nightDiffHours}h night shift premium (+10%).
                   </p>
                 </div>
-                <div className="text-right font-mono text-xs text-slate-400 shrink-0">
-                  <div>Base: ₱{(hourlyRate * regularHours).toFixed(2)}</div>
-                  <div>OT (+25%): ₱{(hourlyRate * ordinaryOtHours * 1.25).toFixed(2)}</div>
-                  <div>NSD (+10%): +₱{(hourlyRate * nightDiffHours * 0.1).toFixed(2)}</div>
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-right font-mono text-xs text-slate-400 shrink-0 space-y-1 w-full sm:w-auto">
+                  <div className="flex justify-between sm:justify-end gap-3">
+                    <span>Base (8h):</span>
+                    <span className="text-slate-200 font-bold">₱{(hourlyRate * regularHours).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between sm:justify-end gap-3">
+                    <span>OT (125%):</span>
+                    <span className="text-emerald-400 font-bold">₱{(hourlyRate * ordinaryOtHours * 1.25).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between sm:justify-end gap-3">
+                    <span>NSD (+10%):</span>
+                    <span className="text-sky-400 font-bold">+₱{(hourlyRate * nightDiffHours * 0.1).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -525,26 +697,48 @@ Attribution: Corpuz (Main Creator) et al.`;
           {calcTab === 'holidays' && (
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {scenarios.slice(3).map((sc) => (
-                  <div
-                    key={sc.id}
-                    className="bg-slate-800 border border-slate-700 hover:border-amber-400/80 rounded-xl p-3.5 space-y-1.5 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-bold text-xs text-white leading-tight">{sc.label}</span>
-                      <span className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[11px] font-mono shrink-0">
-                        {sc.multiplierDisplay}
-                      </span>
+                {scenarios.slice(3).map((sc) => {
+                  const isHighRate = sc.multiplier >= 3.0;
+                  const isDoublePay = sc.multiplier === 2.0;
+                  return (
+                    <div
+                      key={sc.id}
+                      className={`rounded-2xl p-3.5 space-y-2 transition-all border-2 ${
+                        isHighRate
+                          ? 'bg-gradient-to-br from-purple-950/60 via-slate-900 to-slate-900 border-purple-500/80 shadow-md'
+                          : isDoublePay
+                          ? 'bg-gradient-to-br from-emerald-950/60 via-slate-900 to-slate-900 border-emerald-500/80'
+                          : 'bg-slate-800/90 border-slate-700 hover:border-amber-400/80'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-bold text-xs sm:text-[13px] text-white leading-snug break-words">
+                          {sc.label}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-lg font-black text-[11px] font-mono shrink-0 border ${
+                            isHighRate
+                              ? 'bg-purple-400 text-slate-950 border-purple-200 font-black shadow-xs'
+                              : isDoublePay
+                              ? 'bg-emerald-400 text-slate-950 border-emerald-200 font-black shadow-xs'
+                              : 'bg-amber-400 text-slate-950 border-amber-300 font-bold'
+                          }`}
+                        >
+                          {sc.multiplierDisplay}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline justify-between gap-2 font-mono pt-1">
+                        <span className="text-lg font-black text-amber-300">
+                          ₱{sc.totalPesos.toFixed(2)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-semibold">{sc.citation}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-mono bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800">
+                        {sc.formulaDescription}
+                      </p>
                     </div>
-                    <div className="flex items-baseline justify-between gap-2 font-mono">
-                      <span className="text-sm font-black text-emerald-400">
-                        ₱{sc.totalPesos.toFixed(2)}
-                      </span>
-                      <span className="text-[10px] text-slate-400">{sc.citation}</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-400 font-mono">{sc.formulaDescription}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -554,60 +748,108 @@ Attribution: Corpuz (Main Creator) et al.`;
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* 13th Month Pay Card */}
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+                <div className="bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-4 space-y-3 shadow-md flex flex-col justify-between">
                   <div className="flex items-center gap-2 border-b border-slate-700 pb-2">
-                    <MarioCoinIcon size={18} />
-                    <span className="font-black text-sm uppercase text-amber-300">
+                    <MarioCoinIcon size={20} />
+                    <span className="font-black text-sm uppercase text-amber-300 font-display">
                       13th Month Pay (P.D. 851)
                     </span>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-300 block mb-1">Months Worked in Calendar Year</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      value={monthsWorkedInYear}
-                      onChange={(e) => setMonthsWorkedInYear(Math.max(1, Math.min(12, Number(e.target.value) || 0)))}
-                      className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
-                    />
+                    <label className="text-xs text-slate-300 block mb-1 font-bold">
+                      Months Worked in Calendar Year (1–12):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMonthsWorkedInYear((m) => Math.max(1, m - 1));
+                          marioAudio.playClick();
+                        }}
+                        className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-750 text-white font-bold border border-slate-700 flex items-center justify-center cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="12"
+                        value={monthsWorkedInYear}
+                        onChange={(e) => setMonthsWorkedInYear(Math.max(1, Math.min(12, Number(e.target.value) || 0)))}
+                        className="w-full text-center px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMonthsWorkedInYear((m) => Math.min(12, m + 1));
+                          marioAudio.playClick();
+                        }}
+                        className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-750 text-white font-bold border border-slate-700 flex items-center justify-center cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div className="p-3 bg-slate-900 rounded-lg">
-                    <span className="text-[11px] text-slate-400 block font-mono">Computed 13th Month Pay:</span>
-                    <span className="text-2xl font-black font-mono text-emerald-400">
+                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-0.5">
+                    <span className="text-[11px] text-slate-400 block font-mono font-bold">Computed 13th Month Pay:</span>
+                    <span className="text-2xl font-black font-mono text-emerald-400 block">
                       ₱{thirteenthMonthPay.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-slate-500 block mt-0.5">
-                      Formula: (Total basic salary earned in year) ÷ 12
+                    <span className="text-[10px] text-slate-500 block">
+                      Formula: (Estimated Monthly Basic × {monthsWorkedInYear}) ÷ 12
                     </span>
                   </div>
                 </div>
 
                 {/* Retirement Pay Card (Art. 302) */}
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+                <div className="bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-4 space-y-3 shadow-md flex flex-col justify-between">
                   <div className="flex items-center gap-2 border-b border-slate-700 pb-2">
-                    <MarioMushroomIcon size={18} variant="1up" />
-                    <span className="font-black text-sm uppercase text-amber-300">
-                      Retirement Pay (Art. 302)
+                    <MarioMushroomIcon size={20} variant="1up" />
+                    <span className="font-black text-sm uppercase text-amber-300 font-display">
+                      Retirement Pay (Art. 302 / R.A. 7641)
                     </span>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-300 block mb-1">Years of Service (Fraction ≥ 6 mos = 1 yr)</label>
-                    <input
-                      type="number"
-                      min="5"
-                      max="50"
-                      value={yearsOfService}
-                      onChange={(e) => setYearsOfService(Math.max(5, Number(e.target.value) || 5))}
-                      className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
-                    />
+                    <label className="text-xs text-slate-300 block mb-1 font-bold">
+                      Years of Service (Fraction ≥ 6 mos = 1 yr):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearsOfService((y) => Math.max(5, y - 1));
+                          marioAudio.playClick();
+                        }}
+                        className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-750 text-white font-bold border border-slate-700 flex items-center justify-center cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="5"
+                        max="50"
+                        value={yearsOfService}
+                        onChange={(e) => setYearsOfService(Math.max(5, Number(e.target.value) || 5))}
+                        className="w-full text-center px-3 py-1.5 bg-slate-900 border border-slate-600 rounded-lg font-mono font-bold text-amber-300 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearsOfService((y) => Math.min(50, y + 1));
+                          marioAudio.playClick();
+                        }}
+                        className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-750 text-white font-bold border border-slate-700 flex items-center justify-center cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div className="p-3 bg-slate-900 rounded-lg space-y-1">
-                    <span className="text-[11px] text-slate-400 block font-mono">Total Statutory Retirement Pay:</span>
-                    <span className="text-2xl font-black font-mono text-amber-300">
+                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                    <span className="text-[11px] text-slate-400 block font-mono font-bold">Total Statutory Retirement Pay:</span>
+                    <span className="text-2xl font-black font-mono text-amber-300 block">
                       ₱{totalRetirementPay.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-slate-400 block">
+                    <span className="text-[10px] text-slate-400 block leading-tight">
                       22.5 days/yr: 15d basic + 2.5d (5d SIL) + 4.17d (1/12 13th mo) = ₱{oneHalfMonthRetirement.toFixed(2)}/yr
                     </span>
                   </div>
@@ -615,9 +857,9 @@ Attribution: Corpuz (Main Creator) et al.`;
               </div>
 
               {/* Service Incentive Leave (SIL) 5 Days */}
-              <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs">
+              <div className="bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
                 <div>
-                  <span className="font-black uppercase text-amber-300 block">
+                  <span className="font-black uppercase text-amber-300 block font-display">
                     Service Incentive Leave (SIL) Cash Value (Art. 95)
                   </span>
                   <p className="text-slate-400 text-[11px]">
@@ -631,23 +873,23 @@ Attribution: Corpuz (Main Creator) et al.`;
               </div>
 
               {/* Statutory Retirement Age Benchmarks Callout */}
-              <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 text-xs space-y-2">
+              <div className="bg-slate-850 border-2 border-slate-700 rounded-2xl p-4 text-xs space-y-2.5">
                 <div className="flex items-center gap-2">
-                  <MarioFireFlowerIcon size={16} />
-                  <span className="font-black uppercase text-amber-300 tracking-wide">
+                  <MarioFireFlowerIcon size={18} />
+                  <span className="font-black uppercase text-amber-300 tracking-wide font-display">
                     Statutory Retirement Age Milestones (Art. 302 / R.A. 7641 &amp; R.A. 10757)
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300">
-                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-700 space-y-0.5">
-                    <span className="font-bold text-amber-300 block">General Private Sector:</span>
-                    <div>Optional: <span className="font-mono text-emerald-400 font-bold">60 years old</span> (min. 5 yrs service)</div>
-                    <div>Compulsory: <span className="font-mono text-amber-400 font-bold">65 years old</span></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[11px] text-slate-300">
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 space-y-1">
+                    <span className="font-bold text-amber-300 block text-xs">General Private Sector:</span>
+                    <div>Optional Retirement: <span className="font-mono text-emerald-400 font-bold">60 years old</span> (at least 5 yrs service)</div>
+                    <div>Compulsory Retirement: <span className="font-mono text-amber-400 font-bold">65 years old</span></div>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-700 space-y-0.5">
-                    <span className="font-bold text-amber-300 block">Underground / Surface Miners (R.A. 10757):</span>
-                    <div>Optional: <span className="font-mono text-emerald-400 font-bold">50 years old</span> (min. 5 yrs service)</div>
-                    <div>Compulsory: <span className="font-mono text-amber-400 font-bold">60 years old</span></div>
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 space-y-1">
+                    <span className="font-bold text-amber-300 block text-xs">Underground / Surface Miners (R.A. 10757):</span>
+                    <div>Optional Retirement: <span className="font-mono text-emerald-400 font-bold">50 years old</span> (at least 5 yrs service)</div>
+                    <div>Compulsory Retirement: <span className="font-mono text-amber-400 font-bold">60 years old</span></div>
                   </div>
                 </div>
               </div>
@@ -656,15 +898,24 @@ Attribution: Corpuz (Main Creator) et al.`;
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-slate-950 px-4 py-3 sm:px-6 border-t-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400">
+        <div className="bg-slate-950 px-4 py-3 sm:px-6 border-t-2 border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shrink-0">
           <span>Labor Code of the Philippines (P.D. No. 442) · DOLE BWC Guidelines</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-600 font-bold cursor-pointer"
-          >
-            Close Calculator
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopySummary}
+              className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg font-black text-xs cursor-pointer"
+            >
+              Copy Pay Slip
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-white rounded-lg border border-slate-600 font-bold cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

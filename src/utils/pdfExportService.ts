@@ -3287,22 +3287,32 @@ export function buildStudyGuideReviewerPdfBytes(
         addThemedPage();
       }
 
-      // TOP HORIZONTAL BORDER ONLY (border-y border-slate-300 bg-white)
-      // Strictly ZERO vertical lines on the left or right sides!
-      doc.setDrawColor(203, 213, 225); // slate-300
-      doc.setLineWidth(0.35);
-      doc.line(marginX, y, pageW - marginX, y);
-
-      const cardPadX = 2.0;
+      const cardPadX = 2.5;
       const innerW = contentW - cardPadX * 2;
-      let curY = y + 2.5;
+      const checkPrefix = params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
+      const fullTitleStr = `${checkPrefix}${topic.title}`;
+      const titleLines = doc.splitTextToSize(sanitizePdfText(fullTitleStr), innerW - 28);
+      const hasBadge = params.includeLegalCitations !== false && Boolean(topic.badge);
+      const headerBoxH = titleLines.length * (4.6 * scale) + (hasBadge ? 6.2 : 3.8);
+
+      // Editorial Card Header Box with left accent and subtle tint
+      doc.setFillColor(248, 250, 252); // slate-50
+      doc.setDrawColor(203, 213, 225); // slate-300
+      doc.setLineWidth(0.28);
+      doc.roundedRect(marginX, y, contentW, headerBoxH, 1.4, 1.4, 'FD');
+      // Left accent strip
+      doc.setFillColor(...theme.primary);
+      doc.rect(marginX, y, 1.6, headerBoxH, 'F');
+
+      let curY = y + 2.2;
 
       // 1. Module Header
-      if (params.includeLegalCitations !== false && topic.badge) {
+      if (hasBadge) {
+        drawVectorMarioStar(doc, marginX + cardPadX + 1.2, curY + 1.2, 1.0, [245, 158, 11], [180, 83, 9]);
         doc.setTextColor(71, 85, 105); // slate-600
         doc.setFont(ff, fp.headingStyle);
         doc.setFontSize(7.0 * scale);
-        doc.text(`STATUTORY BASIS: ${topic.badge.toUpperCase()}`, marginX + cardPadX, curY + 2.2);
+        doc.text(`STATUTORY BASIS: ${topic.badge.toUpperCase()}`, marginX + cardPadX + 3.8, curY + 2.0);
         curY += 3.6;
       }
 
@@ -3310,9 +3320,6 @@ export function buildStudyGuideReviewerPdfBytes(
       doc.setTextColor(...theme.bodyText);
       doc.setFont(ff, fp.headingStyle);
       doc.setFontSize(11.2 * scale);
-      const checkPrefix = params.includeCheckboxes !== false ? (isDone ? '[x] ' : '[ ] ') : '';
-      const fullTitleStr = `${checkPrefix}${topic.title}`;
-      const titleLines = doc.splitTextToSize(sanitizePdfText(fullTitleStr), innerW - 28);
       doc.text(titleLines, marginX + cardPadX, curY + 3.4);
 
       // Status pill on right
@@ -3323,15 +3330,9 @@ export function buildStudyGuideReviewerPdfBytes(
         doc.text('[MASTERED]', pageW - marginX - cardPadX, curY + 3.4, { align: 'right' });
       } else {
         doc.setTextColor(100, 116, 139); // slate-500
-        doc.text('[  TO REVIEW]', pageW - marginX - cardPadX, curY + 3.4, { align: 'right' });
+        doc.text('[TO REVIEW]', pageW - marginX - cardPadX, curY + 3.4, { align: 'right' });
       }
-      curY += titleLines.length * (4.6 * scale) + 1.4;
-
-      // Subtle divider line
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.18);
-      doc.line(marginX + cardPadX, curY, pageW - marginX - cardPadX, curY);
-      curY += 2.2;
+      curY = y + headerBoxH + 2.5;
 
       // Helper to check page boundaries inside a module
       const checkSubBlockSpace = (subH: number) => {
@@ -3366,25 +3367,30 @@ export function buildStudyGuideReviewerPdfBytes(
 
       // 3. Core Rule Summary
       if (!params.matricesOnlyMode && topic.summary) {
-        doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(8.4 * scale);
-        const labelW = Math.ceil(doc.getTextWidth('Core Rule: ') * 10) / 10 + 1.6;
         doc.setFont(ff, fp.bodyStyle);
         doc.setFontSize(8.0 * scale);
-        const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - labelW);
-        const ruleH = sumLines.length * (3.9 * scale) + 2.2;
+        const sumLines = doc.splitTextToSize(sanitizePdfText(cleanRuleText(topic.summary)), innerW - 6.0);
+        const ruleH = sumLines.length * (3.8 * scale) + 6.2;
         checkSubBlockSpace(ruleH);
 
+        // Core Rule highlight box with amber left accent
+        doc.setFillColor(254, 252, 232); // amber-50
+        doc.setDrawColor(251, 191, 36); // amber-400
+        doc.setLineWidth(0.18);
+        doc.roundedRect(marginX + cardPadX, curY, innerW, ruleH, 1.0, 1.0, 'FD');
+        doc.setFillColor(245, 158, 11); // amber-500
+        doc.rect(marginX + cardPadX, curY, 1.4, ruleH, 'F');
+
         doc.setFont(ff, fp.headingStyle);
-        doc.setFontSize(8.4 * scale);
-        doc.setTextColor(15, 23, 42); // slate-950
-        doc.text('Core Rule: ', marginX + cardPadX, curY + 3.0);
+        doc.setFontSize(7.8 * scale);
+        doc.setTextColor(180, 83, 9); // amber-700
+        doc.text('CORE STATUTORY RULE:', marginX + cardPadX + 3.6, curY + 3.2);
 
         doc.setFont(ff, fp.bodyStyle);
         doc.setFontSize(8.0 * scale);
         doc.setTextColor(30, 41, 59); // slate-800
-        doc.text(sumLines, marginX + cardPadX + labelW, curY + 3.0);
-        curY += ruleH;
+        doc.text(sumLines, marginX + cardPadX + 3.6, curY + 6.8);
+        curY += ruleH + 2.2;
       }
 
       // 4. Controlling Jurisprudence
@@ -3433,18 +3439,27 @@ export function buildStudyGuideReviewerPdfBytes(
         : topic.rules;
 
       rules.forEach((rule, rIdx) => {
-        // Heading
+        // Heading with Gold Mario Coin Circular Number Badge
         const rHead = doc.splitTextToSize(
-          sanitizePdfText(`${rIdx + 1}. ${cleanRuleText(rule.heading)}`),
-          innerW
+          sanitizePdfText(cleanRuleText(rule.heading)),
+          innerW - 6.5
         );
         const headingH = rHead.length * (4.2 * scale) + 1.2;
         checkSubBlockSpace(headingH + 6.0);
 
+        doc.setFillColor(251, 191, 36);
+        doc.setDrawColor(217, 119, 6);
+        doc.setLineWidth(0.18);
+        doc.circle(marginX + cardPadX + 2.0, curY + 2.2, 1.8, 'FD');
+        doc.setTextColor(120, 53, 15);
+        doc.setFont(ff, fp.headingStyle);
+        doc.setFontSize(5.2 * scale);
+        doc.text(String(rIdx + 1), marginX + cardPadX + 2.0, curY + 2.9, { align: 'center' });
+
         doc.setTextColor(15, 23, 42); // slate-950
         doc.setFont(ff, fp.headingStyle);
         doc.setFontSize(9.0 * scale);
-        doc.text(rHead, marginX + cardPadX, curY + 3.2);
+        doc.text(rHead, marginX + cardPadX + 5.5, curY + 3.2);
         curY += headingH;
 
         // Description

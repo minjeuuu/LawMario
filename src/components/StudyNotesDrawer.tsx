@@ -1298,18 +1298,21 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                             line.startsWith('Controlling statutory doctrine:') ||
                             line.startsWith('Controlling Rule:');
                           const isTakeaway = line.startsWith('Takeaway distinction:');
+                          const isScenario = line.startsWith('Problem Scenario:');
                           const isRef = line.includes('Ref: qerr_') || line.includes('Ref: statute_');
                           return (
                             <div
                               key={`${note.id}-line-${lineIdx}`}
                               data-testid={`note-line-${note.id}-${lineIdx}`}
-                              className={`flex items-start justify-between gap-2 rounded-xl px-2 py-1 transition-colors ${
+                              className={`flex items-start justify-between gap-2 rounded-xl px-2.5 py-1.5 transition-colors ${
                                 isStarred
                                   ? 'bg-amber-950/60 border-l-3 border-amber-400 pl-2'
                                   : isControlling
-                                  ? 'bg-emerald-950/40 border-l-2 border-emerald-400'
+                                  ? 'bg-emerald-950/50 border-l-3 border-emerald-400'
                                   : isTakeaway
-                                  ? 'bg-amber-950/30 border-l-2 border-amber-400'
+                                  ? 'bg-rose-950/40 border-l-3 border-rose-400'
+                                  : isScenario
+                                  ? 'bg-slate-900/80 border-l-2 border-slate-600'
                                   : ''
                               }`}
                             >
@@ -1320,7 +1323,9 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                                     : isControlling
                                     ? 'text-emerald-300 font-semibold'
                                     : isTakeaway
-                                    ? 'text-amber-200 font-medium'
+                                    ? 'text-rose-200 font-medium'
+                                    : isScenario
+                                    ? 'text-slate-300 italic'
                                     : isRef
                                     ? 'text-[11px] font-mono text-slate-400'
                                     : 'text-slate-200'

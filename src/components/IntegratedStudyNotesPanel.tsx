@@ -12,6 +12,8 @@ import {
   MicOff,
   Sparkles,
   BookOpen,
+  X,
+  AlertCircle,
 } from 'lucide-react';
 import {
   StudyNoteItem,
@@ -487,9 +489,100 @@ export const IntegratedStudyNotesPanel: React.FC<IntegratedStudyNotesPanelProps>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
-                {note.content}
-              </p>
+              {/* Note Content / High-Yield Mnemonic Breakdown */}
+              {(() => {
+                const isErrorMnemonic =
+                  note.content.includes('Controlling statutory doctrine:') ||
+                  note.content.includes('Takeaway distinction:') ||
+                  note.title.includes('Mnemonic');
+
+                if (!isErrorMnemonic) {
+                  return (
+                    <p className="text-xs text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
+                      {note.content}
+                    </p>
+                  );
+                }
+
+                const lines = note.content.split('\n');
+                return (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center gap-1 text-[9.5px] font-black uppercase tracking-wider text-amber-400 font-mono pb-0.5">
+                      <Sparkles className="w-3 h-3 text-amber-400" />
+                      <span>Statutory Mnemonic &amp; Error Note</span>
+                    </div>
+                    {lines.map((line, lIdx) => {
+                      const trimmed = line.trim();
+                      if (!trimmed) return null;
+
+                      if (trimmed.startsWith('Controlling statutory doctrine:')) {
+                        const ruleText = trimmed.replace('Controlling statutory doctrine:', '').trim();
+                        return (
+                          <div
+                            key={lIdx}
+                            className="bg-emerald-950/70 border-l-3 border-emerald-400 rounded-r-xl p-2.5 text-xs text-emerald-200 font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                          >
+                            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <span className="font-bold uppercase tracking-wider text-[10px] text-emerald-300 block font-mono">
+                                Controlling Rule:
+                              </span>
+                              <span>{ruleText}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (trimmed.startsWith('Takeaway distinction:')) {
+                        const takeawayText = trimmed.replace('Takeaway distinction:', '').trim();
+                        return (
+                          <div
+                            key={lIdx}
+                            className="bg-rose-950/50 border-l-3 border-rose-400 rounded-r-xl p-2.5 text-xs text-rose-200 font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                          >
+                            <X className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <span className="font-bold uppercase tracking-wider text-[10px] text-rose-300 block font-mono">
+                                Missed Answer Distinction:
+                              </span>
+                              <span>{takeawayText}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (trimmed.startsWith('Problem Scenario:')) {
+                        const scenText = trimmed.replace('Problem Scenario:', '').trim();
+                        return (
+                          <div
+                            key={lIdx}
+                            className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-2 text-[11px] text-slate-300 leading-relaxed italic"
+                          >
+                            <span className="font-bold not-italic text-slate-400 uppercase text-[9.5px] block font-mono">
+                              Scenario:
+                            </span>
+                            <span>{scenText}</span>
+                          </div>
+                        );
+                      }
+
+                      if (trimmed.includes('Ref: qerr_') || trimmed.includes('Ref: statute_')) {
+                        return (
+                          <div key={lIdx} className="text-[9.5px] font-mono text-slate-500 pt-0.5">
+                            {trimmed}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <p key={lIdx} className="text-xs text-slate-200 leading-relaxed font-medium">
+                          {line}
+                        </p>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
 
               <span className="text-[9px] font-mono text-slate-500 block pt-1">
                 Updated {new Date(note.updatedAt).toLocaleDateString()}

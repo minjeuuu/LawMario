@@ -3476,52 +3476,71 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           return (
                             <article
                               key={topic.id}
-                              className={`border-y sm:border-y border-slate-300 bg-white ${
-                                isCompact ? 'p-3 space-y-2' : 'p-4 space-y-3'
-                              } break-inside-avoid print:break-inside-avoid ${twoColumnLayout ? 'mb-4 inline-block w-full' : ''} ${
+                              className={`border-2 border-slate-300 rounded-2xl bg-white shadow-xs overflow-hidden ${
+                                isCompact ? 'p-3 sm:p-4 space-y-2.5' : 'p-4 sm:p-5 space-y-3.5'
+                              } break-inside-avoid print:break-inside-avoid my-3.5 ${twoColumnLayout ? 'mb-4 inline-block w-full' : ''} ${
                                 formatOptions.pageBreakPerModule && topicIdx > 0
                                   ? 'print-module-break'
                                   : ''
                               }`}
                             >
-                              {/* Module Header */}
-                              <div className="flex items-start justify-between gap-3 border-b border-slate-300 pb-2 break-inside-avoid">
-                                <div className="space-y-0.5">
+                              {/* Module Header Strip */}
+                              <div className={`${
+                                isCompact ? '-mx-3 -mt-3 px-3 py-2 sm:-mx-4 sm:-mt-4 sm:px-4 sm:py-2.5' : '-mx-4 -mt-4 px-4 py-2.5 sm:-mx-5 sm:-mt-5 sm:px-5 sm:py-3'
+                              } bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 border-b-2 border-slate-200 flex items-start justify-between gap-3 break-inside-avoid`}>
+                                <div className="space-y-1 min-w-0">
                                   {formatOptions.includeLegalCitations && (
-                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
-                                      Statutory Basis: {topic.badge}
-                                    </span>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900 text-amber-300 font-mono text-[9.5px] font-black uppercase tracking-wider shadow-2xs">
+                                        <MarioCoinIcon size={11} />
+                                        <span>Statutory Basis: {topic.badge}</span>
+                                      </span>
+                                    </div>
                                   )}
                                   <h4
                                     className={`font-black ${
                                       isCompact ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                                    } text-slate-950 leading-snug`}
+                                    } text-slate-950 leading-snug font-display`}
                                   >
                                     {topic.title}
                                   </h4>
                                 </div>
-                                <span className="text-xs font-mono font-semibold text-slate-700 shrink-0 tabular-nums">
-                                  {isDone ? '[MASTERED]' : '[  TO REVIEW]'}
+                                <span className={`text-[11px] font-mono font-black shrink-0 tabular-nums px-2.5 py-1 rounded-lg border flex items-center gap-1 ${
+                                  isDone
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-400'
+                                    : 'bg-slate-100 text-slate-700 border-slate-300'
+                                }`}>
+                                  {isDone && <MarioSuperStarIcon size={12} />}
+                                  <span>{isDone ? '[MASTERED]' : '[TO REVIEW]'}</span>
                                 </span>
                               </div>
 
                               {/* Mario Executive Takeaway */}
                               {!matricesOnlyMode && includeExecutiveMarioSummary && topic.beginnerSummary && (
-                                <div className="bg-amber-50/80 border border-amber-300 rounded-lg p-2.5 text-xs sm:text-sm text-amber-950 font-medium break-inside-avoid">
-                                  <strong className="font-bold text-amber-900 uppercase">Mario Executive Takeaway:</strong>{' '}
-                                  {topic.beginnerSummary}
+                                <div className="bg-gradient-to-r from-amber-50 via-amber-100/70 to-amber-50 border-2 border-amber-300/90 rounded-xl p-3 text-xs sm:text-sm text-amber-950 font-medium break-inside-avoid shadow-2xs flex items-start gap-2.5">
+                                  <MarioSuperStarIcon size={16} className="shrink-0 mt-0.5 text-amber-600" />
+                                  <div className="space-y-0.5 flex-1 min-w-0">
+                                    <strong className="font-black text-amber-900 uppercase text-[11px] font-mono tracking-wide block">
+                                      Mario Executive Takeaway:
+                                    </strong>
+                                    <p className="leading-relaxed">{topic.beginnerSummary}</p>
+                                  </div>
                                 </div>
                               )}
 
-                              {/* Summary */}
+                              {/* Core Codal Rule Box */}
                               {!matricesOnlyMode && (
-                                <p className="text-slate-900 leading-relaxed text-xs sm:text-sm">
-                                  <strong className="font-bold">Core Rule:</strong>{' '}
-                                  {stripInlineLegalCitations(
-                                    topic.summary,
-                                    formatOptions.includeLegalCitations
-                                  )}
-                                </p>
+                                <div className="bg-slate-50/80 border-l-4 border-amber-500 rounded-r-xl p-3 text-slate-900 leading-relaxed text-xs sm:text-sm space-y-0.5 shadow-2xs break-inside-avoid">
+                                  <strong className="font-black text-amber-900 uppercase text-[10.5px] font-mono tracking-wider block">
+                                    Core Statutory Rule:
+                                  </strong>
+                                  <p className="text-slate-900 leading-relaxed">
+                                    {stripInlineLegalCitations(
+                                      topic.summary,
+                                      formatOptions.includeLegalCitations
+                                    )}
+                                  </p>
+                                </div>
                               )}
 
                               {/* Key Doctrines & Jurisprudence */}
@@ -3530,12 +3549,10 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                 topic.keyDoctrines &&
                                 topic.keyDoctrines.length > 0 && (
                                   <div
-                                    className={`${subtleBoxClass} border rounded-lg ${
-                                      isCompact ? 'p-2 space-y-0.5' : 'p-2.5 space-y-1'
-                                    } break-inside-avoid`}
+                                    className="bg-slate-50/90 border-l-4 border-slate-700 rounded-r-xl p-3 space-y-1.5 shadow-2xs break-inside-avoid"
                                   >
-                                    <span className="font-bold text-slate-950 block text-xs sm:text-[13px] uppercase tracking-wide">
-                                      Controlling Jurisprudence &amp; Legal Citations
+                                    <span className="font-black text-slate-950 block text-xs sm:text-[13px] uppercase tracking-wide font-display">
+                                      Controlling Jurisprudence &amp; Legal Precedents
                                     </span>
                                     <ul className="list-disc pl-4 space-y-1 text-slate-900 text-xs sm:text-sm">
                                       {topic.keyDoctrines.map((d, dIdx) => (
@@ -3560,12 +3577,14 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                                       rule.tableData ? '' : 'break-inside-avoid'
                                     } ${rule.tableData && isCompact ? 'md:col-span-2' : ''}`}
                                   >
-                                    <span className="font-black text-slate-950 flex items-start gap-1.5 break-after-avoid text-sm sm:text-base">
+                                    <span className="font-black text-slate-950 flex items-start gap-2 break-after-avoid text-sm sm:text-base font-display">
                                       {includeCheckboxes && (
-                                        <span className="inline-block w-3.5 h-3.5 border-2 border-slate-700 rounded-xs mt-0.5 shrink-0" />
+                                        <span className="inline-block w-4 h-4 border-2 border-slate-700 rounded-xs mt-0.5 shrink-0" />
                                       )}
-                                      <span>
-                                        {rIdx + 1}.{' '}
+                                      <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] flex items-center justify-center shrink-0 border border-amber-600 shadow-2xs tabular-nums font-mono mt-0.5">
+                                        {rIdx + 1}
+                                      </span>
+                                      <span className="flex-1 min-w-0">
                                         {stripInlineLegalCitations(
                                           rule.heading,
                                           formatOptions.includeLegalCitations
