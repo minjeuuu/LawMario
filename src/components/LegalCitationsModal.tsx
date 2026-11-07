@@ -1667,7 +1667,7 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                     </p>
                   </div>
 
-                  {/* Dual Legal Principle & Bar Exam Takeaway Chambers */}
+                  {/* Dual Legal Principle & Statutory Takeaway Chambers */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="bg-slate-950/90 rounded-2xl p-3.5 border-l-4 border-amber-400 space-y-1">
                       <div className="flex items-center gap-1.5">
@@ -1685,11 +1685,11 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
                       <div className="flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                         <span className="text-[10px] font-black uppercase text-emerald-400 font-mono">
-                          BAR EXAMINATION TAKEAWAY
+                          STATUTORY TAKEAWAY
                         </span>
                       </div>
                       <p className="text-xs sm:text-[13px] text-emerald-100 font-medium leading-relaxed">
-                        Cross-referenced in {item.worldBadge}. Cited in Philippine Bar Examinations as landmark controlling precedent.
+                        Cross-referenced in {item.worldBadge}. Cited as landmark controlling precedent in Philippine statutory labor jurisprudence.
                       </p>
                     </div>
                   </div>

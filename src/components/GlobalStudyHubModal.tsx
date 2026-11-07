@@ -63,9 +63,9 @@ export const GlobalStudyHubModal: React.FC<GlobalStudyHubModalProps> = ({
   }[] = [
     {
       id: 'exam_sim',
-      title: 'Bar Exam 10-Question Timed Sprint',
-      subtitle: 'Official Mock Bar Simulation',
-      badge: 'Bar Master',
+      title: 'Comprehensive 10-Question Timed Sprint',
+      subtitle: 'Statutory Challenge Simulation',
+      badge: 'Statutory Master',
       badgeColor: 'bg-red-600 text-white',
       description: '10 randomized high-yield questions across all 6 Labor Law Worlds with strict 6-minute clock and codal grading.',
       coinsReward: '+50 Coins',

@@ -87,7 +87,7 @@ export const WORLD_BOSS_CATALOG: Record<string, WorldBossMetadata> = {
     worldName: 'Grand Courtroom Arena',
     bossName: 'Employer Bowser',
     bossTitle: 'Managing Director, Koopa Corp',
-    lawDomain: 'Comprehensive Labor Standards & Bar Exam Trials',
+    lawDomain: 'Comprehensive Labor Standards & Statutory Trials',
     primaryDoctrine: 'Summary Judgment against unfair labor practices, bad-faith dismissals, and statutory underpayments!',
     targetClearSeconds: 75,
     avatarIcon: 'bowser',

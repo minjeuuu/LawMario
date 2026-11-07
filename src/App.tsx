@@ -2338,6 +2338,8 @@ export default function App() {
         setIsQuickGlossaryOpen(true);
       } else if (navigateToTab === 'search') {
         setIsGlobalSearchOpen(true);
+      } else if (navigateToTab === 'regions') {
+        setActiveTab('wages_matrix');
       } else {
         setActiveTab(navigateToTab);
       }
@@ -2843,10 +2845,10 @@ export default function App() {
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black font-display text-white">
-                    Super Mario Bar Exam Study Hub
+                    Super Mario Labor Standards Study Hub
                   </h4>
                   <p className="text-[11px] text-slate-300">
-                    6 Interactive Bar Exam prep modes: 10-Question Timed Sprint, 60s Blitz, Weakness Gauntlet &amp; Pomodoro
+                    6 Interactive Study Modes: 10-Question Timed Sprint, 60s Blitz, Weakness Gauntlet &amp; Pomodoro
                   </p>
                 </div>
               </div>
@@ -5085,10 +5087,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* Real Bar Exam Scenario Challenge */}
+            {/* Real Statutory Scenario Challenge */}
             <div className="bg-slate-900/90 border border-amber-400/60 rounded-2xl p-4 space-y-2">
               <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
-                BAR EXAM HYPOTHETICAL CHALLENGE
+                STATUTORY HYPOTHETICAL CHALLENGE
               </span>
               <p className="text-xs sm:text-sm font-bold text-white leading-relaxed">
                 {activeTopicDuel.scenario}

@@ -193,7 +193,7 @@ export const LaborLawProgressBar: React.FC<LaborLawProgressBarProps> = ({
             type="button"
             data-testid="modules-mystery-law-block-btn"
             onClick={handleHitMysteryBlock}
-            title="Strike the Mario [?] Block for a high-yield Bar Exam mnemonic and +2 Gold Coins!"
+            title="Strike the Mario [?] Block for a high-yield statutory mnemonic and +2 Gold Coins!"
             className={`min-h-[42px] px-3.5 rounded-xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 hover:from-amber-200 hover:to-amber-400 text-slate-950 font-black text-xs border-2 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform whitespace-nowrap ${
               blockBounce ? '-translate-y-1.5 scale-105' : ''
             }`}

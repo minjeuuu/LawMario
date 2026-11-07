@@ -168,13 +168,13 @@ export const POWERUP_ITEMS: ShopItem[] = [
   },
   {
     id: 'map_shortcut_bar',
-    name: "Toad's Bar Exam Shortcut Map",
+    name: "Toad's Statutory Shortcut Map",
     category: 'powerup',
     price: 45,
     description:
-      'Illuminates high-yield Bar Exam doctrines and Warp Shortcuts across the Overworld Map and inside every Module Topic Card (Worlds 1–6).',
+      'Illuminates high-yield statutory doctrines and Warp Shortcuts across the Overworld Map and inside every Module Topic Card (Worlds 1–6).',
     badge: 'Shortcut Map',
-    perkEffect: 'Highlights Key Topics & Bar Traps Everywhere',
+    perkEffect: 'Highlights Key Topics & Statutory Traps Everywhere',
   },
   {
     id: 'powerup_mega_star_30m',
@@ -387,7 +387,7 @@ export const COMPANION_ITEMS: ShopItem[] = [
     category: 'companion',
     companionId: 'comp_nabbit',
     price: 92,
-    description: 'Stashes the highest-frequency Bar Exam exceptions inside his purple statutory sack.',
+    description: 'Stashes the highest-frequency statutory exceptions inside his purple statutory sack.',
     badge: 'Loot Scout',
   },
 ];
@@ -444,7 +444,7 @@ export const CARD_FRAME_ITEMS: ShopItem[] = [
     category: 'frame',
     frameId: 'frame_supreme_crimson',
     price: 95,
-    description: 'Distinguished judicial crimson border reserved for dedicated Bar Exam contenders.',
+    description: 'Distinguished judicial crimson border reserved for dedicated labor standards contenders.',
     badge: 'Judicial',
   },
   {
@@ -551,9 +551,9 @@ export const RING_ITEMS: ShopItem[] = [
     ringId: 'ring_star_immunity',
     price: 85,
     description:
-      'Blessed by Star Road arpeggios, granting divine immunity on tricky Bar Exam trap questions with a free retry opportunity.',
+      'Blessed by Star Road arpeggios, granting divine immunity on tricky statutory trap questions with a free retry opportunity.',
     badge: 'Daily Shield',
-    perkEffect: 'Free retry protection against tough Bar exam traps!',
+    perkEffect: 'Free retry protection against tough statutory traps!',
   },
   {
     id: 'ring_speed_boot',
@@ -568,19 +568,19 @@ export const RING_ITEMS: ShopItem[] = [
   },
   {
     id: 'ring_scholar_ruby',
-    name: 'Bar Laureate Ruby Signet Ring',
+    name: 'Statutory Laureate Ruby Signet Ring',
     category: 'ring',
     ringId: 'ring_scholar_ruby',
     price: 90,
     description:
-      'Crimson gemstone worn by high-ranking labor law scholars preparing for the Bar Exams, multiplying XP gains.',
+      'Crimson gemstone worn by high-ranking labor law scholars mastering the Labor Code, multiplying XP gains.',
     badge: 'Mastery XP',
     perkEffect: '+15% XP multiplier on all quizzes and stage completions!',
   },
 ];
 
 export const ROUND11_CHAMBERS_EXTRAS: Round10ShopCatalogItem[] = [
-  { id: 'chamber_narra_gavel_podium', name: 'Supreme Court Narra Lectern', section: 'law_chambers', subType: 'chambers_furniture', price: 85, badge: 'Lectern', description: 'Hand-carved Philippine Narra oral-argument podium for rehearsing Bar doctrines aloud.', effectSummary: '+2% Law Chambers Prestige · Oral Podium', chambersBonusPct: 2, chambersSlot: 'Oral Podium' },
+  { id: 'chamber_narra_gavel_podium', name: 'Supreme Court Narra Lectern', section: 'law_chambers', subType: 'chambers_furniture', price: 85, badge: 'Lectern', description: 'Hand-carved Philippine Narra oral-argument podium for rehearsing statutory doctrines aloud.', effectSummary: '+2% Law Chambers Prestige · Oral Podium', chambersBonusPct: 2, chambersSlot: 'Oral Podium' },
   { id: 'chamber_stained_glass_lamp', name: 'Peach Cathedral Banker Lamp', section: 'law_chambers', subType: 'chambers_furniture', price: 65, badge: 'Lighting', description: 'Warm emerald-and-amber stained-glass desk lamp illuminating late-night codal study.', effectSummary: '+2% Law Chambers Prestige · Desk Lamp', chambersBonusPct: 2, chambersSlot: 'Desk Lamp' },
   { id: 'chamber_scra_annals_wall', name: 'Complete SCRA Labor Vault', section: 'law_chambers', subType: 'chambers_furniture', price: 130, badge: 'Library', description: 'Floor-to-ceiling leather-bound Supreme Court Reports Annotated labor jurisprudence wall.', effectSummary: '+3% Law Chambers Prestige · SCRA Wall', chambersBonusPct: 3, chambersSlot: 'SCRA Wall' },
   { id: 'chamber_brass_scales_justice', name: '24K Brass Scales of Social Justice', section: 'law_chambers', subType: 'chambers_furniture', price: 95, badge: 'Centerpiece', description: 'Balanced Art. XIII Sec. 3 constitutional scales honoring labor as a primary social force.', effectSummary: '+2% Law Chambers Prestige · Justice Scales', chambersBonusPct: 2, chambersSlot: 'Justice Scales' },
@@ -890,7 +890,7 @@ export const PERK_ITEMS: ShopItem[] = [
     name: 'Lakitu 50/50 Glasses',
     category: 'perk',
     price: 45,
-    description: 'Eliminates 2 incorrect answer choices during tough Bar Exam multiple-choice quizzes.',
+    description: 'Eliminates 2 incorrect answer choices during tough multiple-choice quizzes.',
     badge: '50/50 MCQ',
     perkEffect: 'Cross out 2 Wrong Answers',
   },
@@ -959,11 +959,11 @@ export const PERK_ITEMS: ShopItem[] = [
   },
   {
     id: 'perk_bar_defense_shield',
-    name: 'Bar Exam Second-Chance Shield',
+    name: 'Statutory Second-Chance Shield',
     category: 'perk',
     price: 50,
-    description: 'Provides a second chance shield when attempting tough Labor Standards bar scenarios!',
-    badge: 'Exam Shield',
+    description: 'Provides a second chance shield when attempting tough Labor Standards scenario questions!',
+    badge: 'Study Shield',
     perkEffect: 'Protects Quiz Score on Missed Questions',
   },
 ];
@@ -1181,7 +1181,7 @@ export const SPECIAL_EVENT_ITEMS = [
     badge: 'Stage Pass · 30m',
     price: 140,
     description:
-      'Temporarily unlocks every locked Overworld Stage across Worlds 1–6 for 30 minutes so you can preview advanced Bar Exam modules ahead of schedule.',
+      'Temporarily unlocks every locked Overworld Stage across Worlds 1–6 for 30 minutes so you can preview advanced statutory modules ahead of schedule.',
     effectLabel: 'Unlocks All Locked World Map Stages for 30m',
   },
   {
@@ -3397,10 +3397,10 @@ export const ToadShop: React.FC<ToadShopProps> = ({
               </div>
               <div>
                 <h2 className="font-black text-base sm:text-lg uppercase font-display text-amber-300">
-                  SUPER STAR POWER-UPS &amp; BAR SHORTCUT MAPS
+                  SUPER STAR POWER-UPS &amp; STATUTORY SHORTCUT MAPS
                 </h2>
                 <p className="text-xs font-semibold text-slate-300 mt-0.5">
-                  Activate timed 2x Coin multipliers, illuminate high-yield Bar Exam topics across Worlds 1–6, or fuel your Fire Flower study streak!
+                  Activate timed 2x Coin multipliers, illuminate high-yield statutory topics across Worlds 1–6, or fuel your Fire Flower study streak!
                 </p>
               </div>
             </div>

@@ -438,7 +438,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
       worldCode: 'exam_sim',
       correctCount: summary.correctCount,
       totalCount: summary.totalCount,
-      topicTitle: '10-Question Bar Exam Simulation (All Worlds)',
+      topicTitle: '10-Question Statutory Simulation (All Worlds)',
     });
     onBossQuizCompleted?.();
     if (snap.difficulty === 'exam_prep') {
@@ -2722,13 +2722,13 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 text-xs font-bold text-sky-300">
                   <GraduationCap className="w-4 h-4 text-amber-300 shrink-0" />
-                  <span>All-Topics Mock Bar Exam · 10 Randomized Questions</span>
+                  <span>All-Topics Statutory Challenge · 10 Randomized Questions</span>
                 </div>
                 <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white font-display">
                   LABOR LAW EXAM SIMULATION
                 </h2>
                 <p className="text-xs sm:text-sm text-sky-100 font-semibold max-w-2xl">
-                  Draws 10 randomized multiple-choice questions spanning Hours, Holidays, Wages, Special Workers, Tenure &amp; Leaves under a live Bar timer, followed by a complete score breakdown &amp; statutory explanations.
+                  Draws 10 randomized multiple-choice questions spanning Hours, Holidays, Wages, Special Workers, Tenure &amp; Leaves under a live countdown timer, followed by a complete score breakdown &amp; statutory explanations.
                 </p>
               </div>
 
@@ -3249,7 +3249,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   QUICK TEST: {activeWorldTitle.toUpperCase()}
                 </h2>
                 <p className="text-xs sm:text-sm text-emerald-100 font-semibold max-w-2xl">
-                  Pulls 5 random {studyDifficulty === 'casual' ? 'definition & threshold' : 'Bar Exam scenario'} questions from your active world and awards coins scaled to your accuracy!
+                  Pulls 5 random {studyDifficulty === 'casual' ? 'definition & threshold' : 'practical scenario'} questions from your active world and awards coins scaled to your accuracy!
                 </p>
               </div>
 
@@ -4030,7 +4030,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                 <p className="text-xs sm:text-sm text-purple-100 font-bold max-w-xl">
                   {studyDifficulty === 'casual'
                     ? 'Casual Mode active: concise definition & threshold questions with 3 clear choices and statutory hints across all 6 Worlds & Holidays.'
-                    : 'Exam Prep Mode active: full 4-option Bar Exam hypothetical fact patterns across all 6 Worlds & Holidays.'}
+                    : 'Exam Prep Mode active: full 4-option statutory fact patterns across all 6 Worlds & Holidays.'}
                 </p>
               </div>
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-400 border-3 border-black rounded-2xl flex items-center justify-center shadow-[4px_4px_0_#000] shrink-0">
@@ -4450,7 +4450,7 @@ export const BarQuizQuest: React.FC<BarQuizQuestProps> = ({
                   BOWSER&apos;S LAVA KEEP GAUNTLET
                 </h2>
                 <p className={`${bodyTextClass} text-slate-300 max-w-xl mx-auto font-medium text-sm`}>
-                  Face randomized rapid-fire Bar Exam traps! ({studyDifficulty === 'casual' ? 'Casual: 3 options + statutory hints' : 'Exam Prep: 4 options, no hints'}).
+                  Face randomized rapid-fire statutory traps! ({studyDifficulty === 'casual' ? 'Casual: 3 options + statutory hints' : 'Exam Prep: 4 options, no hints'}).
                 </p>
               </div>
 

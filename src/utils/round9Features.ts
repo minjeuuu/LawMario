@@ -56,7 +56,7 @@ export function getTopicSubSectionDescriptors(topic: LawTopic): TopicSectionDesc
   if ((topic.barTips && topic.barTips.length > 0) || (topic.keyTips && topic.keyTips.length > 0)) {
     sections.push({
       key: 'bar_tips',
-      label: 'Bar Exam Tips',
+      label: 'Key Study Tips',
       category: 'tips',
     });
   }
@@ -503,7 +503,7 @@ export function generateTopicQuickQuiz(params: {
     const shuf = shuffleQuizOptions([tipOrTakeaway, ...otherTakeaways], 0, rng);
     selectedQuestions.push({
       id: `${topic.id}-synth-bar-tip`,
-      prompt: `When answering a Bar Exam problem involving ${topic.title} (${topic.badge}), what key rule or takeaway must be applied?`,
+      prompt: `When resolving a practical workplace problem involving ${topic.title} (${topic.badge}), what key rule or takeaway must be applied?`,
       options: shuf.options,
       correctIndex: shuf.correctIndex,
       legalBasis: topic.badge,

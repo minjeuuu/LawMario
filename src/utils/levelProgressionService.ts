@@ -229,14 +229,14 @@ export const LEVEL_THRESHOLDS: readonly LevelThreshold[] = [
     xpRequired: 20400,
     title: 'Golden Dinosaur Legend',
     unlockedAvatars: ['goldenyoshi'],
-    perkDescription: 'Golden clutch instincts on high-stakes bar exam doctrines',
+    perkDescription: 'Golden clutch instincts on high-stakes statutory doctrines',
   },
   {
     level: 31,
     xpRequired: 21900,
-    title: 'Toad Bar Examinee Summa',
+    title: 'Toad Statutory Scholar Summa',
     unlockedAvatars: ['lawyertoad'],
-    perkDescription: 'Top-tier bar exam preparation certificate honors',
+    perkDescription: 'Top-tier statutory labor standards certificate honors',
   },
   {
     level: 32,

@@ -174,13 +174,13 @@ export function computeWeeklyTrainingSummary(
   }
 
   // Toad Pro-Tip
-  let toadProTip = "Toad's Pro-Tip: Regular 25-minute study sprints with Pomodoro builds unbeatable retention for Bar Exam day!";
+  let toadProTip = "Toad's Pro-Tip: Regular 25-minute study sprints with Pomodoro builds unbeatable retention for exam day!";
   if (averageCompletionRate >= 90) {
     toadProTip = "Toad's Pro-Tip: Outstanding mastery! Challenge Bowser in the Courtroom Boss Arena to earn massive XP multipliers!";
   } else if (averageCompletionRate < 70 && averageCompletionRate > 0) {
     toadProTip = "Toad's Pro-Tip: Accuracy dipped this week! Use the Flashcard Deck and 1-Page Summary Sheet to solidify statutory deadlines.";
   } else if (totalMinutes < 60) {
-    toadProTip = "Toad's Pro-Tip: Hop into the 60s Speed Quiz or Daily Bar Challenge to get your daily streak flame burning!";
+    toadProTip = "Toad's Pro-Tip: Hop into the 60s Speed Quiz or Daily Statutory Challenge to get your daily streak flame burning!";
   }
 
   return {

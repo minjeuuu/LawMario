@@ -28,7 +28,7 @@ export interface NumberedLine {
 
 /**
  * High-yield statutory terms, numeric thresholds, and doctrine keywords
- * targeted for Bar Exam Recitation (Cloze Deletion) active recall.
+ * targeted for active recall codal recitation (cloze deletion).
  * Supports legal style: word (digit) format e.g. "eight (8) hours", "twenty-five percent (25%)".
  */
 export const HIGH_YIELD_CLOZE_PATTERNS: RegExp[] = [

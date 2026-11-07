@@ -313,7 +313,7 @@ export const InteractiveCompanionHUD: React.FC<InteractiveCompanionHUDProps> = (
       setCustomQuote(`Level UP! Your companion is now Level ${nextLevel}! +10 Bonus Coins awarded!`);
     } else {
       const petResponses = [
-        '*Happy purr!* "Always verify the 22.5-day retirement divisor on Bar Exam day!"',
+        '*Happy purr!* "Always verify the 22.5-day retirement divisor on exam day!"',
         '*Wiggles enthusiastically!* "The control test is supreme under Art. 295!"',
         '*Jumps for joy!* "100% of service charges go directly to workers under RA 11360!"',
         '*Cheering!* "No offsetting undertime with overtime under Art. 88!"',

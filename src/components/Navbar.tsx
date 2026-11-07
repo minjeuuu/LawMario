@@ -649,8 +649,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     type="button"
                     onClick={handleCoinClick}
                     data-testid="navbar-shortcut-map-badge"
-                    aria-label="Toad's Bar Exam Shortcut Map Power-Up Active"
-                    title="Toad's Bar Exam Shortcut Map Active — Click to manage in Toad's Shop"
+                    aria-label="Toad's Statutory Shortcut Map Power-Up Active"
+                    title="Toad's Statutory Shortcut Map Active — Click to manage in Toad's Shop"
                     className="inline-flex h-7 w-6 sm:w-auto sm:px-1.5 items-center justify-center gap-1 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
                   >
                     <Map className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />

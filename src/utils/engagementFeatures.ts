@@ -116,7 +116,7 @@ export const GROUP_MEMBER_DETAILS: readonly GroupMemberDetail[] = [
   },
   {
     name: 'VILA, HANNAH DANIELA',
-    role: 'Bar Examination Cross-Checker',
+    role: 'Statutory Standards Cross-Checker',
     specialization: 'Prescriptive Periods (Arts. 297-306) & DOLE Bureau of Working Conditions Rulings',
     marioRole: 'Donkey Kong (Prescription & Enforcement)',
   },

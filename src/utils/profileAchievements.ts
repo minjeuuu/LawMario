@@ -593,7 +593,7 @@ export interface QuizCompletionPayload {
 export function getQuizWorldDisplayName(worldCode: string): string {
   const norm = (worldCode || '').trim().toLowerCase();
   if (norm === 'boss') return 'Courtroom Boss Battle (Bowser)';
-  if (norm === 'exam_sim' || norm === 'examsim') return '10-Question Bar Exam Simulation';
+  if (norm === 'exam_sim' || norm === 'examsim') return '10-Question Statutory Simulation';
   if (norm === 'flashback') return 'Targeted Flashback Review';
   if (norm === 'holidays') return 'Philippine Holidays & Multipliers';
   if (norm === 'w1' || norm === 'world1') return 'World 1: Hours of Work';
@@ -1505,7 +1505,7 @@ export const WALKTHROUGH_CHAPTERS: readonly WalkthroughChapter[] = [
     ],
     proTip:
       'Click a region card and send its daily rate straight into mind when testing real-world computations in the Calculator tab!',
-    targetTab: 'regions',
+    targetTab: 'wages_matrix',
     ctaLabel: 'View 17-Region Wages',
   },
   {
@@ -1541,7 +1541,7 @@ export const WALKTHROUGH_CHAPTERS: readonly WalkthroughChapter[] = [
   {
     stepNumber: 10,
     id: 'mystery_flashcards',
-    shortTitle: '10. Flashcards &Glossary',
+    shortTitle: '10. Flashcards & Glossary',
     kicker: 'Step 10 · Active Memory Practice',
     headline: 'Flip 240+ [?] Mystery Cards, Shuffle Decks & Search the Glossary',
     summary:

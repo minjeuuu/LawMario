@@ -8,7 +8,7 @@ export interface DailyChallengeScenario {
   id: string;
   worldId: 'world1' | 'world2' | 'world3' | 'world4' | 'world5' | 'world6' | 'holidays';
   worldLabel: string;
-  difficultyLabel: 'Bar Exam High-Difficulty' | 'Supreme Court Doctrine Trap' | 'Multi-Issue Statutory Math';
+  difficultyLabel: 'Advanced Statutory Mastery' | 'Supreme Court Doctrine Trap' | 'Multi-Issue Statutory Math';
   title: string;
   factPattern: string;
   questionPrompt: string;
@@ -43,7 +43,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-01-maternity-paternity-allocation',
     worldId: 'world6',
     worldLabel: 'World 6: Statutory Leaves',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'The 14-Day New Father Allocation & Unmarried Cohabitation Trap',
     factPattern:
       'Atty. Sofia and Marco are unmarried partners living together for 6 years. Sofia gives birth to their first child in a private hospital. Sofia executes a written notice allocating seven (7) days of her 105-day Expanded Maternity Leave to Marco, and Marco also files for seven (7) days of statutory Paternity Leave under R.A. 8187 with his employer, Peach Logistics Inc., claiming 14 paid days total.',
@@ -112,7 +112,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-04-exact-headcount-exemption-trap',
     worldId: 'world3',
     worldLabel: 'World 3: Wages & Thresholds',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'The 5 / 9 / 10 Retail Worker Headcount Statutory Trap',
     factPattern:
       'Yoshi Bakeshop is a neighborhood retail pastry store employing EXACTLY ten (10) regular rank-and-file bakers and cashiers. It applies with the RTWPB for a minimum wage exemption and simultaneously stops paying Regular Holiday Pay, Service Incentive Leave (SIL), and Night Shift Differential (NSD), claiming small retail establishments with 10 workers are exempt from all four.',
@@ -158,7 +158,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-06-kasambahay-sil-vs-regular-sil',
     worldId: 'world4',
     worldLabel: 'World 4 & World 6 Interplay',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'Kasambahay 5-Day SIL vs. Labor Code Art. 95 5-Day SIL',
     factPattern:
       'Nana Daisy worked for 3 continuous years as a live-in family cook (Kasambahay) in Quezon City, while her brother Mario worked for 3 years as a cook in a commercial restaurant in Quezon City. Neither used any of their 5 annual Service Incentive Leave (SIL) days during their 3 years of service. Both resign today and demand cash conversion of 15 accumulated SIL days.',
@@ -181,7 +181,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-07-solo-parent-ra11861-amendment',
     worldId: 'world6',
     worldLabel: 'World 6: Statutory Leaves',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'Expanded Solo Parents Welfare Act (R.A. 11861) Tenure & Cash Rules',
     factPattern:
       'Rosalina, a single mother holding a valid LGU-issued Solo Parent Identification Card (SPIC), has rendered seven (7) months of service (broken into 4 months probationary + 3 months regular) at Star Observatory BPO. She applies for 7 working days of paid Parental Leave to attend her child’s pediatric therapy. HR denies the leave, arguing R.A. 8972 requires at least one (1) full year of service.',
@@ -227,7 +227,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-09-service-charge-ra11360',
     worldId: 'world2',
     worldLabel: 'World 2: Service Charges & 13th Month',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'R.A. 11360 100% Service Charge Distribution & Abolition Rule',
     factPattern:
       'Grand Star Resort collects ₱500,000 in monthly 10% service charges. Management retains 15% (₱75,000) to cover crystal glassware pilferage/breakage, includes the Hotel General Manager in the remaining 85% pool, and announces that next quarter it will abolish the service charge entirely without adjusting basic wages.',
@@ -250,7 +250,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-10-gynecological-leave-ra9710',
     worldId: 'world6',
     worldLabel: 'World 6: Statutory Leaves',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'Magna Carta of Women 2-Month Special Leave vs. Maternity Leave',
     factPattern:
       'Daisy, a regular accountant who has worked 8 continuous months over the past year at Mushroom Audit LLP, undergoes an emergency hysterectomy (surgical removal of the uterus due to severe myoma, unrelated to pregnancy). Her attending OB-GYN certifies a 60-day recovery period. HR tells her she only gets 5 days of SIL and must file unpaid leave for the rest because she was not pregnant.',
@@ -319,7 +319,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-13-compressed-work-week-undertime',
     worldId: 'world1',
     worldLabel: 'World 1: Hours of Work',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'Brownouts, Undertime Offsetting (Art. 88) & Unilateral Compressed Work Week',
     factPattern:
       'On Monday, a 15-minute power brownout hit Toadstool Factory, and Captain Toad also left 30 minutes early (undertime) for a dental appointment. On Tuesday, management ordered him to work 9 hours (1 hour past his 8-hour shift), deducted the 15-minute Monday brownout, and offset his 30-minute Monday undertime against 30 minutes of Tuesday’s extra hour at straight pay.',
@@ -342,7 +342,7 @@ export const DAILY_CHALLENGE_BANK: readonly DailyChallengeScenario[] = [
     id: 'dc-14-vawc-leave-protection-order',
     worldId: 'world6',
     worldLabel: 'World 6: Statutory Leaves',
-    difficultyLabel: 'Bar Exam High-Difficulty',
+    difficultyLabel: 'Advanced Statutory Mastery',
     title: 'R.A. 9262 VAWC Leave Extension & Proof Requirements',
     factPattern:
       'Pauline, a probationary bank teller in her 3rd month of work, suffers psychological and economic abuse from her former live-in partner. She presents a Certification from the Punong Barangay confirming a pending Barangay Protection Order (BPO) application and requests 10 days of paid VAWC Leave, followed by a 5-day extension expressly specified in the issued TPO for court hearings. The bank denies both, claiming: (a) she is still probationary (<1 year), (b) no criminal conviction exists yet, and (c) VAWC leave is strictly capped at 10 days.',

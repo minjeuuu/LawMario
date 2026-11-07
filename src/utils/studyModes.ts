@@ -272,7 +272,7 @@ const CASUAL_DEFINITION_POOL: AdaptedQuizQuestion[] = buildCasualDefinitionPool(
 /**
  * Returns the question pool tailored to the global StudyDifficulty setting:
  * - 'casual': Easy definition & threshold questions with 3 clear choices + helpful hint.
- * - 'exam_prep': Full 4-option Bar Exam hypothetical fact patterns with no pre-answer hints.
+ * - 'exam_prep': Full 4-option statutory hypothetical fact patterns with no pre-answer hints.
  */
 export function sanitizeAndShuffleChoices(
   options: readonly string[],
@@ -469,7 +469,7 @@ export interface FlashbackQuizDeckResult {
 
 /**
  * Automatically pulls 5 targeted quiz questions from topics previously marked as
- * 'Needs Improvement' to reinforce weak areas (or high-yield Bar questions if none flagged).
+ * 'Needs Improvement' to reinforce weak areas (or high-yield statutory questions if none flagged).
  */
 export function pickFlashbackQuizQuestions(
   needsImprovementTopicIds: string[] = [],
@@ -533,8 +533,8 @@ export function pickFlashbackQuizQuestions(
   const sourceLabel = isCuratedFromWeaknesses
     ? `Targeted Flashback: Curated from ${flaggedCount} flagged weak ${flaggedCount === 1 ? 'area' : 'areas'} (Worlds ${Array.from(targetWorldCodes).map((c) => c.toUpperCase()).join(', ')})`
     : flaggedCount > 0
-    ? `High-Yield Bar Sprint: Blended weak areas + core doctrine questions`
-    : `High-Yield Bar Flashback (Tip: Click "Flag Review" on topic cards to personalize)`;
+    ? `High-Yield Statutory Sprint: Blended weak areas + core doctrine questions`
+    : `High-Yield Statutory Flashback (Tip: Click "Flag Review" on topic cards to personalize)`;
 
   return {
     questions: chosen,
@@ -778,7 +778,7 @@ export function buildQuickStudyCuratedDeck(params: {
     ? `Curated from ${weakTopicSet.size + needsImprovementWorlds.length} 'Need Improvement' profile focus area${
         weakTopicSet.size + needsImprovementWorlds.length === 1 ? '' : 's'
       }`
-    : 'Smart Weak-Spot Mix (Unmastered & High-Yield Bar Cards — flag topics in Profile to customize)';
+    : 'Smart Weak-Spot Mix (Unmastered & High-Yield Statutory Cards — flag topics in Profile to customize)';
 
   return {
     cards: selected.map((s) => s.card),
@@ -1087,7 +1087,7 @@ export function generateExamSimulationDeck(
 }
 
 /**
- * Computes the complete post-quiz Exam Simulation score breakdown, Bar Exam rating,
+ * Computes the complete post-quiz Exam Simulation score breakdown, statutory rating,
  * coin reward, and per-world topic accuracy breakdown.
  */
 export function computeExamSimulationBreakdown(params: {
@@ -1140,15 +1140,15 @@ export function computeExamSimulationBreakdown(params: {
   if (accuracyPercent >= 90) {
     barVerdict = 'BAR TOPNOTCHER DISTINCTION';
     feedbackMessage =
-      'Outstanding Bar Exam mastery! Near-flawless command of Labor Standards, Wage Orders, Tenure, and Leaves.';
+      'Outstanding statutory mastery! Near-flawless command of Labor Standards, Wage Orders, Tenure, and Leaves.';
   } else if (accuracyPercent >= 75) {
     barVerdict = 'BAR EXAM PASSER (75%+ STANDARD)';
     feedbackMessage =
-      'Strong passing performance above the 75% Philippine Bar benchmark! Inspect any missed items below to hit 100%.';
+      'Strong passing performance above the 75% statutory benchmark! Inspect any missed items below to hit 100%.';
   } else if (accuracyPercent >= 50) {
     barVerdict = 'CONDITIONAL PASS — CLOSE TO 75%';
     feedbackMessage =
-      'Solid foundation! Focus on the highlighted legal bases below to push past the 75% Bar passing mark.';
+      'Solid foundation! Focus on the highlighted legal bases below to push past the 75% passing mark.';
   }
 
   let coinsEarned = 0;
@@ -1205,7 +1205,7 @@ export interface ClozeSegment {
 
 /**
  * Splits a statutory rule or doctrine sentence into plain text and interactive Cloze recall blanks
- * targeting high-yield Bar Exam numbers, multipliers, durations, Peso thresholds, and Article/R.A. citations.
+ * targeting high-yield statutory numbers, multipliers, durations, Peso thresholds, and Article/R.A. citations.
  */
 export function extractClozeSegments(text: string, prefixKey: string = 'c'): ClozeSegment[] {
   if (!text) return [];

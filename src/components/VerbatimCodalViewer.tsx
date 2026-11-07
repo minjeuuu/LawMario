@@ -588,7 +588,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
             </button>
           </div>
 
-          {/* Bar Exam Recitation Mode (Cloze Recall) */}
+          {/* Active Codal Recitation Mode (Cloze Recall) */}
           {showRecitationMode && clozeTerms.length > 0 && (
             <button
               type="button"
@@ -596,7 +596,7 @@ export const VerbatimCodalViewer: React.FC<VerbatimCodalViewerProps> = ({
                 setIsRecitationMode((prev) => !prev);
                 marioAudio.playPowerUp();
               }}
-              title="Toggle Bar Exam Recitation Mode (Cloze Deletion Active Recall)"
+              title="Toggle Active Codal Recitation Mode (Cloze Deletion Active Recall)"
               className={`min-h-[34px] px-2.5 rounded-xl text-xs font-black border inline-flex items-center gap-1.5 cursor-pointer transition-all ${
                 isRecitationMode
                   ? 'bg-amber-400 text-slate-950 border-black shadow-[0_2px_0_#000]'

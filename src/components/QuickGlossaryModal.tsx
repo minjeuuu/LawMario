@@ -138,7 +138,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
 
   const handleCopy = async () => {
     if (!activeItem) return;
-    const text = `Super Mario Labor Law Glossary: ${activeItem.term} [${activeItem.category}]\n\n[Mario Analogy - ${activeItem.marioPowerUp}]:\n"${activeItem.marioAnalogy}"\n\n[Statutory Definition]:\n${activeItem.simplifiedDefinition}\n\n[Legal Basis]: ${activeItem.statutoryBasis}\n\n[Bar Exam Tip]: ${activeItem.barExamTip}`;
+    const text = `Super Mario Labor Law Glossary: ${activeItem.term} [${activeItem.category}]\n\n[Mario Analogy - ${activeItem.marioPowerUp}]:\n"${activeItem.marioAnalogy}"\n\n[Statutory Definition]:\n${activeItem.simplifiedDefinition}\n\n[Legal Basis]: ${activeItem.statutoryBasis}\n\n[Statutory Tip]: ${activeItem.barExamTip}`;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -599,7 +599,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Column B: Super Mario Analogy + Bar Exam Pro-Tip Stacked Cleanly */}
+                  {/* Column B: Super Mario Analogy + Statutory Pro-Tip Stacked Cleanly */}
                   <div className="flex flex-col gap-4 justify-between min-w-0">
                     <div className="bg-amber-400 text-slate-950 p-4 sm:p-5 rounded-2xl border-3 border-black shadow-[4px_4px_0_#000] space-y-2 flex-1">
                       <div className="flex items-center gap-2">
@@ -617,7 +617,7 @@ export const QuickGlossaryModal: React.FC<QuickGlossaryModalProps> = ({
                       <div className="flex items-center gap-2 text-rose-200">
                         <Lightbulb className="w-4 h-4 text-amber-400 shrink-0" />
                         <span className="font-mario text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                          BAR EXAM PRO-TIP &amp; COMMON TRAP
+                          STATUTORY PRO-TIP &amp; COMMON TRAP
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-rose-100 font-bold leading-relaxed break-words">

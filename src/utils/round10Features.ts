@@ -252,7 +252,7 @@ export const LAW_CHAMBERS_UPGRADE_ITEMS: Round10ShopCatalogItem[] = [
     subType: 'chambers_furniture',
     price: 80,
     badge: 'Zen Tank',
-    description: 'Tranquil sunlit reef tank that lowers Bar Exam stress between Boss Battles.',
+    description: 'Tranquil sunlit reef tank that lowers study stress between Boss Battles.',
     effectSummary: '+2% Law Chambers Prestige',
     chambersBonusPct: 2,
     chambersSlot: 'East Alcove',
@@ -517,7 +517,7 @@ export const ARCADE_AND_QUIZ_CONSUMABLE_ITEMS: Round10ShopCatalogItem[] = [
   },
   {
     id: 'token_care_starter_kit',
-    name: 'Bar Examinee Tactical Supply Kit',
+    name: 'Statutory Scholar Tactical Supply Kit',
     section: 'arcade_quiz_boosts',
     subType: 'quiz_lifeline',
     price: 40,

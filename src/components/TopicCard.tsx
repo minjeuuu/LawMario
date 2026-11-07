@@ -2056,7 +2056,7 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                   })),
                   ...((topic.barTips || topic.keyTips || []) as string[]).map((t, i) => ({
                     key: `tip-${i}`,
-                    category: 'Bar Exam Tip',
+                    category: 'Key Study Tip',
                     text: cleanRuleText(t),
                   })),
                 ];
@@ -2066,10 +2066,10 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 dark:border-slate-700 pb-3">
                       <div>
                         <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 block">
-                          Self-Recitation Bar Exam Checklist
+                          Self-Recitation Study Checklist
                         </span>
                         <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold tabular-nums">
-                          Recite each doctrine &amp; Bar trap aloud, then check it off: {doneCount} / {checklistRows.length} verified.
+                          Recite each statutory rule aloud, then check it off: {doneCount} / {checklistRows.length} verified.
                         </p>
                       </div>
                       <button
@@ -2910,7 +2910,7 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                     POWER-UP: KEY STATUTORY CHECKPOINTS &amp; PRACTICAL DISTINCTIONS
                   </span>
                 </div>
-                {renderSectionMasteryToggle('bar_tips', 'Bar Exam Tips', true)}
+                {renderSectionMasteryToggle('bar_tips', 'Key Study Tips', true)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {(topic.keyTips || topic.barTips || []).map((tip, tIdx) => (

@@ -132,8 +132,8 @@ function stripInlineLegalCitations(text: string, includeCitations: boolean): str
 function getPrintColumnWidths(colCount: number): string[] {
   if (colCount <= 2) return ['34%', '66%'];
   if (colCount === 3) return ['26%', '37%', '37%'];
-  if (colCount === 4) return ['24%', '18%', '29%', '29%'];
-  if (colCount === 5) return ['20%', '15%', '19%', '23%', '23%'];
+  if (colCount === 4) return ['28%', '24%', '22%', '26%'];
+  if (colCount === 5) return ['24%', '17%', '17%', '26%', '16%'];
   const equal = `${(100 / colCount).toFixed(2)}%`;
   return Array.from({ length: colCount }, () => equal);
 }

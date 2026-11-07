@@ -1104,7 +1104,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
           </div>
         </div>
 
-        {/* 3. 24-Hour Refreshing Daily High-Difficulty Bar Exam Challenge */}
+        {/* 3. 24-Hour Refreshing Daily Statutory Mastery Challenge */}
         <div
           data-testid="daily-challenge-card"
           className="mb-4 bg-slate-950 border-3 border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0_#000] text-white space-y-4 w-full max-w-full min-w-0 overflow-hidden"
@@ -1117,7 +1117,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-300">
                   <span className="font-black uppercase font-mario text-[10px] text-emerald-300">
-                    DAILY BAR CHALLENGE
+                    DAILY STATUTORY CHALLENGE
                   </span>
                   <span aria-hidden="true">·</span>
                   <span className="text-amber-300">{todayChallenge.worldLabel}</span>
@@ -1192,7 +1192,7 @@ export const WorldMap: React.FC<WorldMapProps> = ({
               {/* Fact Pattern & Issue */}
               <div className="bg-slate-900/95 border border-slate-700 rounded-xl p-3.5 sm:p-4 space-y-2.5">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 font-mono block">
-                  Bar Examination Fact Pattern ({dailyRecord.dateKey})
+                  Practical Workplace Fact Pattern ({dailyRecord.dateKey})
                 </span>
                 <p className="text-xs sm:text-sm text-slate-100 leading-relaxed">
                   {todayChallenge.factPattern}
