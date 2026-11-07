@@ -1864,15 +1864,15 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
                 {beamTarget === 'employer' && (
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-400/30 to-transparent pointer-events-none animate-pulse" />
                 )}
-                <div className="relative z-10 flex items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75 text-amber-300">
+                <div className="relative z-10 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75 text-amber-300 break-words [overflow-wrap:anywhere]">
                       SHINE SPOTLIGHT LEFT · DEFENSE PODIUM
                     </span>
-                    <span className="text-sm sm:text-base font-display font-extrabold block">
+                    <span className="text-sm sm:text-base font-display font-extrabold block break-words [overflow-wrap:anywhere]">
                       EMPLOYER BEARS BURDEN
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-300 block mt-0.5">
+                    <span className="text-[10px] font-semibold text-slate-300 block mt-0.5 break-words [overflow-wrap:anywhere]">
                       Must substantiate just/authorized cause, payment, or statutory compliance
                     </span>
                   </div>
@@ -1901,15 +1901,15 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
                 {beamTarget === 'employee' && (
                   <div className="absolute inset-0 bg-gradient-to-l from-sky-400/30 to-transparent pointer-events-none animate-pulse" />
                 )}
-                <div className="relative z-10 flex items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75 text-sky-300">
+                <div className="relative z-10 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75 text-sky-300 break-words [overflow-wrap:anywhere]">
                       SHINE SPOTLIGHT RIGHT · CLAIMANT PODIUM
                     </span>
-                    <span className="text-sm sm:text-base font-display font-extrabold block">
+                    <span className="text-sm sm:text-base font-display font-extrabold block break-words [overflow-wrap:anywhere]">
                       EMPLOYEE BEARS BURDEN
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-300 block mt-0.5">
+                    <span className="text-[10px] font-semibold text-slate-300 block mt-0.5 break-words [overflow-wrap:anywhere]">
                       Must prove overtime hours performed, employer-employee relationship, or bad faith
                     </span>
                   </div>
@@ -2326,15 +2326,15 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
                         : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className={`w-8 h-8 rounded-xl ${ws.badge} border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]`}>
                         <Timer className="w-4 h-4 text-slate-950" />
                       </div>
-                      <div>
-                        <span className="text-[10px] font-mono block opacity-75 uppercase">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-mono block opacity-75 uppercase truncate">
                           SNIP {ws.label}
                         </span>
-                        <span className="text-sm sm:text-base font-display font-black block">
+                        <span className="text-sm sm:text-base font-display font-black block break-words [overflow-wrap:anywhere]">
                           {opt}
                         </span>
                       </div>

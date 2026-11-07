@@ -1673,7 +1673,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                     <span className="w-7 h-7 rounded-lg bg-black text-amber-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
                       {String.fromCharCode(65 + i)}
                     </span>
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">
                       {opt}
                     </span>
                   </div>
@@ -1796,7 +1796,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <MarioBooIcon className="w-6 h-6 shrink-0 mt-0.5" />
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
@@ -1903,7 +1903,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <MarioStarIcon className="w-6 h-6 shrink-0 mt-0.5" />
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
@@ -1995,7 +1995,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <Stamp className="w-6 h-6 shrink-0 mt-0.5" />
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
@@ -2104,7 +2104,7 @@ const InteractiveMasterArcadeStage: React.FC<{
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <Coins className="w-6 h-6 shrink-0 mt-0.5" />
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">{opt}</span>
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">{opt}</span>
                   </div>
                   {isEliminated && (
                     <span className="text-[9px] font-mario text-rose-400 shrink-0 mt-0.5">ZAPPED!</span>
@@ -2664,6 +2664,43 @@ const ThemedMasterArcadeEngine: React.FC<ThemedMasterArcadeEngineProps> = ({
               streak={streak}
               eliminatedIndices={eliminatedIndices}
             />
+
+            {/* Dynamic Arcade Action Blast Banner */}
+            {pickedOption !== null && (
+              <div
+                className={`p-3 rounded-2xl border-3 flex items-center justify-between gap-3 shadow-[0_4px_0_#000] animate-bounce ${
+                  pickedOption === currentItem.correctIndex
+                    ? 'bg-emerald-500 border-black text-slate-950 font-black'
+                    : 'bg-rose-600 border-black text-white font-bold'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-black text-amber-300 flex items-center justify-center font-mario text-sm border border-white/20 shrink-0">
+                    !
+                  </div>
+                  <span className="text-xs sm:text-sm uppercase font-mario tracking-wide break-words [overflow-wrap:anywhere]">
+                    {pickedOption === currentItem.correctIndex
+                      ? gameTitle.includes('Yoshi')
+                        ? 'TRAIN STEAM CHUG! 125% OVERTIME PUNCHED!'
+                        : gameTitle.includes('Luigi')
+                        ? 'POLTERGUST HYPER-VACUUM! NIGHT SHIFT GHOST DISPELLED!'
+                        : gameTitle.includes('Rosalina')
+                        ? 'STELLAR ALIGNMENT! GRAVITATIONAL WAGE BEAM LOCKED!'
+                        : gameTitle.includes('Peach')
+                        ? 'ROYAL WAX SEAL SLAMMED! STATUTORY LEAVE GRANTED!'
+                        : gameTitle.includes('Wario')
+                        ? 'HEAVY VAULT CRACKED! DEDUCTION RECOVERED!'
+                        : 'GAVEL SLAMMED! 22.5-DAY RETIREMENT RATIFIED!'
+                      : 'WRONG ANGLE! HAZARD HIT ABSORBED! REVIEW DOCTRINE BELOW!'}
+                  </span>
+                </div>
+                {speedBonusAwarded && (
+                  <span className="px-2.5 py-1 rounded-xl bg-amber-400 text-slate-950 border-2 border-black font-mario text-[10px] shrink-0 font-black shadow-xs">
+                    +5 SPEED BONUS!
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* High-Yield Statutory Learning & Takeaway Card */}
             {pickedOption !== null && (

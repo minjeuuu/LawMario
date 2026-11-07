@@ -123,6 +123,9 @@ test('All 52 Print Studio themes and 44 fonts (including DM Sans) apply distinct
   const warioRgbPrefix = resolvePdfThemeAndFont('wario_bullion_vault', 'dm_sans_clean')
     .primary.map((v) => (v / 255).toFixed(3))
     .join(' ');
+  const warioRgbJsPdf = resolvePdfThemeAndFont('wario_bullion_vault', 'dm_sans_clean')
+    .primary.map((v) => Number((v / 255).toFixed(2)).toString())
+    .join(' ');
   const streamStartB = Buffer.from(pdfB).indexOf('stream\n');
   const streamEndB = Buffer.from(pdfB).indexOf('\nendstream', streamStartB);
   const contentStreamB = inflateSync(
@@ -131,13 +134,16 @@ test('All 52 Print Studio themes and 44 fonts (including DM Sans) apply distinct
   const padreRgbPrefix = resolvePdfThemeAndFont('padre_faura_maroon', 'editorial_garamond')
     .primary.map((v) => (v / 255).toFixed(3))
     .join(' ');
+  const padreRgbJsPdf = resolvePdfThemeAndFont('padre_faura_maroon', 'editorial_garamond')
+    .primary.map((v) => Number((v / 255).toFixed(2)).toString())
+    .join(' ');
   assert.ok(
-    contentStreamA.includes(warioRgbPrefix),
-    `Expected Wario Bullion Vault primary RGB (${warioRgbPrefix}) in PDF stream`
+    contentStreamA.includes(warioRgbPrefix) || contentStreamA.includes(warioRgbJsPdf),
+    `Expected Wario Bullion Vault primary RGB (${warioRgbPrefix} or ${warioRgbJsPdf}) in PDF stream`
   );
   assert.ok(
-    contentStreamB.includes(padreRgbPrefix),
-    `Expected Padre Faura Maroon primary RGB (${padreRgbPrefix}) in PDF stream`
+    contentStreamB.includes(padreRgbPrefix) || contentStreamB.includes(padreRgbJsPdf),
+    `Expected Padre Faura Maroon primary RGB (${padreRgbPrefix} or ${padreRgbJsPdf}) in PDF stream`
   );
   assert.notEqual(warioRgbPrefix, padreRgbPrefix);
 

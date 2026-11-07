@@ -1003,10 +1003,10 @@ export const CitationsView: React.FC<CitationsViewProps> = ({
       lines.push(`Category: ${item.categoryLabel} | Scope: ${item.worldBadge}`);
       lines.push(`Codal Summary: ${item.summary}`);
       lines.push('');
-      lines.push('--- CONTROLLING STATUTORY PRINCIPLE & BAR RULE ---');
+      lines.push('### CONTROLLING STATUTORY PRINCIPLE & BAR RULE');
       lines.push(item.keyRule);
       lines.push('');
-      lines.push('--- EXACT VERBATIM CODAL PROVISION ---');
+      lines.push('### EXACT VERBATIM CODAL PROVISION');
       lines.push(item.verbatimProvision);
       lines.push('');
       lines.push('======================================================================');

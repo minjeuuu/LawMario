@@ -226,8 +226,6 @@ export function formatVerbatimMarkdown(
     `**Codal Extraction Date:** ${timestamp}`,
     `**Legal Authority:** Republic of the Philippines / Department of Labor and Employment (DOLE)`,
     ``,
-    `---`,
-    ``,
   ];
 
   if (summary) {
@@ -247,7 +245,6 @@ export function formatVerbatimMarkdown(
   lines.push(verbatim.trim());
   lines.push(`\`\`\``);
   lines.push(``);
-  lines.push(`---`);
   lines.push(
     `*Generated via Super Mario Labor Law Bar Memory Aid — Courtroom-Grade Codal Repertory.*`
   );

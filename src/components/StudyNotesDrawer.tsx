@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { jsPDF } from 'jspdf';
+import { sanitizePdfText } from '../utils/pdfExportService';
 import {
   NotebookPen,
   Plus,
@@ -386,7 +387,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
         `Updated: ${new Date(n.updatedAt).toLocaleDateString()}`,
         '',
         n.content,
-        '\n--------------------------------------------------',
+        '\n==================================================',
       ].join('\n')),
       '\nSuper Mario Labor Adventure · Philippine Labor Standards Memory Aid',
     ];
@@ -424,7 +425,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
         `*Last Updated: ${new Date(n.updatedAt).toLocaleDateString()}*`,
         '',
         n.content,
-        '\n---',
+        '\n',
       ].join('\n')),
       '\nSuper Mario Labor Adventure · Philippine Labor Standards Memory Aid',
     ];
@@ -485,7 +486,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
         // Note Card Header (Uncut titles with dynamic multi-line wrapping)
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
-        const titleLines = doc.splitTextToSize(`[${idx + 1}] ${n.title}`, contentWidth - 6);
+        const titleLines = doc.splitTextToSize(sanitizePdfText(`[${idx + 1}] ${n.title}`), contentWidth - 6);
         const titleBoxH = Math.max(8, titleLines.length * 4.4 + 3.6);
 
         if (y + titleBoxH > pageHeight - 30) {
@@ -506,14 +507,15 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
         doc.setTextColor(100, 116, 139);
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(7.5);
-        doc.text(`World: ${getWorldBadgeLabel(n.worldTag)} | Tag: ${n.categoryTag || 'General'}`, margin + 2, y);
+        doc.text(sanitizePdfText(`World: ${getWorldBadgeLabel(n.worldTag)} | Tag: ${n.categoryTag || 'General'}`), margin + 2, y);
         y += 4.5;
 
-        // Content
+        // Content (sanitized: zero - - - or ugly divider dashes)
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(30, 41, 59);
-        const lines = doc.splitTextToSize(n.content, contentWidth - 4);
+        const cleanContent = sanitizePdfText(n.content);
+        const lines = doc.splitTextToSize(cleanContent, contentWidth - 4);
         for (let i = 0; i < lines.length; i++) {
           if (y > pageHeight - 15) {
             doc.addPage();

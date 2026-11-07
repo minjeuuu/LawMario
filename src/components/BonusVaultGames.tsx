@@ -542,7 +542,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
                   className="min-h-[54px] px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer transition-transform"
                 >
                   <ShieldCheck className="w-5 h-5 shrink-0" />
-                  <span>SHIELD: LAWFUL STATUTORY RIGHT [A]</span>
+                  <span className="break-words [overflow-wrap:anywhere] text-center">SHIELD: LAWFUL STATUTORY RIGHT [A]</span>
                 </button>
                 <button
                   type="button"
@@ -550,7 +550,7 @@ export const HammerBrosPayrollBlitzGame: React.FC<BonusVaultGameProps> = ({
                   className="min-h-[54px] px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] active:translate-y-0.5 inline-flex items-center justify-center gap-2 cursor-pointer transition-transform"
                 >
                   <Hammer className="w-5 h-5 shrink-0" />
-                  <span>SMASH: ILLEGAL SHORTCUT [D]</span>
+                  <span className="break-words [overflow-wrap:anywhere] text-center">SMASH: ILLEGAL SHORTCUT [D]</span>
                 </button>
               </div>
             ) : (
@@ -1049,7 +1049,7 @@ export const ToadetteDueProcessRelayGame: React.FC<BonusVaultGameProps> = ({
                           : 'bg-slate-900 hover:bg-slate-800 border-slate-700 hover:border-amber-400 text-white cursor-pointer active:translate-y-0.5'
                       }`}
                     >
-                      <span className="text-xs sm:text-sm font-bold leading-snug">{item.text}</span>
+                      <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1">{item.text}</span>
                       <span className="shrink-0 font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700">
                         {isSelected ? `#${selectedRank + 1}` : 'TAP'}
                       </span>
@@ -1474,7 +1474,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
                   className="min-h-[54px] px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
                 >
                   <CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <span>CERTIFY COMPLIANT (DOLE ACCREDITED)</span>
+                  <span className="break-words [overflow-wrap:anywhere] text-center">CERTIFY COMPLIANT (DOLE ACCREDITED)</span>
                 </button>
                 <button
                   type="button"
@@ -1482,7 +1482,7 @@ export const ShyGuyWageOrderFactoryGame: React.FC<BonusVaultGameProps> = ({
                   className="min-h-[54px] px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center justify-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
                 >
                   <XCircle className="w-5 h-5 shrink-0" />
-                  <span>BUST DOLE VIOLATION (LABOR-ONLY TRAP)</span>
+                  <span className="break-words [overflow-wrap:anywhere] text-center">BUST DOLE VIOLATION (LABOR-ONLY TRAP)</span>
                 </button>
               </div>
             ) : (
@@ -1870,15 +1870,15 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
                         : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className={`w-10 h-10 rounded-xl ${gr.badge} border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]`}>
                         <BookOpen className="w-5 h-5 text-slate-950" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75">
                           GRIMOIRE RUNIC SEAL #{i + 1}
                         </span>
-                        <span className="text-sm sm:text-base font-mono font-black block">
+                        <span className="text-sm sm:text-base font-mono font-black block break-words [overflow-wrap:anywhere]">
                           {opt}
                         </span>
                       </div>

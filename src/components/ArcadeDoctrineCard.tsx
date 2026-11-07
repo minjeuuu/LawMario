@@ -78,7 +78,7 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
     >
       {/* Top Banner Ribbon */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-white/15">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           <div
             className={`w-7 h-7 rounded-xl flex items-center justify-center border-2 border-black shrink-0 ${
               isCorrect ? 'bg-emerald-400 text-slate-950' : 'bg-rose-500 text-white'
@@ -90,7 +90,7 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
               <AlertTriangle className="w-4 h-4 shrink-0" />
             )}
           </div>
-          <span className="font-mario text-[10px] sm:text-[11px] uppercase tracking-wider font-black">
+          <span className="font-mario text-[10px] sm:text-[11px] uppercase tracking-wider font-black break-words">
             {isCorrect
               ? 'DOCTRINE MASTERED!'
               : shieldAbsorbedHit
@@ -98,14 +98,14 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
               : 'CRITICAL STATUTORY DISTINCTION!'}
           </span>
           {speedBonusAwarded && (
-            <span className="px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-mario text-[9px] font-black shrink-0">
+            <span className="px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-mario text-[9px] font-black shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.4)] animate-bounce">
               +5 SPEED BONUS!
             </span>
           )}
         </div>
 
         {/* Legal Citation Pill */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-amber-400/60 font-mono text-xs font-bold text-amber-300 shadow-[0_2px_0_#000]">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-amber-400/60 font-mono text-xs font-bold text-amber-300 shadow-[0_2px_0_#000] max-w-full">
           <Scale className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span className="break-words [overflow-wrap:anywhere]">{statute}</span>
         </div>
@@ -113,7 +113,7 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
 
       {/* Title if provided */}
       {title && (
-        <h4 className="text-sm sm:text-base font-black font-display text-white tracking-wide">
+        <h4 className="text-sm sm:text-base font-black font-display text-white tracking-wide break-words [overflow-wrap:anywhere]">
           {title}
         </h4>
       )}
@@ -124,7 +124,7 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span>CONTROLLING CODAL DOCTRINE</span>
         </div>
-        <p className="text-xs sm:text-sm text-slate-100 font-semibold leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-100 font-semibold leading-relaxed break-words [overflow-wrap:anywhere]">
           {rule}
         </p>
       </div>
@@ -136,7 +136,7 @@ export const ArcadeDoctrineCard: React.FC<ArcadeDoctrineCardProps> = ({
             <MarioStarIcon className="w-3 h-3 shrink-0" />
             <span>STATUTORY TAKEAWAY &amp; PRACTICAL DISTINCTION</span>
           </div>
-          <p className="text-xs sm:text-sm text-emerald-100/90 font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-emerald-100/90 font-medium leading-relaxed break-words [overflow-wrap:anywhere]">
             {takeaway}
           </p>
         </div>

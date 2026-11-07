@@ -247,25 +247,25 @@ export const DolePayMultiplierCalculator: React.FC<DolePayMultiplierCalculatorPr
     marioAudio.playCoin();
     const text = `=========================================
 DOLE PHILIPPINE LABOR STANDARDS PAY SLIP
-Daily Rate: ₱${dailyWage.toFixed(2)} | Hourly Rate: ₱${hourlyRate.toFixed(2)}
-Estimated Monthly (Factor ${workFactor}): ₱${estimatedMonthlySalary.toFixed(2)}
------------------------------------------
-1. Regular Day (8h): ₱${dailyWage.toFixed(2)}
-2. Ordinary Overtime (+2h @ 125%): ₱${(hourlyRate * 2 * 1.25).toFixed(2)}
-3. Night Differential (+2h @ 110%): +₱${(hourlyRate * 2 * 0.1).toFixed(2)}
-4. Rest Day / Special Day (130%): ₱${(dailyWage * 1.3).toFixed(2)}
-5. Special Day on Rest Day (150%): ₱${(dailyWage * 1.5).toFixed(2)}
-6. Regular Holiday Worked (200%): ₱${(dailyWage * 2.0).toFixed(2)}
-7. Regular Holiday on Rest Day (260%): ₱${(dailyWage * 2.6).toFixed(2)}
-8. Double Regular Holiday (300%): ₱${(dailyWage * 3.0).toFixed(2)}
-9. Double Holiday on Rest Day (390%): ₱${(dailyWage * 3.9).toFixed(2)}
------------------------------------------
-Statutory 13th Month Pay (${monthsWorkedInYear} mos): ₱${thirteenthMonthPay.toFixed(2)}
-Service Incentive Leave (5 days cash value): ₱${silCashValue.toFixed(2)}
-Retirement Pay (Art. 302, ${yearsOfService} yrs @ 22.5 days/yr): ₱${totalRetirementPay.toFixed(2)}
+Daily Rate: PHP ${dailyWage.toFixed(2)} | Hourly Rate: PHP ${hourlyRate.toFixed(2)}
+Estimated Monthly (Factor ${workFactor}): PHP ${estimatedMonthlySalary.toFixed(2)}
 =========================================
-Super Mario Labor Adventure · Philippine Labor Standards Guide
-Attribution: Matthew Cesar Corpuz (Main Creator · Executed All Roles) et al.`;
+1. Regular Day (8h): PHP ${dailyWage.toFixed(2)}
+2. Ordinary Overtime (+2h @ 125%): PHP ${(hourlyRate * 2 * 1.25).toFixed(2)}
+3. Night Differential (+2h @ 110%): +PHP ${(hourlyRate * 2 * 0.1).toFixed(2)}
+4. Rest Day / Special Day (130%): PHP ${(dailyWage * 1.3).toFixed(2)}
+5. Special Day on Rest Day (150%): PHP ${(dailyWage * 1.5).toFixed(2)}
+6. Regular Holiday Worked (200%): PHP ${(dailyWage * 2.0).toFixed(2)}
+7. Regular Holiday on Rest Day (260%): PHP ${(dailyWage * 2.6).toFixed(2)}
+8. Double Regular Holiday (300%): PHP ${(dailyWage * 3.0).toFixed(2)}
+9. Double Holiday on Rest Day (390%): PHP ${(dailyWage * 3.9).toFixed(2)}
+=========================================
+Statutory 13th Month Pay (${monthsWorkedInYear} mos): PHP ${thirteenthMonthPay.toFixed(2)}
+Service Incentive Leave (5 days cash value): PHP ${silCashValue.toFixed(2)}
+Retirement Pay (Art. 302, ${yearsOfService} yrs @ 22.5 days/yr): PHP ${totalRetirementPay.toFixed(2)}
+=========================================
+Super Mario Labor Adventure | Philippine Labor Standards Guide
+Attribution: Matthew Cesar Corpuz (Main Creator | Executed All Roles) et al.`;
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(text);
@@ -927,8 +927,8 @@ Attribution: Matthew Cesar Corpuz (Main Creator · Executed All Roles) et al.`;
               </div>
 
               {/* Service Incentive Leave (SIL) 5 Days */}
-              <div className="bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
-                <div>
+              <div className="bg-slate-800/90 border-2 border-slate-700 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="min-w-0 flex-1">
                   <span className="font-black uppercase text-amber-300 block font-display">
                     Service Incentive Leave (SIL) Cash Value (Art. 95)
                   </span>
@@ -936,7 +936,7 @@ Attribution: Matthew Cesar Corpuz (Main Creator · Executed All Roles) et al.`;
                     5 days paid leave convertible to cash if unused at end of year.
                   </p>
                 </div>
-                <div className="text-right font-mono shrink-0">
+                <div className="text-left sm:text-right font-mono shrink-0">
                   <span className="text-lg font-black text-emerald-400 block">₱{silCashValue.toFixed(2)}</span>
                   <span className="text-[10px] text-slate-500">₱{dailyWage.toFixed(2)} × 5 days</span>
                 </div>

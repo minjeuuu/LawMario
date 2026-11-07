@@ -903,7 +903,7 @@ const ThematicRoyalGameVisualizer: React.FC<ThematicRoyalGameVisualizerProps> = 
                     <div className="w-7 h-7 rounded-lg bg-black text-amber-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
                       {String.fromCharCode(65 + i)}
                     </div>
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">
                       {opt}
                     </span>
                   </div>
@@ -1014,7 +1014,7 @@ const ThematicRoyalGameVisualizer: React.FC<ThematicRoyalGameVisualizerProps> = 
                     <div className="w-7 h-7 rounded-lg bg-black text-rose-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
                       {String.fromCharCode(65 + i)}
                     </div>
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">
                       {opt}
                     </span>
                   </div>
@@ -1108,7 +1108,7 @@ const ThematicRoyalGameVisualizer: React.FC<ThematicRoyalGameVisualizerProps> = 
                     <div className="w-7 h-7 rounded-lg bg-black text-purple-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
                       {String.fromCharCode(65 + i)}
                     </div>
-                    <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                    <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">
                       {opt}
                     </span>
                   </div>
@@ -1201,7 +1201,7 @@ const ThematicRoyalGameVisualizer: React.FC<ThematicRoyalGameVisualizerProps> = 
                   <div className="w-7 h-7 rounded-lg bg-black text-pink-300 font-mario text-xs flex items-center justify-center shrink-0 border border-slate-700 mt-0.5">
                     {String.fromCharCode(65 + i)}
                   </div>
-                  <span className="text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
+                  <span className="text-xs sm:text-sm font-bold leading-snug break-words [overflow-wrap:anywhere] min-w-0 flex-1 whitespace-normal">
                     {opt}
                   </span>
                 </div>
@@ -1641,6 +1641,39 @@ const RoyalArcadeEngine: React.FC<RoyalArcadeEngineProps> = ({
               streak={streak}
               eliminatedIndices={eliminatedIndices}
             />
+
+            {/* Dynamic Arcade Action Blast Banner */}
+            {pickedOption !== null && (
+              <div
+                className={`p-3 rounded-2xl border-3 flex items-center justify-between gap-3 shadow-[0_4px_0_#000] animate-bounce ${
+                  pickedOption === currentItem.correctIndex
+                    ? 'bg-amber-400 border-black text-slate-950 font-black'
+                    : 'bg-rose-600 border-black text-white font-bold'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-black text-amber-300 flex items-center justify-center font-mario text-sm border border-white/20 shrink-0">
+                    !
+                  </div>
+                  <span className="text-xs sm:text-sm uppercase font-mario tracking-wide break-words [overflow-wrap:anywhere]">
+                    {pickedOption === currentItem.correctIndex
+                      ? gameTitle.includes('Toad')
+                        ? 'TURBO DRIFT! MINECART BARRELS DOWN STATUTORY TRACK!'
+                        : gameTitle.includes('Daisy')
+                        ? 'NITRO DASH! SARASALAND DERBY HURDLE CLEARED!'
+                        : gameTitle.includes('Dry Bones')
+                        ? 'CRYPT QUAKE! BONES REASSEMBLED! PRESCRIPTION RATIFIED!'
+                        : 'DOUBLE ENCORE! METRO JAZZ SOLO WAGE PARITY ACHIEVED!'
+                      : 'TRACK COLLAPSE! SHIELD PENALTY ABSORBED! REVIEW DOCTRINE BELOW!'}
+                  </span>
+                </div>
+                {speedBonusAwarded && (
+                  <span className="px-2.5 py-1 rounded-xl bg-slate-950 text-amber-300 border-2 border-amber-400 font-mario text-[10px] shrink-0 font-black shadow-xs">
+                    +5 SPEED BONUS!
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* High-Yield Statutory Learning & Takeaway Card */}
             {pickedOption !== null && (
