@@ -2482,7 +2482,7 @@ export default function App() {
   return (
     <div
       data-study-font={appStudyFont}
-      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 pb-28 lg:pb-12 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
+      className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 antialiased theme-${activeTheme} ${appStudyFontClass} world-bg-${activeWorld || 'all'} transition-colors duration-500 w-full max-w-full overflow-x-clip`}
     >
       {/* Main Navigation Container — Safe Top Padding so UI is never cropped on mobile */}
       <div className="sticky top-0 z-40 w-full bg-[#0f172a] safe-top-nav">
@@ -5244,7 +5244,7 @@ export default function App() {
       </ErrorBoundary>
 
       {/* Mario Ground Footer with Discreet Official 'Created by Matthew' Credit & Group Members */}
-      <footer className="mt-16 bg-[#1e293b] border-t-4 border-black text-amber-100 py-8 px-4 pb-24 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
+      <footer className="mt-auto w-full bg-[#1e293b] border-t-4 border-black text-amber-100 py-8 px-4 pb-28 lg:pb-8 shadow-[0_-4px_0_rgba(0,0,0,0.3)] print:hidden">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 font-bold text-sm border-b border-slate-700 pb-5">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">

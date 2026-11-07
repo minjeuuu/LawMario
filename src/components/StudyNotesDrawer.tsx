@@ -523,11 +523,21 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
   };
 
   const handleToggleHighlightLine = (noteId: string, lineIndex: number) => {
+    const targetNote = notes.find((n) => n.id === noteId);
+    if (targetNote) {
+      const lines = targetNote.content.split('\n');
+      if (!lines[lineIndex] || !lines[lineIndex].trim()) return;
+    }
     setLineAnnotations((prev) => toggleNoteLineHighlight(prev, noteId, lineIndex));
     marioAudio.playCoin();
   };
 
   const handleToggleStarLine = (noteId: string, lineIndex: number) => {
+    const targetNote = notes.find((n) => n.id === noteId);
+    if (targetNote) {
+      const lines = targetNote.content.split('\n');
+      if (!lines[lineIndex] || !lines[lineIndex].trim()) return;
+    }
     setLineAnnotations((prev) => toggleNoteLineStar(prev, noteId, lineIndex));
     marioAudio.playPowerUp();
   };
@@ -1271,10 +1281,22 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
 
                       <div className="space-y-1.5">
                         {note.content.split('\n').map((line, lineIdx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) {
+                            return (
+                              <div
+                                key={`${note.id}-blank-${lineIdx}`}
+                                className="h-1.5"
+                                aria-hidden="true"
+                              />
+                            );
+                          }
                           const ann = lineAnnotations[note.id];
                           const isHighlighted = ann?.highlightedLines?.includes(lineIdx) ?? false;
                           const isStarred = ann?.starredLines?.includes(lineIdx) ?? false;
-                          const isControlling = line.startsWith('Controlling statutory doctrine:');
+                          const isControlling =
+                            line.startsWith('Controlling statutory doctrine:') ||
+                            line.startsWith('Controlling Rule:');
                           const isTakeaway = line.startsWith('Takeaway distinction:');
                           const isRef = line.includes('Ref: qerr_') || line.includes('Ref: statute_');
                           return (
@@ -1310,7 +1332,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                                     className="w-3.5 h-3.5 text-amber-400 fill-amber-400 inline-block mr-1.5 -mt-0.5"
                                   />
                                 )}
-                                {line || '\u00A0'}
+                                {line}
                               </p>
                               <div className="inline-flex items-center gap-1 shrink-0 pt-0.5">
                                 <button

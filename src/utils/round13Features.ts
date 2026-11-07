@@ -443,42 +443,43 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   const shortScenario =
     scenarioClean.length > 56 ? `${scenarioClean.slice(0, 53).trim()}...` : scenarioClean;
 
-  // Real, natural study note title without bracketed mode prefixes like [Quick Test]
-  const title = shortScenario ? `${basis} — ${shortScenario}` : `${basis} Statutory Review`;
+  // Crisp, mnemonic-style title just like 1-tap mnemonic starters
+  const title = shortScenario ? `${basis} Mnemonic — ${shortScenario}` : `${basis} Mnemonic Rule`;
 
   const explanationClean = (input.explanation || '').trim();
   const correctRuleClean = (input.correctOptionText || '').trim();
   const chosenClean = (input.chosenOptionText || '').trim();
 
-  // Natural legal study note prose without repetitive colon prefix clutter
-  const sections: string[] = [];
+  // Clean, high-yield mnemonic lines without empty paragraph break padding
+  const lines: string[] = [];
 
-  if (scenarioClean) {
-    sections.push(scenarioClean);
-  }
-
-  if (explanationClean) {
-    sections.push(explanationClean);
-  }
-
-  const ruleSummaryParts: string[] = [];
+  // Line 1: Controlling statutory doctrine (primary mnemonic rule)
   if (correctRuleClean) {
-    ruleSummaryParts.push(`Controlling statutory doctrine: ${correctRuleClean}.`);
+    const explSuffix =
+      explanationClean && explanationClean !== correctRuleClean ? ` (${explanationClean})` : '';
+    lines.push(`Controlling statutory doctrine: ${correctRuleClean}.${explSuffix}`);
+  } else if (explanationClean) {
+    lines.push(`Controlling statutory doctrine: ${explanationClean}`);
   }
+
+  // Line 2: Takeaway distinction against the missed choice
   if (chosenClean && chosenClean !== correctRuleClean) {
-    ruleSummaryParts.push(
+    lines.push(
       `Takeaway distinction: Your Answer (Missed): ${chosenClean}. Always apply the controlling codal rule above in practical statutory problems.`
     );
   }
-  if (ruleSummaryParts.length > 0) {
-    sections.push(ruleSummaryParts.join(' '));
+
+  // Line 3: Source scenario context if provided
+  if (scenarioClean) {
+    lines.push(`Problem Scenario: ${scenarioClean}`);
   }
 
-  sections.push(`${basis} · Ref: ${fingerprint}`);
+  // Line 4: Legal citation & reference fingerprint
+  lines.push(`${basis} · Ref: ${fingerprint}`);
 
   return {
     title: title.slice(0, 110),
-    content: sections.join('\n\n'),
+    content: lines.join('\n'),
     worldTag: normalizeQuizWorldToNoteWorldTag(input.worldCode),
     fingerprint,
   };

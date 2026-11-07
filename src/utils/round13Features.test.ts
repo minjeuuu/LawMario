@@ -196,6 +196,10 @@ test('Quiz errors save one by one into StudyNotes without merging or duplicating
   assert.equal(notesAfter1[0].worldTag, 'world2');
   assert.equal(notesAfter1[0].categoryTag, 'Bar Exam Review');
   assert.ok(notesAfter1[0].content.includes('Your Answer (Missed): 200% of basic wage'));
+  assert.equal(notesAfter1[0].content.includes('\n\n'), false, 'Error notes must have zero blank paragraph breaks');
+  assert.ok(notesAfter1[0].title.includes('Mnemonic'), 'Title must reflect mnemonic rule style');
+  assert.ok(notesAfter1[0].content.includes('Controlling statutory doctrine:'));
+  assert.ok(notesAfter1[0].content.includes('Takeaway distinction:'));
 
   // Clicking save again on err1 is idempotent (no duplicate spam)
   const save1Repeat = saveSingleQuizErrorToStudyNotes(storage, err1);

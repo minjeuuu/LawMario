@@ -1173,7 +1173,7 @@ export function buildMissedTopicsStudySummary(
     headline: `Targeted Review Brief (${items.length} Doctrine${items.length === 1 ? '' : 's'} to Reinforce)`,
     bulletCount: items.length,
     items,
-    plainTextForNotes: lines.join('\n\n'),
+    plainTextForNotes: lines.join('\n'),
   };
 }
 
