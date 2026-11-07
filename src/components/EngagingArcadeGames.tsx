@@ -2005,7 +2005,7 @@ export const KoopaPinballBumperArenaGame: React.FC<SharedEngagingGameProps> = ({
 };
 
 /* ============================================================================
- * GAME 5: BAR CODAL WORD HUNT (Accessible 10x10 Grid + 4-Tier Hints)
+ * GAME 5: STATUTORY CODAL WORD HUNT (Accessible 10x10 Grid + 4-Tier Hints)
  * ========================================================================== */
 export const BarCodalWordHuntGame: React.FC<SharedEngagingGameProps> = ({
   onEarnCoins,
@@ -2095,7 +2095,7 @@ export const BarCodalWordHuntGame: React.FC<SharedEngagingGameProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-200 pb-3">
         <div>
           <h3 className="font-black text-base sm:text-lg font-display text-slate-950">
-            BAR CODAL WORD HUNT · BOARD {boardIndex + 1}
+            STATUTORY CODAL WORD HUNT · BOARD {boardIndex + 1}
           </h3>
           <p className="text-xs font-semibold text-slate-600">
             Tap the FIRST letter then the LAST letter of any hidden Philippine Labor Law term!

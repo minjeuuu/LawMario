@@ -917,7 +917,7 @@ export const PRACTICE_QUESTIONS: QuizQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      'Critical Bar exam distinction! Industrial SIL (Art. 95) IS cumulative and commutable to cash, whereas Kasambahay SIL (Sec. 29, R.A. 10361) is NOT cumulative and NOT convertible to cash!',
+      'Critical statutory distinction! Industrial SIL (Art. 95) IS cumulative and commutable to cash, whereas Kasambahay SIL (Sec. 29, R.A. 10361) is NOT cumulative and NOT convertible to cash!',
     legalBasis: 'Section 29, Republic Act No. 10361',
   },
   {
@@ -1552,7 +1552,7 @@ export const PRACTICE_QUESTIONS: QuizQuestion[] = [
       'Under R.A. 8972 as amended by R.A. 11861, a change in the status or circumstance of the parent claiming benefits such that they are no longer left alone with parental responsibility or the child exceeds the age/dependency threshold terminates eligibility for Solo Parent benefits.',
     legalBasis: 'Section 3 & Section 8, R.A. 8972 as amended by R.A. 11861',
   },
-  // ================= EXPANDED BAR EXAM SCENARIOS ACROSS ALL WORLDS (IDs 201–245) =================
+  // ================= EXPANDED STATUTORY SCENARIOS ACROSS ALL WORLDS (IDs 201–245) =================
   {
     id: 201,
     world: 'World 1: Hours of Work',

@@ -72,8 +72,8 @@ export const MODULE_4_SPECIAL_GROUPS: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Distinguish non-marriage stipulation (VOID) from no-dating-competitor policy (VALID, Star Paper doctrine).',
-      'Bar Tip: Refusing to re-admit a woman returning from maternity leave for fear that she will get pregnant again constitutes unlawful discrimination!',
+      'Study Tip: Distinguish non-marriage stipulation (VOID) from no-dating-competitor policy (VALID, Star Paper doctrine).',
+      'Study Tip: Refusing to re-admit a woman returning from maternity leave for fear that she will get pregnant again constitutes unlawful discrimination!',
     ],
   },
   {
@@ -180,8 +180,8 @@ export const MODULE_4_SPECIAL_GROUPS: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: A 14-year-old child CANNOT work in an ordinary shop even if parents consent. Only family undertakings or public entertainment are allowed!',
-      'Bar Tip: Under Batas Kasambahay, SSS, PhilHealth, and Pag-IBIG start after ONE MONTH of service, while the 5-day SIL starts after ONE YEAR.',
+      'Study Tip: A 14-year-old child CANNOT work in an ordinary shop even if parents consent. Only family undertakings or public entertainment are allowed!',
+      'Study Tip: Under Batas Kasambahay, SSS, PhilHealth, and Pag-IBIG start after ONE MONTH of service, while the 5-day SIL starts after ONE YEAR.',
     ],
   },
 ];

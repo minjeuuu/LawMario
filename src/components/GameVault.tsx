@@ -885,7 +885,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
     },
     {
       id: 'codal_word_hunt',
-      title: 'Bar Codal Word Hunt',
+      title: 'Statutory Codal Word Hunt',
       genre: '10×10 Puzzle + 4-Tier Hints',
       desc: 'Search high-contrast letter grids for key Labor Code & Supreme Court doctrines using our 4-Tier Hint magnifier!',
       badge: 'WORD GRID',
@@ -922,15 +922,15 @@ export const GameVault: React.FC<GameVaultProps> = ({
     {
       id: 'toad_slots',
       title: "Toad's Coin Treasury Slots",
-      genre: 'Coin Wager & Bar Bonus',
-      desc: 'Wager 5, 15, or 30 coins on statutory multiplier reels and answer instant Bar Trivia to double your coin jackpot!',
+      genre: 'Coin Wager & Multiplier Bonus',
+      desc: 'Wager 5, 15, or 30 coins on statutory multiplier reels and answer instant Statutory Trivia to double your coin jackpot!',
       badge: 'SPEND COINS',
       icon: <MarioCoinIcon className="w-6 h-6" />,
       category: 'strategy_puzzle',
     },
     {
       id: 'lakitu_climber',
-      title: "Lakitu's Bar Jackpot Climber",
+      title: "Lakitu's Cloud Jackpot Climber",
       genre: 'Risk-Reward Sky Tower',
       desc: 'Buy Lakitu’s Cloud Shield (-12c) and climb 5 statutory floors to bank up to +120 coins per summit!',
       badge: 'CLOUD SHIELD',

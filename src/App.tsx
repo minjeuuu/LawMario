@@ -5107,7 +5107,7 @@ export default function App() {
                   className="min-h-[40px] px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl border-2 border-black shadow-[0_2px_0_#000] inline-flex items-center gap-1.5 cursor-pointer mt-1"
                 >
                   <MarioStarIcon className="w-4 h-4 text-slate-950" />
-                  <span>Reveal Legal Verdict & Bar Trap (+3 Coins)</span>
+                  <span>Reveal Legal Verdict &amp; Statutory Trap (+3 Coins)</span>
                 </button>
               ) : (
                 <div className="pt-2 border-t border-slate-700 space-y-2 animate-fadeIn">
@@ -5120,7 +5120,7 @@ export default function App() {
                     </p>
                   </div>
                   <div className="p-2.5 bg-rose-950/50 border border-rose-500/70 rounded-xl text-xs text-rose-200">
-                    <span className="font-black text-rose-400">Bar Trap: </span>
+                    <span className="font-black text-rose-400">Statutory Trap: </span>
                     {activeTopicDuel.trap}
                   </div>
                   <div className="p-2 bg-amber-950/50 border border-amber-400/60 rounded-xl text-xs text-amber-200 font-mono">

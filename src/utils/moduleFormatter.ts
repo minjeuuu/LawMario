@@ -55,12 +55,13 @@ export function parseListEntry(rawText: string, defaultBullet = '•'): CleanLis
   const text = cleanRuleText(rawText);
 
   // Check if text starts with explicit number or letter marker: e.g. "1. ", "2) ", "(1) ", "(a) ", "a. "
-  const numMatch = text.match(/^(\d+[\.\)]|\([a-z0-9]+\)|[a-z][\.\)])\s+(.*)$/i);
+  const numMatch = text.match(/^(\d+[\.\)]|\([a-z0-9]+\)|[a-z][\.\)])\s*(.*)$/i);
   if (numMatch) {
+    const cleanedTail = numMatch[2].replace(/^[-•*\u2022\u25AA\u25AB\u25BA:\s]+/, '').trim();
     return {
       raw: text,
       marker: numMatch[1],
-      text: numMatch[2].trim(),
+      text: cleanedTail,
       isNumbered: true,
     };
   }

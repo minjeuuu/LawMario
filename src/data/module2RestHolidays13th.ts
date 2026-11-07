@@ -43,7 +43,7 @@ export const MODULE_2_REST_HOLIDAYS_13TH: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: When a special holiday falls on the employee’s scheduled rest day and the employee works, the premium is 50% (total 150% for first 8 hours), not 30%!',
+      'Study Tip: When a special holiday falls on the employee’s scheduled rest day and the employee works, the premium is 50% (total 150% for first 8 hours), not 30%!',
     ],
   },
   {
@@ -151,8 +151,8 @@ export const MODULE_2_REST_HOLIDAYS_13TH: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Unworked Double Holiday = 200%. Worked Double Holiday = 300%. Double Holiday on rest day worked with OT reaches up to 557.7% with night differential!',
-      'Bar Tip: A day preceding holiday is Sunday (rest day). Employee worked on Saturday. Is employee entitled to Monday regular holiday pay? YES, because Saturday was the day immediately preceding the non-working rest day.',
+      'Study Tip: Unworked Double Holiday = 200%. Worked Double Holiday = 300%. Double Holiday on rest day worked with OT reaches up to 557.7% with night differential!',
+      'Study Tip: A day preceding holiday is Sunday (rest day). Employee worked on Saturday. Is employee entitled to Monday regular holiday pay? YES, because Saturday was the day immediately preceding the non-working rest day.',
     ],
   },
   {
@@ -196,7 +196,7 @@ export const MODULE_2_REST_HOLIDAYS_13TH: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Under the old law, the ratio was 85%-15%. Under R.A. No. 11360, it is 100% to rank-and-file employees, 0% to management. Contractual and agency workers are entitled!',
+      'Study Tip: Under the old law, the ratio was 85%-15%. Under R.A. No. 11360, it is 100% to rank-and-file employees, 0% to management. Contractual and agency workers are entitled!',
     ],
   },
   {
@@ -282,8 +282,8 @@ export const MODULE_2_REST_HOLIDAYS_13TH: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Giving sacks of rice or gift baskets in lieu of 13th month pay is a labor violation! 13th month pay must be paid in legal tender or cash equivalent.',
-      'Bar Tip: For separated employees: Pro-rated 13th month = (Total basic salary earned during the year) / 12.',
+      'Study Tip: Giving sacks of rice or gift baskets in lieu of 13th month pay is a labor violation! 13th month pay must be paid in legal tender or cash equivalent.',
+      'Study Tip: For separated employees: Pro-rated 13th month = (Total basic salary earned during the year) / 12.',
     ],
   },
 ];

@@ -82,8 +82,8 @@ export const MODULE_5_PROTECTIVE_LAWS: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Does a wife need her husband’s written consent to apply for a passport or borrow money from a bank? NO! Under R.A. No. 7192, spousal consent is completely eliminated.',
-      'Bar Tip: Workplace lactation break threshold is at least 40 minutes per 8-hour shift, and it is fully compensable working time.',
+      'Study Tip: Does a wife need her husband’s written consent to apply for a passport or borrow money from a bank? NO! Under R.A. No. 7192, spousal consent is completely eliminated.',
+      'Study Tip: Workplace lactation break threshold is at least 40 minutes per 8-hour shift, and it is fully compensable working time.',
     ],
   },
   {
@@ -171,8 +171,8 @@ export const MODULE_5_PROTECTIVE_LAWS: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Under R.A. 7877, a peer cannot commit workplace sexual harassment because there is no moral ascendancy. BUT under R.A. 11313 (Safe Spaces Act), peer-to-peer and subordinate-to-superior sexual harassment is FULLY PENALIZED!',
-      'Bar Tip: Driver of a PUV harassing a passenger is a QUALIFIED crime under R.A. 11313 resulting in license cancellation.',
+      'Study Tip: Under R.A. 7877, a peer cannot commit workplace sexual harassment because there is no moral ascendancy. BUT under R.A. 11313 (Safe Spaces Act), peer-to-peer and subordinate-to-superior sexual harassment is FULLY PENALIZED!',
+      'Study Tip: Driver of a PUV harassing a passenger is a QUALIFIED crime under R.A. 11313 resulting in license cancellation.',
     ],
   },
   {
@@ -288,8 +288,8 @@ export const MODULE_5_PROTECTIVE_LAWS: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Under VAWC, can an abuser claim he was drunk as an excuse? ABSOLUTELY NOT. Alcohol and drug intoxication is expressly prohibited as a defense.',
-      'Bar Tip: SPES salary division is 60% employer and 40% government (DOLE).',
+      'Study Tip: Under VAWC, can an abuser claim he was drunk as an excuse? ABSOLUTELY NOT. Alcohol and drug intoxication is expressly prohibited as a defense.',
+      'Study Tip: SPES salary division is 60% employer and 40% government (DOLE).',
     ],
   },
 ];

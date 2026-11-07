@@ -738,7 +738,7 @@ export const FLASHCARDS_DATA: Flashcard[] = [
     worldNum: 4,
     question: 'Under Batas Kasambahay (R.A. 10361), is a Kasambahay’s 5-day Service Incentive Leave convertible to cash or cumulative?',
     answer: 'NO! Unlike regular Labor Code SIL (Art. 95), Section 29 of R.A. 10361 provides that unused Kasambahay SIL shall NOT be cumulative/carried over and is NOT convertible to cash.',
-    keyTakeaway: 'Bar Trap: Regular SIL = commutable & cumulative; Kasambahay SIL = NOT commutable & NOT cumulative.',
+    keyTakeaway: 'Statutory Trap: Regular SIL = commutable & cumulative; Kasambahay SIL = NOT commutable & NOT cumulative.',
     difficulty: 'Hard',
   },
   {
@@ -1756,7 +1756,7 @@ export const FLASHCARDS_DATA: Flashcard[] = [
     worldNum: 4,
     question: 'Compare Unused Service Incentive Leave (SIL) of a regular office worker (Art. 95) vs. a Kasambahay (Sec. 29, R.A. 10361)!',
     answer: 'Office Worker (Art. 95): 5 days SIL is CUMULATIVE and CONVERTIBLE to cash! Kasambahay (R.A. 10361): 5 days SIL after 1 year is NON-cumulative and NON-convertible to cash (forfeited if unused)!',
-    keyTakeaway: 'BAR TRAP: Kasambahay 5-day SIL is NON-cumulative and NON-convertible to cash!',
+    keyTakeaway: 'STATUTORY TRAP: Kasambahay 5-day SIL is NON-cumulative and NON-convertible to cash!',
     difficulty: 'Hard',
   },
   {

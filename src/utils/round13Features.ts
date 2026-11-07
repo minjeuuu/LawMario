@@ -467,7 +467,7 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   }
   if (chosenClean && chosenClean !== correctRuleClean) {
     ruleSummaryParts.push(
-      `Takeaway distinction: Your Answer (Missed): ${chosenClean}. Always apply the controlling codal rule above in Bar exam problems.`
+      `Takeaway distinction: Your Answer (Missed): ${chosenClean}. Always apply the controlling codal rule above in practical statutory problems.`
     );
   }
   if (ruleSummaryParts.length > 0) {

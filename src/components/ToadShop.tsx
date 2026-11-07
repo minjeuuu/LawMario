@@ -1124,7 +1124,7 @@ export const SOUNDPACK_ITEMS: ShopItem[] = [
     category: 'soundpack',
     soundPackId: 'sound_ghost_organ',
     price: 90,
-    description: 'Playful gothic pipe-organ harmonies and mysterious pizzicato steps for late-night Bar exam case crunching.',
+    description: 'Playful gothic pipe-organ harmonies and mysterious pizzicato steps for late-night study case crunching.',
     badge: 'Mansion Mystery',
   },
   {
@@ -1418,7 +1418,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
         return stats.playerName;
       }
     }
-    return 'Mario Bar Candidate';
+    return 'Mario Labor Scholar';
   });
   const [certPdfDownloaded, setCertPdfDownloaded] = useState<boolean>(false);
 
@@ -4926,7 +4926,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                       onClick={async () => {
                         marioAudio.playQuizComplete();
                         await downloadTrueFontMasterDiplomaPdfAsync({
-                          recipientName: certRecipientName.trim() || 'Mario Bar Candidate',
+                          recipientName: certRecipientName.trim() || 'Mario Labor Scholar',
                           honors: 'Grand Master of Philippine Labor Standards · Summa Cum Codal',
                           completedCount: ALL_LAW_TOPICS.length,
                           totalCount: ALL_LAW_TOPICS.length,
@@ -5105,7 +5105,7 @@ export const ToadShop: React.FC<ToadShopProps> = ({
                   By Sovereign Authority of the High Academy of Jurisprudence, Be It Known That
                 </p>
                 <div className="text-2xl sm:text-4xl font-black font-serif text-red-900 border-b-2 border-amber-600 pb-1 max-w-xl mx-auto tracking-tight">
-                  {certRecipientName || 'Mario Bar Candidate'}
+                  {certRecipientName || 'Mario Labor Scholar'}
                 </div>
                 <p className="text-[11px] sm:text-xs font-black uppercase tracking-widest text-amber-900 pt-0.5">
                   IS HEREBY INVESTED AS GRAND MASTER OF PHILIPPINE LABOR STANDARDS (SUMMA CUM CODAL)

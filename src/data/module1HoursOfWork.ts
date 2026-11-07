@@ -137,8 +137,8 @@ export const MODULE_1_HOURS_OF_WORK: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Always apply the Test of Control to verify if an employee is truly Field Personnel. Mere outside work is insufficient if their itinerary or output hours are monitored.',
-      'Bar Tip: A cook reassigned to clean the company premises transforms from domestic to industrial worker immediately.',
+      'Study Tip: Always apply the Test of Control to verify if an employee is truly Field Personnel. Mere outside work is insufficient if their itinerary or output hours are monitored.',
+      'Study Tip: A cook reassigned to clean the company premises transforms from domestic to industrial worker immediately.',
     ],
   },
   {
@@ -240,8 +240,8 @@ export const MODULE_1_HOURS_OF_WORK: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Attendance at CBA grievance meetings = COMPENSABLE. Attendance at employee-filed hearings against employer = NON-COMPENSABLE.',
-      'Bar Tip: Brownout threshold is exactly 20 minutes! Up to 20 minutes is compensable regardless of productivity.',
+      'Study Tip: Attendance at CBA grievance meetings = COMPENSABLE. Attendance at employee-filed hearings against employer = NON-COMPENSABLE.',
+      'Study Tip: Brownout threshold is exactly 20 minutes! Up to 20 minutes is compensable regardless of productivity.',
     ],
   },
   {
@@ -374,8 +374,8 @@ export const MODULE_1_HOURS_OF_WORK: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Maximum hours under Compressed Work Week are 12 hours/day and 48 hours/week.',
-      'Bar Tip: Offsetting undertime on Monday with overtime on Tuesday is ILLEGAL. The employer must pay full OT and deduct UT from leaves or basic salary.',
+      'Study Tip: Maximum hours under Compressed Work Week are 12 hours/day and 48 hours/week.',
+      'Study Tip: Offsetting undertime on Monday with overtime on Tuesday is ILLEGAL. The employer must pay full OT and deduct UT from leaves or basic salary.',
     ],
   },
 ];

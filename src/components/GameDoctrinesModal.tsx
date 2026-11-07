@@ -156,7 +156,7 @@ export const GameDoctrinesModal: React.FC<GameDoctrinesModalProps> = ({
         title: `Toad Slots • Trivia #${idx + 1}`,
         questionOrDoctrine: st.q,
         answerOrRule: `Correct Answer: ${st.opts[st.ans]}`,
-        legalBasis: 'Philippine Labor Law Bar Precepts',
+        legalBasis: 'Philippine Labor Standards & Doctrines',
       });
     });
 

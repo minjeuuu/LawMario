@@ -310,8 +310,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     list.push(
       {
         id: 'tool-leaderboard',
-        title: 'Global Coin Leaderboard (Top Student Coin Earners)',
-        subtitle: 'View top Gold Coin earners from other law students and track your rank & Fire Flower streaks',
+        title: 'Global Coin Leaderboard (Top Coin Earners)',
+        subtitle: 'View top Gold Coin earners from other scholars and track your rank & Fire Flower streaks',
         category: 'Tool',
         tab: 'leaderboard',
         badge: 'Leaderboard',

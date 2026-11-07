@@ -42,7 +42,7 @@ interface ExtraGameProps {
 }
 
 // ============================================================================
-// 1. TOAD'S STATUTORY COIN TREASURY SLOTS (Spend Coins & Double via Bar Trivia!)
+// 1. TOAD'S STATUTORY COIN TREASURY SLOTS (Spend Coins & Double via Statutory Trivia!)
 // ============================================================================
 const SLOT_REELS = [
   { id: 'star', label: '390% Double Holiday + RD', payoutMult: 5 },
@@ -119,7 +119,7 @@ export const ToadHouseCoinSlots: React.FC<ExtraGameProps> = ({
     if (choice === activeTrivia.ans) {
       onAdjustCoins(pendingTriviaWin);
       marioAudio.playCoin();
-      setLastResult(`CORRECT BAR DOCTRINE! Bonus +${pendingTriviaWin} Coins added to your wallet!`);
+      setLastResult(`CORRECT STATUTORY DOCTRINE! Bonus +${pendingTriviaWin} Coins added to your wallet!`);
     } else {
       marioAudio.playBowserHit();
       setLastResult(`Review Tip: Correct answer was "${activeTrivia.opts[activeTrivia.ans]}". Spin again!`);
@@ -198,7 +198,7 @@ export const ToadHouseCoinSlots: React.FC<ExtraGameProps> = ({
         <div className="bg-indigo-950/90 border-2 border-amber-400 rounded-2xl p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] font-mario text-amber-300 uppercase">
-              BAR TRIVIA BONUS (+{pendingTriviaWin} COINS)
+              STATUTORY TRIVIA BONUS (+{pendingTriviaWin} COINS)
             </span>
           </div>
           <p className="text-xs sm:text-sm font-bold text-white">
@@ -449,7 +449,7 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
 };
 
 // ============================================================================
-// 3. LAKITU'S BAR CLIMBER TOWER (High-Stakes Coin Ladder + Cloud Shield!)
+// 3. LAKITU'S CLOUD CLIMBER TOWER (High-Stakes Coin Ladder + Cloud Shield!)
 // ============================================================================
 export const LakituCloudClimberGame: React.FC<ExtraGameProps> = ({
   equippedAvatar,
@@ -521,7 +521,7 @@ export const LakituCloudClimberGame: React.FC<ExtraGameProps> = ({
               RISK-AND-REWARD SKY TOWER
             </span>
             <h2 className="text-xl sm:text-2xl font-black font-display text-white">
-              LAKITU&apos;S BAR JACKPOT CLIMBER
+              LAKITU&apos;S CLOUD JACKPOT CLIMBER
             </h2>
           </div>
         </div>

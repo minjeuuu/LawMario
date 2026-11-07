@@ -126,7 +126,7 @@ export const SOUND_PACK_DEFINITIONS: SoundPackInfo[] = [
     name: 'Luigi Mansion Pipe Organ',
     badge: 'Mansion Mystery',
     era: 'Gothic Baroque',
-    description: 'Playful gothic pipe-organ harmonies and mysterious pizzicato steps for late-night Bar exam case crunching.',
+    description: 'Playful gothic pipe-organ harmonies and mysterious pizzicato steps for late-night study case crunching.',
     defaultPrice: 90,
     previewTone: 'Haunted Pipe Organ',
     leadWave: 'triangle',

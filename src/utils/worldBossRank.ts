@@ -155,7 +155,7 @@ export function determineBossRankTier(combatRating: number, victories: number): 
     return {
       tier: 'SSS',
       tierTitle: 'Super Star Juris Doctor',
-      percentileText: 'Top 0.8% Elite Bar Candidates',
+      percentileText: 'Top 0.8% Elite Labor Scholars',
       badgeGradient: 'from-amber-400 via-rose-500 to-indigo-600 border-amber-300 text-amber-200 shadow-amber-500/50',
     };
   }

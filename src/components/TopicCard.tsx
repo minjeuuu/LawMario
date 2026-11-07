@@ -1478,7 +1478,9 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                     ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500'
                     : 'bg-amber-950/90 text-amber-300 border-amber-500'
                 }`}
-                title={`Statutory Complexity: ${topic.difficulty || 'Intermediate'}`}
+                title={`Statutory Complexity: ${
+                  topic.difficulty === 'Bar Master' ? 'Statutory Master' : topic.difficulty || 'Intermediate'
+                }`}
               >
                 {topic.difficulty === 'Bar Master' ? (
                   <MarioStarIcon className="w-3 h-3 text-amber-300 shrink-0" />
@@ -1487,7 +1489,11 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
                 ) : (
                   <MarioFireFlowerIcon className="w-3 h-3 text-amber-400 shrink-0" />
                 )}
-                <span>{topic.difficulty || 'Intermediate'}</span>
+                <span>
+                  {topic.difficulty === 'Bar Master'
+                    ? 'Statutory Master'
+                    : topic.difficulty || 'Intermediate'}
+                </span>
               </span>
 
               {activeAudioCue && (

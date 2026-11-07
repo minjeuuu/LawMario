@@ -2369,7 +2369,7 @@ const COMPANION_CATALOG: Record<string, CompanionPetMeta> = {
     name: 'Nabbit High-Yield Collector',
     bonusCoinsPerTopic: 2,
     tips: [
-      'Nabbit Loot: Watch the Bar trap! Kasambahay 5-day SIL (R.A. 10361) is NOT convertible to cash and NOT cumulative!',
+      'Nabbit Loot: Watch the statutory trap! Kasambahay 5-day SIL (R.A. 10361) is NOT convertible to cash and NOT cumulative!',
       'Nabbit Loot: Solo Parent Leave (R.A. 11861) requires only 6 months of service (unlike 12 months for Art. 95 SIL)!',
     ],
   },
@@ -2620,7 +2620,7 @@ export const MARIO_MYSTERY_LAW_DROPS: readonly MarioMysteryBlockDrop[] = [
     mnemonicTitle: '5 vs. <10 vs. <=10 Retail Exemption Rule',
     statutoryRule:
       'NSD (Art. 86): <= 5 workers exempt · Holiday & SIL (Arts. 94–95): < 10 workers (1–9) exempt · Retirement (R.A. 7641): <= 10 workers exempt.',
-    examTrapNote: 'Bar Trap: An establishment with exactly 10 workers MUST pay Holiday Pay & SIL, but is still exempt from R.A. 7641 Retirement Pay!',
+    examTrapNote: 'Statutory Trap: An establishment with exactly 10 workers MUST pay Holiday Pay & SIL, but is still exempt from R.A. 7641 Retirement Pay!',
   },
   {
     id: 'qblock_prescription_1_3_4',
@@ -2628,7 +2628,7 @@ export const MARIO_MYSTERY_LAW_DROPS: readonly MarioMysteryBlockDrop[] = [
     mnemonicTitle: '1–3–4–20 Prescription Ladder',
     statutoryRule:
       '1 Year: Unfair Labor Practice (ULP) · 3 Years: Labor Standards Money Claims · 4 Years: Illegal Dismissal · 20 Years: Unremitted SSS Contributions.',
-    examTrapNote: 'Bar Trap: Backwages prayed for inside an Illegal Dismissal complaint follow the 4-year injury-to-rights period (Callanta v. Carnation)!',
+    examTrapNote: 'Statutory Trap: Backwages prayed for inside an Illegal Dismissal complaint follow the 4-year injury-to-rights period (Callanta v. Carnation)!',
   },
   {
     id: 'qblock_agabon_jaka',
@@ -2636,7 +2636,7 @@ export const MARIO_MYSTERY_LAW_DROPS: readonly MarioMysteryBlockDrop[] = [
     mnemonicTitle: '₱30k Agabon vs. ₱50k Jaka Nominal Damages',
     statutoryRule:
       'Valid substantive cause + defective procedure = Dismissal stays VALID, but employer pays ₱30,000 (Just Cause / Agabon) or ₱50,000 (Authorized Cause / Jaka).',
-    examTrapNote: 'Bar Trap: Twin Notices apply to Art. 297 Just Causes (5 calendar days to explain); 30-day DOLE + Worker advance notice applies to Art. 298 Authorized Causes!',
+    examTrapNote: 'Statutory Trap: Twin Notices apply to Art. 297 Just Causes (5 calendar days to explain); 30-day DOLE + Worker advance notice applies to Art. 298 Authorized Causes!',
   },
   {
     id: 'qblock_double_holiday',
@@ -2652,7 +2652,7 @@ export const MARIO_MYSTERY_LAW_DROPS: readonly MarioMysteryBlockDrop[] = [
     mnemonicTitle: 'Statutory Leave Cash-Conversion Matrix',
     statutoryRule:
       'Commutable to Cash if Unused: Art. 95 Regular 5-Day SIL ONLY! Non-Convertible: Paternity (7d), Solo Parent (7d), VAWC (10d), Magna Carta Women (60d), Kasambahay SIL (5d).',
-    examTrapNote: 'Bar Trap: Solo Parent Leave (R.A. 11861) requires only 6 months of service, whereas Regular SIL (Art. 95) requires 12 months!',
+    examTrapNote: 'Statutory Trap: Solo Parent Leave (R.A. 11861) requires only 6 months of service, whereas Regular SIL (Art. 95) requires 12 months!',
   },
   {
     id: 'qblock_retirement_225',

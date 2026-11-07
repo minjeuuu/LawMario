@@ -145,7 +145,7 @@ export const GlobalStudyHubModal: React.FC<GlobalStudyHubModalProps> = ({
                 Global Study Hub &amp; Exam Modes
               </h2>
               <p className="text-xs text-slate-300">
-                Select your preferred bar preparation mode and challenge style
+                Select your preferred study mode and challenge style
               </p>
             </div>
           </div>

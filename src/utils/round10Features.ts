@@ -1272,7 +1272,7 @@ export const EXTENDED_COMPANIONS_AND_FRAMES_ITEMS: Round10ShopCatalogItem[] = [
     subType: 'extra_companion',
     price: 92,
     badge: 'Star Legend',
-    description: 'Guides Bar candidates through complex multi-issue Supreme Court hypotheticals.',
+    description: 'Guides scholars through complex multi-issue Supreme Court hypotheticals.',
     effectSummary: 'Unlocks Collectible Star Emissary',
   },
   // 12 Prestige Studio Certificates, Seals & Dossier Upgrades

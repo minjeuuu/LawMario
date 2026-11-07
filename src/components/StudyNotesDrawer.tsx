@@ -938,7 +938,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                     >
                       {STUDY_NOTE_CATEGORY_TAGS.map((tag) => (
                         <option key={tag} value={tag}>
-                          Tag: {tag}
+                          Tag: {tag === 'Bar Exam Review' ? 'Statutory Standards Review' : tag}
                         </option>
                       ))}
                     </select>
@@ -1061,6 +1061,12 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                 >
                   {(['all', ...STUDY_NOTE_CATEGORY_TAGS] as const).map((cat) => {
                     const active = categoryFilter === cat;
+                    const displayLabel =
+                      cat === 'all'
+                        ? 'All Notes'
+                        : cat === 'Bar Exam Review'
+                        ? 'Statutory Review'
+                        : cat;
                     return (
                       <button
                         key={cat}
@@ -1076,7 +1082,7 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                             : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
                         }`}
                       >
-                        {cat === 'all' ? 'All Tags' : cat}
+                        {displayLabel}
                       </button>
                     );
                   })}
@@ -1191,7 +1197,9 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                             </span>
                             <span aria-hidden="true">·</span>
                             <span className="text-emerald-300">
-                              {note.categoryTag || 'Quick Reference'}
+                              {note.categoryTag === 'Bar Exam Review'
+                                ? 'Statutory Standards Review'
+                                : note.categoryTag || 'Quick Reference'}
                             </span>
                             {typeof note.content === 'string' && note.content.includes('Ref: qerr_') && (
                               <>

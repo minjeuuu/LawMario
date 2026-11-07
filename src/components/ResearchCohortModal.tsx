@@ -134,7 +134,7 @@ Project: Super Mario Labor Adventure (Presidential Decree No. 442, as amended)`;
                     </span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Comprehensive legal syllabus synthesis for Philippine Bar examinees and labor law students.
+                    Comprehensive legal syllabus synthesis for Philippine statutory scholars and labor law learners.
                   </p>
                 </div>
               </div>

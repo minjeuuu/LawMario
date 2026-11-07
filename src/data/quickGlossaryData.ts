@@ -66,7 +66,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'A supplementary doctrine used alongside the Control Test when there is no written employment agreement, examining the totality of economic circumstances to determine whether the worker is economically dependent on the putative employer.',
     statutoryBasis: 'Francisco v. NLRC (G.R. No. 170087); Orozco v. CA',
     barExamTip:
-      'Invoke the Two-Tiered Test (Control Test + Economic Reality Test) whenever the Bar problem features talent/commission arrangements without clear written contracts.',
+      'Invoke the Two-Tiered Test (Control Test + Economic Reality Test) whenever the practical problem features talent/commission arrangements without clear written contracts.',
   },
   {
     id: 'field-personnel',
@@ -475,7 +475,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       '"Wage" applies to compensation for manual/skilled labor and is exempt from execution or attachment under Art. 1708 Civil Code (except for debts incurred for food, shelter, clothing, and medical attendance). "Salary" denotes higher-grade or white-collar compensation and is NOT exempt from garnishment.',
     statutoryBasis: 'Article 97(f), Labor Code; Article 1708, Civil Code; Gaa v. Court of Appeals',
     barExamTip:
-      'Cite Gaa v. CA whenever a Bar question asks whether a bank manager’s or executive’s pay can be garnished by a judgment creditor (Answer: YES, because it is salary, not manual wage).',
+      'Cite Gaa v. CA whenever a practical question asks whether a bank manager’s or executive’s pay can be garnished by a judgment creditor (Answer: YES, because it is salary, not manual wage).',
   },
   {
     id: 'fair-days-wage',
@@ -610,7 +610,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'In the event of bankruptcy or liquidation of an employer’s business, unpaid wages and monetary claims of workers enjoy FIRST PREFERENCE as regards free/unencumbered property ahead of taxes and other general claims, subject to formal insolvency/liquidation proceedings and special preferred liens (mortgages) on specific property.',
     statutoryBasis: 'Article 110, Labor Code; DBP v. NLRC; Republic v. Peralta; FRIA (R.A. 10142)',
     barExamTip:
-      'Two Bar traps: (1) Requires a formal declaration of bankruptcy or judicial liquidation proceeding in rem, and (2) A registered mortgage/lien over a SPECIFIC property (in rem) still prevails over that specific asset (DBP v. NLRC).',
+      'Two statutory traps: (1) Requires a formal declaration of bankruptcy or judicial liquidation proceeding in rem, and (2) A registered mortgage/lien over a SPECIFIC property (in rem) still prevails over that specific asset (DBP v. NLRC).',
   },
   {
     id: 'attorneys-fees-art-111',
@@ -867,7 +867,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Waives all government fees and charges (NBI clearance, police clearance, PSA birth certificate, transcript, etc.) ONE TIME for Filipino first-time jobseekers, including new graduates, out-of-school youth, and working students, upon presenting a Barangay Certification.',
     statutoryBasis: 'Republic Act No. 11261',
     barExamTip:
-      'Fee waiver applies once per beneficiary and excludes professional licensure examination fees (PRC/Bar Exam fees) and passports/driver’s licenses.',
+      'Fee waiver applies once per beneficiary and excludes professional licensure examination fees (PRC/professional examination fees) and passports/driver’s licenses.',
   },
 
   // ==================== 5. STATUTORY LEAVES & RETIREMENT ====================
@@ -914,7 +914,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Forfeitable (non-cumulative) 7 working days annual paid parental leave for any solo parent employee holding a valid Solo Parent ID who has rendered at least six (6) months of service (including kasambahays!).',
     statutoryBasis: 'Republic Act No. 11861 (amending R.A. 8972)',
     barExamTip:
-      'Three major R.A. 11861 Bar updates: (1) Service requirement reduced from 1 year to 6 months, (2) Dependent child age raised to 22 years old (unmarried & dependent), and (3) Spouses/family caregivers of OFWs in low/semi-skilled categories away for 12 continuous months can qualify!',
+      'Three major R.A. 11861 statutory updates: (1) Service requirement reduced from 1 year to 6 months, (2) Dependent child age raised to 22 years old (unmarried & dependent), and (3) Spouses/family caregivers of OFWs in low/semi-skilled categories away for 12 continuous months can qualify!',
   },
   {
     id: 'vawc-leave',
@@ -1231,7 +1231,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'An employer may terminate an employee suffering from any disease whose continued employment is prohibited by law or prejudicial to their health or co-workers’ health ONLY WITH: (1) Certification by a COMPETENT PUBLIC HEALTH AUTHORITY that the disease cannot be cured within 6 months even with proper medical treatment, (2) Twin notices, and (3) Separation pay of 1 month or 1/2 month per year of service, whichever is higher.',
     statutoryBasis: 'Article 299 (formerly Art. 284), Labor Code; Deoferio v. Intel Technology Phils.',
     barExamTip:
-      ' two-fold Bar goldmine: (1) Certification by a COMPANY physician alone makes the dismissal ILLEGAL; (2) Under R.A. 11166 (Philippine HIV and AIDS Policy Act), actual/perceived HIV status is NEVER a valid ground for termination!',
+      ' two-fold statutory highlight: (1) Certification by a COMPANY physician alone makes the dismissal ILLEGAL; (2) Under R.A. 11166 (Philippine HIV and AIDS Policy Act), actual/perceived HIV status is NEVER a valid ground for termination!',
   },
   {
     id: 'bona-fide-suspension',
@@ -1336,7 +1336,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Under Art. 128(b), where an employer-employee relationship STILL EXISTS (or existed at inspection), the DOLE Secretary/Regional Director has visitorial and enforcement power to inspect records, determine labor standards violations (even choosing whether an ER-EE relationship exists per People’s Broadcasting / Bombo Radyo), and issue compliance/writs of execution REGARDLESS OF AMOUNT (no ₱5,000 limit!). Contrast Art. 129 (Regional Director adjudicatory recovery: no reinstatement claim + <=₱5,000 per employee).',
     statutoryBasis: 'Articles 128 & 129, Labor Code (as amended by R.A. 7730); People’s Broadcasting Service (Bombo Radyo) v. Sec. of Labor',
     barExamTip:
-      'Classic Bar distinction: Art. 128 Inspection = NO monetary cap, ER-EE exists, appeal to DOLE Secretary. Art. 129 Adjudication = <=₱5,000 per worker, ER-EE severed without reinstatement claim, appeal to NLRC!',
+      'Classic statutory distinction: Art. 128 Inspection = NO monetary cap, ER-EE exists, appeal to DOLE Secretary. Art. 129 Adjudication = <=₱5,000 per worker, ER-EE severed without reinstatement claim, appeal to NLRC!',
   },
   {
     id: 'prescriptive-periods-labor',
@@ -1668,7 +1668,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'A resignation is revocable by the employee BEFORE it is accepted by the employer. Once a voluntary resignation has been validly accepted by the employer, the employee can no longer unilaterally withdraw or retract it without the employer’s consent.',
     statutoryBasis: 'Intertrod Maritime, Inc. v. NLRC; BMG Records v. Aparecio',
     barExamTip:
-      'Check the timeline carefully in Bar questions: Retracted BEFORE employer acceptance = employee stays employed; Retracted AFTER employer acceptance = employer’s refusal to re-admit is NOT illegal dismissal!',
+      'Check the timeline carefully in practical questions: Retracted BEFORE employer acceptance = employee stays employed; Retracted AFTER employer acceptance = employer’s refusal to re-admit is NOT illegal dismissal!',
   },
   {
     id: 'merger-consolidation-sale-assets',
@@ -1698,7 +1698,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Company rules restricting spouses or close relatives from working in the same department/company are invalid under Art. 134 unless the employer proves a genuine BFOQ / reasonable business necessity (such as conflict of interest in auditing or competitor trade secrets) AND demonstrates there is no less-drastic alternative like departmental transfer.',
     statutoryBasis: 'PT&T v. NLRC; Star Paper v. Simbol; Duncan v. Glaxo',
     barExamTip:
-      'Always start your Bar answer with the constitutional protection of marriage + Art. 134 Labor Code, then apply the 2-prong BFOQ / Reasonable Business Necessity test!',
+      'Always start your analysis with the constitutional protection of marriage + Art. 134 Labor Code, then apply the 2-prong BFOQ / Reasonable Business Necessity test!',
   },
   {
     id: 'social-justice-separation-pay',
@@ -1788,7 +1788,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Under R.A. 11210, female workers receive 60 calendar days of paid maternity leave for miscarriage or emergency termination of pregnancy (Note: the 7-day allocation to the father under R.A. 11210 applies ONLY to live childbirth, NOT miscarriage—however, a married cohabiting husband independently qualifies for 7-day Paternity Leave under R.A. 8187 for miscarriage within the first 4 deliveries!).',
     statutoryBasis: 'R.A. 11210, Secs. 3 & 6; R.A. 8187, Sec. 3',
     barExamTip:
-      'High-yield subtle Bar distinction: In miscarriage, the mother CANNOT transfer 7 days of her 60-day maternity leave (transfer applies only to live childbirth), so an UNMARRIED father gets 0 days, whereas a MARRIED cohabiting father gets his own 7 days under R.A. 8187!',
+      'High-yield subtle statutory distinction: In miscarriage, the mother CANNOT transfer 7 days of her 60-day maternity leave (transfer applies only to live childbirth), so an UNMARRIED father gets 0 days, whereas a MARRIED cohabiting father gets his own 7 days under R.A. 8187!',
   },
   {
     id: 'tax-exemption-minimum-wage-earners',
@@ -1818,7 +1818,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Jurisprudential division of evidentiary burden in money claims: (1) Routine statutory benefits accruing in the normal course of employment (unpaid wages, 13th month pay, SIL, regular holiday pay) -> Burden is on the EMPLOYER to prove payment because payrolls/vouchers are in its custody; (2) Extraordinary/contingent claims (overtime pay, premium pay for worked rest/special days, moral/exemplary damages) -> Burden is on the EMPLOYEE to first prove entitlement/actual work rendered.',
     statutoryBasis: 'Minsberg v. NLRC; Loon v. Power Master, Inc. (G.R. No. 189404); Lagatic v. NLRC',
     barExamTip:
-      'Cite Loon v. Power Master, Inc. in every money-claims Bar question—examiners love testing who bears the burden of proof for SIL/13th Month (Employer!) vs. Overtime (Employee!)!',
+      'Cite Loon v. Power Master, Inc. in every money-claims question—examiners love testing who bears the burden of proof for SIL/13th Month (Employer!) vs. Overtime (Employee!)!',
   },
   {
     id: 'floating-talent-independent-contractor-sonza-fuji',
@@ -1983,7 +1983,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Whether commissions are included in "basic salary" for P.D. 851 13th Month Pay depends on their nature: (1) Direct/Wage-Integrated Commissions paid as direct remuneration for actual sales closed by a salesperson (Philippine Duplicators v. NLRC) ARE INCLUDED; (2) Productivity/Overriding Commissions having no direct relation to individual unit sales and functioning as extra profit-sharing incentives on top of fixed basic pay (Boie-Takeda Chemicals v. De la Serna; Reyes v. NLRC) ARE EXCLUDED.',
     statutoryBasis: 'P.D. 851; Philippine Duplicators, Inc. v. NLRC (G.R. No. 110068); Boie-Takeda Chemicals v. De la Serna',
     barExamTip:
-      'Spot the trigger phrase in Bar exams: "fixed modest base + direct % of every unit sold by salesman" = Philippine Duplicators (INCLUDE); "medical representative paid fixed salary + overriding territory productivity bonus" = Boie-Takeda (EXCLUDE)!',
+      'Spot the trigger phrase in statutory exams: "fixed modest base + direct % of every unit sold by salesman" = Philippine Duplicators (INCLUDE); "medical representative paid fixed salary + overriding territory productivity bonus" = Boie-Takeda (EXCLUDE)!',
   },
   {
     id: 'monthly-paid-vs-daily-paid-factors',
@@ -2013,7 +2013,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'When ONE Regular Holiday and ONE Special Non-Working Day fall on the same date (e.g., Araw ng Kagitingan coinciding with Black Saturday): Unworked = 100%; Worked = 260% (or 300% if also Rest Day). When TWO Regular Holidays fall on the same date (e.g., Maundy Thursday + Araw ng Kagitingan): Unworked = 200%; Worked = 300% (or 390% if also Rest Day)!',
     statutoryBasis: 'DOLE Labor Advisories on Overlapping Holidays & Handbook on Workers’ Statutory Monetary Benefits',
     barExamTip:
-      'Check the exact pairing in Bar problems: Regular + Regular = 300% worked (390% on Rest Day); Regular + Special = 260% worked!',
+      'Check the exact pairing in practical problems: Regular + Regular = 300% worked (390% on Rest Day); Regular + Special = 260% worked!',
   },
   {
     id: 'wage-order-exemption-nwpc',
@@ -2043,7 +2043,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Any business entity/enterprise engaged in production, processing, manufacturing, trading, or services with total assets of not more than ₱3,000,000 (excluding the land on which the office/plant is situated) and holding a valid BMBE Certificate of Authority is EXEMPT from the coverage of the Minimum Wage Law—provided that all BMBE employees remain entitled to the same social security, healthcare, 13th month, overtime, holiday, and SIL benefits as other employees.',
     statutoryBasis: 'Republic Act No. 9178 (BMBEs Act of 2002), Sec. 8, as amended by R.A. 10644 (Go Negosyo Act)',
     barExamTip:
-      'Two classic Bar traps on BMBEs: (1) Value of the LAND is EXCLUDED in computing the ₱3,000,000 asset cap, and (2) BMBE workers are exempt ONLY from Minimum Wage—NEVER exempt from SSS, PhilHealth, 13th Month Pay, SIL, or Holiday Pay!',
+      'Two classic statutory traps on BMBEs: (1) Value of the LAND is EXCLUDED in computing the ₱3,000,000 asset cap, and (2) BMBE workers are exempt ONLY from Minimum Wage—NEVER exempt from SSS, PhilHealth, 13th Month Pay, SIL, or Holiday Pay!',
   },
   {
     id: 'worker-preference-bankruptcy-art-110',
@@ -2058,7 +2058,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'In the event of bankruptcy or liquidation of an employer’s business, workers enjoy FIRST PREFERENCE as regards their unpaid wages and other monetary claims, prior to claims of the government and other general creditors. Under DBP v. NLRC & Republic v. Peralta, two rules govern: (1) formal insolvency/liquidation proceedings in rem are required so all creditors are convened, and (2) Art. 110 applies to general/unencumbered assets and does NOT wipe out special preferred credits/registered mortgages over specific property under Arts. 2241–2242 Civil Code.',
     statutoryBasis: 'Article 110, Labor Code; Development Bank of the Philippines v. NLRC; FRIA (R.A. 10142)',
     barExamTip:
-      'Two magic words for Art. 110 Bar questions: (1) Requires formal IN REM liquidation proceeding, and (2) Subordinate only to SPECIAL preferred liens (like registered real estate/chattel mortgages) on specific assets, but beats taxes and unsecured creditors!',
+      'Two magic words for Art. 110 statutory questions: (1) Requires formal IN REM liquidation proceeding, and (2) Subordinate only to SPECIAL preferred liens (like registered real estate/chattel mortgages) on specific assets, but beats taxes and unsecured creditors!',
   },
   {
     id: 'attorneys-fees-10-percent-art-111',
@@ -2088,7 +2088,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Three protective wage shields: (1) Art. 116 makes withholding wages or inducing kickbacks unlawful; (2) Art. 117 prohibits deducting any amount from wages as consideration of a promise of employment or retention in employment; and (3) Art. 118 makes it unlawful for an employer to refuse to pay/reduce wages or discharge/discriminate against any employee who has filed a complaint or testified (or is about to testify) in any Book III wage proceeding.',
     statutoryBasis: 'Articles 116, 117 & 118, Labor Code',
     barExamTip:
-      'Watch out for the distinction in Bar exams: retaliation for testifying in a WAGE case (Art. 118) is unlawful under Book III, whereas retaliation for testifying under the Labor Code in relation to self-organization/ULP (Art. 259[f]) is specifically an Unfair Labor Practice (ULP)!',
+      'Watch out for the distinction in statutory exams: retaliation for testifying in a WAGE case (Art. 118) is unlawful under Book III, whereas retaliation for testifying under the Labor Code in relation to self-organization/ULP (Art. 259[f]) is specifically an Unfair Labor Practice (ULP)!',
   },
   {
     id: 'yellow-dog-contract',
@@ -2193,7 +2193,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
       'Under R.A. 9165 & DOLE D.O. 53-03, random drug testing in workplaces with >=10 employees is lawful when conducted by DOH-accredited testing centers using TWO tests: (1) Screening Test, and if positive, (2) Confirmatory Test (valid for 1 year). First-time positive non-dependent workers are referred for treatment/rehabilitation where feasible, while refusal without valid reason to undergo authorized random testing may constitute insubordination (Mirant Phils. v. Caro). Under DOLE advisories on Hepatitis B and TB, positive status alone is NOT a ground for dismissal if fit to work.',
     statutoryBasis: 'R.A. 9165, Sec. 36(d); DOLE D.O. No. 53-03; Mirant Philippines Corp. v. Caro (G.R. No. 181490)',
     barExamTip:
-      'Always check in Bar drug-test dismissal questions: Was a CONFIRMATORY test performed by a DOH-accredited lab? Without the confirmatory test, dismissal for drug use is ILLEGAL (Nacague v. Sulpicio Lines)!',
+      'Always check in drug-test dismissal questions: Was a CONFIRMATORY test performed by a DOH-accredited lab? Without the confirmatory test, dismissal for drug use is ILLEGAL (Nacague v. Sulpicio Lines)!',
   },
   {
     id: 'kasambahay-deployment-loan-protection',
@@ -2310,10 +2310,10 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
     marioAnalogy:
       'Injuries on ordinary commutes are NOT work-connected—EXCEPT when Mario is injured right at the castle gate (Proximity Rule), riding the company bus, running a boss errand, or on 24-hour uniformed duty!',
     simplifiedDefinition:
-      'General Rule ("Going-and-Coming Rule"): Injury or death sustained while commuting to or from work is NOT compensable under the Employees’ Compensation Program (P.D. 626). Four Classic Bar Exceptions: (1) Proximity / Ingress-Egress Rule (injured very near/at workplace entrance/exit), (2) Employer-Sponsored Conveyance (riding official company shuttle), (3) Special Errand / Street Peril Rule (performing an employer errand en route), and (4) 24-Hour Duty Doctrine for soldiers/policemen/seafarers (except injuries from purely personal/unlawful escapades).',
+      'General Rule ("Going-and-Coming Rule"): Injury or death sustained while commuting to or from work is NOT compensable under the Employees’ Compensation Program (P.D. 626). Four Classic Statutory Exceptions: (1) Proximity / Ingress-Egress Rule (injured very near/at workplace entrance/exit), (2) Employer-Sponsored Conveyance (riding official company shuttle), (3) Special Errand / Street Peril Rule (performing an employer errand en route), and (4) 24-Hour Duty Doctrine for soldiers/policemen/seafarers (except injuries from purely personal/unlawful escapades).',
     statutoryBasis: 'P.D. 626 (Book IV, Labor Code); Alano v. ECC; Iloilo Dock & Engineering Co. v. WCC',
     barExamTip:
-      'Memorize the 4 Exceptions to Going-and-Coming: (1) Proximity, (2) Company Shuttle, (3) Special Errand, and (4) 24-Hour Duty—guaranteed points on Welfare/ECP Bar items!',
+      'Memorize the 4 Exceptions to Going-and-Coming: (1) Proximity, (2) Company Shuttle, (3) Special Errand, and (4) 24-Hour Duty—guaranteed points on Welfare/ECP exam items!',
   },
   {
     id: 'fixed-term-employment-brent-school',
@@ -2649,7 +2649,7 @@ export const QUICK_GLOSSARY_TERMS: QuickGlossaryItem[] = [
     marioAnalogy: 'Upgrading the Kingdom airship creates surplus positions; displaced loyal pilots receive a high-tier separation grant of 1 full month salary per year served.',
     simplifiedDefinition: 'Termination due to superfluity of positions where services of an employee are in excess of what is reasonably demanded by actual operational requirements, requiring separation pay of at least one (1) month salary or one (1) month per year of service.',
     statutoryBasis: 'Art. 298 [283], Labor Code; Wiltshire File Co. v. NLRC, G.R. No. 82249 (1991)',
-    barExamTip: 'Redundancy pays ONE MONTH per year of service, whereas retrenchment and closure pay ONE-HALF MONTH per year of service! Know this distinction for the Bar.',
+    barExamTip: 'Redundancy pays ONE MONTH per year of service, whereas retrenchment and closure pay ONE-HALF MONTH per year of service! Know this distinction for the exam.',
   },
   {
     id: 'retrenchment-to-prevent-losses-standard',

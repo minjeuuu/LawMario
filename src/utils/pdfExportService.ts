@@ -2604,11 +2604,11 @@ export function buildStudyGuideReviewerPdfBytes(
         : colCount === 2
         ? [0.34, 0.66]
         : colCount === 3
-        ? [0.28, 0.36, 0.36]
+        ? [0.26, 0.37, 0.37]
         : colCount === 4
-        ? [0.24, 0.26, 0.22, 0.28]
+        ? [0.28, 0.24, 0.22, 0.26]
         : colCount === 5
-        ? [0.24, 0.18, 0.19, 0.19, 0.20]
+        ? [0.24, 0.17, 0.17, 0.26, 0.16]
         : Array.from({ length: colCount }, () => 1 / colCount);
 
     const colWidths = fractions.map((f) => f * tableWidth);
@@ -3361,7 +3361,9 @@ export function buildStudyGuideReviewerPdfBytes(
         if (rule.tableData) {
           const hCount = rule.tableData.headers.length;
           const moduleFractions =
-            hCount === 3
+            hCount === 2
+              ? [0.34, 0.66]
+              : hCount === 3
               ? [0.26, 0.37, 0.37]
               : hCount === 4
               ? [0.28, 0.24, 0.22, 0.26]

@@ -86,6 +86,12 @@ describe('Smart Module Rule Formatter', () => {
     assert.equal(parsed3.marker, '(a)');
     assert.equal(parsed3.text, 'First ground');
 
+    // Numbering followed by redundant dash: "1. - Overtime Pay"
+    const parsed3b = parseListEntry('1. - Overtime Pay');
+    assert.equal(parsed3b.isNumbered, true);
+    assert.equal(parsed3b.marker, '1.');
+    assert.equal(parsed3b.text, 'Overtime Pay');
+
     // Plain bullet item without numbering
     const parsed4 = parseListEntry('Government employees and GOCCs');
     assert.equal(parsed4.isNumbered, false);

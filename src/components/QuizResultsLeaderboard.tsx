@@ -124,7 +124,7 @@ export const QuizResultsLeaderboard: React.FC<QuizResultsLeaderboardProps> = ({
 
     const userEntry: LeaderboardEntry = {
       id: `user-${Date.now()}`,
-      name: playerName || 'You (Bar Candidate)',
+      name: playerName || 'You (Labor Scholar)',
       avatar: equippedAvatar,
       category: categoryKey,
       score: currentUserScore.correct,

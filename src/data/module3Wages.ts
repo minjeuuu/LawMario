@@ -116,8 +116,8 @@ export const MODULE_3_WAGES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Distressed and calamity-affected establishments are NOT automatically exempt—exemption takes effect only upon formal application and written approval by the Regional Wage Board!',
-      'Bar Tip: If a company mistakenly gave a benefit due to misinterpretation of law, correcting the mistake does NOT violate the non-diminution rule because it was not deliberate.',
+      'Study Tip: Distressed and calamity-affected establishments are NOT automatically exempt—exemption takes effect only upon formal application and written approval by the Regional Wage Board!',
+      'Study Tip: If a company mistakenly gave a benefit due to misinterpretation of law, correcting the mistake does NOT violate the non-diminution rule because it was not deliberate.',
     ],
   },
   {
@@ -250,8 +250,8 @@ export const MODULE_3_WAGES: LawTopic[] = [
       },
     ],
     barTips: [
-      'Bar Tip: Can an employer withhold an employee’s final paycheck because he failed to submit clearance or turnover report? NO. Earned wages cannot be withheld as leverage or punishment.',
-      'Bar Tip: In unorganized establishments, failure to resolve wage distortion leads to NCMB conciliation for 10 calendar days, then compulsory arbitration by the NLRC.',
+      'Study Tip: Can an employer withhold an employee’s final paycheck because he failed to submit clearance or turnover report? NO. Earned wages cannot be withheld as leverage or punishment.',
+      'Study Tip: In unorganized establishments, failure to resolve wage distortion leads to NCMB conciliation for 10 calendar days, then compulsory arbitration by the NLRC.',
     ],
   },
 ];
