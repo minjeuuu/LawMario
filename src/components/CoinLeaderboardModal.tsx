@@ -142,9 +142,9 @@ export const CoinLeaderboardModal: React.FC<CoinLeaderboardModalProps> = ({
       role="dialog"
       aria-label="Global Coin & Quiz Leaderboard"
       data-testid="coin-leaderboard-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md native-modal-backdrop select-none overflow-y-auto print:hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xs select-none overflow-y-auto print:hidden"
     >
-      <div className="bg-[#0f172a] text-white w-screen h-[100dvh] max-h-[100dvh] rounded-none border-0 sm:w-full sm:max-w-3xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl sm:border-4 sm:border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden my-auto flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] native-modal-content">
+      <div className="bg-[#0f172a] text-white w-screen h-[100dvh] max-h-[100dvh] rounded-none border-0 sm:w-full sm:max-w-3xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl sm:border-4 sm:border-slate-950 shadow-[8px_8px_0_#000] overflow-hidden my-auto flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         {/* Header */}
         <div className="bg-slate-950 px-4 sm:px-6 py-4 border-b-2 border-slate-800 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">

@@ -1513,60 +1513,6 @@ export default function App() {
     closeAllModalsRef.current = closeAllModals;
   }, [isAnyModalOpen, closeAllModals]);
 
-  // Lock body scroll cleanly while any modal is open
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    if (isAnyModalOpen) {
-      document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-    }
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
-  }, [isAnyModalOpen]);
-
-  // Native Android back button & browser history gesture handling
-  const modalHistoryPushedRef = useRef<boolean>(false);
-
-  useEffect(() => {
-    if (isAnyModalOpen) {
-      if (!modalHistoryPushedRef.current) {
-        window.history.pushState({ marioModalOpen: true }, '');
-        modalHistoryPushedRef.current = true;
-      }
-    } else {
-      if (modalHistoryPushedRef.current) {
-        modalHistoryPushedRef.current = false;
-        if (window.history.state?.marioModalOpen) {
-          window.history.back();
-        }
-      }
-    }
-  }, [isAnyModalOpen]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      if (isAnyModalOpenRef.current) {
-        modalHistoryPushedRef.current = false;
-        closeAllModalsRef.current();
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  // Standalone PWA detection
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
-    if (isStandalone) {
-      document.body.classList.add('standalone-app');
-    }
-  }, []);
-
   const recordTopicEngagement = (topicId: string) => {
     if (!topicId) return;
     setLastStudiedTopicId(topicId);

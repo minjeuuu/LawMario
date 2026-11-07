@@ -19,22 +19,12 @@
     width: 100%;
     margin: 0;
     padding: 0;
-  }
-
-  html {
-    scroll-behavior: smooth;
-    overscroll-behavior-y: none;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-
-  body {
-    overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  body.modal-open {
-    overflow: hidden !important;
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   #root {
@@ -813,11 +803,11 @@ html.dark * {
 @keyframes marioViewFadeIn {
   0% {
     opacity: 0;
-    transform: translateY(8px) scale(0.995);
+    transform: translateY(6px);
   }
   99% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
   100% {
     opacity: 1;
@@ -825,94 +815,8 @@ html.dark * {
   }
 }
 
-.mario-view-enter,
-.native-view-enter {
+.mario-view-enter {
   animation: marioViewFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
-}
-
-/* Native Modal & Drawer Keyframes */
-@keyframes nativeBackdropFade {
-  0% {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-    -webkit-backdrop-filter: blur(0px);
-  }
-  100% {
-    opacity: 1;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-}
-
-@keyframes nativeModalSpringIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  70% {
-    opacity: 1;
-    transform: scale(1.008) translateY(-1px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes nativeDrawerSlideUp {
-  0% {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Universal Native Modal Styling */
-div[role="dialog"]:not(.print-page-sheet),
-div[aria-modal="true"]:not(.print-page-sheet),
-.native-modal-backdrop {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  animation: nativeBackdropFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-div[role="dialog"]:not(.print-page-sheet) > div:first-child,
-div[aria-modal="true"]:not(.print-page-sheet) > div:first-child,
-.native-modal-content {
-  animation: nativeModalSpringIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
-}
-
-.native-drawer-content {
-  animation: nativeDrawerSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
-}
-
-@media print {
-  div[role="dialog"],
-  div[aria-modal="true"],
-  .native-modal-backdrop {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    animation: none !important;
-  }
-  div[role="dialog"] > div:first-child,
-  div[aria-modal="true"] > div:first-child,
-  .native-modal-content {
-    animation: none !important;
-    transform: none !important;
-  }
-}
-
-/* Standalone PWA & Mobile Safe Area */
-@media (display-mode: standalone) {
-  body {
-    -webkit-tap-highlight-color: transparent;
-  }
 }
 
 /* Publication-Grade Printer & PDF Study Guide Styles */

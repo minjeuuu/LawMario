@@ -1877,7 +1877,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {isMobileMenuOpen && (
           <div
             data-testid="navbar-mobile-menu-drawer"
-            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto native-modal-content overscroll-contain"
+            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
           >
             {/* Active Super Star 2X Banner inside Mobile Drawer when active */}
             {superStarRemainingLabel && (

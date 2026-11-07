@@ -759,9 +759,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Print Study Guide and PDF Generator"
-      className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md native-modal-backdrop overflow-y-auto print:static print:p-0 print:bg-white print:overflow-visible print:select-text"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-black/85 overflow-y-auto print:static print:p-0 print:bg-white print:overflow-visible print:select-text"
     >
-      <div className="bg-slate-900 text-white w-full h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[94vh] max-w-6xl sm:rounded-3xl border-0 sm:border-4 border-slate-950 shadow-[0_16px_40px_rgba(0,0,0,0.9)] overflow-hidden my-auto flex flex-col pt-[max(0.4rem,env(safe-area-inset-top))] pb-[max(0.4rem,env(safe-area-inset-bottom))] sm:pt-0 sm:pb-0 native-modal-content print:max-h-none print:h-auto print:max-w-full print:rounded-none print:border-0 print:shadow-none print:bg-white print:text-black print:overflow-visible">
+      <div className="bg-slate-900 text-white w-full h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[94vh] max-w-6xl sm:rounded-3xl border-0 sm:border-4 border-slate-950 shadow-[0_16px_40px_rgba(0,0,0,0.9)] overflow-hidden my-auto flex flex-col pt-[max(0.4rem,env(safe-area-inset-top))] pb-[max(0.4rem,env(safe-area-inset-bottom))] sm:pt-0 sm:pb-0 print:max-h-none print:h-auto print:max-w-full print:rounded-none print:border-0 print:shadow-none print:bg-white print:text-black print:overflow-visible">
         {/* Modal Top Bar — Direct PDF Export & Whole-Document Preview Studio */}
         <div className="bg-[#0f172a] px-3 sm:px-5 py-2.5 sm:py-3.5 border-b-2 border-slate-700 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 flex-shrink-0 print:hidden">
           <div className="flex items-center justify-between gap-2 min-w-0">
