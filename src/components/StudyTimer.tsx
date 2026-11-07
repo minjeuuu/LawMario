@@ -355,7 +355,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({
           data-testid="navbar-pomodoro-btn"
           aria-label={`Pomodoro Timer ${formatPomodoroSeconds(timeLeft)}. Click to open Pomodoro Study Timer`}
           title={`Pomodoro Timer: ${formatPomodoroSeconds(timeLeft)} (${isRunning ? (isBreakMode ? 'Break Running' : 'Study Focus Active') : 'Paused / Ready'}). Click to open controls.`}
-          className={`h-7 px-1 min-[400px]:px-1.5 sm:px-2.5 inline-flex items-center justify-center gap-0.5 sm:gap-1.5 rounded-lg border font-mono sm:font-mario font-black text-[10px] sm:text-[10px] leading-none whitespace-nowrap tabular-nums active:translate-y-0.5 cursor-pointer transition-all shadow-[0_1px_0_#000] ${
+          className={`h-7 px-1 min-[360px]:px-1.5 sm:px-2.5 inline-flex items-center justify-center gap-0.5 sm:gap-1.5 rounded-lg border font-mono sm:font-mario font-black text-[9.5px] min-[360px]:text-[10px] leading-none whitespace-nowrap tabular-nums active:translate-y-0.5 cursor-pointer transition-all shadow-[0_1px_0_#000] ${
             isRunning
               ? isBreakMode
                 ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 border-black shadow-[0_1px_0_#000]'

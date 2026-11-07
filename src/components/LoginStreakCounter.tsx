@@ -29,7 +29,7 @@ export const LoginStreakCounter: React.FC<LoginStreakCounterProps> = ({
         safeStreak === 1 ? 'day' : 'days'
       }! Click to view streak calendar & daily reward.`}
       data-testid="login-streak-counter"
-      className={`h-7 px-1 min-[400px]:px-1.5 sm:px-2.5 inline-flex items-center justify-center gap-0.5 sm:gap-1 rounded-lg border border-black font-black leading-none whitespace-nowrap cursor-pointer transition-transform active:translate-y-0.5 shrink-0 tabular-nums ${
+      className={`h-7 px-1 min-[360px]:px-1.5 sm:px-2.5 inline-flex items-center justify-center gap-0.5 sm:gap-1 rounded-lg border border-black font-black leading-none whitespace-nowrap cursor-pointer transition-transform active:translate-y-0.5 shrink-0 tabular-nums ${
         !isBonusClaimedToday
           ? 'bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-400 hover:to-amber-300 text-slate-950 shadow-[0_1px_0_#000]'
           : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-amber-400/60'
@@ -42,7 +42,7 @@ export const LoginStreakCounter: React.FC<LoginStreakCounterProps> = ({
             : 'text-orange-400 fill-orange-500'
         }`}
       />
-      <span className="font-mono sm:font-mario text-[10px] sm:text-[10px] font-black tracking-tight">
+      <span className="font-mono sm:font-mario text-[9.5px] min-[360px]:text-[10px] font-black tracking-tight">
         {safeStreak}D
       </span>
       <span className="hidden xl:inline text-[10px] font-extrabold tracking-tight">

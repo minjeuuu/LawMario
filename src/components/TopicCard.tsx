@@ -1338,7 +1338,7 @@ const TopicCardInner: React.FC<TopicCardProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-20 sm:top-24 right-4 sm:right-8 z-[130] bg-slate-950/95 border-2 border-amber-400 text-white px-4 py-2 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.85)] flex items-center gap-2.5 text-xs font-bold max-w-[calc(100vw-32px)]"
+            className="fixed top-[120px] sm:top-24 right-4 sm:right-8 z-[130] bg-slate-950/95 border-2 border-amber-400 text-white px-4 py-2 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.85)] flex items-center gap-2.5 text-xs font-bold max-w-[calc(100vw-32px)]"
           >
             <div className="w-5 h-5 rounded-md bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
               <Pin className="w-3 h-3 fill-current" />

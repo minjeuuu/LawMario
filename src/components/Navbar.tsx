@@ -449,10 +449,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {!zenMode && (
           <div
             data-testid="navbar-top-status-row"
-            className="bg-gradient-to-r from-[#0d1220] via-[#151d32] to-[#0d1220] border-b border-amber-400/20 px-1.5 sm:px-3.5 py-1.5 flex items-center justify-between gap-2 text-xs font-semibold w-full max-w-full min-w-0 overflow-visible relative z-50"
+            className="bg-gradient-to-r from-[#0d1220] via-[#151d32] to-[#0d1220] border-b border-amber-400/20 px-1 min-[360px]:px-1.5 sm:px-3.5 py-1.5 flex items-center justify-between gap-1 sm:gap-2 text-xs font-semibold w-full max-w-full min-w-0 overflow-x-clip sm:overflow-visible relative z-50"
           >
             {/* Zone 1: Hero Logo, Profile Button, Level Progression & Desktop Goal Streak Consistency Capsule */}
-            <div className="flex items-center gap-1 sm:gap-2 min-w-0 shrink-0">
+            <div className="flex items-center gap-0.5 min-[360px]:gap-1 sm:gap-2 min-w-0 shrink">
               <button
                 type="button"
                 onClick={() => {
@@ -462,7 +462,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 data-testid="navbar-profile-btn"
                 aria-label={`Open Hero Profile (${unlockedAchievementsCount} of ${totalAchievementsCount} badges)`}
                 title="Your Hero Profile & Milestone Achievements (Click to view badges & 30-day charts)"
-                className="relative z-20 flex items-center gap-1 sm:gap-1.5 shrink-0 group hover:brightness-105 cursor-pointer bg-gradient-to-r from-red-950/90 via-slate-900 to-slate-900 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-xl border-2 border-amber-400/80 shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all"
+                className="relative z-20 flex items-center gap-1 sm:gap-1.5 shrink-0 group hover:brightness-105 cursor-pointer bg-gradient-to-r from-red-950/90 via-slate-900 to-slate-900 px-1 min-[360px]:px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-xl border-2 border-amber-400/80 shadow-[0_2px_0_#000] active:translate-y-0.5 transition-all"
               >
                 <div
                   data-testid="navbar-avatar-profile-btn"
@@ -496,7 +496,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <MarioCharacterAvatar character={companionMeta.avatarKey as any} className="w-5 h-5" />
                   </div>
                 )}
-                <div className="flex flex-col text-left leading-none min-w-0">
+                <div className="hidden min-[480px]:flex flex-col text-left leading-none min-w-0">
                   <div className="hidden sm:flex items-center gap-1">
                     <span className="font-display sm:font-mario font-black text-[10px] tracking-tight uppercase text-amber-300 whitespace-nowrap">
                       MARIO LAW
@@ -525,7 +525,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 data-testid="navbar-level-progression-btn"
                 aria-label={`Player Level ${progressionStats.level}: ${progressionStats.title} (${progressionStats.xpInCurrentLevel}/${progressionStats.xpRequiredForCurrentLevel} XP)`}
                 title={`Level ${progressionStats.level}: ${progressionStats.title} · ${progressionStats.xpInCurrentLevel}/${progressionStats.xpRequiredForCurrentLevel} XP (${progressionStats.progressPercent}%) — Click to view Mario Character Avatar Unlocks & Progression Roadmap`}
-                className="relative z-20 flex items-center gap-1 sm:gap-1.5 shrink-0 hover:brightness-110 cursor-pointer bg-gradient-to-r from-amber-500/20 via-slate-900 to-amber-950/60 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl border border-amber-400/70 shadow-[0_1px_0_#000] active:translate-y-0.5 transition-all text-left"
+                className="relative z-20 flex items-center gap-1 sm:gap-1.5 shrink-0 hover:brightness-110 cursor-pointer bg-gradient-to-r from-amber-500/20 via-slate-900 to-amber-950/60 px-1 min-[360px]:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-xl border border-amber-400/70 shadow-[0_1px_0_#000] active:translate-y-0.5 transition-all text-left"
               >
                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-amber-400 text-slate-950 font-black font-mario text-[9px] flex items-center justify-center shrink-0 border border-black shadow-[0_1px_0_#000]">
                   <span>{progressionStats.level}</span>
@@ -582,7 +582,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Zone 2: Reserved Power-Ups (2X, Invincible, 2X Event, Unlock-All & Map), Wallet, Streak, Pomodoro, Theme, Mute, Audio & Tools */}
-            <div className="flex items-center justify-end gap-0.5 min-[400px]:gap-1 sm:gap-1.5 shrink-0 min-w-0">
+            <div className="flex items-center justify-end gap-0.5 min-[360px]:gap-1 sm:gap-1.5 shrink-0 min-w-0">
               {/* Dedicated Power-Ups Slot (Uncropped on all viewports from 360px phones to 1440px desktop, zero horizontal scroll) */}
               <div
                 data-testid="navbar-powerups-slot"
@@ -603,14 +603,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                         ? `Super Star: ${superStarRemainingLabel}`
                         : `Special Event 2x: ${doubleXpRemainingLabel}`
                     }) — Click to open Toad's Shop`}
-                    className="h-7 px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-gradient-to-r from-amber-300 via-yellow-200 to-emerald-300 hover:brightness-105 text-slate-950 font-black rounded-lg border-2 border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0"
+                    className="h-7 px-1 min-[360px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-gradient-to-r from-amber-300 via-yellow-200 to-emerald-300 hover:brightness-105 text-slate-950 font-black rounded-lg border-2 border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap tabular-nums shrink-0"
                   >
                     {invincibleRemainingLabel ? (
                       <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-700 shrink-0" />
                     ) : (
                       <MarioStarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                     )}
-                    <span className="font-mono sm:font-mario font-black text-[10px] sm:text-[9.5px]">
+                    <span className="font-mono sm:font-mario font-black text-[9.5px] sm:text-[10px]">
                       2X
                     </span>
                     <span className="hidden lg:inline font-mono font-bold text-[10px]">
@@ -652,7 +652,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     data-testid="navbar-shortcut-map-badge"
                     aria-label="Toad's Statutory Shortcut Map Power-Up Active"
                     title="Toad's Statutory Shortcut Map Active — Click to manage in Toad's Shop"
-                    className="inline-flex h-7 w-6 sm:w-auto sm:px-1.5 items-center justify-center gap-1 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
+                    className="inline-flex h-7 w-6 sm:w-auto px-1 sm:px-1.5 items-center justify-center gap-1 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] cursor-pointer text-[10px] leading-none whitespace-nowrap shrink-0"
                   >
                     <Map className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                     <span className="hidden xl:inline font-bold">Map</span>
@@ -667,10 +667,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 aria-label={`Coins: ${coins}. Open Toad's Shop`}
                 title="Open Toad's Shop to spend coins!"
                 data-testid="navbar-coin-counter"
-                className="h-7 px-1 min-[400px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] active:translate-y-0.5 cursor-pointer text-xs leading-none whitespace-nowrap tabular-nums shrink-0"
+                className="h-7 px-1 min-[360px]:px-1.5 sm:px-2 inline-flex items-center justify-center gap-0.5 sm:gap-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg border border-black shadow-[0_1px_0_#000] active:translate-y-0.5 cursor-pointer text-xs leading-none whitespace-nowrap tabular-nums shrink-0"
               >
                 <MarioCoinIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                <span className="font-mono sm:font-mario font-black text-[10.5px] sm:text-xs tracking-tight">
+                <span className="font-mono sm:font-mario font-black text-[10px] min-[360px]:text-[10.5px] sm:text-xs tracking-tight">
                   x{coins.toString().padStart(2, '0')}
                 </span>
               </button>
@@ -703,7 +703,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'Dark Mode Active — Click for Sunny Day Light Mode'
                     : 'Light Mode Active — Click for Late-Night Dark Mode'
                 }
-                className={`inline-flex h-7 w-6.5 sm:w-auto sm:px-2 items-center justify-center gap-1 rounded-lg border font-black text-[11px] leading-none whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_1px_0_#000] ${
+                className={`inline-flex h-7 w-6 min-[360px]:w-6.5 sm:w-auto px-1 sm:px-2 items-center justify-center gap-1 rounded-lg border font-black text-[11px] leading-none whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_1px_0_#000] ${
                   colorMode === 'dark'
                     ? 'bg-indigo-600 hover:bg-indigo-500 text-amber-200 border-indigo-400'
                     : 'bg-amber-300 hover:bg-amber-200 text-slate-950 border-amber-500'
@@ -741,7 +741,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'GLOBAL AUDIO MUTED (Shortcut: press M to unmute)'
                 }
                 className={`inline-flex h-7 ${
-                  audioActive ? 'w-6.5 md:w-auto md:px-2' : 'px-1 sm:px-2'
+                  audioActive ? 'w-6 min-[360px]:w-6.5 md:w-auto md:px-2' : 'w-6 min-[360px]:w-6.5 sm:w-auto px-1 sm:px-2'
                 } items-center justify-center gap-0.5 sm:gap-1 rounded-lg border font-black text-[10px] leading-none whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_1px_0_#000] ${
                   audioActive
                     ? 'bg-slate-800 hover:bg-slate-700 text-emerald-300 border-slate-700'
@@ -758,10 +758,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <VolumeX className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white shrink-0" />
                     <span
                       data-testid="global-muted-badge"
-                      className="font-mono text-[8.5px] sm:text-[10px] tracking-tight"
+                      className="hidden sm:inline font-mono text-[10px] tracking-tight"
                     >
-                      <span className="sm:hidden">MUTE</span>
-                      <span className="hidden sm:inline">MUTED</span>
+                      MUTED
                     </span>
                   </>
                 )}
@@ -1877,19 +1876,27 @@ export const Navbar: React.FC<NavbarProps> = ({
         {isMobileMenuOpen && (
           <div
             data-testid="navbar-mobile-menu-drawer"
-            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 space-y-3 max-h-[80vh] overflow-y-auto"
+            className="mario-menu-press2p block lg:hidden bg-slate-900 border-t-2 border-slate-700 p-3 pb-28 sm:pb-16 space-y-3 max-h-[80vh] overflow-y-auto overscroll-contain"
           >
             {/* Active Super Star 2X Banner inside Mobile Drawer when active */}
-            {superStarRemainingLabel && (
+            {(superStarRemainingLabel || invincibleRemainingLabel || doubleXpRemainingLabel) && (
               <div className="bg-emerald-950/90 border-2 border-emerald-400 rounded-2xl px-3 py-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <MarioStarIcon className="w-4 h-4 shrink-0" />
+                  {invincibleRemainingLabel ? (
+                    <Shield className="w-4 h-4 text-rose-400 shrink-0" />
+                  ) : (
+                    <MarioStarIcon className="w-4 h-4 shrink-0" />
+                  )}
                   <span className="text-xs font-black text-emerald-200 truncate">
-                    Super Star 2X Coin Multiplier
+                    {invincibleRemainingLabel
+                      ? 'Invincible 2X Coins Active'
+                      : superStarRemainingLabel
+                      ? 'Super Star 2X Multiplier'
+                      : 'Special Event 2X Multiplier'}
                   </span>
                 </div>
                 <span className="font-mono text-xs font-black text-amber-300 tabular-nums shrink-0">
-                  {superStarRemainingLabel}
+                  {invincibleRemainingLabel || superStarRemainingLabel || doubleXpRemainingLabel}
                 </span>
               </div>
             )}

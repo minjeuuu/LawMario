@@ -4568,7 +4568,7 @@ export default function App() {
         <div
           role="status"
           data-testid="achievement-unlocked-toast"
-          className="fixed top-28 right-3 left-3 sm:left-auto sm:top-28 sm:right-6 z-40 sm:max-w-sm bg-[#0f172a] text-white rounded-2xl border-3 border-amber-400 shadow-[6px_6px_0_#000] p-3.5 flex items-start gap-3 print:hidden"
+          className="fixed top-[120px] right-3 left-3 sm:left-auto sm:top-28 sm:right-6 z-40 sm:max-w-sm bg-[#0f172a] text-white rounded-2xl border-3 border-amber-400 shadow-[6px_6px_0_#000] p-3.5 flex items-start gap-3 print:hidden"
         >
           <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 border-2 border-black flex items-center justify-center shrink-0">
             <Award className="w-5 h-5" />
@@ -4613,7 +4613,7 @@ export default function App() {
         <div
           role="status"
           data-testid="daily-quiz-streak-toast"
-          className="fixed top-20 right-3 left-3 sm:left-auto sm:right-6 z-40 sm:max-w-sm bg-slate-950 text-white rounded-2xl border-3 border-rose-500 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden"
+          className="fixed top-[120px] sm:top-20 right-3 left-3 sm:left-auto sm:right-6 z-40 sm:max-w-sm bg-slate-950 text-white rounded-2xl border-3 border-rose-500 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <Flame className="w-5 h-5 text-amber-400 shrink-0" />
@@ -4638,7 +4638,7 @@ export default function App() {
           role="status"
           data-testid="daily-goal-1up-toast"
           className={`fixed ${
-            dailyQuizStreakToast ? 'top-36' : 'top-20'
+            dailyQuizStreakToast ? 'top-[188px] sm:top-36' : 'top-[120px] sm:top-20'
           } right-3 left-3 sm:left-auto sm:right-6 z-50 sm:max-w-sm bg-emerald-950 text-white rounded-2xl border-3 border-emerald-400 shadow-[6px_6px_0_#000] p-3.5 flex items-center justify-between gap-3 print:hidden animate-in fade-in slide-in-from-top-2 duration-200`}
         >
           <div className="flex items-center gap-3 min-w-0">
