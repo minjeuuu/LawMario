@@ -1606,6 +1606,9 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
   const [lives, setLives] = useState(3);
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [selectedSide, setSelectedSide] = useState<'employer' | 'employee' | null>(null);
+  const [beamTarget, setBeamTarget] = useState<'employer' | 'employee' | null>(null);
+  const [kingBooState, setKingBooState] = useState<'hover' | 'stunned' | 'laughing'>('hover');
+  const [showCodalClue, setShowCodalClue] = useState(false);
   const [deck, setDeck] = useState<BurdenMansionCase[]>(() =>
     drawBooBurdenCases(8).map((c) => ({
       id: c.id,
@@ -1632,6 +1635,9 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
     setLives(3);
     setCoinsEarned(0);
     setSelectedSide(null);
+    setBeamTarget(null);
+    setKingBooState('hover');
+    setShowCodalClue(false);
     setShellState('playing');
     syncBodyGameState('playing');
     marioAudio.playPowerUp();
@@ -1642,13 +1648,17 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
   const handleSpotlight = (choice: 'employer' | 'employee') => {
     if (shellState !== 'playing' || selectedSide !== null) return;
     setSelectedSide(choice);
+    setBeamTarget(choice);
     const isCorrect = choice === currentCase.correctBurden;
+
     if (isCorrect) {
+      setKingBooState('stunned');
       setScore((s) => s + 125);
       setCoinsEarned((c) => c + 5);
       onEarnCoins(5);
       marioAudio.playCoin();
     } else {
+      setKingBooState('laughing');
       const nextLives = lives - 1;
       setLives(nextLives);
       marioAudio.playWrongAnswer();
@@ -1673,6 +1683,9 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
     } else {
       setCaseIdx((i) => i + 1);
       setSelectedSide(null);
+      setBeamTarget(null);
+      setKingBooState('hover');
+      setShowCodalClue(false);
       marioAudio.playClick();
     }
   };
@@ -1686,12 +1699,12 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
       {/* Header */}
       <div className="bg-[#140c24] px-4 py-3 border-b-2 border-purple-900 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-purple-400 border-2 border-black flex items-center justify-center shrink-0">
-            <Eye className="w-5 h-5 text-slate-950" />
+          <div className="w-10 h-10 rounded-2xl bg-purple-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[0_3px_0_#000]">
+            <Eye className="w-6 h-6 text-slate-950" />
           </div>
           <div>
             <span className="text-[10px] font-black uppercase text-purple-300 font-mario block">
-              KING BOO’S BURDEN OF PROOF MANSION
+              KING BOO’S BURDEN OF PROOF MANSION · COURTROOM AUDIT
             </span>
             <span className="text-xs font-bold text-slate-300 block">
               Investigator: {hero.name} · Docket {Math.min(caseIdx + 1, deck.length)} / {deck.length}
@@ -1716,106 +1729,208 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
       </div>
 
       {/* Main Mansion Body */}
-      <div className="p-5 sm:p-7 bg-gradient-to-b from-[#1a1030] to-slate-950 min-h-[340px] flex flex-col justify-between gap-5">
+      <div className="p-4 sm:p-6 bg-gradient-to-b from-[#180f2d] via-[#100820] to-slate-950 min-h-[380px] flex flex-col justify-between gap-4">
         {shellState === 'title' && (
           <div className="my-auto text-center space-y-4 py-6">
+            <div className="w-20 h-20 rounded-3xl bg-purple-950/80 border-3 border-purple-400 mx-auto flex items-center justify-center shadow-[0_0_25px_rgba(168,85,247,0.4)]">
+              <Eye className="w-12 h-12 text-purple-300 animate-pulse" />
+            </div>
             <h2 className="text-xl sm:text-3xl font-black font-display text-purple-200">
               KING BOO’S BURDEN OF PROOF MANSION
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto">
-              Master the Supreme Court’s <strong className="text-amber-300">Loon v. Power Master</strong> evidentiary rule! Shine your Poltergust Spotlight on who bears the legal Burden of Proof: <strong>Employer</strong> or <strong>Employee</strong>.
+            <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+              Master the Supreme Court’s <strong className="text-amber-300">Loon v. Power Master</strong> evidentiary rule! Shine your Poltergust Spotlight onto the exact party who bears the legal Burden of Proof: <strong>Employer</strong> or <strong>Employee</strong>.
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 bg-purple-400 hover:bg-purple-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-sm font-mario inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-8 py-3 bg-purple-400 hover:bg-purple-300 text-slate-950 font-black rounded-2xl border-3 border-black shadow-[0_4px_0_#000] text-sm font-mario inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>ENTER MANSION</span>
+              <span>ENTER HAUNTED COURTROOM</span>
             </button>
           </div>
         )}
 
         {shellState === 'playing' && (
           <>
-            <div className="bg-slate-900/90 border-2 border-purple-500/50 rounded-2xl p-4 sm:p-5 space-y-2">
-              <div className="flex items-center justify-between gap-2 text-xs font-mono text-purple-300">
-                <span>EVIDENTIARY DOCKET #{caseIdx + 1}</span>
-                <span>ONUS PROBANDI TEST</span>
+            {/* Interactive Courtroom Chamber Stage */}
+            <div className="relative rounded-2xl border-2 border-purple-500/40 bg-gradient-to-b from-[#1f143a] to-[#0c0618] p-4 sm:p-5 overflow-hidden">
+              {/* Floating King Boo Entity */}
+              <div className="flex items-center justify-between gap-3 pb-3 border-b border-purple-800/60">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-12 h-12 rounded-2xl border-2 border-purple-300 flex items-center justify-center transition-all ${
+                      kingBooState === 'stunned'
+                        ? 'bg-amber-400 text-slate-950 scale-110 shadow-[0_0_20px_rgba(251,191,36,0.8)]'
+                        : kingBooState === 'laughing'
+                        ? 'bg-rose-900 text-rose-200 animate-bounce'
+                        : 'bg-purple-900/60 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                    }`}
+                  >
+                    <Eye className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mario text-purple-300 uppercase block">
+                      SPECTRAL MAGISTRATE
+                    </span>
+                    <strong className="text-xs sm:text-sm font-display text-white">
+                      {kingBooState === 'stunned'
+                        ? 'KING BOO STUNNED BY EVIDENCE!'
+                        : kingBooState === 'laughing'
+                        ? 'KING BOO CACKLES IN THE SHADOWS!'
+                        : 'KING BOO PRESIDING'}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Evidentiary Scales Indicator */}
+                <div className="flex items-center gap-2 bg-slate-950/70 px-3 py-1.5 rounded-xl border border-purple-500/30 text-xs font-mono">
+                  <Scale
+                    className={`w-4 h-4 transition-transform duration-500 ${
+                      beamTarget === 'employer'
+                        ? '-rotate-12 text-amber-400'
+                        : beamTarget === 'employee'
+                        ? 'rotate-12 text-sky-400'
+                        : 'text-purple-300'
+                    }`}
+                  />
+                  <span className="text-[10px] font-bold text-slate-300">SCALES OF ONUS PROBANDI</span>
+                </div>
               </div>
-              <h3 className="text-base sm:text-xl font-black font-display text-amber-300">
-                {currentCase.claimTitle}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
-                {currentCase.scenario}
-              </p>
+
+              {/* Case Claim Banner & Text */}
+              <div className="pt-3 space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-mono text-purple-300">
+                  <span className="font-bold">EVIDENTIARY DOCKET #{caseIdx + 1} OF {deck.length}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCodalClue((prev) => !prev);
+                      marioAudio.playCoin();
+                    }}
+                    className="text-[10px] font-mario text-amber-300 hover:text-amber-200 uppercase underline cursor-pointer"
+                  >
+                    {showCodalClue ? 'Hide Clue' : 'Reveal Jurisprudence Clue'}
+                  </button>
+                </div>
+                <h3 className="text-base sm:text-lg font-black font-display text-amber-300">
+                  {currentCase.claimTitle}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-semibold">
+                  {currentCase.scenario}
+                </p>
+
+                {showCodalClue && (
+                  <div className="p-2.5 rounded-xl bg-purple-950/90 border border-purple-400/50 text-xs font-mono text-purple-200 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Controlling Landmark Doctrine: {currentCase.citation}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Interactive Dual Poltergust Spotlight Podiums */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Left Podium: Employer */}
               <button
                 type="button"
                 disabled={selectedSide !== null}
                 onClick={() => handleSpotlight('employer')}
-                className={`min-h-[68px] p-4 rounded-2xl border-3 font-black text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                className={`min-h-[80px] p-4 rounded-2xl border-3 font-black text-left transition-all cursor-pointer relative overflow-hidden group shadow-[0_4px_0_#000] active:translate-y-0.5 ${
                   selectedSide === null
-                    ? 'bg-slate-900 hover:bg-amber-400 hover:text-slate-950 border-purple-400 text-white'
+                    ? 'bg-slate-900/90 hover:bg-purple-900/60 border-purple-400 text-white'
                     : currentCase.correctBurden === 'employer'
-                    ? 'bg-emerald-500 text-slate-950 border-black'
+                    ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_0_20px_rgba(52,211,153,0.5)]'
                     : selectedSide === 'employer'
                     ? 'bg-rose-600 text-white border-black'
-                    : 'bg-slate-900/50 text-slate-500 border-slate-800'
+                    : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
                 }`}
               >
-                <div>
-                  <span className="text-[10px] font-mono uppercase block opacity-80">SPOTLIGHT LEFT</span>
-                  <span className="text-sm sm:text-base font-display block">EMPLOYER BURDEN</span>
+                {/* Spotlight Beam Visual Layer */}
+                {beamTarget === 'employer' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400/30 to-transparent pointer-events-none animate-pulse" />
+                )}
+                <div className="relative z-10 flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75 text-amber-300">
+                      SHINE SPOTLIGHT LEFT · DEFENSE PODIUM
+                    </span>
+                    <span className="text-sm sm:text-base font-display font-extrabold block">
+                      EMPLOYER BEARS BURDEN
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-300 block mt-0.5">
+                      Must substantiate just/authorized cause, payment, or statutory compliance
+                    </span>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/20 flex items-center justify-center shrink-0">
+                    <Scale className="w-6 h-6 text-amber-300" />
+                  </div>
                 </div>
-                <Scale className="w-6 h-6 shrink-0" />
               </button>
 
+              {/* Right Podium: Employee */}
               <button
                 type="button"
                 disabled={selectedSide !== null}
                 onClick={() => handleSpotlight('employee')}
-                className={`min-h-[68px] p-4 rounded-2xl border-3 font-black text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                className={`min-h-[80px] p-4 rounded-2xl border-3 font-black text-left transition-all cursor-pointer relative overflow-hidden group shadow-[0_4px_0_#000] active:translate-y-0.5 ${
                   selectedSide === null
-                    ? 'bg-slate-900 hover:bg-sky-400 hover:text-slate-950 border-purple-400 text-white'
+                    ? 'bg-slate-900/90 hover:bg-purple-900/60 border-purple-400 text-white'
                     : currentCase.correctBurden === 'employee'
-                    ? 'bg-emerald-500 text-slate-950 border-black'
+                    ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_0_20px_rgba(52,211,153,0.5)]'
                     : selectedSide === 'employee'
                     ? 'bg-rose-600 text-white border-black'
-                    : 'bg-slate-900/50 text-slate-500 border-slate-800'
+                    : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
                 }`}
               >
-                <div>
-                  <span className="text-[10px] font-mono uppercase block opacity-80">SPOTLIGHT RIGHT</span>
-                  <span className="text-sm sm:text-base font-display block">EMPLOYEE BURDEN</span>
+                {/* Spotlight Beam Visual Layer */}
+                {beamTarget === 'employee' && (
+                  <div className="absolute inset-0 bg-gradient-to-l from-sky-400/30 to-transparent pointer-events-none animate-pulse" />
+                )}
+                <div className="relative z-10 flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75 text-sky-300">
+                      SHINE SPOTLIGHT RIGHT · CLAIMANT PODIUM
+                    </span>
+                    <span className="text-sm sm:text-base font-display font-extrabold block">
+                      EMPLOYEE BEARS BURDEN
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-300 block mt-0.5">
+                      Must prove overtime hours performed, employer-employee relationship, or bad faith
+                    </span>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/20 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-6 h-6 text-sky-300" />
+                  </div>
                 </div>
-                <ShieldAlert className="w-6 h-6 shrink-0" />
               </button>
             </div>
 
+            {/* Adjudication Result Card */}
             {selectedSide !== null && (
-              <div className="bg-slate-900 border-2 border-amber-400 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-black">
+              <div className="bg-slate-900/95 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_4px_0_#000]">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 text-xs font-black">
                     {selectedSide === currentCase.correctBurden ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
                     )}
-                    <span className="text-amber-300">{currentCase.citation}</span>
+                    <span className="text-amber-300 font-mono text-sm">{currentCase.citation}</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-200">{currentCase.explanation}</p>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-semibold">
+                    {currentCase.explanation}
+                  </p>
                 </div>
                 {lives > 0 && (
                   <button
                     type="button"
                     onClick={handleNextDocket}
-                    className="min-h-[44px] px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0"
+                    className="min-h-[44px] px-6 py-2.5 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0 shadow-[0_3px_0_#000] active:translate-y-0.5"
                   >
-                    {caseIdx + 1 >= deck.length ? 'FINISH' : 'NEXT CASE'}
+                    {caseIdx + 1 >= deck.length ? 'COMPLETE MANSION' : 'NEXT DOCKET'}
                   </button>
                 )}
               </div>
@@ -1837,7 +1952,7 @@ export const BooBurdenMansionGame: React.FC<NewVaultGameProps> = ({
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 bg-purple-400 hover:bg-purple-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-xs cursor-pointer"
+              className="min-h-[48px] px-8 py-3 bg-purple-400 hover:bg-purple-300 text-slate-950 font-black rounded-2xl border-2 border-black font-mario text-xs cursor-pointer shadow-[0_4px_0_#000] active:translate-y-0.5"
             >
               PLAY AGAIN
             </button>
@@ -2101,30 +2216,72 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
 
         {shellState === 'playing' && (
           <>
-            {/* Live Fuse Progress Bar */}
-            <div className="space-y-2">
-              <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    fuseLeft <= 4 ? 'bg-rose-500' : 'bg-amber-400'
-                  }`}
-                  style={{ width: `${Math.max(0, (fuseLeft / 14) * 100)}%` }}
-                />
+            {/* Bob-omb Defusal Apparatus Viewport */}
+            <div className="relative rounded-2xl border-2 border-amber-500/40 bg-gradient-to-b from-[#1c1508] via-[#120d04] to-slate-950 p-4 sm:p-5 overflow-hidden">
+              <div className="flex items-center justify-between gap-3 pb-3 border-b border-amber-800/40">
+                <div className="flex items-center gap-3">
+                  <div className={`relative w-12 h-12 rounded-2xl bg-amber-950/80 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_15px_rgba(251,191,36,0.4)] ${
+                    fuseLeft <= 4 ? 'animate-ping' : ''
+                  }`}>
+                    <Flame className="w-7 h-7 text-orange-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mario text-amber-400 uppercase block tracking-wider">
+                      BOB-OMB TIME-BOMB DEFUSAL RIG #{idx + 1}
+                    </span>
+                    <strong className="text-xs sm:text-sm font-display text-white">
+                      {fuseLeft <= 4 ? 'CRITICAL FUSE BURNING!' : 'FUSE ACTIVE · SELECT WIRE TO SNIP'}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-amber-500/40 font-mono">
+                  <Timer className="w-4 h-4 text-amber-400" />
+                  <span className={`text-sm font-black tabular-nums ${fuseLeft <= 4 ? 'text-rose-400 animate-pulse' : 'text-amber-300'}`}>
+                    {fuseLeft}.0s
+                  </span>
+                </div>
               </div>
 
-              <div className="bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 sm:p-5">
-                <span className="text-[10px] font-mono font-bold text-amber-400 uppercase block mb-1">
-                  TICKING STATUTORY DEADLINE CLAIM
-                </span>
-                <p className="text-sm sm:text-lg font-extrabold text-white leading-snug">
-                  {current.claim}
-                </p>
+              {/* Live Fuse Gauge */}
+              <div className="pt-3 space-y-2">
+                <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400 uppercase">
+                  <span>BURNING FUSE LENGTH</span>
+                  <span className={fuseLeft <= 4 ? 'text-rose-400' : 'text-amber-400'}>
+                    {Math.round((fuseLeft / 14) * 100)}% DETONATION PROXIMITY
+                  </span>
+                </div>
+                <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden border border-amber-500/30">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      fuseLeft <= 4 ? 'bg-rose-500' : 'bg-gradient-to-r from-amber-400 to-yellow-300'
+                    }`}
+                    style={{ width: `${Math.max(0, (fuseLeft / 14) * 100)}%` }}
+                  />
+                </div>
+
+                {/* Ticking Claim Prompt */}
+                <div className="bg-slate-950/90 border border-amber-500/30 rounded-xl p-3.5 space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-amber-400 uppercase block">
+                    TICKING LABOR CAUSE OF ACTION / NOTICE
+                  </span>
+                  <p className="text-sm sm:text-base font-extrabold text-white leading-snug">
+                    {current.claim}
+                  </p>
+                </div>
               </div>
             </div>
 
+            {/* 4 Colored Wire Defusal Terminals */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {current.options.map((opt, wireIdx) => {
-                const wireLabels = ['RED WIRE', 'BLUE WIRE', 'GOLD WIRE', 'GREEN WIRE'];
+                const WIRE_STYLES = [
+                  { label: 'RED WIRE', border: 'border-rose-500', bg: 'bg-rose-950/80', badge: 'bg-rose-500', text: 'text-rose-300' },
+                  { label: 'BLUE WIRE', border: 'border-sky-500', bg: 'bg-sky-950/80', badge: 'bg-sky-500', text: 'text-sky-300' },
+                  { label: 'GOLD WIRE', border: 'border-amber-500', bg: 'bg-amber-950/80', badge: 'bg-amber-500', text: 'text-amber-300' },
+                  { label: 'GREEN WIRE', border: 'border-emerald-500', bg: 'bg-emerald-950/80', badge: 'bg-emerald-500', text: 'text-emerald-300' },
+                ];
+                const ws = WIRE_STYLES[wireIdx % WIRE_STYLES.length];
                 const isSelected = picked === opt;
                 const isAnswer = opt === current.correctPeriod;
                 return (
@@ -2133,21 +2290,28 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
                     type="button"
                     disabled={picked !== null}
                     onClick={() => handleCutWire(opt)}
-                    className={`min-h-[58px] px-4 py-3 rounded-2xl border-3 font-black text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                    className={`min-h-[64px] px-4 py-3 rounded-2xl border-3 font-black text-left transition-all cursor-pointer flex items-center justify-between gap-3 shadow-[0_4px_0_#000] active:translate-y-0.5 ${
                       picked === null
-                        ? 'bg-slate-900 hover:bg-amber-400 hover:text-slate-950 border-slate-700 text-white'
+                        ? `${ws.bg} ${ws.border} hover:bg-amber-400 hover:text-slate-950 text-white`
                         : isAnswer
-                        ? 'bg-emerald-500 text-slate-950 border-black'
+                        ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_0_15px_rgba(52,211,153,0.5)]'
                         : isSelected
                         ? 'bg-rose-600 text-white border-black'
-                        : 'bg-slate-900/50 text-slate-500 border-slate-800'
+                        : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
                     }`}
                   >
-                    <div>
-                      <span className="text-[10px] font-mono block opacity-75">
-                        {wireLabels[wireIdx]}
-                      </span>
-                      <span className="text-sm sm:text-base font-display">{opt}</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-xl ${ws.badge} border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]`}>
+                        <Timer className="w-4 h-4 text-slate-950" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-mono block opacity-75 uppercase">
+                          SNIP {ws.label}
+                        </span>
+                        <span className="text-sm sm:text-base font-display font-black block">
+                          {opt}
+                        </span>
+                      </div>
                     </div>
                     <MarioStarIcon className="w-5 h-5 shrink-0" />
                   </button>
@@ -2155,16 +2319,25 @@ export const ChronoPrescriptionBlitzGame: React.FC<NewVaultGameProps> = ({
               })}
             </div>
 
+            {/* Post-Cut Adjudication Card */}
             {picked !== null && (
-              <div className="bg-slate-900 border-2 border-emerald-400/70 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <p className="text-xs sm:text-sm font-bold text-emerald-200">{current.basis}</p>
+              <div className="bg-slate-900/95 border-2 border-emerald-400/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_4px_0_#000]">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>CONTROLLING STATUTORY PRESCRIPTION BASIS:</span>
+                  </div>
+                  <p className="text-xs sm:text-sm font-bold text-emerald-200 leading-relaxed">
+                    {current.basis}
+                  </p>
+                </div>
                 {lives > 0 && (
                   <button
                     type="button"
                     onClick={handleNextBomb}
-                    className="min-h-[44px] px-5 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0"
+                    className="min-h-[44px] px-6 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer shrink-0 shadow-[0_3px_0_#000] active:translate-y-0.5 whitespace-nowrap"
                   >
-                    {idx + 1 >= deck.length ? 'FINISH' : 'NEXT BOB-OMB'}
+                    {idx + 1 >= deck.length ? 'COMPLETE DEFUSAL' : 'NEXT BOB-OMB'}
                   </button>
                 )}
               </div>

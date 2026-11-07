@@ -8,7 +8,22 @@ import {
   MarioFireFlowerIcon,
   MarioMushroomIcon,
 } from './MarioIcons';
-import { Coins, Sparkles, Shield, RotateCcw, CheckCircle2, XCircle, Trophy, ArrowRight } from 'lucide-react';
+import {
+  Coins,
+  Sparkles,
+  Shield,
+  RotateCcw,
+  CheckCircle2,
+  XCircle,
+  Trophy,
+  ArrowRight,
+  Stamp,
+  FileText,
+  Heart,
+  Award,
+  Clock,
+  BadgeCheck,
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
   drawSlotTriviaQuestion,
@@ -234,27 +249,35 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
   const [caseNumber, setCaseNumber] = useState(1);
   const [current, setCurrent] = useState<LeaveClinicCaseItem>(() => drawWorld6LeaveCase());
   const [streak, setStreak] = useState(0);
-  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ ok: boolean; text: string; selectedOpt: string } | null>(null);
   const [hintUnlocked, setHintUnlocked] = useState(false);
+  const [stampedOpt, setStampedOpt] = useState<string | null>(null);
 
   const handleSelect = (opt: string) => {
-    if (opt === current.correctLeave) {
-      const reward = 6 + Math.min(10, streak * 2);
-      onAdjustCoins(reward);
-      setStreak((s) => s + 1);
-      setFeedback({ ok: true, text: `Correct! +${reward} Coins • ${current.statute}` });
-      marioAudio.playCoin();
-    } else {
-      setStreak(0);
-      setFeedback({ ok: false, text: `Not quite! Answer: ${current.correctLeave} (${current.statute})` });
-      marioAudio.playBowserHit();
-    }
+    if (feedback) return;
+    setStampedOpt(opt);
+
+    const isCorrect = opt === current.correctLeave;
+    setTimeout(() => {
+      if (isCorrect) {
+        const reward = 6 + Math.min(10, streak * 2);
+        onAdjustCoins(reward);
+        setStreak((s) => s + 1);
+        setFeedback({ ok: true, text: `Officially Dispatched! +${reward} Coins · ${current.statute}`, selectedOpt: opt });
+        marioAudio.playCoin();
+      } else {
+        setStreak(0);
+        setFeedback({ ok: false, text: `Statutory Mismatch! Correct: ${current.correctLeave} (${current.statute})`, selectedOpt: opt });
+        marioAudio.playBowserHit();
+      }
+    }, 300);
   };
 
   const nextCase = () => {
     setCaseNumber((n) => n + 1);
     setCurrent(drawWorld6LeaveCase());
     setFeedback(null);
+    setStampedOpt(null);
     setHintUnlocked(false);
     marioAudio.playClick();
   };
@@ -266,89 +289,157 @@ export const World6LeaveMatcherGame: React.FC<ExtraGameProps> = ({
     marioAudio.playPowerUp();
   };
 
+  // Color & Icon mapping for 4 Royal Wax Seals
+  const STAMP_PALETTES = [
+    { border: 'border-pink-400', bg: 'bg-pink-950/80', hover: 'hover:bg-pink-600', text: 'text-pink-300', wax: 'bg-pink-500' },
+    { border: 'border-sky-400', bg: 'bg-sky-950/80', hover: 'hover:bg-sky-600', text: 'text-sky-300', wax: 'bg-sky-500' },
+    { border: 'border-amber-400', bg: 'bg-amber-950/80', hover: 'hover:bg-amber-600', text: 'text-amber-300', wax: 'bg-amber-500' },
+    { border: 'border-purple-400', bg: 'bg-purple-950/80', hover: 'hover:bg-purple-600', text: 'text-purple-300', wax: 'bg-purple-500' },
+  ];
+
   return (
-    <div className="bg-[#1e293b] text-white rounded-3xl p-5 sm:p-7 border-4 border-slate-950 shadow-[6px_6px_0_#000] max-w-3xl mx-auto space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-700 pb-3">
+    <div className="bg-[#140f24] text-white rounded-3xl p-4 sm:p-7 border-4 border-slate-950 shadow-[6px_6px_0_#000] max-w-3xl mx-auto space-y-4">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-pink-900/60 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-pink-500 rounded-xl border-2 border-black flex items-center justify-center shrink-0">
-            <MarioCharacterAvatar character={equippedAvatar} className="w-7 h-7" />
+          <div className="w-12 h-12 bg-pink-500 rounded-2xl border-3 border-black flex items-center justify-center shrink-0 shadow-[0_3px_0_#000]">
+            <MarioCharacterAvatar character={equippedAvatar} className="w-8 h-8" />
           </div>
           <div>
-            <span className="text-[10px] font-black font-mario text-pink-300 uppercase block">
-              WORLD 6 • STATUTORY LEAVES &amp; WELFARE CLINIC
+            <span className="text-[10px] font-black font-mario text-pink-300 uppercase block tracking-wider">
+              WORLD 6 · PRINCESS PEACH STATUTORY CLINIC
             </span>
             <h2 className="text-xl sm:text-2xl font-black font-display text-white">
-              PEACH&apos;S LEAVE BENEFIT DISPATCH
+              PEACH&apos;S LEAVE BENEFIT DISPATCH DESK
             </h2>
           </div>
         </div>
         <div className="flex items-center gap-2 font-mario text-xs tabular-nums">
-          <span className="bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-emerald-400">
-            STREAK x{streak}
+          <span className="bg-slate-950/90 px-3.5 py-2 rounded-xl border border-pink-500/40 text-emerald-400 shadow-inner">
+            DISPATCH STREAK: x{streak}
           </span>
         </div>
       </div>
 
-      <div className="bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-mono text-pink-300 font-bold tabular-nums">
-            CASE #{caseNumber} • {WORLD6_LEAVE_CLINIC_BANK.length}-CASE DECK
-          </span>
+      {/* Royal Dispatch Counter & Applicant Petition Clipboard */}
+      <div className="relative rounded-2xl border-3 border-pink-500/50 bg-gradient-to-b from-[#25153a] via-[#170c29] to-[#0c0617] p-4 sm:p-6 overflow-hidden space-y-3">
+        {/* Ambient Top Bar */}
+        <div className="flex items-center justify-between gap-2 border-b border-pink-800/40 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-md bg-pink-950 border border-pink-400 text-[10px] font-mario text-pink-300 uppercase">
+              APPLICANT #{caseNumber}
+            </span>
+            <span className="text-xs font-mono font-bold text-slate-300">
+              CITIZEN LEAVE PETITION
+            </span>
+          </div>
           <button
             type="button"
             disabled={coins < 5 || hintUnlocked}
             onClick={buyHint}
-            className="min-h-[38px] px-3 py-1 rounded-xl bg-amber-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-black text-xs border border-black cursor-pointer"
+            className="min-h-[34px] px-3 py-1 rounded-xl bg-amber-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-black text-xs border border-black cursor-pointer shadow-[0_2px_0_#000] active:translate-y-0.5"
           >
-            {hintUnlocked ? 'Statutory Hint Active' : 'Buy Codal Hint (-5 Coins)'}
+            {hintUnlocked ? 'Codal Clue Active' : 'Buy Codal Clue (-5 Coins)'}
           </button>
         </div>
-        <p className="text-sm sm:text-base font-bold text-white leading-relaxed">
-          {current.scenario}
-        </p>
-        {hintUnlocked && (
-          <p className="text-xs text-amber-300 bg-slate-950 p-2.5 rounded-xl border border-amber-400/50">
-            Codal Clue: {current.statute}
+
+        {/* Applicant Circumstances Scroll */}
+        <div className="bg-slate-950/80 rounded-xl border border-pink-500/30 p-4 space-y-2 relative">
+          <div className="flex items-center gap-2 text-xs font-mono text-pink-300 uppercase">
+            <FileText className="w-4 h-4 text-pink-400" />
+            <span>SWORN STATEMENT OF STATUTORY CIRCUMSTANCES</span>
+          </div>
+          <p className="text-sm sm:text-base font-bold text-white leading-relaxed">
+            &ldquo;{current.scenario}&rdquo;
           </p>
-        )}
+
+          {hintUnlocked && (
+            <div className="text-xs text-amber-300 bg-amber-950/80 p-2.5 rounded-xl border border-amber-400/60 flex items-center gap-2 font-mono">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Controlling Statutory Law: {current.statute}</span>
+            </div>
+          )}
+
+          {/* Stamped Royal Seal Overlay */}
+          {stampedOpt && (
+            <div className="absolute right-4 bottom-3 border-4 border-amber-400/90 rounded-2xl p-2 bg-black/60 rotate-[-8deg] pointer-events-none animate-pulse">
+              <span className="text-xs font-mario text-amber-300 uppercase tracking-widest block font-black">
+                {feedback?.ok ? 'DISPATCHED APPROVED' : 'DISPATCH REVIEW'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="text-center pt-1">
+          <span className="text-[10px] font-mario text-pink-300 uppercase tracking-widest">
+            SELECT ROYAL WAX SEAL TO DISPATCH STATUTORY LEAVE
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        {current.options.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            disabled={Boolean(feedback)}
-            onClick={() => handleSelect(opt)}
-            className="min-h-[48px] text-left p-3.5 rounded-2xl bg-slate-800 hover:bg-pink-500 hover:text-slate-950 disabled:opacity-75 text-white font-bold text-xs sm:text-sm border-2 border-slate-600 transition-colors cursor-pointer"
-          >
-            {opt}
-          </button>
-        ))}
+      {/* 4 Interactive Royal Wax Seal Stampers */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {current.options.map((opt, i) => {
+          const pal = STAMP_PALETTES[i % STAMP_PALETTES.length];
+          const isSelected = stampedOpt === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              disabled={Boolean(feedback)}
+              onClick={() => handleSelect(opt)}
+              className={`min-h-[64px] p-3.5 rounded-2xl border-3 text-left transition-all cursor-pointer relative overflow-hidden group shadow-[0_4px_0_#000] active:translate-y-0.5 ${
+                feedback === null
+                  ? `${pal.bg} ${pal.border} ${pal.hover} hover:text-slate-950 text-white`
+                  : isSelected && feedback.ok
+                  ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_0_15px_rgba(52,211,153,0.5)]'
+                  : isSelected && !feedback.ok
+                  ? 'bg-rose-600 text-white border-black'
+                  : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {/* 3D Wax Stamper Knob */}
+                <div className={`w-10 h-10 rounded-xl ${pal.wax} border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]`}>
+                  <Stamp className="w-5 h-5 text-slate-950" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75">
+                    ROYAL SEAL #{i + 1}
+                  </span>
+                  <span className="text-xs sm:text-sm font-display font-extrabold block truncate">
+                    {opt}
+                  </span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
+      {/* Feedback Banner */}
       {feedback && (
         <div
-          className={`p-3.5 rounded-2xl border-2 flex flex-wrap items-center justify-between gap-3 ${
+          className={`p-4 rounded-2xl border-3 shadow-[0_5px_0_#000] flex flex-wrap items-center justify-between gap-3 ${
             feedback.ok
-              ? 'bg-emerald-950 border-emerald-400 text-emerald-200'
-              : 'bg-rose-950 border-rose-400 text-rose-200'
+              ? 'bg-emerald-950/90 border-emerald-400 text-emerald-100'
+              : 'bg-rose-950/90 border-rose-400 text-rose-100'
           }`}
         >
-          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
+          <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold min-w-0">
             {feedback.ok ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
             ) : (
-              <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <XCircle className="w-6 h-6 text-rose-400 shrink-0" />
             )}
-            <span>{feedback.text}</span>
+            <span className="leading-snug">{feedback.text}</span>
           </div>
           <button
             type="button"
             onClick={nextCase}
-            className="min-h-[44px] px-4 py-2 bg-amber-400 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5"
+            className="min-h-[44px] px-5 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black rounded-xl border-2 border-black font-mario text-xs cursor-pointer whitespace-nowrap inline-flex items-center gap-2 shadow-[0_3px_0_#000] active:translate-y-0.5"
           >
-            <span>NEXT CASE</span>
+            <span>NEXT APPLICANT</span>
             <ArrowRight className="w-4 h-4 shrink-0" />
           </button>
         </div>

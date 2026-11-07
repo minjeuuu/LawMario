@@ -23,6 +23,10 @@ import {
   Wand2,
   ListOrdered,
   Trophy,
+  Sparkles,
+  Shield,
+  BookOpen,
+  Flame,
 } from 'lucide-react';
 import {
   drawUniqueFromDeck,
@@ -1343,6 +1347,8 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
   const [bossHp, setBossHp] = useState(100);
   const [score, setScore] = useState(0);
   const [lastLog, setLastLog] = useState<string | null>(null);
+  const [duelEffect, setDuelEffect] = useState<'idle' | 'reflect' | 'hex_hit'>('idle');
+  const [pickedOption, setPickedOption] = useState<string | null>(null);
 
   const startGame = () => {
     const freshSpells: KamekDeadlineSpell[] = drawKamekSpells(8).map((s) => ({
@@ -1359,6 +1365,8 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
     setBossHp(100);
     setScore(0);
     setLastLog(null);
+    setDuelEffect('idle');
+    setPickedOption(null);
     setPhase('PLAYING');
     marioAudio.playPowerUp();
   };
@@ -1366,49 +1374,72 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
   const activeSpell = spells[spellIdx] || KAMEK_DEADLINE_SPELLS[0];
 
   const handleCastShield = (selected: string) => {
-    if (phase !== 'PLAYING' || !activeSpell) return;
+    if (phase !== 'PLAYING' || !activeSpell || pickedOption !== null) return;
+    setPickedOption(selected);
     const isHit = selected === activeSpell.correctAnswer;
+
     if (isHit) {
-      const nextBoss = Math.max(0, bossHp - 20);
-      setBossHp(nextBoss);
-      setScore((s) => s + 150);
-      onEarnCoins(3);
-      setLastLog(`REFLECTED! ${activeSpell.correctAnswer} — ${activeSpell.basis}`);
-      if (nextBoss <= 0 || spellIdx + 1 >= spells.length) {
-        onEarnCoins(12);
-        marioAudio.playQuizComplete();
-        setPhase('VICTORY');
-        return;
-      }
+      setDuelEffect('reflect');
+      marioAudio.playPowerUp();
+      setTimeout(() => {
+        const nextBoss = Math.max(0, bossHp - 25);
+        setBossHp(nextBoss);
+        setScore((s) => s + 150);
+        onEarnCoins(3);
+        setLastLog(`REFLECTED! ${activeSpell.correctAnswer} · ${activeSpell.basis}`);
+        marioAudio.playCoin();
+
+        if (nextBoss <= 0 || spellIdx + 1 >= spells.length) {
+          onEarnCoins(12);
+          marioAudio.playQuizComplete();
+          setPhase('VICTORY');
+        } else {
+          setSpellIdx((i) => i + 1);
+          setPickedOption(null);
+          setDuelEffect('idle');
+        }
+      }, 500);
     } else {
-      const nextHero = Math.max(0, heroHp - 35);
-      setHeroHp(nextHero);
+      setDuelEffect('hex_hit');
       marioAudio.playStomp();
-      setLastLog(`HEX HIT! Correct Rune: ${activeSpell.correctAnswer} (${activeSpell.basis})`);
-      if (nextHero <= 0) {
-        setPhase('GAME_OVER');
-        return;
-      }
-      if (spellIdx + 1 >= spells.length) {
-        setPhase('VICTORY');
-        return;
-      }
+      setTimeout(() => {
+        const nextHero = Math.max(0, heroHp - 35);
+        setHeroHp(nextHero);
+        setLastLog(`HEX BREACHED SHIELD! Correct Rune: ${activeSpell.correctAnswer} (${activeSpell.basis})`);
+
+        if (nextHero <= 0) {
+          setPhase('GAME_OVER');
+        } else if (spellIdx + 1 >= spells.length) {
+          setPhase('VICTORY');
+        } else {
+          setSpellIdx((i) => i + 1);
+          setPickedOption(null);
+          setDuelEffect('idle');
+        }
+      }, 500);
     }
-    setSpellIdx((i) => i + 1);
   };
+
+  const GRIMOIRE_THEMES = [
+    { border: 'border-rose-400', bg: 'bg-rose-950/80', rune: 'text-rose-400', badge: 'bg-rose-500' },
+    { border: 'border-cyan-400', bg: 'bg-cyan-950/80', rune: 'text-cyan-400', badge: 'bg-cyan-500' },
+    { border: 'border-amber-400', bg: 'bg-amber-950/80', rune: 'text-amber-400', badge: 'bg-amber-500' },
+    { border: 'border-purple-400', bg: 'bg-purple-950/80', rune: 'text-purple-400', badge: 'bg-purple-500' },
+  ];
 
   return (
     <div
       data-testid="game-kamek-deadlines"
-      className="bg-[#0f172a] text-white rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden select-none"
+      className="bg-[#0b0c1b] text-white rounded-3xl border-4 border-slate-950 shadow-[6px_6px_0_#000] overflow-hidden select-none"
     >
-      <div className="bg-slate-950 px-4 py-3 border-b-2 border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      {/* Header HUD */}
+      <div className="bg-[#12132e] px-4 py-3 border-b-2 border-purple-900/60 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-purple-400 border-2 border-black flex items-center justify-center text-slate-950 shrink-0">
-            <Wand2 className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-2xl bg-purple-500 border-2 border-black flex items-center justify-center text-slate-950 shrink-0 shadow-[0_3px_0_#000]">
+            <Wand2 className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] font-black uppercase text-purple-300 font-mario block">
+            <span className="text-[10px] font-black uppercase text-purple-300 font-mario block tracking-wider">
               PRESCRIPTIVE SPELL-SHIELD DUEL
             </span>
             <h2 className="text-sm sm:text-lg font-black font-display text-white">
@@ -1418,101 +1449,155 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
         </div>
 
         <div className="flex items-center gap-3 text-xs font-mono tabular-nums">
-          <div className="bg-slate-900 px-3 py-1 rounded-xl border border-slate-700">
-            <span className="text-slate-400 mr-1">HERO HP</span>
-            <strong className="text-emerald-400">{heroHp}%</strong>
+          <div className="bg-slate-950/90 px-3 py-1.5 rounded-xl border border-emerald-500/40">
+            <span className="text-slate-400 mr-1.5 font-bold">HERO HP</span>
+            <strong className="text-emerald-400 font-black">{heroHp}%</strong>
           </div>
-          <div className="bg-slate-900 px-3 py-1 rounded-xl border border-slate-700">
-            <span className="text-slate-400 mr-1">KAMEK HP</span>
-            <strong className="text-purple-300">{bossHp}%</strong>
+          <div className="bg-slate-950/90 px-3 py-1.5 rounded-xl border border-purple-500/40">
+            <span className="text-slate-400 mr-1.5 font-bold">KAMEK HP</span>
+            <strong className="text-purple-300 font-black">{bossHp}%</strong>
           </div>
-          <div className="bg-slate-900 px-3 py-1 rounded-xl border border-slate-700">
-            <span className="text-slate-400 mr-1">SCORE</span>
-            <strong className="text-amber-300">{score}</strong>
+          <div className="bg-slate-950/90 px-3 py-1.5 rounded-xl border border-amber-500/40">
+            <span className="text-slate-400 mr-1.5 font-bold">SCORE</span>
+            <strong className="text-amber-300 font-black">{score}</strong>
           </div>
         </div>
       </div>
 
-      <div className="p-4 sm:p-6 min-h-[340px] flex flex-col justify-between gap-4 bg-gradient-to-b from-[#1e1b4b] to-[#0f172a]">
+      {/* Main Duel Stage Arena */}
+      <div className="p-4 sm:p-6 min-h-[360px] flex flex-col justify-between gap-4 bg-gradient-to-b from-[#1c163b] via-[#110e28] to-[#070514]">
         {phase === 'TITLE' && (
           <div className="my-auto text-center max-w-xl mx-auto space-y-4 py-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-400 border-3 border-black shadow-[0_4px_0_#000] mx-auto">
-              <MarioCharacterAvatar character={equippedAvatar} className="w-11 h-11" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-purple-950/80 border-3 border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.4)] mx-auto">
+              <Wand2 className="w-10 h-10 text-purple-300 animate-pulse" />
             </div>
             <h3 className="text-xl sm:text-2xl font-black font-display text-white">
-              Reflect Kamek&apos;s Time-Bar Hexes With Statutory Deadlines!
+              Deflect Magikoopa Kamek&apos;s Time-Bar Hexes!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Match each labor law action or notice spell to its exact prescriptive period (1 Yr ULP, 3 Yrs Money Claims, 4 Yrs Illegal Dismissal, 20 Yrs SSS, 10d NLRC Appeal, 6m Floating Status) to drain Kamek&apos;s Boss HP!
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto font-medium">
+              Match each incoming labor dispute or statutory notice spell to its exact prescriptive period (1 Yr ULP, 3 Yrs Money Claims, 4 Yrs Illegal Dismissal, 20 Yrs SSS, 10d NLRC Appeal) to reflect Kamek&apos;s spells and drain his Boss HP!
             </p>
             <button
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-7 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-8 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>START SPELLBOOK DUEL</span>
+              <span>START SPELL DUEL</span>
             </button>
           </div>
         )}
 
         {phase === 'PLAYING' && activeSpell && (
           <div className="space-y-4">
-            {/* Dual HP Bars */}
-            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-              <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-emerald-300 font-bold">COUNSEL HERO</span>
-                  <span className="tabular-nums">{heroHp}/100</span>
+            {/* Visual Spell Arena with Animated Hero & Kamek */}
+            <div className="relative rounded-2xl border-2 border-purple-500/40 bg-gradient-to-b from-[#1f1742] to-[#0d0920] p-4 sm:p-5 overflow-hidden">
+              {/* Dual Combatant Stages */}
+              <div className="flex items-center justify-between gap-3 relative z-10">
+                {/* Left: Counsel Hero with Mirror Shield */}
+                <div className="flex items-center gap-3">
+                  <div className={`relative w-14 h-14 rounded-2xl bg-emerald-950/80 border-2 border-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.4)] ${
+                    duelEffect === 'hex_hit' ? 'animate-bounce bg-rose-950 border-rose-500' : ''
+                  }`}>
+                    <MarioCharacterAvatar character={equippedAvatar} className="w-10 h-10" />
+                    {duelEffect === 'reflect' && (
+                      <div className="absolute inset-0 bg-amber-400/40 rounded-2xl border-2 border-amber-300 animate-ping" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mario text-emerald-300 uppercase block">COUNSEL HERO</span>
+                    <span className="text-xs font-mono font-bold text-slate-300">Codal Shield Active</span>
+                  </div>
                 </div>
-                <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700">
-                  <div
-                    className="h-full bg-emerald-400 transition-all"
-                    style={{ width: `${heroHp}%` }}
-                  />
+
+                {/* Center: Flying Geometric Hex Projectile */}
+                <div className="flex flex-col items-center gap-1">
+                  <div className={`w-10 h-10 rounded-2xl border-2 flex items-center justify-center transition-all ${
+                    duelEffect === 'reflect'
+                      ? 'bg-amber-400 border-yellow-300 text-slate-950 scale-125 rotate-180 shadow-[0_0_20px_rgba(251,191,36,0.9)]'
+                      : duelEffect === 'hex_hit'
+                      ? 'bg-rose-600 border-rose-400 text-white scale-125'
+                      : 'bg-purple-900/80 border-purple-400 text-purple-200 animate-pulse'
+                  }`}>
+                    {duelEffect === 'reflect' ? (
+                      <Sparkles className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Zap className="w-5 h-5" />
+                    )}
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-purple-300 uppercase">
+                    {duelEffect === 'reflect' ? 'REFLECTED!' : duelEffect === 'hex_hit' ? 'SHIELD BREACH' : 'INCOMING HEX'}
+                  </span>
+                </div>
+
+                {/* Right: Magikoopa Kamek */}
+                <div className="flex items-center gap-3 flex-row-reverse sm:flex-row">
+                  <div className="text-right hidden sm:block">
+                    <span className="text-[10px] font-mario text-purple-300 uppercase block">MAGIKOOPA KAMEK</span>
+                    <span className="text-xs font-mono font-bold text-slate-300">Broomstick Hexer</span>
+                  </div>
+                  <div className={`relative w-14 h-14 rounded-2xl bg-purple-950/80 border-2 border-purple-400 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.4)] ${
+                    duelEffect === 'reflect' ? 'animate-bounce bg-rose-950 border-rose-500' : ''
+                  }`}>
+                    <Wand2 className="w-8 h-8 text-purple-300" />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-purple-300 font-bold">MAGIKOOPA KAMEK</span>
-                  <span className="tabular-nums">{bossHp}/100</span>
-                </div>
-                <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700">
-                  <div
-                    className="h-full bg-purple-400 transition-all"
-                    style={{ width: `${bossHp}%` }}
-                  />
-                </div>
+
+              {/* Incoming Claim Statement */}
+              <div className="mt-4 pt-3 border-t border-purple-800/40 space-y-1">
+                <span className="text-[10px] font-black uppercase text-amber-300 font-mario block">
+                  HEX #{spellIdx + 1}: {activeSpell.spellTitle}
+                </span>
+                <p className="text-sm sm:text-base font-extrabold text-white leading-snug">
+                  {activeSpell.claimPrompt}
+                </p>
               </div>
             </div>
 
-            {/* Incoming Spell Card */}
-            <div className="bg-white text-slate-950 rounded-2xl p-4 sm:p-5 border-3 border-black shadow-[4px_4px_0_#000] space-y-1">
-              <span className="text-[10px] font-black uppercase text-purple-700 font-mono block">
-                INCOMING HEX · {activeSpell.spellTitle}
-              </span>
-              <h3 className="text-base sm:text-lg font-black font-display">
-                {activeSpell.claimPrompt}
-              </h3>
+            {/* 4 Ancient Grimoire Spell Tomes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {activeSpell.options.map((opt, i) => {
+                const gr = GRIMOIRE_THEMES[i % GRIMOIRE_THEMES.length];
+                const isSelected = pickedOption === opt;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    disabled={pickedOption !== null}
+                    onClick={() => handleCastShield(opt)}
+                    className={`min-h-[64px] p-3.5 rounded-2xl border-3 text-left transition-all cursor-pointer relative overflow-hidden shadow-[0_4px_0_#000] active:translate-y-0.5 ${
+                      pickedOption === null
+                        ? `${gr.bg} ${gr.border} hover:bg-purple-900/70 hover:border-amber-400 text-white`
+                        : isSelected && opt === activeSpell.correctAnswer
+                        ? 'bg-emerald-500 text-slate-950 border-black shadow-[0_0_15px_rgba(52,211,153,0.5)]'
+                        : isSelected
+                        ? 'bg-rose-600 text-white border-black'
+                        : 'bg-slate-900/40 text-slate-500 border-slate-800 opacity-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl ${gr.badge} border-2 border-black flex items-center justify-center shrink-0 shadow-[0_2px_0_#000]`}>
+                        <BookOpen className="w-5 h-5 text-slate-950" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono uppercase tracking-wider block opacity-75">
+                          GRIMOIRE RUNIC SEAL #{i + 1}
+                        </span>
+                        <span className="text-sm sm:text-base font-mono font-black block">
+                          {opt}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* 4 Statutory Rune Shield Buttons */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {activeSpell.options.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => handleCastShield(opt)}
-                  className="min-h-[50px] px-3 py-2.5 rounded-2xl bg-slate-900 hover:bg-amber-400 text-white hover:text-slate-950 font-black text-xs sm:text-sm border-2 border-purple-400 hover:border-black transition-colors cursor-pointer font-mono"
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-
+            {/* Duel Battle Log */}
             {lastLog && (
-              <div className="rounded-xl px-3.5 py-2.5 bg-slate-950/90 border border-purple-400/50 text-xs font-bold text-purple-100">
+              <div className="rounded-xl px-4 py-2.5 bg-slate-950/95 border border-purple-400/60 text-xs font-mono font-bold text-amber-300 shadow-inner">
                 {lastLog}
               </div>
             )}
@@ -1532,7 +1617,7 @@ export const KamekDeadlineSpellbookGame: React.FC<BonusVaultGameProps> = ({
               type="button"
               data-start="true"
               onClick={startGame}
-              className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_3px_0_#000] inline-flex items-center gap-2 cursor-pointer"
+              className="min-h-[48px] px-8 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm font-mario border-3 border-black shadow-[0_4px_0_#000] inline-flex items-center gap-2 cursor-pointer transition-transform active:translate-y-0.5"
             >
               <RotateCcw className="w-4 h-4" />
               <span>DUEL AGAIN</span>

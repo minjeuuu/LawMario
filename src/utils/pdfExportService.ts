@@ -2634,7 +2634,7 @@ export function buildStudyGuideReviewerPdfBytes(
   doc.setFont(ff, fp.bodyStyle);
   doc.setFontSize(6.2 * scale);
   const coverSub = params.candidateName
-    ? `Prepared for Examinee: ${sanitizePdfText(params.candidateName)}  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
+    ? `Prepared for Learner: ${sanitizePdfText(params.candidateName)}  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`
     : `Complete Six-World Memory Aid  |  Modules: ${activeTopics.length}  |  Typeface: ${fp.displayLabel}  |  Matthew Cesar Corpuz`;
   doc.text(doc.splitTextToSize(coverSub, contentW - 28)[0] || '', pageW / 2, y + 16.5, { align: 'center' });
   doc.text(`Created by Matthew (Matthew Cesar Corpuz — Main Creator)  ·  Active Modules: ${activeTopics.length}`, pageW / 2, y + 19.8, { align: 'center' });

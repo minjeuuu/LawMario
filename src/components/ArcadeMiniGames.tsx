@@ -27,6 +27,13 @@ import {
   XCircle,
   Sparkles,
   ArrowDown,
+  Search,
+  Eye,
+  Zap,
+  Wind,
+  FileText,
+  Check,
+  Activity,
 } from 'lucide-react';
 import {
   drawGoombaTargets,
@@ -424,28 +431,54 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
   const [cases, setCases] = useState<ContractorDocketItem[]>(() => drawContractorDockets(6));
   const [idx, setIdx] = useState(0);
   const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<null | { correct: boolean; message: string }>(null);
+  const [answered, setAnswered] = useState<null | { correct: boolean; message: string; action: 'bust' | 'certify' }>(null);
   const [completed, setCompleted] = useState(false);
+  const [activeSensor, setActiveSensor] = useState<'capital' | 'registration' | 'control' | 'work'>('capital');
+  const [suctionActive, setSuctionActive] = useState(false);
+  const [stampActive, setStampActive] = useState(false);
+  const [ghostOpacity, setGhostOpacity] = useState(1);
 
   const current = cases[idx] ?? cases[0];
 
   const handleInspect = (declareLaborOnly: boolean) => {
     if (answered || !current) return;
     const isCorrect = declareLaborOnly === current.isLaborOnly;
-    if (isCorrect) {
-      setScore((s) => s + 1);
-      onEarnCoins(5);
-      marioAudio.playCoin();
+
+    if (declareLaborOnly) {
+      setSuctionActive(true);
+      marioAudio.playPowerUp();
+      setTimeout(() => {
+        setGhostOpacity(0.15);
+      }, 350);
     } else {
-      marioAudio.playBowserHit();
+      setStampActive(true);
+      marioAudio.playCoin();
     }
-    setAnswered({ correct: isCorrect, message: current.verdictNote });
+
+    setTimeout(() => {
+      setSuctionActive(false);
+      setStampActive(false);
+      if (isCorrect) {
+        setScore((s) => s + 1);
+        onEarnCoins(5);
+        marioAudio.playCoin();
+      } else {
+        marioAudio.playBowserHit();
+      }
+      setAnswered({
+        correct: isCorrect,
+        message: current.verdictNote,
+        action: declareLaborOnly ? 'bust' : 'certify',
+      });
+    }, 600);
   };
 
   const nextCase = () => {
     if (idx < cases.length - 1) {
       setIdx((i) => i + 1);
       setAnswered(null);
+      setGhostOpacity(1);
+      setActiveSensor('capital');
       marioAudio.playPipe();
     } else {
       setCompleted(true);
@@ -459,113 +492,312 @@ export const ContractorBusterGame: React.FC<MiniGameProps> = ({ equippedAvatar, 
     setIdx(0);
     setScore(0);
     setAnswered(null);
+    setGhostOpacity(1);
+    setActiveSensor('capital');
     setCompleted(false);
     marioAudio.playPowerUp();
   };
 
   return (
-    <div className="bg-[#1e293b] rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-6 text-white space-y-4 max-w-4xl mx-auto">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-700 pb-3">
+    <div className="bg-[#0b1120] rounded-3xl mario-card border-4 border-slate-950 p-4 sm:p-6 text-white space-y-4 max-w-4xl mx-auto shadow-[0_12px_36px_rgba(0,0,0,0.8)]">
+      {/* HUD Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-emerald-900/60 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-emerald-400 rounded-xl border-2 border-black flex items-center justify-center shrink-0">
-            <MarioCharacterAvatar character={equippedAvatar} className="w-7 h-7" />
+          <div className="w-12 h-12 bg-emerald-400 rounded-2xl border-3 border-black flex items-center justify-center shrink-0 shadow-[0_3px_0_#000]">
+            <MarioCharacterAvatar character={equippedAvatar} className="w-8 h-8" />
           </div>
           <div>
-            <span className="text-[10px] font-black uppercase text-emerald-400 font-mario block">
-              DOLE D.O. 174-17 • POLTERGUST AUDIT
-            </span>
-            <h2 className="text-xl sm:text-2xl font-black font-display text-white">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase text-emerald-400 font-mario tracking-wider">
+                DOLE D.O. 174-17 · POLTERGUST 3000 AUDIT
+              </span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black font-display text-white tracking-wide">
               LUIGI&apos;S MANSION: CONTRACTOR BUSTER
             </h2>
           </div>
         </div>
 
-        <div className="bg-slate-900 px-3.5 py-2 rounded-xl border-2 border-slate-700 font-mario text-xs tabular-nums">
-          CASE {idx + 1}/{cases.length} • SCORE: <span className="text-emerald-400">{score}</span>
+        <div className="flex items-center gap-2">
+          <div className="bg-slate-950/90 px-3.5 py-2 rounded-xl border-2 border-emerald-500/40 font-mario text-xs tabular-nums text-slate-300">
+            DOCKET <span className="text-amber-300">{idx + 1}</span>/{cases.length}
+          </div>
+          <div className="bg-slate-950/90 px-3.5 py-2 rounded-xl border-2 border-emerald-500/40 font-mario text-xs tabular-nums">
+            SCORE: <span className="text-emerald-400 font-black">{score}</span>
+          </div>
         </div>
       </div>
 
       {!completed ? (
         <div className="space-y-4">
-          <div className="bg-slate-900 rounded-2xl border-3 border-emerald-500/60 p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mario text-emerald-300 uppercase">DOLE INSPECTION DOCKET #{idx + 101}</span>
-              <span className="text-xs font-bold text-amber-300">₱5,000,000 Capital Rule</span>
+          {/* Haunted Mansion Stage Viewport */}
+          <div className="relative rounded-2xl border-3 border-emerald-500/50 bg-gradient-to-b from-[#131b2e] via-[#0b101e] to-[#050811] p-4 sm:p-6 overflow-hidden min-h-[280px] flex flex-col justify-between">
+            {/* Ambient Background Cobwebs & Ectoplasm Specks */}
+            <div className="absolute top-2 right-3 text-xs font-mono text-emerald-400/40 uppercase tracking-widest select-none pointer-events-none">
+              SPECTRAL SCANNER: 84.7 kHz
             </div>
-            <h3 className="text-xl font-black font-display text-white">{current.agencyName}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span className="text-slate-400 font-bold block">Capital & Equipment:</span>
-                <span className="text-white font-black">{current.capital}</span>
+            <div className="absolute -top-12 -left-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Flashlight Spotlight Cone Effect */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20"
+              style={{
+                background: 'radial-gradient(ellipse at 25% 45%, rgba(52, 211, 153, 0.45) 0%, rgba(15, 23, 42, 0) 65%)',
+              }}
+            />
+
+            {/* Top Stage Bar: Docket ID & 5M Capital Badge */}
+            <div className="relative z-10 flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-400/50 text-[10px] font-mario text-emerald-300 uppercase">
+                  DOCKET #{idx + 101}
+                </span>
+                <span className="text-xs font-bold text-slate-300 truncate font-display">
+                  {current.agencyName}
+                </span>
               </div>
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span className="text-slate-400 font-bold block">DOLE Registry Status:</span>
-                <span className="text-white font-black">{current.registration}</span>
+              <span className="px-2.5 py-0.5 rounded-md bg-amber-950/80 border border-amber-400/50 text-[10px] font-mono font-bold text-amber-300">
+                DOLE 5M RULE
+              </span>
+            </div>
+
+            {/* Ghost / Contractor Target Stage Display */}
+            <div className="relative z-10 py-4 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Luigi Flashlight & Poltergust Nozzle on the Left */}
+              <div className="flex items-center gap-3 self-center sm:self-start">
+                <div className="relative w-16 h-16 rounded-2xl bg-emerald-950/80 border-2 border-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                  <MarioCharacterAvatar character={equippedAvatar} className="w-12 h-12" />
+                  {suctionActive && (
+                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 animate-pulse">
+                      <Wind className="w-5 h-5 text-cyan-300" />
+                    </div>
+                  )}
+                </div>
+                <div className="hidden sm:block">
+                  <span className="text-[10px] font-mario text-emerald-300 uppercase block">POLTERGUST 3000</span>
+                  <span className="text-xs text-slate-400 font-mono">Vacuum Suction Ready</span>
+                </div>
               </div>
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span className="text-slate-400 font-bold block">Right of Control:</span>
-                <span className="text-white font-black">{current.controlHolder}</span>
+
+              {/* Animated Target: Boo-like Ghost Contractor vs Legitimate Engineer */}
+              <div
+                className={`transition-all duration-500 transform ${
+                  suctionActive ? 'scale-75 -translate-x-8 rotate-12' : 'hover:scale-105'
+                }`}
+                style={{ opacity: ghostOpacity }}
+              >
+                <div className="relative flex flex-col items-center">
+                  {/* Floating Target Entity */}
+                  <div
+                    className={`w-28 h-28 sm:w-32 sm:h-32 rounded-3xl border-3 flex flex-col items-center justify-center p-2 text-center transition-all shadow-[0_8px_24px_rgba(0,0,0,0.6)] ${
+                      current.isLaborOnly
+                        ? 'bg-gradient-to-b from-purple-900/60 to-slate-950 border-purple-400/80 shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                        : 'bg-gradient-to-b from-emerald-900/60 to-slate-950 border-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.35)]'
+                    }`}
+                  >
+                    {/* Animated Spectral Face */}
+                    <div className="text-3xl sm:text-4xl select-none mb-1">
+                      {current.isLaborOnly ? (
+                        <div className="inline-block animate-bounce">
+                          <Eye className="w-9 h-9 text-purple-300 mx-auto" />
+                        </div>
+                      ) : (
+                        <ShieldCheck className="w-9 h-9 text-emerald-400 mx-auto" />
+                      )}
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-wider font-mario text-amber-300 block leading-tight">
+                      {current.isLaborOnly ? 'PHANTOM INTERMEDIARY' : 'LEGITIMATE CONTRACTOR'}
+                    </span>
+                    <span className="text-[9px] text-slate-300 font-mono block mt-0.5">
+                      {current.isLaborOnly ? 'Sub-Contracting Trap' : 'Independent DOLE Firm'}
+                    </span>
+                  </div>
+
+                  {/* Stamp Impact Effect */}
+                  {stampActive && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-amber-400/30 rounded-3xl border-4 border-amber-300 animate-ping" />
+                  )}
+                </div>
               </div>
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <span className="text-slate-400 font-bold block">Nature of Work:</span>
-                <span className="text-white font-black">{current.workRelation}</span>
+
+              {/* Right Side: Tactical Telemetry Sensor Meters */}
+              <div className="w-full sm:w-60 bg-slate-950/80 rounded-xl border border-slate-800 p-2.5 space-y-1.5 text-xs font-mono">
+                <div className="text-[9px] font-mario text-slate-400 uppercase border-b border-slate-800 pb-1 flex items-center justify-between">
+                  <span>TELEMETRY DIAGNOSTICS</span>
+                  <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                </div>
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Capital Level:</span>
+                    <span className={current.capital.includes('₱2,') || current.capital.includes('₱1,') || current.capital.includes('₱800,') || current.capital.includes('₱500,') ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                      {current.capital.split(' ')[0]}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Registry:</span>
+                    <span className={current.registration.toLowerCase().includes('unreg') || current.registration.toLowerCase().includes('expired') ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                      {current.registration.toLowerCase().includes('unreg') ? 'UNREGISTERED' : 'REGISTERED'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Control Holder:</span>
+                    <span className="text-amber-300 font-bold truncate max-w-[120px]">
+                      {current.controlHolder.split(' ')[0]}...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tactical Evidence Dossier Tabs */}
+            <div className="relative z-10 bg-slate-950/90 rounded-xl border border-slate-800 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 no-scrollbar">
+                {[
+                  { id: 'capital', label: '1. Capital & Tools', icon: <Hammer className="w-3.5 h-3.5" /> },
+                  { id: 'registration', label: '2. DOLE Registry', icon: <FileText className="w-3.5 h-3.5" /> },
+                  { id: 'control', label: '3. Right of Control', icon: <Zap className="w-3.5 h-3.5" /> },
+                  { id: 'work', label: '4. Nature of Work', icon: <Search className="w-3.5 h-3.5" /> },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveSensor(t.id as typeof activeSensor);
+                      marioAudio.playClick();
+                    }}
+                    className={`min-h-[34px] px-2.5 py-1 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                      activeSensor === t.id
+                        ? 'bg-emerald-500 text-slate-950 font-black shadow-[0_2px_0_#000]'
+                        : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    {t.icon}
+                    <span>{t.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Sensor Content Display */}
+              <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+                {activeSensor === 'capital' && (
+                  <div className="flex items-start gap-2">
+                    <Hammer className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-slate-400 block font-mono text-[10px] uppercase">Paid-Up Capital &amp; Specialized Equipment:</span>
+                      <strong className="text-white text-sm">{current.capital}</strong>
+                    </div>
+                  </div>
+                )}
+                {activeSensor === 'registration' && (
+                  <div className="flex items-start gap-2">
+                    <FileText className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-slate-400 block font-mono text-[10px] uppercase">DOLE D.O. 174 Registration Status:</span>
+                      <strong className="text-white text-sm">{current.registration}</strong>
+                    </div>
+                  </div>
+                )}
+                {activeSensor === 'control' && (
+                  <div className="flex items-start gap-2">
+                    <Zap className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-slate-400 block font-mono text-[10px] uppercase">Exercise of Control Over Means &amp; Methods:</span>
+                      <strong className="text-white text-sm">{current.controlHolder}</strong>
+                    </div>
+                  </div>
+                )}
+                {activeSensor === 'work' && (
+                  <div className="flex items-start gap-2">
+                    <Search className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-slate-400 block font-mono text-[10px] uppercase">Nature of Work Contracted:</span>
+                      <strong className="text-white text-sm">{current.workRelation}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
+          {/* Interactive Luigi's Mansion Action Buttons */}
           {!answered ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => handleInspect(true)}
-                className="min-h-[48px] h-auto py-2.5 px-3.5 inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer text-xs sm:text-sm leading-tight whitespace-normal text-center"
+                className="min-h-[58px] p-3.5 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 text-white font-black rounded-2xl border-3 border-black shadow-[0_5px_0_#000] active:translate-y-1 active:shadow-[0_2px_0_#000] cursor-pointer text-xs sm:text-sm leading-tight text-center transition-transform"
               >
-                <ShieldAlert className="w-5 h-5 shrink-0" />
-                <span>BUST GHOST! (Labor-Only / Prohibited)</span>
+                <div className="w-8 h-8 rounded-xl bg-black/40 flex items-center justify-center shrink-0 border border-white/20">
+                  <Wind className="w-5 h-5 text-cyan-300" />
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] font-mario text-rose-200 block uppercase">FIRE POLTERGUST VACUUM</span>
+                  <span className="font-display font-extrabold text-sm sm:text-base">BUST GHOST! (Labor-Only / Void)</span>
+                </div>
               </button>
+
               <button
                 type="button"
                 onClick={() => handleInspect(false)}
-                className="min-h-[48px] h-auto py-2.5 px-3.5 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer text-xs sm:text-sm leading-tight whitespace-normal text-center"
+                className="min-h-[58px] p-3.5 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl border-3 border-black shadow-[0_5px_0_#000] active:translate-y-1 active:shadow-[0_2px_0_#000] cursor-pointer text-xs sm:text-sm leading-tight text-center transition-transform"
               >
-                <ShieldCheck className="w-5 h-5 shrink-0" />
-                <span>CERTIFY VALID (Legitimate D.O. 174)</span>
+                <div className="w-8 h-8 rounded-xl bg-black/40 flex items-center justify-center shrink-0 border border-white/20">
+                  <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] font-mario text-emerald-200 block uppercase">STAMP DOLE ACCREDITATION</span>
+                  <span className="font-display font-extrabold text-sm sm:text-base">CERTIFY VALID (Legitimate D.O. 174)</span>
+                </div>
               </button>
             </div>
           ) : (
-            <div className={`p-4 rounded-2xl border-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
-              answered.correct ? 'bg-emerald-950 border-emerald-400' : 'bg-rose-950 border-rose-500'
-            }`}>
-              <div className="space-y-1">
-                <span className="font-mario text-xs text-amber-300 block">
-                  {answered.correct ? 'ACCURATE INSPECTION! +5 COINS' : 'INSPECTION ERROR!'}
-                </span>
-                <p className="text-xs sm:text-sm font-bold text-white">{answered.message}</p>
+            <div
+              className={`p-4 sm:p-5 rounded-2xl border-3 shadow-[0_6px_0_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all ${
+                answered.correct ? 'bg-emerald-950/90 border-emerald-400' : 'bg-rose-950/90 border-rose-500'
+              }`}
+            >
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mario text-xs text-amber-300 block">
+                    {answered.correct ? 'ACCURATE INSPECTION! +5 COINS' : 'INSPECTION ERROR!'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-black/40 text-[10px] font-mono font-bold text-slate-300 border border-white/10 uppercase">
+                    {answered.action === 'bust' ? 'Poltergust Fired' : 'Accreditation Stamped'}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-white leading-relaxed">
+                  {answered.message}
+                </p>
               </div>
               <button
                 type="button"
                 onClick={nextCase}
-                className="h-10 px-5 inline-flex items-center justify-center gap-1.5 bg-amber-400 text-slate-950 font-black rounded-xl border-2 border-black cursor-pointer font-mario text-xs shrink-0 leading-none whitespace-nowrap"
+                className="min-h-[46px] px-6 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer font-mario text-xs shrink-0 whitespace-nowrap"
               >
                 <span>NEXT DOCKET</span>
+                <ArrowDown className="w-4 h-4 -rotate-90" />
               </button>
             </div>
           )}
         </div>
       ) : (
-        <div className="bg-slate-900 rounded-2xl border-3 border-emerald-400 p-8 text-center space-y-4">
-          <Trophy className="w-12 h-12 text-amber-400 mx-auto" />
-          <h3 className="text-2xl font-black font-display text-emerald-300">MANSION CLEARED!</h3>
-          <p className="text-sm font-bold text-slate-200">
-            You accurately adjudicated {score} of {cases.length} D.O. 174 contracting dockets! +15 Bonus Coins!
+        <div className="bg-slate-900/90 rounded-2xl border-3 border-emerald-400 p-8 text-center space-y-4 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+          <Trophy className="w-14 h-14 text-amber-400 mx-auto animate-bounce" />
+          <h3 className="text-2xl sm:text-3xl font-black font-display text-emerald-300">
+            MANSION AUDIT CLEARED!
+          </h3>
+          <p className="text-sm sm:text-base font-bold text-slate-200 max-w-md mx-auto">
+            You accurately adjudicated {score} of {cases.length} D.O. 174 contracting dockets! +15 Bonus Coins awarded to your pouch!
           </p>
           <button
             type="button"
             onClick={resetCases}
-            className="h-11 px-7 inline-flex items-center justify-center gap-2 bg-amber-400 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs leading-none whitespace-nowrap"
+            className="min-h-[48px] px-8 inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border-3 border-black shadow-[0_4px_0_#000] cursor-pointer font-mario text-xs whitespace-nowrap active:translate-y-0.5"
           >
             <RotateCcw className="w-4 h-4 shrink-0" />
-            <span>INSPECT AGAIN</span>
+            <span>INSPECT NEXT MANSION</span>
           </button>
         </div>
       )}
