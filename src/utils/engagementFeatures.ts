@@ -271,7 +271,9 @@ export function filterStudyNotes(
 
 function deriveNoteTitle(content: string): string {
   const firstLine = content.split('\n')[0].trim();
-  return firstLine.length > 44 ? `${firstLine.slice(0, 41)}...` : firstLine;
+  if (firstLine.length <= 100) return firstLine;
+  const lastSpace = firstLine.lastIndexOf(' ', 95);
+  return lastSpace > 30 ? `${firstLine.slice(0, lastSpace).trim()}...` : firstLine.slice(0, 100);
 }
 
 function sortStudyNotes(notes: StudyNoteItem[]): StudyNoteItem[] {

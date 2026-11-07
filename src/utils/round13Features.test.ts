@@ -198,6 +198,11 @@ test('Quiz errors save one by one into StudyNotes without merging or duplicating
   assert.ok(notesAfter1[0].content.includes('Your Answer (Missed): 200% of basic wage'));
   assert.equal(notesAfter1[0].content.includes('\n\n'), false, 'Error notes must have zero blank paragraph breaks');
   assert.ok(notesAfter1[0].title.includes('Mnemonic'), 'Title must reflect mnemonic rule style');
+  assert.equal(notesAfter1[0].title.includes('...'), false, 'Title must not contain cut-off ellipsis');
+  assert.ok(
+    notesAfter1[0].title.includes('Ana worked 10 hours on a Regular Holiday falling on her Rest Day'),
+    'Title must contain complete sentence without cutting words'
+  );
   assert.ok(notesAfter1[0].content.includes('Controlling statutory doctrine:'));
   assert.ok(notesAfter1[0].content.includes('Takeaway distinction:'));
 

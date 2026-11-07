@@ -1304,16 +1304,10 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                             <div
                               key={`${note.id}-line-${lineIdx}`}
                               data-testid={`note-line-${note.id}-${lineIdx}`}
-                              className={`flex items-start justify-between gap-2 rounded-xl px-2.5 py-1.5 transition-colors ${
+                              className={`flex items-start justify-between gap-2 rounded-xl px-2 py-1 transition-colors ${
                                 isStarred
                                   ? 'bg-amber-950/60 border-l-3 border-amber-400 pl-2'
-                                  : isControlling
-                                  ? 'bg-emerald-950/50 border-l-3 border-emerald-400'
-                                  : isTakeaway
-                                  ? 'bg-rose-950/40 border-l-3 border-rose-400'
-                                  : isScenario
-                                  ? 'bg-slate-900/80 border-l-2 border-slate-600'
-                                  : ''
+                                  : 'hover:bg-slate-900/50'
                               }`}
                             >
                               <p
@@ -1321,9 +1315,9 @@ export const StudyNotesDrawer: React.FC<StudyNotesDrawerProps> = ({
                                   isHighlighted
                                     ? 'bg-yellow-200 text-slate-950 font-bold px-1.5 py-0.5 rounded'
                                     : isControlling
-                                    ? 'text-emerald-300 font-semibold'
+                                    ? 'text-slate-100 font-semibold'
                                     : isTakeaway
-                                    ? 'text-rose-200 font-medium'
+                                    ? 'text-slate-200'
                                     : isScenario
                                     ? 'text-slate-300 italic'
                                     : isRef

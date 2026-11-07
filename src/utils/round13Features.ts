@@ -440,15 +440,15 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   const fingerprint = computeQuizErrorFingerprint(input);
   const basis = (input.legalBasis || 'Philippine Labor Code').trim();
   const scenarioClean = (input.scenario || '').trim();
-  // Crisp, mnemonic-style title without aggressive character cuts or mid-word slicing
+
+  // Crisp, complete mnemonic title with ZERO character cutting, mid-word slicing, or truncation
   let cleanHeadline = scenarioClean;
-  if (cleanHeadline.length > 140) {
-    const lastSpace = cleanHeadline.lastIndexOf(' ', 135);
-    cleanHeadline =
-      lastSpace > 40
-        ? `${cleanHeadline.slice(0, lastSpace).trim()}...`
-        : `${cleanHeadline.slice(0, 135).trim()}...`;
+  const sentenceMatch = scenarioClean.match(/^([^.?!]+[.?!])/);
+  if (sentenceMatch && sentenceMatch[1] && sentenceMatch[1].trim().length >= 10) {
+    cleanHeadline = sentenceMatch[1].trim();
   }
+  // Strip any accidental trailing ellipsis from input scenario
+  cleanHeadline = cleanHeadline.replace(/\.{2,}$/, '').trim();
 
   const title = cleanHeadline
     ? `${basis} Mnemonic — ${cleanHeadline}`
@@ -458,7 +458,7 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   const correctRuleClean = (input.correctOptionText || '').trim();
   const chosenClean = (input.chosenOptionText || '').trim();
 
-  // Clean, high-yield mnemonic lines without empty paragraph break padding
+  // Clean, high-yield mnemonic lines formatted just like the example mnemonic notes
   const lines: string[] = [];
 
   // Line 1: Controlling statutory doctrine (primary mnemonic rule)
@@ -486,7 +486,7 @@ export function formatSingleQuizErrorNote(input: QuizErrorNoteInput): {
   lines.push(`${basis} · Ref: ${fingerprint}`);
 
   return {
-    title: title.slice(0, 190),
+    title,
     content: lines.join('\n'),
     worldTag: normalizeQuizWorldToNoteWorldTag(input.worldCode),
     fingerprint,

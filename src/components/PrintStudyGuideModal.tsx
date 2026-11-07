@@ -26,7 +26,6 @@ import {
   Eye,
   Calculator,
   Star,
-  Printer,
 } from 'lucide-react';
 import { ALL_LAW_TOPICS, WORLDS_METADATA, STATUTORY_LEAVES_MASTER_ROWS } from '../data/laborLawData';
 import { LABOR_BENEFITS_MULTIPLIER_LIST } from '../data/multiplierTable';
@@ -47,7 +46,6 @@ import { marioAudio } from '../utils/audio';
 import {
   applyPrintPageRule,
   clearPrintPageRule,
-  invokeBrowserPrint,
 } from '../utils/printHelper';
 import { getPrintFontCssStack } from '../utils/round11Features';
 import {
@@ -245,34 +243,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
     }
   }, [isOpen, documentMode, previewRenderMode]);
 
-  const handleNativePrint = () => {
-    marioAudio.playCoin();
-    const resolvedExtFont = resolveExtendedPrintFont(formatOptions.fontStyle);
-    const fontStack = resolvedExtFont.cssFontFamily;
-    const orientation =
-      documentMode === 'certificate'
-        ? certOrientation
-        : documentMode === 'scorecard'
-        ? 'landscape'
-        : documentMode === 'summary'
-        ? 'portrait'
-        : pageOrientation;
-    const marginCss =
-      documentMode === 'certificate' || documentMode === 'scorecard'
-        ? '6mm'
-        : documentMode === 'summary'
-        ? '6mm 8mm'
-        : orientation === 'landscape'
-        ? '8mm 10mm'
-        : '10mm 12mm';
-
-    invokeBrowserPrint({
-      orientation,
-      marginCss,
-      fontStack,
-    });
-  };
-
   // Allow Escape key to close Print Studio cleanly and Ctrl+P / Cmd+P to invoke clean print
   useEffect(() => {
     if (!isOpen) return;
@@ -282,7 +252,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
         onClose();
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
         e.preventDefault();
-        handleNativePrint();
+        handleDownloadPdf();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -917,17 +887,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
 
               <button
                 type="button"
-                data-testid="print-document-btn"
-                onClick={handleNativePrint}
-                className="min-h-[42px] px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-slate-600 inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform active:translate-y-0.5"
-                title="Print Document (Ctrl+P / Cmd+P)"
-              >
-                <Printer className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="hidden sm:inline">Print</span>
-              </button>
-
-              <button
-                type="button"
                 data-testid="download-active-pdf-btn"
                 onClick={handleDownloadPdf}
                 className="min-h-[42px] flex-1 sm:flex-initial justify-center inline-flex items-center gap-2 px-4 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[0_3px_0_#000] active:translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0 transition-transform"
@@ -1099,45 +1058,6 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       : `${zp}%`}
                   </button>
                 ))}
-              </div>
-
-              {/* Live Sheet vs Generated PDF File Toggle */}
-              <div
-                data-testid="print-preview-render-mode-toggle"
-                className="inline-flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 gap-0.5"
-              >
-                <button
-                  type="button"
-                  data-testid="preview-mode-sheet-btn"
-                  onClick={() => {
-                    marioAudio.playClick();
-                    setPreviewRenderMode('sheet');
-                  }}
-                  className={`min-h-[30px] px-2 py-0.5 rounded-md text-[11px] font-bold cursor-pointer inline-flex items-center gap-1 whitespace-nowrap ${
-                    previewRenderMode === 'sheet'
-                      ? 'bg-sky-400 text-slate-950 font-black'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <Eye className="w-3 h-3 shrink-0" />
-                  <span>Live Sheet</span>
-                </button>
-                <button
-                  type="button"
-                  data-testid="preview-mode-pdf-btn"
-                  onClick={() => {
-                    marioAudio.playClick();
-                    setPreviewRenderMode('pdf');
-                  }}
-                  className={`min-h-[30px] px-2 py-0.5 rounded-md text-[11px] font-bold cursor-pointer inline-flex items-center gap-1 whitespace-nowrap ${
-                    previewRenderMode === 'pdf'
-                      ? 'bg-emerald-400 text-slate-950 font-black'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <FileText className="w-3 h-3 shrink-0" />
-                  <span>PDF File</span>
-                </button>
               </div>
 
               {documentMode === 'certificate' && (
