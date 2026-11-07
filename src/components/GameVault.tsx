@@ -1428,7 +1428,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
               Play any of the {games.length} Arcade Games above to record your personal high scores, coins won, and 1-click Replay shortcuts here!
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 p-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 p-1.5 sm:p-2 overflow-visible">
               {bestPlays.slice(0, 8).map((bp) => (
                 <div
                   key={bp.gameId}
@@ -2058,7 +2058,7 @@ export const GameVault: React.FC<GameVaultProps> = ({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-1 sm:p-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-1.5 sm:p-2.5 overflow-visible">
                   {shelfGames.map((g) => {
                     const isSelected = activeGame === g.id;
                     const starRating = getGameStarRating(g.id);

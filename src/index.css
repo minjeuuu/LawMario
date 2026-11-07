@@ -1012,6 +1012,23 @@ html.dark * {
   }
 }
 
+/* Universal Matrix Table Layout Guarantee (Screen Preview & Direct Print) */
+.print-friendly-matrix {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+
+.print-friendly-matrix th,
+.print-friendly-matrix td {
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* Print & Screen Font Cascade: Apply the chosen print font across all study guide, summary, certificate, scorecard, and diploma containers */
 #printable-study-guide,
 #printable-study-guide *:not(.font-preserve),

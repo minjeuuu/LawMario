@@ -2461,7 +2461,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                       certOrientation === 'portrait'
                         ? 'px-10 py-12 min-h-[1122px]'
                         : 'px-12 py-8 min-h-[794px]'
-                    } border-[10px] rounded-2xl shadow-2xl w-full relative select-text flex flex-col justify-between gap-3 outline outline-3 overflow-hidden`}
+                    } border-[10px] rounded-2xl shadow-2xl w-full relative select-text flex flex-col justify-between gap-3 outline outline-3 overflow-visible box-border`}
                   >
                     {/* Corner Ornaments */}
                     <div className={`absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 ${certThemeClasses.corner} flex items-center justify-center`}>
@@ -2600,7 +2600,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     data-theme={activeExtendedTheme.id}
                     data-font={activeExtendedFont.id}
                     style={activeSheetDynamicStyle}
-                    className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 px-10 py-8 border-[8px] rounded-2xl shadow-2xl w-full min-h-[794px] select-text flex flex-col justify-between gap-5 outline outline-2 overflow-hidden`}
+                    className={`${certThemeClasses.paper} ${bodyFontClass} text-slate-950 px-10 py-8 border-[8px] rounded-2xl shadow-2xl w-full min-h-[794px] select-text flex flex-col justify-between gap-5 outline outline-2 overflow-visible box-border`}
                   >
                     {/* Top Banner */}
                     <div
@@ -2753,7 +2753,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                     style={activeSheetDynamicStyle}
                     className={`${summaryPaperBgClass} text-slate-950 ${marginPaddingClass} ${fontScaleClass} ${
                       isCompact ? 'space-y-4' : 'space-y-7'
-                    } w-full ${bodyFontClass} relative overflow-hidden select-text allow-text-select ${
+                    } w-full ${bodyFontClass} relative overflow-visible box-border select-text allow-text-select ${
                       isLivePreviewMode
                         ? 'rounded-md border-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
                         : 'rounded-2xl shadow-2xl'
@@ -3396,9 +3396,9 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                           return (
                             <article
                               key={topic.id}
-                              className={`border-2 border-slate-300 rounded-2xl bg-white shadow-xs overflow-hidden ${
+                              className={`border-2 border-slate-300 rounded-2xl bg-white shadow-xs ${
                                 isCompact ? 'p-3 sm:p-4 space-y-2.5' : 'p-4 sm:p-5 space-y-3.5'
-                              } break-inside-avoid print:break-inside-avoid my-3.5 ${twoColumnLayout ? 'mb-4 inline-block w-full' : ''} ${
+                              } my-3.5 ${twoColumnLayout ? 'mb-4 inline-block w-full' : ''} ${
                                 formatOptions.pageBreakPerModule && topicIdx > 0
                                   ? 'print-module-break'
                                   : ''
@@ -3407,7 +3407,7 @@ export const PrintStudyGuideModal: React.FC<PrintStudyGuideModalProps> = ({
                               {/* Module Header Strip */}
                               <div className={`${
                                 isCompact ? '-mx-3 -mt-3 px-3 py-2 sm:-mx-4 sm:-mt-4 sm:px-4 sm:py-2.5' : '-mx-4 -mt-4 px-4 py-2.5 sm:-mx-5 sm:-mt-5 sm:px-5 sm:py-3'
-                              } bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 border-b-2 border-slate-200 flex items-start justify-between gap-3 break-inside-avoid`}>
+                              } rounded-t-2xl bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 border-b-2 border-slate-200 flex items-start justify-between gap-3 break-inside-avoid`}>
                                 <div className="space-y-1 min-w-0">
                                   {formatOptions.includeLegalCitations && (
                                     <div className="flex items-center gap-1.5 flex-wrap">

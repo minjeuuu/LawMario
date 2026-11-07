@@ -13,6 +13,7 @@ import {
   deleteModuleSessionBookmarkSlot,
   saveSingleQuizErrorToStudyNotes,
   isQuizErrorSavedInNotes,
+  ALL_17_REGIONAL_WAGE_PRESETS,
   SimpleStorageLike,
 } from './round13Features';
 import { loadStudyNotes } from './engagementFeatures';
@@ -218,4 +219,31 @@ test('Quiz errors save one by one into StudyNotes without merging or duplicating
   assert.equal(notesAfter2.length, 2);
   assert.equal(isQuizErrorSavedInNotes(notesAfter2, err2), true);
   assert.equal(notesAfter2[0].worldTag, 'world4');
+});
+
+test('ALL_17_REGIONAL_WAGE_PRESETS covers all 17 Philippine administrative regions without omissions', () => {
+  assert.equal(ALL_17_REGIONAL_WAGE_PRESETS.length, 17);
+
+  const luzon = ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'luzon');
+  const visayas = ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'visayas');
+  const mindanao = ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'mindanao');
+
+  assert.equal(luzon.length, 8, 'Luzon must have 8 administrative regions (NCR, CAR, Reg I-V)');
+  assert.equal(visayas.length, 3, 'Visayas must have 3 administrative regions (Reg VI-VIII)');
+  assert.equal(mindanao.length, 6, 'Mindanao must have 6 administrative regions (Reg IX-XIII, BARMM)');
+
+  const ids = new Set(ALL_17_REGIONAL_WAGE_PRESETS.map((r) => r.id));
+  assert.equal(ids.size, 17, 'All regional preset IDs must be unique');
+
+  for (const r of ALL_17_REGIONAL_WAGE_PRESETS) {
+    assert.ok(r.rate > 0, `Region ${r.label} must have a positive daily wage rate`);
+    assert.ok(r.label.length > 2, `Region ${r.label} must have a valid label`);
+    assert.ok(r.shortLabel.length > 1, `Region ${r.shortLabel} must have a valid short label`);
+  }
+
+  // Spot-check key rates
+  const ncr = ALL_17_REGIONAL_WAGE_PRESETS.find((r) => r.id === 'ncr');
+  assert.equal(ncr?.rate, 645);
+  const barmm = ALL_17_REGIONAL_WAGE_PRESETS.find((r) => r.id === 'barmm');
+  assert.equal(barmm?.rate, 361);
 });

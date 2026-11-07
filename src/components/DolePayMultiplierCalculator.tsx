@@ -26,6 +26,10 @@ import {
 } from './MarioPrintIcons';
 import { REGIONAL_MINIMUM_WAGES } from '../data/regionalWages';
 import { marioAudio } from '../utils/audio';
+import {
+  ALL_17_REGIONAL_WAGE_PRESETS,
+  RegionalWagePresetItem,
+} from '../utils/round13Features';
 
 interface DolePayMultiplierCalculatorProps {
   isOpen: boolean;
@@ -55,6 +59,7 @@ export const DolePayMultiplierCalculator: React.FC<DolePayMultiplierCalculatorPr
   const [workFactor, setWorkFactor] = useState<WorkFactor>(313);
   const [calcTab, setCalcTab] = useState<'overtime' | 'holidays' | 'benefits'>('overtime');
   const [copiedNotice, setCopiedNotice] = useState<boolean>(false);
+  const [islandFilter, setIslandFilter] = useState<'all' | 'luzon' | 'visayas' | 'mindanao'>('all');
 
   // Overtime & Night Diff hours state
   const [regularHours, setRegularHours] = useState<number>(8);
@@ -442,48 +447,112 @@ Attribution: Corpuz (Main Creator) et al.`;
               </div>
             </div>
 
-            {/* Quick Regional Wage Presets (Grid of 6 - strictly NO horizontal scroll) */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-700/80">
-              <div className="flex items-center justify-between">
+            {/* All 17 Philippine Regional Wage Presets (DOLE RTWPB 2026 - strictly NO horizontal scroll) */}
+            <div className="space-y-2 pt-2.5 border-t border-slate-700/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
                   <MarioCoinIcon size={14} />
-                  <span>DOLE Regional Minimum Wage Presets (RTWPB 2026):</span>
+                  <span>All 17 DOLE Regional Minimum Wages (RTWPB 2026):</span>
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">Tap to set</span>
+
+                {/* Instant Select Dropdown */}
+                <div className="flex items-center gap-1.5 text-xs">
+                  <label htmlFor="dole-region-quick-select" className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+                    Select Region:
+                  </label>
+                  <select
+                    id="dole-region-quick-select"
+                    data-testid="dole-region-quick-select"
+                    value={dailyWage}
+                    onChange={(e) => {
+                      setDailyWage(Number(e.target.value));
+                      marioAudio.playPowerUp();
+                    }}
+                    className="bg-slate-900 text-amber-300 border-2 border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold font-mono focus:border-amber-400 focus:outline-none cursor-pointer"
+                  >
+                    <optgroup label="Luzon (8 Regions)">
+                      {ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'luzon').map((r) => (
+                        <option key={r.id} value={r.rate}>
+                          {r.label} — ₱{r.rate}/day
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Visayas (3 Regions)">
+                      {ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'visayas').map((r) => (
+                        <option key={r.id} value={r.rate}>
+                          {r.label} — ₱{r.rate}/day
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Mindanao (6 Regions)">
+                      {ALL_17_REGIONAL_WAGE_PRESETS.filter((r) => r.islandGroup === 'mindanao').map((r) => (
+                        <option key={r.id} value={r.rate}>
+                          {r.label} — ₱{r.rate}/day
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+
+              {/* Island Group Filter Pills */}
+              <div className="flex items-center gap-1.5 text-[10px] font-bold">
                 {[
-                  { label: 'NCR (Manila)', sub: 'Highest', rate: 645 },
-                  { label: 'Region IV-A', sub: 'Calabarzon', rate: 520 },
-                  { label: 'Region III', sub: 'Central Luzon', rate: 500 },
-                  { label: 'Region VII', sub: 'Central Visayas', rate: 468 },
-                  { label: 'Region XI', sub: 'Davao', rate: 462 },
-                  { label: 'BARMM', sub: 'Bangsamoro', rate: 361 },
-                ].map((preset) => {
+                  { id: 'all', label: 'All 17 Regions' },
+                  { id: 'luzon', label: 'Luzon (8)' },
+                  { id: 'visayas', label: 'Visayas (3)' },
+                  { id: 'mindanao', label: 'Mindanao (6)' },
+                ].map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => {
+                      setIslandFilter(g.id as 'all' | 'luzon' | 'visayas' | 'mindanao');
+                      marioAudio.playClick();
+                    }}
+                    className={`px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                      islandFilter === g.id
+                        ? 'bg-amber-400 text-slate-950 font-black border-black shadow-[0_2px_0_#000]'
+                        : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white hover:border-slate-500'
+                    }`}
+                  >
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Grid of Regional Wage Cards (Strictly NO horizontal scroll, wraps gracefully) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                {ALL_17_REGIONAL_WAGE_PRESETS.filter(
+                  (r) => islandFilter === 'all' || r.islandGroup === islandFilter
+                ).map((preset) => {
                   const isSelected = dailyWage === preset.rate;
                   return (
                     <button
-                      key={preset.label}
+                      key={preset.id}
                       type="button"
+                      data-testid={`dole-region-btn-${preset.id}`}
                       onClick={() => {
                         setDailyWage(preset.rate);
                         marioAudio.playPowerUp();
                       }}
                       className={`p-2 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-amber-400 text-slate-950 font-black border-black shadow-[0_3px_0_#000]'
+                          ? 'bg-amber-400 text-slate-950 font-black border-black shadow-[0_3px_0_#000] scale-[1.02]'
                           : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-400/80 hover:text-white'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-bold truncate leading-tight">{preset.label}</span>
+                        <span className="text-[11px] font-bold truncate leading-tight" title={preset.label}>
+                          {preset.shortLabel}
+                        </span>
                         {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 shrink-0" />}
                       </div>
                       <div className="flex items-baseline justify-between gap-1 mt-1 font-mono">
                         <span className={`text-xs font-black ${isSelected ? 'text-slate-950' : 'text-amber-300'}`}>
                           ₱{preset.rate}
                         </span>
-                        <span className={`text-[9px] ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>
+                        <span className={`text-[8.5px] truncate max-w-[55px] ${isSelected ? 'text-slate-900' : 'text-slate-400'}`} title={preset.sub}>
                           {preset.sub}
                         </span>
                       </div>

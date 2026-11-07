@@ -654,3 +654,42 @@ export function computeSectionReviewStatus(params: {
     reviewLabel: isOverdue ? `Overdue (${days}d ago)` : `Reviewed (${days}d ago)`,
   };
 }
+
+// ============================================================================
+// 6. ALL 17 PHILIPPINE ADMINISTRATIVE REGIONS MINIMUM WAGE PRESETS (DOLE RTWPB 2026)
+// ============================================================================
+
+export interface RegionalWagePresetItem {
+  id: string;
+  label: string;
+  shortLabel: string;
+  sub: string;
+  rate: number;
+  islandGroup: 'luzon' | 'visayas' | 'mindanao';
+  regionCode: string;
+}
+
+export const ALL_17_REGIONAL_WAGE_PRESETS: RegionalWagePresetItem[] = [
+  // LUZON (8 Regions)
+  { id: 'ncr', label: 'NCR (Metro Manila)', shortLabel: 'NCR', sub: 'National Capital', rate: 645, islandGroup: 'luzon', regionCode: 'NCR' },
+  { id: 'car', label: 'CAR (Cordillera)', shortLabel: 'CAR', sub: 'Baguio & Pines', rate: 505, islandGroup: 'luzon', regionCode: 'CAR' },
+  { id: 'r1', label: 'Region I (Ilocos)', shortLabel: 'Reg I', sub: 'Ilocos & Pangasinan', rate: 505, islandGroup: 'luzon', regionCode: 'Region I' },
+  { id: 'r2', label: 'Region II (Cagayan Valley)', shortLabel: 'Reg II', sub: 'Cagayan & Isabela', rate: 500, islandGroup: 'luzon', regionCode: 'Region II' },
+  { id: 'r3', label: 'Region III (Central Luzon)', shortLabel: 'Reg III', sub: 'Pampanga & Bulacan', rate: 515, islandGroup: 'luzon', regionCode: 'Region III' },
+  { id: 'r4a', label: 'Region IV-A (CALABARZON)', shortLabel: 'Reg IV-A', sub: 'Cavite & Laguna', rate: 520, islandGroup: 'luzon', regionCode: 'Region IV-A' },
+  { id: 'r4b', label: 'Region IV-B (MIMAROPA)', shortLabel: 'Reg IV-B', sub: 'Mindoro & Palawan', rate: 455, islandGroup: 'luzon', regionCode: 'Region IV-B' },
+  { id: 'r5', label: 'Region V (Bicol Region)', shortLabel: 'Reg V', sub: 'Albay & Naga', rate: 455, islandGroup: 'luzon', regionCode: 'Region V' },
+
+  // VISAYAS (3 Regions)
+  { id: 'r6', label: 'Region VI (Western Visayas)', shortLabel: 'Reg VI', sub: 'Iloilo & Bacolod', rate: 520, islandGroup: 'visayas', regionCode: 'Region VI' },
+  { id: 'r7', label: 'Region VII (Central Visayas)', shortLabel: 'Reg VII', sub: 'Cebu & Bohol', rate: 468, islandGroup: 'visayas', regionCode: 'Region VII' },
+  { id: 'r8', label: 'Region VIII (Eastern Visayas)', shortLabel: 'Reg VIII', sub: 'Tacloban & Samar', rate: 440, islandGroup: 'visayas', regionCode: 'Region VIII' },
+
+  // MINDANAO (6 Regions)
+  { id: 'r9', label: 'Region IX (Zamboanga)', shortLabel: 'Reg IX', sub: 'Zamboanga City', rate: 451, islandGroup: 'mindanao', regionCode: 'Region IX' },
+  { id: 'r10', label: 'Region X (Northern Mindanao)', shortLabel: 'Reg X', sub: 'CDO & Bukidnon', rate: 485, islandGroup: 'mindanao', regionCode: 'Region X' },
+  { id: 'r11', label: 'Region XI (Davao Region)', shortLabel: 'Reg XI', sub: 'Metro Davao', rate: 525, islandGroup: 'mindanao', regionCode: 'Region XI' },
+  { id: 'r12', label: 'Region XII (SOCCSKSARGEN)', shortLabel: 'Reg XII', sub: 'GenSan & Koronadal', rate: 443, islandGroup: 'mindanao', regionCode: 'Region XII' },
+  { id: 'r13', label: 'Region XIII (Caraga)', shortLabel: 'Reg XIII', sub: 'Butuan & Surigao', rate: 455, islandGroup: 'mindanao', regionCode: 'Region XIII' },
+  { id: 'barmm', label: 'BARMM (Bangsamoro)', shortLabel: 'BARMM', sub: 'Cotabato & BARMM', rate: 361, islandGroup: 'mindanao', regionCode: 'BARMM' },
+];

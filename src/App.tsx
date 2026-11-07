@@ -5334,7 +5334,7 @@ export default function App() {
         className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 border-t-2 border-amber-400 px-1 py-1 [@media(max-height:500px)]:py-0.5 grid grid-cols-5 w-full gap-1 lg:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.6)] select-none safe-bottom-dock print:hidden"
       >
         {(() => {
-          const defaultTabs = [
+          const bottomTabs = [
             { id: 'map', label: 'Map', icon: <Compass className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
             { id: 'modules', label: 'Modules', icon: <BookOpen className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
             { id: 'flashcards', label: 'Cards', icon: <HelpCircle className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
@@ -5342,25 +5342,13 @@ export default function App() {
             { id: 'vault', label: 'Arcade', icon: <Gamepad2 className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
           ];
 
-          const extraTabsMap: Record<string, { label: string; icon: React.ReactNode }> = {
-            calculator: { label: 'Calc', icon: <Calculator className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-            shop: { label: 'Shop', icon: <ShoppingBag className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-            wages_matrix: { label: 'Wages', icon: <LayoutGrid className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-            citations: { label: 'Citations', icon: <Scale className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-            holidays: { label: 'Holidays', icon: <Calendar className="w-5 h-5 [@media(max-height:500px)]:w-4 [@media(max-height:500px)]:h-4 shrink-0" /> },
-          };
-
-          const isDefaultTab = defaultTabs.some((t) => t.id === activeTab);
-          const tabsToRender = isDefaultTab || !extraTabsMap[activeTab]
-            ? defaultTabs
-            : [...defaultTabs.slice(0, 4), { id: activeTab, ...extraTabsMap[activeTab] }];
-
-          return tabsToRender.map((tab) => {
+          return bottomTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 type="button"
+                data-testid={`mobile-bottom-tab-${tab.id}`}
                 onClick={() => {
                   setActiveTab(tab.id);
                   marioAudio.playTabSwitch();
